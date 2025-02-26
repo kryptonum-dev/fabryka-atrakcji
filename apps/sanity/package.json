@@ -1,0 +1,33 @@
+{
+  "name": "sanity-app",
+  "private": true,
+  "version": "1.0.0",
+  "main": "package.json",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "deploy-graphql": "sanity graphql deploy"
+  },
+  "keywords": [
+    "sanity"
+  ],
+  "dependencies": {
+    "@sanity/vision": "^3.77.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sanity": "^3.75.0",
+    "sanity-plugin-iframe-pane": "^3.2.1",
+    "sanity-plugin-media": "^2.3.2",
+    "styled-components": "^6.1.15"
+  },
+  "devDependencies": {
+    "@sanity/eslint-config-studio": "^5.0.1",
+    "@types/react": "^19.0.10",
+    "eslint": "^9.21.0",
+    "prettier": "^3.5.2",
+    "typescript": "^5.7.3"
+  }
+}

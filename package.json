@@ -1,0 +1,26 @@
+{
+  "name": "fabryka-atrakcji",
+  "private": true,
+  "author": {
+    "name": "Oliwier Sellig",
+    "email": "oliwier@kryptonum.eu",
+    "url": "https://kryptonum.eu/pl"
+  },
+  "scripts": {
+    "build": "dotenv -- turbo build",
+    "dev": "dotenv -- turbo dev",
+    "lint": "dotenv -- turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0",
+    "turbo": "^2.4.4"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "bun@1.2.4",
+  "workspaces": [
+    "apps/*"
+  ]
+}
