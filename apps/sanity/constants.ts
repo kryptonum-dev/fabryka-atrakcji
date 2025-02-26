@@ -3,14 +3,14 @@
  * This constant is used for constructing full URLs and determining external links.
  * @constant
  */
-export const DOMAIN: string = 'http://localhost:4321/'
+export const DOMAIN: string = 'https://fabryka-atrakcji.vercel.app/'
 
 /**
  * Domain used for preview functionality in development environment.
  * This constant defines the URL where content previews are rendered.
  * @constant
  */
-export const PREVIEW_DOMAIN: string = 'http://localhost:4321/'
+export const PREVIEW_DOMAIN: string = 'https://fabryka-atrakcji-git-dev-kryptonum.vercel.app/'
 
 /**
  * Sanity project identifier.
