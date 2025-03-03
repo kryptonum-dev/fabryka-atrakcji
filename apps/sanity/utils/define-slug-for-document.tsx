@@ -35,8 +35,8 @@ export const defineSlugForDocument = ({
         defineField({
           name: 'name',
           type: 'string',
-          title: 'Name',
-          description: 'The name of the document, used for display in the Breadcrumbs.',
+          title: 'Nazwa',
+          description: 'Nazwa dokumentu, używana do wyświetlania w ścieżce nawigacyjnej.',
           validation: (Rule) => Rule.required(),
         }),
       ]),
@@ -49,12 +49,12 @@ export const defineSlugForDocument = ({
     },
     description: (
       <span style={{ color: 'var(--card-fg-color)' }}>
-        Slug is a unique identifier for the document, used for SEO and links.
+        Slug to unikalny identyfikator dokumentu, używany do SEO i linków.
         {isProduction && slugs && (
           <>
             {' '}
             <strong>
-              <em>That slug can&apos;t be changed.</em>
+              <em>Ten slug nie może być zmieniony.</em>
             </strong>
           </>
         )}
@@ -80,12 +80,12 @@ export const defineSlugForDocument = ({
           const language = (context.parent as { language: (typeof LANGUAGES)[number]['id'] })?.language ?? 'pl'
           const currentPrefix = prefixes?.[language] ?? ''
           if (currentPrefix && value?.current && !value.current.startsWith(currentPrefix)) {
-            return `Slug should start with ${currentPrefix}`
+            return `Slug powinien zaczynać się od ${currentPrefix}`
           }
 
           if (slugs) {
             if (value?.current !== slugs[language]) {
-              return `Slug must be exactly "${slugs[language]}"`
+              return `Slug musi być dokładnie "${slugs[language]}"`
             }
             return true
           }
@@ -93,7 +93,7 @@ export const defineSlugForDocument = ({
           if (prefixes && value?.current) {
             const contentAfterPrefix = value.current.replace(currentPrefix, '').trim()
             if (!contentAfterPrefix || contentAfterPrefix === '/') {
-              return `Slug must contain content after ${currentPrefix}. A single slash is not sufficient.`
+              return `Slug musi zawierać treść po ${currentPrefix}. Sam ukośnik nie wystarczy.`
             }
           }
 
@@ -101,7 +101,7 @@ export const defineSlugForDocument = ({
             value?.current &&
             value.current.replace(currentPrefix, '') !== slugify(value.current.replace(currentPrefix, ''))
           ) {
-            return true
+            return 'W slugu jest literówka. Pamiętaj, że slug może zawierać tylko małe litery, cyfry i myślniki.'
           }
           return true
         }).required()),

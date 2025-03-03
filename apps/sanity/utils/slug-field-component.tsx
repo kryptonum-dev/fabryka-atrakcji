@@ -291,7 +291,9 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
                   ref={pathSegmentInputRef}
                   onBlur={handleBlur}
                   disabled={readOnly}
-                  placeholder={segments.length > 1 && segments[segments.length - 1] === '' ? 'Enter page name' : ''}
+                  placeholder={
+                    segments.length > 1 && segments[segments.length - 1] === '' ? 'Wprowadź nazwę strony' : ''
+                  }
                 />
               </Box>
             </Flex>
@@ -299,7 +301,7 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
               <GenerateButton
                 icon={SyncIcon}
                 onClick={generateSlug}
-                title="Generate slug from name"
+                title="Wygeneruj slug z nazwy"
                 mode="bleed"
                 tone="primary"
                 padding={2}
@@ -312,7 +314,7 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
             <UnlockButton
               icon={EditIcon}
               onClick={unlockFolder}
-              title="Edit full path"
+              title="Edytuj pełną ścieżkę"
               mode="bleed"
               tone="primary"
               padding={2}
@@ -343,7 +345,7 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
             <GenerateButton
               icon={SyncIcon}
               onClick={generateSlug}
-              title="Generate slug from name"
+              title="Wygeneruj slug z nazwy"
               mode="bleed"
               tone="primary"
               padding={2}
@@ -399,7 +401,7 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
             <CopyButton
               icon={CopyIcon}
               onClick={() => navigator.clipboard.writeText(`${presentationOriginUrl ?? ''}${localizedPathname}`)}
-              title="Copy link"
+              title="Kopiuj link"
               mode="bleed"
               tone="primary"
               fontSize={1}
