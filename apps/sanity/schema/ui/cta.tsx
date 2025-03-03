@@ -1,11 +1,11 @@
-import { defineField, defineType } from "sanity"
-import { Tooltip, Box, Text, } from '@sanity/ui';
-import { isValidUrl } from "../../utils/is-valid-url";
-import { InternalLinkableTypes } from "../../structure/internal-linkable-types";
+import { Box, Text, Tooltip } from '@sanity/ui'
+import { defineField, defineType } from 'sanity'
+import { InternalLinkableTypes } from '../../structure/internal-linkable-types'
+import { isValidUrl } from '../../utils/is-valid-url'
 
-const name = 'cta';
-const title = 'Call To Action (CTA)';
-const icon = () => '🗣️';
+const name = 'cta'
+const title = 'Wezwanie do działania (CTA)'
+const icon = () => '👆'
 
 export default defineType({
   name,
@@ -16,82 +16,93 @@ export default defineType({
     defineField({
       name: 'text',
       type: 'string',
-      title: 'Text',
-      description: 'The text that will be displayed on the button.',
-      validation: Rule => Rule.required(),
+      title: 'Tekst',
+      description: 'Tekst, który będzie wyświetlany na przycisku.',
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'theme',
       type: 'string',
-      title: 'Theme',
+      title: 'Motyw',
       description: (
         <>
-          <em>Primary</em> (main button) or <em>Secondary</em> (less important)
+          <em>Główny</em> (główny przycisk) lub <em>Drugorzędny</em> (mniej ważny)
         </>
       ),
       options: {
-        list: ['primary', 'secondary'],
+        list: [
+          { title: 'Główny', value: 'primary' },
+          { title: 'Drugorzędny', value: 'secondary' },
+        ],
         layout: 'radio',
         direction: 'horizontal',
       },
-      initialValue: 'primary',
-      validation: Rule => Rule.required(),
+      validation: (Rule) => Rule.required(),
       fieldset: 'style',
     }),
     defineField({
       name: 'linkType',
       type: 'string',
-      title: 'Type',
+      title: 'Typ',
       description: (
         <>
-          <em>External</em> (other websites) or <em>Internal</em> (within your site)
+          <em>Zewnętrzny</em> (inne strony) lub <em>Wewnętrzny</em> (w obrębie Twojej strony)
         </>
       ),
       options: {
-        list: ['external', 'internal'],
+        list: [
+          { title: 'Zewnętrzny', value: 'external' },
+          { title: 'Wewnętrzny', value: 'internal' },
+        ],
         layout: 'radio',
         direction: 'horizontal',
       },
-      initialValue: 'external',
-      validation: Rule => Rule.required(),
+      validation: (Rule) => Rule.required(),
       fieldset: 'style',
     }),
     defineField({
       name: 'external',
       type: 'string',
       title: 'URL',
-      description: 'Specify the full URL. Ensure it starts with "https://" and is a valid URL.',
+      description: 'Podaj pełny adres URL. Upewnij się, że zaczyna się od "https://" i jest poprawnym adresem URL.',
       hidden: ({ parent }) => parent?.linkType !== 'external',
       validation: (Rule) => [
         Rule.custom((value, { parent }) => {
-          const type = (parent as { type?: string })?.type;
-          if (type === 'external') {
-            if (!value) return "URL is required";
+          const linkType = (parent as { linkType?: string })?.linkType
+          if (linkType === 'external') {
+            if (!value) return 'URL jest wymagany'
             if (!value.startsWith('https://')) {
-              return 'External link must start with the "https://" protocol';
+              return 'Link zewnętrzny musi zaczynać się od protokołu "https://"'
             }
-            if (!isValidUrl(value)) return 'Invalid URL';
+            if (!isValidUrl(value)) return 'Nieprawidłowy URL'
           }
-          return true;
+          return true
         }),
       ],
     }),
     defineField({
       name: 'internal',
       type: 'reference',
-      title: 'Internal reference to page',
-      description: 'Select an internal page to link to.',
+      title: 'Wewnętrzne odniesienie do strony',
+      description: 'Wybierz wewnętrzną stronę, do której chcesz linkować.',
       to: InternalLinkableTypes,
       options: {
         disableNew: true,
-        filter: 'defined(slug.current)',
+        filter: ({ document }) => {
+          const language = (document as { language?: string })?.language
+          return {
+            filter: 'defined(slug.current) && language == $lang',
+            params: { lang: language },
+          }
+        },
       },
       hidden: ({ parent }) => parent?.linkType !== 'internal',
       validation: (rule) => [
         rule.custom((value, { parent }) => {
-          const type = (parent as { type?: string })?.type;
-          if (type === 'internal' && !value?._ref) return "You have to choose internal page to link to.";
-          return true;
+          const linkType = (parent as { linkType?: string })?.linkType
+          if (linkType === 'internal' && !value?._ref)
+            return 'Musisz wybrać wewnętrzną stronę, do której chcesz linkować.'
+          return true
         }),
       ],
     }),
@@ -99,38 +110,44 @@ export default defineType({
   fieldsets: [
     {
       name: 'style',
-      title: 'Style',
+      title: 'Styl',
       options: {
         columns: 2,
-      }
+      },
     },
   ],
   preview: {
     select: {
       title: 'text',
       theme: 'theme',
-      type: 'type',
+      linkType: 'linkType',
       external: 'external',
       internal: 'internal.slug.current',
     },
-    prepare({ title, theme, type, external, internal }) {
+    prepare({ title, theme, linkType, external, internal }) {
+      const isExternal = linkType === 'external'
+      const icon = isExternal ? '🌐' : '🔗'
       return {
         title: `${title}`,
-        subtitle: type === 'external' ? external : internal,
-        media: () => <Tooltip
-          content={
-            <Box padding={1}>
-              <Text size={1}>
-                {theme === 'primary' ? 'Primary button' : 'Secondary button'}
-              </Text>
-            </Box>
-          }
-          placement="top"
-          portal
-        >
-          <span>{icon()}</span>
-        </Tooltip>
-      };
+        subtitle: isExternal ? external : internal,
+        media: () => (
+          <Tooltip
+            content={
+              <Box padding={1}>
+                <Text size={1}>
+                  {icon} {isExternal ? 'Link zewnętrzny' : 'Link wewnętrzny'}
+                  &nbsp;|&nbsp;
+                  {theme === 'primary' ? 'Przycisk główny' : 'Przycisk drugorzędny'}
+                </Text>
+              </Box>
+            }
+            placement="top"
+            portal
+          >
+            <span>{icon}</span>
+          </Tooltip>
+        ),
+      }
     },
   },
-});
+})

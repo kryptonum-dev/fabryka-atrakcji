@@ -5,5 +5,9 @@
  * @type {{type: string}[]}
  */
 export const InternalLinkableTypes: { type: string }[] = [
+  // Singleton document types
   { type: 'Index_Page' },
-];
+
+  // Collection document types
+  { type: 'Pages_Collection' },
+]

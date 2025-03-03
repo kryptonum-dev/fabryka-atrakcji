@@ -33,9 +33,11 @@ export default defineType({
   preview: {
     select: {
       title: 'name',
+      slug: 'slug.current',
     },
-    prepare: ({ title }) => ({
+    prepare: ({ title, slug }) => ({
       title,
+      subtitle: slug,
       icon,
     }),
   },
