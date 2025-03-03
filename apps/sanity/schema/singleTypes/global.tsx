@@ -1,4 +1,6 @@
-import { defineField, defineType } from 'sanity';
+import { defineField, defineType } from 'sanity'
+import { LANGUAGES } from '../../structure/languages'
+import { languageLabel } from '../../utils/language-label'
 
 export default defineType({
   name: 'global',
@@ -7,10 +9,16 @@ export default defineType({
   icon: () => '🌍',
   fields: [
     defineField({
+      name: 'language',
+      type: 'string',
+      readOnly: true,
+      hidden: true,
+    }),
+    defineField({
       name: 'email',
       type: 'string',
       title: 'Email',
-      validation: Rule => Rule.required().email(),
+      validation: (Rule) => Rule.required().email(),
     }),
     defineField({
       name: 'tel',
@@ -27,25 +35,25 @@ export default defineType({
           name: 'instagram',
           type: 'url',
           title: 'Instagram',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
         }),
         defineField({
           name: 'facebook',
           type: 'url',
           title: 'Facebook',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
         }),
         defineField({
           name: 'tiktok',
           type: 'url',
           title: 'TikTok',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
         }),
         defineField({
           name: 'linkedin',
           type: 'url',
           title: 'LinkedIn',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
         }),
       ],
     }),
@@ -58,11 +66,12 @@ export default defineType({
           name: 'img',
           type: 'image',
           title: 'Social Share Image',
-          description: 'Social Share Image is visible when sharing website on social media. The dimensions of the image should be 1200x630px. For maximum compatibility, use JPG or PNG formats, as WebP may not be supported everywhere.',
-          validation: Rule => Rule.required()
+          description:
+            'Social Share Image is visible when sharing website on social media. The dimensions of the image should be 1200x630px. For maximum compatibility, use JPG or PNG formats, as WebP may not be supported everywhere.',
+          validation: (Rule) => Rule.required(),
         }),
       ],
-      validation: Rule => Rule.required(),
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'OrganizationSchema',
@@ -87,7 +96,7 @@ export default defineType({
           type: 'string',
           title: 'Name',
           description: 'Enter the name of your organization as you want it to appear in search results.',
-          validation: Rule => Rule.required(),
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'description',
@@ -95,15 +104,23 @@ export default defineType({
           rows: 3,
           title: 'Description',
           description: 'A brief description of your organization that will appear in search results.',
-          validation: Rule => Rule.required(),
+          validation: (Rule) => Rule.required(),
         }),
       ],
     }),
   ],
   preview: {
-    prepare: () => ({
-      title: 'Global settings',
-    })
-  }
-})
+    select: {
+      language: 'language',
+    },
+    prepare: ({ language }) => {
+      const languageObj = LANGUAGES.find((lang) => lang.id === language)
+      const Flag = languageObj?.flag
 
+      return {
+        title: languageLabel(language),
+        media: Flag ? <Flag /> : null,
+      }
+    },
+  },
+})
