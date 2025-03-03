@@ -22,6 +22,7 @@ export const createSingleton = ({ S, name }: { S: StructureBuilder; name: string
     options: { documentPreview?: boolean }
     fields?: Array<{ name: string; type: string }>
   }
+
   const documentPreview = options?.documentPreview ?? false
   const isInternationalized = fields.some((field) => field.name === 'language')
 

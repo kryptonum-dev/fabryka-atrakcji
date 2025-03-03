@@ -1,12 +1,12 @@
-import { CogIcon } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
-import { getLanguagePreview } from '../../structure/languages'
+import { LANGUAGES } from '../../structure/languages'
+import { languageLabel } from '../../utils/language-label'
 
 export default defineType({
-  name: 'global',
+  name: 'settings',
   type: 'document',
-  title: 'Ustawienia globalne',
-  icon: CogIcon,
+  title: 'Global Settings',
+  icon: () => '🌍',
   fields: [
     defineField({
       name: 'language',
@@ -114,7 +114,13 @@ export default defineType({
       language: 'language',
     },
     prepare: ({ language }) => {
-      return getLanguagePreview({ title: 'Ustawienia globalne', languageId: language })
+      const languageObj = LANGUAGES.find((lang) => lang.id === language)
+      const Flag = languageObj?.flag
+
+      return {
+        title: languageLabel(language),
+        media: Flag ? <Flag /> : null,
+      }
     },
   },
 })

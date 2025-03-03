@@ -2,13 +2,16 @@
 import global from '../schema/singleTypes/global'
 import redirects from '../schema/singleTypes/redirects'
 import Index_Page from '../schema/singleTypes/Index_Page'
+import navbar from '../schema/singleTypes/navbar'
+import footer from '../schema/singleTypes/footer'
 
-const singleTypes = [global, redirects, Index_Page]
+const singleTypes = [global, redirects, Index_Page, navbar, footer]
 
 // Collections Types
 import Faq_Collection from '../schema/collectionTypes/Faq_Collection'
+import Pages_Collection from '../schema/collectionTypes/Pages_Collection'
 
-const collectionTypes = [Faq_Collection]
+const collectionTypes = [Faq_Collection, Pages_Collection]
 
 // Components
 import Components from '../schema/Components'

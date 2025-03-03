@@ -1,4 +1,5 @@
 import React from 'react'
+import { languageLabel } from '../utils/language-label'
 
 // Define the language type
 type Language = {
@@ -24,3 +25,28 @@ export const LANGUAGES: Language[] = [
     flag: PolandFlag,
   },
 ]
+
+/**
+ * Returns the Flag component for a given language ID
+ * @param languageId The language ID to get the flag for
+ * @returns The Flag component or null if not found
+ */
+export const getLanguageFlag = (languageId: string): React.FC | null => {
+  const language = LANGUAGES.find((lang) => lang.id === languageId)
+  return language?.flag || null
+}
+
+/**
+ * Returns an object with title and media properties for a given language ID
+ * @param languageId The language ID to get the preview for
+ * @returns Object with title and media properties for use in Sanity preview
+ */
+export const getLanguagePreview = ({ title, languageId }: { title: string; languageId: 'pl' | 'en' }) => {
+  const Flag = getLanguageFlag(languageId)
+
+  return {
+    title,
+    subtitle: languageLabel(languageId),
+    media: Flag ? <Flag /> : null,
+  }
+}

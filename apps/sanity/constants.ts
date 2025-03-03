@@ -10,7 +10,7 @@ export const DOMAIN: string = 'https://fabryka-atrakcji.vercel.app/'
  * This constant defines the URL where content previews are rendered.
  * @constant
  */
-export const PREVIEW_DOMAIN: string = 'https://fabryka-atrakcji-git-dev-kryptonum.vercel.app/'
+export const PREVIEW_DOMAIN: string = 'https://fabryka-atrakcji-git-dev-kryptonum.vercel.app'
 
 /**
  * Sanity project identifier.

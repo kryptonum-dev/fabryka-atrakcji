@@ -1,18 +1,30 @@
-import { defineField, defineType } from "sanity"
-import { defineSlugForDocument } from "../../utils/define-slug-for-document";
+import { House } from 'lucide-react'
+import { defineField, defineType } from 'sanity'
+import { getLanguagePreview } from '../../structure/languages'
+import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 
-const name = 'Index_Page';
-const title = 'Homepage';
-const slug = '/';
+const name = 'Index_Page'
+const title = 'Strona Główna'
 
 export default defineType({
   name: name,
   type: 'document',
   title: title,
-  icon: () => '🏠',
+  icon: House,
   options: { documentPreview: true },
   fields: [
-    ...defineSlugForDocument({ slug: slug }),
+    defineField({
+      name: 'language',
+      type: 'string',
+      readOnly: true,
+      hidden: true,
+    }),
+    ...defineSlugForDocument({
+      slugs: {
+        pl: '/pl',
+        en: '/en',
+      },
+    }),
     defineField({
       name: 'components',
       type: 'components',
@@ -32,9 +44,12 @@ export default defineType({
     },
   ],
   preview: {
-    prepare: () => ({
-      title: title,
-      subtitle: slug
-    })
-  }
-});
+    select: {
+      title: 'name',
+      language: 'language',
+    },
+    prepare: ({ title, language }) => {
+      return getLanguagePreview({ title, languageId: language })
+    },
+  },
+})

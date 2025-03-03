@@ -1,8 +1,9 @@
 import { defineField, defineType } from 'sanity'
 import { toPlainText } from '../../utils/to-plain-text'
+import { MessageCircleQuestion } from 'lucide-react'
 
-const title = 'Zbiór elementów FAQ'
-const icon = () => '❓'
+const title = 'Elementy FAQ'
+const icon = MessageCircleQuestion
 
 export default defineType({
   name: 'Faq_Collection',

@@ -18,6 +18,7 @@
     "@sanity/assist": "^3.2.0",
     "@sanity/document-internationalization": "^3.3.1",
     "@sanity/vision": "^3.77.2",
+    "lucide-react": "^0.477.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sanity": "^3.75.0",

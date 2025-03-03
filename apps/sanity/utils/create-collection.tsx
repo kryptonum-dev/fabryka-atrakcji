@@ -1,5 +1,6 @@
+import React from 'react'
 import type { StructureBuilder } from 'sanity/structure'
-import { LANGUAGES } from '../structure/languages'
+import { LANGUAGES, getLanguageFlag } from '../structure/languages'
 import { schemaTypes } from '../structure/schema-types'
 import { Preview } from './preview'
 
@@ -42,20 +43,21 @@ export const createCollection = (S: StructureBuilder, name: string) => {
         ? S.list()
             .title(title)
             .items(
-              LANGUAGES.map((lang) =>
-                S.listItem()
-                  .title(`${title} (${lang.title})`)
-                  .icon(icon)
+              LANGUAGES.map((lang) => {
+                const Flag = lang.flag
+                return S.listItem()
+                  .title(lang.title)
+                  .icon(() => (Flag ? <Flag /> : icon))
                   .child(
                     S.documentTypeList(name)
-                      .title(`${title} (${lang.title})`)
+                      .title(lang.title)
                       .filter('_type == $type && language == $lang')
                       .params({ type: name, lang: lang.id })
                       .apiVersion('2024-12-31')
                       .child((documentId) => S.document().documentId(documentId).schemaType(name).views(views))
                       .initialValueTemplates([S.initialValueTemplateItem(`${name}-${lang.id}`)])
                   )
-              )
+              })
             )
         : S.documentTypeList(name)
             .defaultLayout('detail')
