@@ -1,0 +1,45 @@
+---
+import BaseButton, { type Props as ButtonDataProps } from './Button.tsx'
+
+type Props = ButtonDataProps
+
+const { ...props } = Astro.props
+
+const isPrimary = props?.theme === 'primary'
+
+const svgId = `arrow-icon-${Math.random().toString(36).slice(2, 9)}`
+
+console.log(props)
+---
+
+<BaseButton {...props}>
+  {
+    isPrimary ? (
+      <div class="box">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" id={svgId} width="20" height="20" fill="none" viewBox="0 0 20 20">
+            <path
+              stroke="#DB2A50"
+              stroke-linecap="round"
+              stroke-width="1.5"
+              d="M4.164 10h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18L10.832 15"
+            />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" id={svgId} width="20" height="20" fill="none" viewBox="0 0 20 20">
+            <path
+              stroke="#DB2A50"
+              stroke-linecap="round"
+              stroke-width="1.5"
+              d="M4.164 10h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18L10.832 15"
+            />
+          </svg>
+        </div>
+      </div>
+    ) : (
+      <div class="wrapper" />
+    )
+  }
+  <span>
+    {props.text || <slot />}
+  </span>
+</BaseButton>

@@ -1,13 +1,50 @@
 @font-face {
-  font-family: 'Poppins';
+  font-family: 'Neue Haas Unica';
   src:
-    url('/fonts/Poppins-Regular.woff2') format('woff2'),
-    url('/fonts/Poppins-Regular.woff') format('woff'),
-    url('/fonts/Poppins-Regular.ttf') format('truetype'),
-    url('/fonts/Poppins-Regular.eot') format('embedded-opentype');
+    url('/fonts/neue-haas-unica-regular.woff2') format('woff2'),
+    url('/fonts/neue-haas-unica-regular.woff') format('woff');
   font-weight: 400;
   font-display: swap;
   font-style: normal;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Neue Haas Unica';
+  src:
+    url('/fonts/neue-haas-unica-bold.woff2') format('woff2'),
+    url('/fonts/neue-haas-unica-bold.woff') format('woff');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Neue Haas Unica Fallback';
+  src: local('Arial');
+  ascent-override: 108.97%;
+  descent-override: 27.42%;
+  line-gap-override: 0%;
+  size-adjust: 100.3%;
+}
+
+@font-face {
+  font-family: 'PF Grand Gothik';
+  src:
+    url('/fonts/pf-grand-gothic.woff2') format('woff2'),
+    url('/fonts/pf-grand-gothic.woff') format('woff');
+  font-weight: 760;
+  font-display: swap;
+  font-style: normal;
+  font-stretch: 200%;
+}
+
+@font-face {
+  font-family: 'PF Grand Gothik Fallback';
+  src: local('Arial');
+  ascent-override: 91.43%;
+  descent-override: 25.8%;
+  line-gap-override: 0%;
+  size-adjust: 96.14%;
 }
 
 *,
@@ -54,7 +91,7 @@
   --corner-radius-s: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
   --corner-radius-xs: 0.25rem;
 
-  // Easing
+  --easing: cubic-bezier(0.19, 1, 0.22, 1);
 
   --pageMargin: clamp(1rem, calc(2.5vw / 0.48), 2.5rem);
   @media (max-width: 56.1875rem) and (min-width: 37.5rem) {
@@ -138,7 +175,7 @@ img {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid var(--primary-800, #01403b);
+  outline: 2px solid var(--primary-800, #45051c);
   outline-offset: 3px;
 }
 
@@ -154,12 +191,12 @@ body {
   min-width: 320px;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
-  // Line height
-  // Letter spacing
-  // Font family
-  // Font size
-  // Background
-  // Color
+  font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+  font-size: var(--typography-body-l, 1rem);
+  line-height: 1.55;
+  letter-spacing: -0.02em;
+  background-color: var(--neutral-100, #faf7f7);
+  color: var(--primary-400, #74535e);
 }
 
 main,
@@ -190,6 +227,17 @@ h1,
 .h1,
 h2,
 .h2 {
+  font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+  color: var(--primary-700, #600d2a);
+  line-height: 0.9;
+  letter-spacing: -0.065em;
+  font-size: var(--typography-heading-l, 2rem);
+  text-transform: uppercase;
+  font-weight: 760;
+
+  strong {
+    color: var(--primary-500, #f67258);
+  }
 }
 
 .link {

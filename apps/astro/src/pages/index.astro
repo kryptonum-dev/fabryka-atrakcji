@@ -1,10 +1,21 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
 import metadataFetch from '@/utils/metadata.fetch'
+import Button from '@/src/components/ui/button'
 
 const metadata = await metadataFetch('Index_Page')
+
+const buttonData = {
+  text: 'Zobacz pełną ofertę integracji' as React.ReactNode,
+  theme: 'secondary' as 'secondary',
+  linkType: 'internal' as 'internal',
+  href: '/register',
+}
 ---
 
 <Layout {...metadata}>
-  <h1>Index Page</h1>
+  <h1>
+    Najchętniej wybierane integracje przez <strong>naszych klientów</strong>
+  </h1>
+  <Button {...buttonData} />
 </Layout>

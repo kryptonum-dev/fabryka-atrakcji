@@ -26,6 +26,11 @@ export default defineType({
       title: 'Phone number (optional)',
     }),
     defineField({
+      name: 'cta',
+      type: 'cta',
+      title: 'Call to action',
+    }),
+    defineField({
       name: 'socials',
       type: 'object',
       title: 'Social media',
