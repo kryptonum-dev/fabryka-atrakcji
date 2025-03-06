@@ -1,9 +1,11 @@
 ---
 import type { ComponentProps } from 'astro/types'
 import FullWidthPhoto, { FullWidthPhoto_Query } from '@/components/global/FullWidthPhoto.astro'
+import CardSteps, { CardSteps_Query } from '@/components/global/CardSteps.astro'
 
 const components = {
   FullWidthPhoto,
+  CardSteps,
 }
 
 type ComponentsMap = {
@@ -26,6 +28,7 @@ export const Components_Query = /* groq */ `
     _type,
     sectionId,
     ${FullWidthPhoto_Query}
+    ${CardSteps_Query}
   },
 `
 ---

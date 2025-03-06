@@ -1,0 +1,115 @@
+---
+description: This rule is provides important context about creating section for Sanity Page Builder Components
+globs: 
+alwaysApply: false
+---
+
+# How to create Sanity & Astro files for page builder on demand
+
+This is an instruction on how you should create components which name will be given to you by the developer. Developer should equip you with the section screenshot from Figma and section name. Your task is to create two files, one for Sanity folder and one for Astro. Then you should add the files to each subporjects Components file, belowe are the list steps you should take in order. 
+
+1. Take a look at apps/sanity/schema/components and create a .ts file with a name user provided. Below i provide an example file and a list of rules you should always obey.
+
+const name = 'CtaSection';
+const title = 'CTA Section';
+const icon = () => '📢';
+
+``export default defineField({
+  name,
+  type: 'object',
+  title,
+  icon,
+  fields: [
+    defineField({
+      name: 'img',
+      type: 'image',
+      title: 'Image',
+      validation: (Rule) => Rule.required()
+    }),
+    defineField({
+      name: 'heading',
+      type: 'Heading',
+      title: 'Heading',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'paragraph',
+      type: 'PortableText',
+      title: 'Paragraph',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'cta',
+      type: 'cta',
+      title: 'Call To Action',
+      validation: (Rule) => Rule.required(),
+    }),
+    ...sectionId,
+  ],
+  preview: {
+    select: {
+      heading: 'heading',
+    },
+    prepare: ({ heading }) => ({
+      title: title,
+      subtitle: toPlainText(heading),
+      ...sectionPreview({ imgUrl: `/static/components/${name}.webp`, icon: icon() }),
+    }),
+  },
+});``
+
+- Always use cta type for button in the design [cta.tsx](mdc:apps/sanity/schema/ui/cta.tsx)
+- Use Heading type for visible design headings and paragraph type for other text field, only when you're certain of a single string, like for example a single word, only then use string type.
+- Try to keep the same preview, prepare structure for every component, if for example compontnt doesn't have heading, be creative and come up with other subtitle.
+
+2. Add the newly created component to [Components.ts](mdc:apps/sanity/schema/Components.ts) following the previous structure.
+
+3. Create an astro file for this new component in astro/scr/components/global, below is the example of how such component should loook (remember to insert the properties yo ucreated in sanity).
+
+---
+import Image, { ImageDataQuery, type ImageDataProps } from '../ui/image';
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text';
+import { ButtonDataQuery, type ButtonDataProps } from '../ui/button';
+import Button from '../ui/button/Button.astro';
+
+export const CtaSection_Query = `
+  _type == "CtaSection" => {
+  ${ImageDataQuery('imageList[]')}
+  ${PortableTextQuery('heading')}
+  ${PortableTextQuery('paragraph')}
+  ${ButtonDataQuery('cta')}
+  },
+`;
+
+type Props = {
+  index: number;
+  imageList: ImageDataProps[];
+  sectionId?: string;
+  heading: PortableTextValue;
+  paragraph: PortableTextValue;
+  cta: ButtonDataProps;
+};
+
+const { index, sectionId, heading, paragraph, imageList, cta } = Astro.props;
+---
+
+<section class="CtaSection" id={sectionId}>
+ 
+</section>
+
+<style lang="scss"></style>
+
+- Only fill the Query and Props, as well as props destructuring, add a empty section field with proper class and id, then add an empty style lang scss tag. That's it. 
+- Keep in mind to use the proper queries for custom types in sanity.
+    - For button/cta use [index.ts](mdc:apps/astro/src/components/ui/button/index.ts)
+    - For Heading/Paragrpah [index.astro](mdc:apps/astro/src/components/ui/portable-text/index.astro)
+    - For Image [index.astro](mdc:apps/astro/src/components/ui/image/index.astro)
+- The same goes for types, use proper types for custom fields.
+- Search through the project if you can't find given custom types provided by developer.
+
+4. Add the newly created component into [Components.astro](mdc:apps/astro/src/components/Components.astro) keeping in mind the current structure and following it. 
+
+If you have any questions, always ask the developer before processing the task.
+
+
+

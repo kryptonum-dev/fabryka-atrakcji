@@ -1,21 +1,25 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
 import metadataFetch from '@/utils/metadata.fetch'
-import Button from '@/src/components/ui/button'
+import sanityFetch from '../utils/sanity.fetch'
+import { Components_Query, type ComponentsProps } from '../components/Components.astro'
+import Components from '../components/Components.astro'
+
+const page = await sanityFetch<{
+  slug: string
+  components: ComponentsProps
+}>({
+  query: `
+    *[_type == "Index_Page"][0] {
+      "slug": slug.current,
+      ${Components_Query}
+    }
+  `,
+})
 
 const metadata = await metadataFetch('Index_Page')
-
-const buttonData = {
-  text: 'Zobacz pełną ofertę integracji' as React.ReactNode,
-  theme: 'secondary' as 'secondary',
-  linkType: 'internal' as 'internal',
-  href: '/register',
-}
 ---
 
 <Layout {...metadata}>
-  <h1>
-    Najchętniej wybierane integracje przez <strong>naszych klientów</strong>
-  </h1>
-  <Button {...buttonData} />
+  <Components data={page.components} />
 </Layout>

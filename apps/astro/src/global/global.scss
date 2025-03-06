@@ -19,6 +19,14 @@
 }
 
 @font-face {
+  font-family: 'Neue Haas Unica';
+  src:
+    url('/fonts/neue-haas-unica-medium.woff2') format('woff2'),
+    url('/fonts/neue-haas-unica-medium.woff') format('woff');
+  font-weight: 500;
+}
+
+@font-face {
   font-family: 'Neue Haas Unica Fallback';
   src: local('Arial');
   ascent-override: 108.97%;
@@ -35,7 +43,7 @@
   font-weight: 760;
   font-display: swap;
   font-style: normal;
-  font-stretch: 200%;
+  font-stretch: 150%;
 }
 
 @font-face {
@@ -93,7 +101,7 @@
 
   --easing: cubic-bezier(0.19, 1, 0.22, 1);
 
-  --pageMargin: clamp(1rem, calc(2.5vw / 0.48), 2.5rem);
+  --pageMargin: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
   @media (max-width: 56.1875rem) and (min-width: 37.5rem) {
     --pageMargin: clamp(2.5rem, calc(5vw / 0.48), 5rem);
   }
@@ -199,9 +207,8 @@ body {
   color: var(--primary-400, #74535e);
 }
 
-main,
 .max-width {
-  max-width: 75rem;
+  max-width: 82.375rem;
   width: calc(100% - var(--pageMargin) * 2);
   margin: 0 auto;
   height: 100%;
@@ -220,8 +227,6 @@ h5,
 h6,
 .h6 {
   overflow-wrap: anywhere;
-  strong {
-  }
 }
 h1,
 .h1,

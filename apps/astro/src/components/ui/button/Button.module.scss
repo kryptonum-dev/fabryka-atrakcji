@@ -17,6 +17,7 @@ $gradient-conic: conic-gradient(
   span {
     font-size: var(--typography-body-m, 0.875rem);
     font-weight: 700;
+    user-select: none;
   }
 
   &[data-theme='primary'] {
