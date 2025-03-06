@@ -2,10 +2,12 @@
 import type { ComponentProps } from 'astro/types'
 import FullWidthPhoto, { FullWidthPhoto_Query } from '@/components/global/FullWidthPhoto.astro'
 import CardSteps, { CardSteps_Query } from '@/components/global/CardSteps.astro'
+import GradientBackgroundCta, { GradientBackgroundCta_Query } from '@/components/global/GradientBackgroundCta.astro'
 
 const components = {
   FullWidthPhoto,
   CardSteps,
+  GradientBackgroundCta,
 }
 
 type ComponentsMap = {
@@ -29,6 +31,7 @@ export const Components_Query = /* groq */ `
     sectionId,
     ${FullWidthPhoto_Query}
     ${CardSteps_Query}
+    ${GradientBackgroundCta_Query}
   },
 `
 ---

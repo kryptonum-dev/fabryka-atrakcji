@@ -1,12 +1,12 @@
 import { defineType } from 'sanity'
 import CardSteps from './components/CardSteps'
 import FullWidthPhoto from './components/FullWidthPhoto'
-
+import GradientBackgroundCta from './components/GradientBackgroundCta'
 export default defineType({
   name: 'components',
   type: 'array',
   title: 'Components',
-  of: [FullWidthPhoto, CardSteps],
+  of: [FullWidthPhoto, CardSteps, GradientBackgroundCta],
   options: {
     insertMenu: {
       filter: true,

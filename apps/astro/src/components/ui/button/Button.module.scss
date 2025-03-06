@@ -13,6 +13,7 @@ $gradient-conic: conic-gradient(
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  isolation: isolate;
 
   span {
     font-size: var(--typography-body-m, 0.875rem);
@@ -93,11 +94,19 @@ $gradient-conic: conic-gradient(
       &::before {
         content: '';
         position: absolute;
-        inset: 0;
-        margin: -1.5px;
-        z-index: -1;
+        inset: -1.5px;
+        z-index: -2;
         border-radius: 999px;
         background: $gradient-conic;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: var(--neutral-100, #faf7f7);
+        border-radius: 999px;
       }
 
       span {
@@ -149,6 +158,10 @@ $gradient-conic: conic-gradient(
     &:focus-visible {
       outline: 2px solid var(--primary-800, #45051c);
       outline-offset: 4px;
+
+      &[data-shade='light '] {
+        outline-offset: 7.5px;
+      }
     }
   }
   &[data-theme='secondary'] {
