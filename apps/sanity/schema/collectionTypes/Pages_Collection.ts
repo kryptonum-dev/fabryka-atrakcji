@@ -29,6 +29,11 @@ export default defineType({
       type: 'components',
       title: 'Page Components',
     }),
+    defineField({
+      name: 'seo',
+      type: 'seo',
+      title: 'SEO',
+    }),
   ],
   preview: {
     select: {

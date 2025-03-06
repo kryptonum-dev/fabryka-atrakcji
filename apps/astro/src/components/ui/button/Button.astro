@@ -8,8 +8,6 @@ const { ...props } = Astro.props
 const isPrimary = props?.theme === 'primary'
 
 const svgId = `arrow-icon-${Math.random().toString(36).slice(2, 9)}`
-
-console.log(props)
 ---
 
 <BaseButton {...props}>

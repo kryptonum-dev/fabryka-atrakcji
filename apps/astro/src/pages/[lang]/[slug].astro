@@ -1,0 +1,20 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import Components from '@/components/Components.astro'
+import { LANGUAGES, type Language, langPrefixes } from '@/global/languages'
+import { fetchPageData } from '@/utils/fetch-page-data'
+
+const lang = Astro.params.lang as Language
+
+const slug = langPrefixes[lang] + Astro.params.slug
+
+const data = await fetchPageData({ name: 'Index_Page', lang, slug })
+
+if (!LANGUAGES.includes(lang) || !data) return Astro.rewrite('/404')
+
+const { page, metadata } = data
+---
+
+<Layout {...metadata}>
+  <Components data={page.components} />
+</Layout>
