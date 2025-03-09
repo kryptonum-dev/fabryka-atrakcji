@@ -26,6 +26,8 @@ export const createSingleton = ({ S, name }: { S: StructureBuilder; name: string
   const documentPreview = options?.documentPreview ?? false
   const isInternationalized = fields.some((field) => field.name === 'language')
 
+  console.log(name, isInternationalized)
+
   const views = [
     S.view
       .form()
