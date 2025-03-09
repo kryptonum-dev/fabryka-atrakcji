@@ -18,7 +18,7 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      noExternal: [],
+      noExternal: ['embla-carousel-react'],
     },
     css: {
       preprocessorOptions: {

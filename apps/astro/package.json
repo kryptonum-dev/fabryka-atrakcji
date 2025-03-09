@@ -16,6 +16,7 @@
     "@sanity/client": "^6.28.1",
     "astro": "^5.3.1",
     "astro-portabletext": "^0.11.1",
+    "embla-carousel-react": "^8.5.2",
     "sharp-ico": "^0.1.5"
   },
   "devDependencies": {
@@ -32,5 +33,9 @@
     "postcss-combine-media-query": "^1.0.1",
     "postcss-import": "^16.1.0",
     "postcss-mixins": "^11.0.3"
+  },
+  "overrides": {
+    "react": "bun:@preact/compat@latest",
+    "react-dom": "bun:@preact/compat@latest"
   }
 }

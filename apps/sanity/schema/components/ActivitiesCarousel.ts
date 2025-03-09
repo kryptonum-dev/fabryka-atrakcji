@@ -1,12 +1,12 @@
-import { Activity } from 'lucide-react'
+import { Highlighter } from 'lucide-react'
 import { defineField } from 'sanity'
 import { sectionPreview } from '../../utils/section-preview'
 import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
 
 const name = 'ActivitiesCarousel'
-const title = 'Karuzela aktywności'
-const icon = Activity
+const title = 'Wyróżnione integracje'
+const icon = Highlighter
 
 export default defineField({
   name,
@@ -15,10 +15,43 @@ export default defineField({
   icon,
   fields: [
     defineField({
+      name: 'labelIcon',
+      type: 'image',
+      title: 'Ikona etykiety (opcjonalna)',
+      description: 'Ikona wyświetlana ponad nagłówkiem',
+      options: {
+        accept: '.svg',
+      },
+    }),
+    defineField({
       name: 'heading',
       type: 'Heading',
-      title: 'Heading',
+      title: 'Nagłówek',
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'paragraph',
+      type: 'PortableText',
+      title: 'Paragraf',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'cta',
+      type: 'cta',
+      title: 'Przycisk CTA',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'activities',
+      type: 'array',
+      title: 'Lista Integracji',
+      of: [{ type: 'reference', to: [{ type: 'Activities_Collection' }] }],
+      validation: (Rule) =>
+        Rule.required()
+          .min(4)
+          .error('Musisz wybrać co najmniej 4 integracje')
+          .max(8)
+          .error('Maksymalnie możesz wybrać 8 integracji'),
     }),
     ...sectionId,
   ],

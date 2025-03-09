@@ -1,4 +1,4 @@
-import { FileArchive, Settings2 } from 'lucide-react'
+import { FileArchive, Handshake, Settings2 } from 'lucide-react'
 import type { StructureResolver } from 'sanity/structure'
 import { createCollection } from '../utils/create-collection'
 import { createSingleton } from '../utils/create-singleton'
@@ -17,6 +17,14 @@ export const structure: StructureResolver = (S) =>
           S.list()
             .title('Realizacje')
             .items([createSingleton({ S, name: 'CaseStudy_Page' }), createCollection(S, 'CaseStudy_Collection')])
+        ),
+      S.listItem()
+        .title('Integracje')
+        .icon(Handshake)
+        .child(
+          S.list()
+            .title('Integracje')
+            .items([createSingleton({ S, name: 'Activities_Page' }), createCollection(S, 'Activities_Collection')])
         ),
       createCollection(S, 'Faq_Collection'),
       S.divider(),

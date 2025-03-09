@@ -1,15 +1,15 @@
 import { Book } from 'lucide-react'
 import { createPageSchema } from '../templates/pageTemplate'
 
-const name = 'CaseStudy_Page'
-const title = 'Strona Realizacji'
+const name = 'Activities_Page'
+const title = 'Strona Integracji'
 
 export default createPageSchema({
   name,
   title,
   icon: Book,
   slugs: {
-    pl: '/pl/realizacje',
-    en: '/en/case-studies',
+    pl: '/pl/integracje',
+    en: '/en/activities',
   },
 })

@@ -103,11 +103,16 @@ const imgSizes =
     </header>
     <nav class="list">
       {
-        caseStudies.map(({ slug, primaryImage, secondaryImage, name }) => (
+        caseStudies.map(({ slug, primaryImage, secondaryImage, name }, i) => (
           <a href={slug || '/'} class="item">
             <div class="img-container">
-              <Image {...primaryImage} sizes={imgSizes} />
-              <Image {...secondaryImage} sizes={imgSizes} />
+              <Image
+                {...primaryImage}
+                sizes={imgSizes}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                priority={i === 0 && index === 0}
+              />
+              <Image {...secondaryImage} sizes={imgSizes} loading="lazy" />
             </div>
             <span>{name}</span>
           </a>
