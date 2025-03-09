@@ -24,6 +24,7 @@ export const ActivitiesCarousel_Query = `
         },
       },
       "slug": slug.current,
+      _createdAt,
     },
   },
 `
@@ -46,10 +47,14 @@ type Props = {
       }
     }
     slug: string
+    _createdAt: string
   }[]
 }
 
 const { index, sectionId, labelIcon, heading, paragraph, cta, activities } = Astro.props
+
+const fourteenDaysAgo = new Date()
+fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
 
 const clientActivities = await Promise.all(
   activities.map(async (activity) => ({
@@ -59,6 +64,7 @@ const clientActivities = await Promise.all(
       width: activity.image.asset.metadata.dimensions.width,
       height: activity.image.asset.metadata.dimensions.height,
     }),
+    isRecent: new Date(activity._createdAt) > fourteenDaysAgo,
   }))
 )
 
