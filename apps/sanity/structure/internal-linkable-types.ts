@@ -10,4 +10,7 @@ export const InternalLinkableTypes: { type: string }[] = [
 
   // Collection document types
   { type: 'Pages_Collection' },
+
+  // CaseStudy document types
+  { type: 'CaseStudy_Page' },
 ]

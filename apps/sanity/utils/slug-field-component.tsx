@@ -13,9 +13,15 @@ import {
 } from 'sanity'
 import { styled } from 'styled-components'
 import { DOMAIN } from '../constants'
+import { LANGUAGES } from '../structure/languages'
 import { slugify } from './slugify'
 
 const presentationOriginUrl = process.env.SANITY_STUDIO_PRESENTATION_URL
+
+// Add the LanguageValues type
+type LanguageValues = {
+  [key in (typeof LANGUAGES)[number]['id']]: string
+}
 
 function stringToPathname(
   input: string,
@@ -119,7 +125,12 @@ const FolderText = styled(Text)`
   }
 `
 
-export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
+// Update the component props interface
+interface PathnameFieldComponentProps extends ObjectFieldProps<SlugValue> {
+  prefixes?: LanguageValues
+}
+
+export function PathnameFieldComponent(props: PathnameFieldComponentProps) {
   const document = useFormValue([]) as DocumentWithLocale
   const validation = useValidationStatus(document?._id.replace(/^drafts\./, ''), document?._type)
   const nameField = useFormValue(['name']) as string
@@ -132,6 +143,7 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
     inputProps: { onChange, value, readOnly },
     title,
     description,
+    prefixes,
   } = props
 
   const segments = useMemo(() => {
@@ -227,17 +239,19 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
   const generateSlug = useCallback(() => {
     if (!nameField) return
 
-    const language = document?.language ?? 'pl'
-
-    // Check if we have segments and the first segment looks like a language code (e.g., "pl", "en")
-    const hasLanguagePrefix = segments.length > 0 && /^[a-z]{2}$/.test(segments[0])
+    const language = (document?.language as keyof LanguageValues) ?? 'pl'
+    // Use the prefix from props if available
+    const prefix = prefixes?.[language] ?? ''
 
     // Generate the slugified version of the name
     const slugified = slugify(nameField)
 
     let newSlug
-    if (hasLanguagePrefix) {
-      // If we have a language prefix, maintain it and add the slugified name
+    if (prefix) {
+      // If we have a prefix for this language, use it
+      newSlug = `${prefix}${slugified}`
+    } else if (segments.length > 0 && /^[a-z]{2}$/.test(segments[0])) {
+      // If we have segments and the first segment looks like a language code (e.g., "pl", "en")
       newSlug = `/${segments[0]}/${slugified}`
     } else if (segments.length > 0) {
       // If we have other segments but not a language prefix, preserve the first segment
@@ -248,7 +262,7 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
     }
 
     handleChange(newSlug)
-  }, [nameField, segments, handleChange])
+  }, [nameField, segments, handleChange, prefixes, document?.language])
 
   const pathInput = useMemo(() => {
     // Determine if we should show the generate button

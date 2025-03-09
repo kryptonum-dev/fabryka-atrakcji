@@ -45,7 +45,7 @@ export const defineSlugForDocument = ({
     type: 'slug',
     title: 'Slug',
     components: {
-      field: PathnameFieldComponent,
+      field: (props) => <PathnameFieldComponent {...props} prefixes={prefixes} />,
     },
     description: (
       <span style={{ color: 'var(--card-fg-color)' }}>

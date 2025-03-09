@@ -1,5 +1,6 @@
 import { FileSearch } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
+import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { toPlainText } from '../../utils/to-plain-text'
 
 const title = 'Realizacje'
@@ -25,6 +26,13 @@ export default defineType({
         'Nazwa realizacji wyświetlania przy refererowaniu, wyszukiwaniu oraz udostępnianiu w mediach społecznościowych',
       validation: (Rule) => Rule.required(),
     }),
+    ...defineSlugForDocument({
+      source: 'name',
+      prefixes: {
+        pl: '/pl/realizacje/',
+        en: '/en/case-studies/',
+      },
+    }),
     defineField({
       name: 'title',
       type: 'Heading',
@@ -33,18 +41,25 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'image',
+      name: 'primaryImage',
       type: 'image',
       title: 'Główne zdjęcie',
       description:
         'Główne zdjęcie realizacji, wyświetlane w sekcji hero konkretnej realizacji oraz przy jej refererowaniu',
       validation: (Rule) => Rule.required(),
     }),
+    defineField({
+      name: 'secondaryImage',
+      type: 'image',
+      title: 'Dodatkowe zdjęcie',
+      description: 'Dodatkowe zdjęcie wyświetla się przy najechaniu myszką bądź kliknięciu na kartę realizacji.',
+      validation: (Rule) => Rule.required(),
+    }),
   ],
   preview: {
     select: {
       title: 'title',
-      image: 'image',
+      image: 'primaryImage',
     },
     prepare: ({ title, image }) => ({
       title: toPlainText(title),

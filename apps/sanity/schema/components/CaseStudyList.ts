@@ -5,7 +5,7 @@ import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
 
 const name = 'CaseStudyList'
-const title = 'Lista studiów przypadku'
+const title = 'Wyróżnione realizacje'
 const icon = BookOpenCheck
 
 export default defineField({
@@ -17,7 +17,31 @@ export default defineField({
     defineField({
       name: 'heading',
       type: 'Heading',
-      title: 'Heading',
+      title: 'Nagłówek',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'paragraph',
+      type: 'PortableText',
+      title: 'Paragraf',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'caseStudies',
+      type: 'array',
+      title: 'Lista realizacji',
+      of: [{ type: 'reference', to: [{ type: 'CaseStudy_Collection' }] }],
+      validation: (Rule) =>
+        Rule.required()
+          .length(4)
+          .error('Musisz wybrać 4 realizacje')
+          .unique()
+          .error('Realizacje nie mogą się powtarzać'),
+    }),
+    defineField({
+      name: 'cta',
+      type: 'cta',
+      title: 'Przycisk CTA',
       validation: (Rule) => Rule.required(),
     }),
     ...sectionId,
