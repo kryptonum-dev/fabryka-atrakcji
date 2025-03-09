@@ -1,0 +1,22 @@
+---
+export const CaseStudyList_Query = `
+  _type == "CaseStudyList" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="CaseStudyList" id={sectionId}></section>
+
+<style lang="scss">
+  .CaseStudyList {
+  }
+</style>
+

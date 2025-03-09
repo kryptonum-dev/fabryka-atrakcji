@@ -1,0 +1,22 @@
+---
+export const Newsletter_Query = `
+  _type == "Newsletter" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="Newsletter" id={sectionId}></section>
+
+<style lang="scss">
+  .Newsletter {
+  }
+</style>
+

@@ -1,0 +1,22 @@
+---
+export const StepsList_Query = `
+  _type == "StepsList" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="StepsList" id={sectionId}></section>
+
+<style lang="scss">
+  .StepsList {
+  }
+</style>
+

@@ -1,0 +1,22 @@
+---
+export const BackgroundImageWithCenteredHeading_Query = `
+  _type == "BackgroundImageWithCenteredHeading" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="BackgroundImageWithCenteredHeading" id={sectionId}></section>
+
+<style lang="scss">
+  .BackgroundImageWithCenteredHeading {
+  }
+</style>
+

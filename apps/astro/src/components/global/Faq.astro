@@ -1,0 +1,22 @@
+---
+export const Faq_Query = `
+  _type == "Faq" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="Faq" id={sectionId}></section>
+
+<style lang="scss">
+  .Faq {
+  }
+</style>
+

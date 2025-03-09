@@ -1,0 +1,22 @@
+---
+export const ListImageProccessGrid_Query = `
+  _type == "ListImageProccessGrid" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="ListImageProccessGrid" id={sectionId}></section>
+
+<style lang="scss">
+  .ListImageProccessGrid {
+  }
+</style>
+

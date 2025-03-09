@@ -1,0 +1,22 @@
+---
+export const LargeImageWithGridList_Query = `
+  _type == "LargeImageWithGridList" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="LargeImageWithGridList" id={sectionId}></section>
+
+<style lang="scss">
+  .LargeImageWithGridList {
+  }
+</style>
+

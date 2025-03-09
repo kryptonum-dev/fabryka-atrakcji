@@ -1,5 +1,6 @@
 import { Palette } from 'lucide-react'
 import { defineField } from 'sanity'
+import { sectionPreview } from '../../utils/section-preview'
 import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
 
@@ -55,7 +56,7 @@ export default defineField({
     prepare: ({ heading }) => ({
       title: title,
       subtitle: toPlainText(heading),
-      //   ...sectionPreview({ imgUrl: `/static/components/${name}.webp`, icon: icon() }),
+      ...sectionPreview({ imgUrl: `/static/components/${name}.webp`, icon }),
     }),
   },
 })

@@ -1,0 +1,22 @@
+---
+export const FloatingPointsList_Query = `
+  _type == "FloatingPointsList" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="FloatingPointsList" id={sectionId}></section>
+
+<style lang="scss">
+  .FloatingPointsList {
+  }
+</style>
+

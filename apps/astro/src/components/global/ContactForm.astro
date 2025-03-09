@@ -1,0 +1,22 @@
+---
+export const ContactForm_Query = `
+  _type == "ContactForm" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="ContactForm" id={sectionId}></section>
+
+<style lang="scss">
+  .ContactForm {
+  }
+</style>
+

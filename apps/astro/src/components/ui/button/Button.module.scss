@@ -94,7 +94,7 @@ $gradient-conic: conic-gradient(
       &::before {
         content: '';
         position: absolute;
-        inset: -1.5px;
+        inset: -1.75px;
         z-index: -2;
         border-radius: 999px;
         background: $gradient-conic;

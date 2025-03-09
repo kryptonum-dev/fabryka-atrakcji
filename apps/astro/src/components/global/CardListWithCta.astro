@@ -1,0 +1,22 @@
+---
+export const CardListWithCta_Query = `
+  _type == "CardListWithCta" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="CardListWithCta" id={sectionId}></section>
+
+<style lang="scss">
+  .CardListWithCta {
+  }
+</style>
+

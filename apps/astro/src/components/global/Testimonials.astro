@@ -1,0 +1,22 @@
+---
+export const Testimonials_Query = `
+  _type == "Testimonials" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="Testimonials" id={sectionId}></section>
+
+<style lang="scss">
+  .Testimonials {
+  }
+</style>
+

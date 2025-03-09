@@ -1,0 +1,21 @@
+---
+export const TextBlocksGrid_Query = `
+  _type == "TextBlocksGrid" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="TextBlocksGrid" id={sectionId}></section>
+
+<style lang="scss">
+  .TextBlocksGrid {
+  }
+</style>

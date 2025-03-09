@@ -1,0 +1,48 @@
+---
+description: Rules for refractoring and styling scss files & tags after a developer
+globs: *.astro
+alwaysApply: false
+---
+# You will refractor and style the scss tag in a given file. Below are essential rules you sohuld follow while refractoring.
+
+- Don't change anything else in the file except the code in css/scss. The only exception is chaning / adding / removing classes from html.
+- For classes always use kebab-case, the only exception is if the wrapping element is a section, then you should use CamelCase with the first word uppercase.
+- Change timing (ex. transition time, animation time etc), to be in ms instead of s, for example 0.3s -> 300ms.
+- Change every value except images width and height from px to rem. Always have in mind that 1rem = 16px
+- Always try to nest the elements if possible using the specified scss selectors like '&'.
+- Iterate over the entire file and cehck if there are any overlaps in scss properties, for example if property for element is defined in two places and it doesnt need to be, remove duplicates, but take care of possible consequences.
+- Always refer to [global.scss](mdc:apps/astro/src/global/global.scss) file and get variables from there if nessecary.
+- For grouping and ordering the css properites in a single selector please go with the ordering by groups, below i present you an example of how should it look, in the code you write dont include comments and any gaps between groups.   
+    .selector {
+    /* Positioning */
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    right: 0;
+
+    /* Display & Box Model */
+    display: inline-block;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 100px;
+    height: 100px;
+    padding: 10px;
+    border: 10px solid #333;
+    margin: 10px;
+
+    /* Color */
+    background: #000;
+    color: #fff
+    
+    /* Text */
+    font-family: sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: right;
+
+    /* Other */
+    cursor: pointer;
+    }
+
+- Don't change the slectors for the media queries you see in the file. The only thing you can change about them is their positioning. Idealy they should be positioned inside the components that they are affecting. 
+- Try to not duplicate media queries selectors if possible.

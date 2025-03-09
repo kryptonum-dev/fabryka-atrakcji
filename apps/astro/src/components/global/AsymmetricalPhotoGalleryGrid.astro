@@ -1,0 +1,22 @@
+---
+export const AsymmetricalPhotoGalleryGrid_Query = `
+  _type == "AsymmetricalPhotoGalleryGrid" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="AsymmetricalPhotoGalleryGrid" id={sectionId}></section>
+
+<style lang="scss">
+  .AsymmetricalPhotoGalleryGrid {
+  }
+</style>
+

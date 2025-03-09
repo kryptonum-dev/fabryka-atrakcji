@@ -1,0 +1,22 @@
+---
+export const ActivitiesCarousel_Query = `
+  _type == "ActivitiesCarousel" => {
+  
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+}
+
+const { index, sectionId } = Astro.props
+---
+
+<section class="ActivitiesCarousel" id={sectionId}></section>
+
+<style lang="scss">
+  .ActivitiesCarousel {
+  }
+</style>
+
