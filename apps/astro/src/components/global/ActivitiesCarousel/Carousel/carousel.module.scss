@@ -145,6 +145,7 @@
         display: flex;
         align-items: center;
         background: var(--neutral-400, #ffe4ca);
+        z-index: 3;
 
         span {
           color: var(--primary-800, #45051c);
