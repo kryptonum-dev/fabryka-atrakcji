@@ -85,8 +85,6 @@ const stepBlockSvg = await Promise.all(
     )
   })
 )
-
-console.log(stepBlockSvg)
 ---
 
 <section class="StepsList" id={sectionId}>
@@ -102,7 +100,12 @@ console.log(stepBlockSvg)
             <div class="wrapper">
               {[...column.images, ...column.images, ...column.images].map((image, imageIndex) => (
                 <div class="img" data-visible={imageIndex === 7 ? 'true' : 'false'}>
-                  <Image {...image} sizes="" />
+                  <Image
+                    loading={index === 0 ? (imageIndex > 4 && imageIndex < 11 ? 'eager' : 'lazy') : 'lazy'}
+                    priority={index === 0 && columnIndex === 0 && imageIndex === 7}
+                    {...image}
+                    sizes="(max-width: 28.0625rem) 46vw, (max-width: 35rem) 210px, (max-width: 48rem) 38vw, (max-width: 67.4375rem) 288px, (max-width: 85.375rem) 24vw,  320px"
+                  />
                 </div>
               ))}
             </div>
@@ -145,250 +148,61 @@ console.log(stepBlockSvg)
   </div>
 </section>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Get column wrappers and containers
-    const columnWrappers = document.querySelectorAll('.StepsList .col .wrapper')
-    const containers = document.querySelectorAll('.StepsList .col .container')
-    const imagesWrapper1 = columnWrappers[0].querySelectorAll('.img')
-    const imagesWrapper2 = columnWrappers[1].querySelectorAll('.img')
-    if (columnWrappers.length !== 2) return
-
-    const INTERVAL_TIME = 2200 //
-    const TRANSITION_DURATION = 1300 //
-    const RESET_DELAY = TRANSITION_DURATION + 100 // Add a small buffer to ensure animation completes
-    const IMAGE_COUNT = 5 // Number of unique images per column
-
-    // Different center positions for each column
-    const CENTER_IMAGE_INDICES = [
-      0, // First column (moving down) centers on 3rd image (index 2)
-      0, // Second column (moving up) centers on 3rd image (index 2)
-    ]
-
-    let intervalId: number | null = null // Track the interval ID
-    let isAnimating = false // Flag to prevent multiple animations running concurrently
-    let currentVisibleImage = [7, 7]
-
-    // Calculate the total height of a single item (image + gap)
-    const calculateItemHeight = (): number => {
-      const firstImage = columnWrappers[0].querySelector('.img')
-      const wrapper = columnWrappers[0] as HTMLElement
-
-      // Get the computed style to extract the gap
-      const wrapperStyle = window.getComputedStyle(wrapper)
-      const gapValue = wrapperStyle.getPropertyValue('gap') || '0.5rem'
-
-      // Convert gap to pixels (approximate)
-      const gapSize = gapValue.includes('rem')
-        ? parseFloat(gapValue) * 16 // assuming 1rem = 16px
-        : parseFloat(gapValue)
-
-      if (firstImage) {
-        const imageHeight = (firstImage as HTMLElement).offsetHeight
-        return imageHeight + gapSize
-      }
-
-      // Fallback
-      return 210 // approx image + small gap
-    }
-
-    const updateVisibleImages = (firstIndex: number, secondIndex: number) => {
-      imagesWrapper1.forEach((image) => {
-        image.setAttribute('data-visible', 'false')
-      })
-
-      imagesWrapper1[firstIndex].setAttribute('data-visible', 'true')
-
-      imagesWrapper2.forEach((image) => {
-        image.setAttribute('data-visible', 'false')
-      })
-
-      imagesWrapper2[secondIndex].setAttribute('data-visible', 'true')
-
-      currentVisibleImage = [firstIndex, secondIndex]
-    }
-
-    // Get the height measurement
-    const itemHeight = calculateItemHeight()
-
-    // Position containers in the center of columns first
-    containers.forEach((container) => {
-      const containerElement = container as HTMLElement
-      containerElement.style.position = 'absolute'
-      containerElement.style.top = '50%'
-      containerElement.style.transform = 'translateY(-50%)'
-    })
-
-    // Calculate initial position to center the desired image for each column
-    const calculateInitialPosition = (columnIndex: number): number => {
-      // Calculate center offset based on the appropriate center image for this column
-      // Column 0 moves down (negative initial), Column 1 moves up (positive initial)
-      return CENTER_IMAGE_INDICES[columnIndex] * itemHeight * (columnIndex === 0 ? -1 : 1)
-    }
-
-    // Initialize tracking variables
-    const initialPositions = [calculateInitialPosition(0), calculateInitialPosition(1)]
-    let currentPositions = [...initialPositions]
-
-    columnWrappers.forEach((wrapper) => {
-      ;(wrapper as HTMLElement).style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.19,1,0.22,1)`
-    })
-
-    // Function to reset wrapper position without animation
-    const resetWrapper = (index: number): void => {
-      const wrapper = columnWrappers[index] as HTMLElement
-
-      // Temporarily remove transition
-      wrapper.style.transition = 'none'
-
-      imagesWrapper1.forEach((image) => {
-        image.setAttribute('data-transition', 'false')
-      })
-
-      imagesWrapper2.forEach((image) => {
-        image.setAttribute('data-transition', 'false')
-      })
-
-      imagesWrapper1[7].setAttribute('data-visible', 'true')
-      imagesWrapper2[7].setAttribute('data-visible', 'true')
-
-      // Reset to initial position
-      currentPositions[index] = initialPositions[index]
-      wrapper.style.transform = `none`
-
-      // Force reflow to ensure the transition removal takes effect
-      wrapper.offsetHeight
-
-      console.log(currentVisibleImage)
-
-      // imagesWrapper1[currentVisibleImage[0]].setAttribute('data-visible', 'false')
-      // imagesWrapper2[currentVisibleImage[1]].setAttribute('data-visible', 'false')
-      currentVisibleImage = [7, 7]
-
-      imagesWrapper1.forEach((image) => {
-        image.setAttribute('data-transition', 'true')
-      })
-
-      imagesWrapper2.forEach((image) => {
-        image.setAttribute('data-transition', 'true')
-      })
-      // Restore transition
-      wrapper.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.19,1,0.22,1)`
-    }
-
-    // Handle scrolling animation
-    const scrollColumns = (): void => {
-      // Prevent multiple animations from running simultaneously
-      if (isAnimating) return
-      isAnimating = true
-
-      // Calculate movement distance (include gap)
-      const moveDistance = itemHeight
-
-      // Column 1 - scroll down (increase Y value)
-      currentPositions[0] += moveDistance
-      ;(columnWrappers[0] as HTMLElement).style.transform = `translateY(${currentPositions[0]}px)`
-
-      // Column 2 - scroll up (decrease Y value)
-      currentPositions[1] -= moveDistance
-      ;(columnWrappers[1] as HTMLElement).style.transform = `translateY(${currentPositions[1]}px)`
-
-      updateVisibleImages(currentVisibleImage[0] - 1, currentVisibleImage[1] + 1)
-
-      // Track how many images we've moved
-      const movedImages = [
-        Math.abs((currentPositions[0] - initialPositions[0]) / itemHeight),
-        Math.abs((currentPositions[1] - initialPositions[1]) / itemHeight),
-      ]
-
-      // Check position limits for reset
-      const needsReset = [
-        movedImages[0] >= IMAGE_COUNT, // Reset column 1
-        movedImages[1] >= IMAGE_COUNT, // Reset column 2
-      ]
-
-      // Allow next animation after current one completes
-      setTimeout(() => {
-        // Reset wrappers if needed
-        if (needsReset[0]) {
-          resetWrapper(0)
-        }
-
-        if (needsReset[1]) {
-          resetWrapper(1)
-        }
-
-        // Clear animation flag to allow next animation
-        isAnimating = false
-      }, RESET_DELAY)
-    }
-
-    // Function to start the animation interval
-    const startAnimation = (): void => {
-      // Clear any existing interval first
-      if (intervalId !== null) {
-        clearInterval(intervalId)
-      }
-
-      // Start new interval and store the ID
-      intervalId = setInterval(scrollColumns, INTERVAL_TIME) as unknown as number
-    }
-
-    // Handle window resize
-    window.addEventListener('resize', () => {
-      // Pause animation during resize
-      if (intervalId !== null) {
-        clearInterval(intervalId)
-        intervalId = null
-      }
-
-      // Recalculate dimensions
-      const newItemHeight = calculateItemHeight()
-
-      // Recalculate initial positions
-      initialPositions[0] = CENTER_IMAGE_INDICES[0] * newItemHeight * -1
-      initialPositions[1] = CENTER_IMAGE_INDICES[1] * newItemHeight * 1
-
-      // Reset positions without animation
-      columnWrappers.forEach((wrapper, i) => {
-        const wrapperElement = wrapper as HTMLElement
-
-        // Remove transition
-        wrapperElement.style.transition = 'none'
-
-        // Reset position
-        currentPositions[i] = initialPositions[i]
-        wrapperElement.style.transform = `translateY(${currentPositions[i]}px)`
-
-        // Force reflow
-        wrapperElement.offsetHeight
-      })
-
-      // Restore transition
-      columnWrappers.forEach((wrapper) => {
-        ;(wrapper as HTMLElement).style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.19,1,0.22,1)`
-      })
-
-      // Reset animation flag
-      isAnimating = false
-
-      // Restart animation after small delay
-      setTimeout(() => {
-        startAnimation()
-      }, 100)
-    })
-
-    // Start the animation
-    startAnimation()
-  })
-</script>
-
 <style lang="scss">
   .StepsList {
     display: grid;
     grid-template-columns: 1fr auto;
     max-width: 85.375rem;
     margin: 0 auto;
+
+    @keyframes StepList_pulseFirst {
+      0% {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(0.9);
+      }
+      25% {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(1.15);
+      }
+      50% {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(1);
+      }
+      65% {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(0.95);
+      }
+      80% {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(1.1);
+      }
+      90% {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(1.05);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(1);
+      }
+    }
+
+    @keyframes StepList_pulseSecond {
+      0% {
+        transform: translate(-50%, -50%) rotate(4deg) scale(0.9);
+      }
+      25% {
+        transform: translate(-50%, -50%) rotate(4deg) scale(1.15);
+      }
+      50% {
+        transform: translate(-50%, -50%) rotate(4deg) scale(1);
+      }
+      65% {
+        transform: translate(-50%, -50%) rotate(4deg) scale(0.95);
+      }
+      80% {
+        transform: translate(-50%, -50%) rotate(4deg) scale(1.1);
+      }
+      90% {
+        transform: translate(-50%, -50%) rotate(4deg) scale(1.05);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(4deg) scale(1);
+      }
+    }
+
     .columns {
       padding: 0.675rem;
       background: var(--neutral-200, #f5f1ec);
@@ -418,6 +232,7 @@ console.log(stepBlockSvg)
 
         .container {
           position: relative;
+          width: 100%;
           display: grid;
           gap: clamp(0.25rem, calc(0.5rem / 0.48), 0.5rem);
 
@@ -436,9 +251,11 @@ console.log(stepBlockSvg)
             font-size: var(--typography-body-xl, 1.125rem);
             line-height: 1.5;
             z-index: 2;
+            width: max-content;
 
             :global(svg) {
               padding-top: 2px;
+              flex-shrink: 0;
             }
           }
           .wrapper {
@@ -469,6 +286,8 @@ console.log(stepBlockSvg)
                 }
               }
               img {
+                height: 100%;
+                width: 100%;
               }
             }
           }
@@ -476,10 +295,18 @@ console.log(stepBlockSvg)
 
         &:nth-of-type(1) > .container > .box {
           transform: translate(-50%, -50%) rotate(-4deg);
+
+          &.pulse {
+            animation: StepList_pulseFirst 900ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          }
         }
 
         &:nth-of-type(2) > .container > .box {
           transform: translate(-50%, -50%) rotate(4deg);
+
+          &.pulse {
+            animation: StepList_pulseSecond 900ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          }
         }
       }
     }
@@ -647,10 +474,18 @@ console.log(stepBlockSvg)
 
       .columns {
         position: static;
-        height: 20rem;
         width: 100%;
-        max-width: 30rem;
+        max-width: clamp(28rem, calc(36.5vw / 0.48), 36.5rem);
+        height: clamp(28rem, calc(42.25vw / 0.48), 42.25rem);
         margin: 0 auto;
+
+        .col > .container {
+          width: 100%;
+          .wrapper > .img {
+            width: clamp(162px, calc(288vw / 7.68), 288px);
+            height: clamp(100px, calc(178vw / 7.68), 178px);
+          }
+        }
       }
 
       .content {
@@ -685,5 +520,351 @@ console.log(stepBlockSvg)
         }
       }
     }
+
+    @media (max-width: 34.3125rem) {
+      .columns {
+        padding: 0 0.5rem;
+        .col > .container {
+          .wrapper > .img {
+            width: 100%;
+            height: clamp(100px, calc(128vw / 4.59), 178px);
+          }
+        }
+      }
+    }
   }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const stepsListSection = document.querySelector('.StepsList')
+    const columnWrappers = document.querySelectorAll('.StepsList .col .wrapper')
+    const containers = document.querySelectorAll('.StepsList .col .container')
+    const boxElements = document.querySelectorAll('.StepsList .col .container .box')
+    const imagesWrapper1 = columnWrappers[0].querySelectorAll('.img')
+    const imagesWrapper2 = columnWrappers[1].querySelectorAll('.img')
+    if (columnWrappers.length !== 2) return
+
+    const INTERVAL_TIME = 2200
+    const TRANSITION_DURATION = 1300
+    const RESET_DELAY = TRANSITION_DURATION + 100
+    const PULSE_DURATION = 900
+    const PULSE_DELAY = INTERVAL_TIME - PULSE_DURATION - 1200
+    const IMAGE_COUNT = 5
+
+    // Different center positions for each column
+    const CENTER_IMAGE_INDICES = [
+      0, // First column (moving down) centers on 3rd image (index 2)
+      0, // Second column (moving up) centers on 3rd image (index 2)
+    ]
+
+    let intervalId: number | null = null // Track the interval ID
+    let pulseTimeoutId: number | null = null // Track the pulse animation timeout
+    let isAnimating = false // Flag to prevent multiple animations running concurrently
+    let currentVisibleImage = [7, 7]
+    let isInViewport = false // Track if the component is in viewport
+
+    // Calculate the total height of a single item (image + gap)
+    const calculateItemHeight = (): number => {
+      const firstImage = columnWrappers[0].querySelector('.img')
+      const wrapper = columnWrappers[0] as HTMLElement
+
+      // Get the computed style to extract the gap
+      const wrapperStyle = window.getComputedStyle(wrapper)
+      const gapValue = wrapperStyle.getPropertyValue('gap') || '0.5rem'
+
+      // Convert gap to pixels (approximate)
+      const gapSize = gapValue.includes('rem')
+        ? parseFloat(gapValue) * 16 // assuming 1rem = 16px
+        : parseFloat(gapValue)
+
+      if (firstImage) {
+        const imageHeight = (firstImage as HTMLElement).offsetHeight
+        return imageHeight + gapSize
+      }
+
+      // Fallback
+      return 210 // approx image + small gap
+    }
+
+    const updateVisibleImages = (firstIndex: number, secondIndex: number) => {
+      imagesWrapper1.forEach((image) => {
+        image.setAttribute('data-visible', 'false')
+      })
+
+      imagesWrapper1[firstIndex].setAttribute('data-visible', 'true')
+
+      imagesWrapper2.forEach((image) => {
+        image.setAttribute('data-visible', 'false')
+      })
+
+      imagesWrapper2[secondIndex].setAttribute('data-visible', 'true')
+
+      currentVisibleImage = [firstIndex, secondIndex]
+    }
+
+    // Get the height measurement
+    let itemHeight = calculateItemHeight()
+
+    // Position containers in the center of columns first
+    containers.forEach((container) => {
+      const containerElement = container as HTMLElement
+      containerElement.style.position = 'absolute'
+      containerElement.style.top = '50%'
+      containerElement.style.transform = 'translateY(-50%)'
+    })
+
+    // Calculate initial position to center the desired image for each column
+    const calculateInitialPosition = (columnIndex: number): number => {
+      // Calculate center offset based on the appropriate center image for this column
+      // Column 0 moves down (negative initial), Column 1 moves up (positive initial)
+      return CENTER_IMAGE_INDICES[columnIndex] * itemHeight * (columnIndex === 0 ? -1 : 1)
+    }
+
+    // Initialize tracking variables
+    const initialPositions = [calculateInitialPosition(0), calculateInitialPosition(1)]
+    let currentPositions = [...initialPositions]
+
+    columnWrappers.forEach((wrapper) => {
+      ;(wrapper as HTMLElement).style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.19,1,0.22,1)`
+    })
+
+    // Function to reset wrapper position without animation
+    const resetWrapper = (index: number): void => {
+      const wrapper = columnWrappers[index] as HTMLElement
+      const boxElement = boxElements[index] as HTMLElement
+
+      // Remove pulse animation if it's active
+      boxElement.classList.remove('pulse')
+
+      // Temporarily remove transition
+      wrapper.style.transition = 'none'
+
+      imagesWrapper1.forEach((image) => {
+        image.setAttribute('data-transition', 'false')
+      })
+
+      imagesWrapper2.forEach((image) => {
+        image.setAttribute('data-transition', 'false')
+      })
+
+      imagesWrapper1[7].setAttribute('data-visible', 'true')
+      imagesWrapper2[7].setAttribute('data-visible', 'true')
+
+      // Reset to initial position
+      currentPositions[index] = initialPositions[index]
+      wrapper.style.transform = `none`
+
+      // Force reflow to ensure the transition removal takes effect
+      wrapper.offsetHeight
+
+      currentVisibleImage = [7, 7]
+
+      imagesWrapper1.forEach((image) => {
+        image.setAttribute('data-transition', 'true')
+      })
+
+      imagesWrapper2.forEach((image) => {
+        image.setAttribute('data-transition', 'true')
+      })
+      // Restore transition
+      wrapper.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.19,1,0.22,1)`
+    }
+
+    // Handle scrolling animation
+    const scrollColumns = (): void => {
+      // Prevent multiple animations from running simultaneously
+      if (isAnimating || !isInViewport) return
+      isAnimating = true
+
+      // Calculate movement distance (include gap)
+      const moveDistance = itemHeight
+
+      // Column 1 - scroll down (increase Y value)
+      currentPositions[0] += moveDistance
+      ;(columnWrappers[0] as HTMLElement).style.transform = `translateY(${currentPositions[0]}px)`
+
+      // Column 2 - scroll up (decrease Y value)
+      currentPositions[1] -= moveDistance
+      ;(columnWrappers[1] as HTMLElement).style.transform = `translateY(${currentPositions[1]}px)`
+
+      updateVisibleImages(currentVisibleImage[0] - 1, currentVisibleImage[1] + 1)
+
+      // Track how many images we've moved
+      const movedImages = [
+        Math.abs((currentPositions[0] - initialPositions[0]) / itemHeight),
+        Math.abs((currentPositions[1] - initialPositions[1]) / itemHeight),
+      ]
+
+      // Check position limits for reset
+      const needsReset = [movedImages[0] >= IMAGE_COUNT, movedImages[1] >= IMAGE_COUNT]
+
+      // Allow next animation after current one completes
+      setTimeout(() => {
+        // Reset wrappers if needed
+        if (needsReset[0]) {
+          resetWrapper(0)
+        }
+
+        if (needsReset[1]) {
+          resetWrapper(1)
+        }
+
+        // Clear animation flag to allow next animation
+        isAnimating = false
+      }, RESET_DELAY)
+    }
+
+    // Function to start the animation interval
+    const startAnimation = (): void => {
+      if (!isInViewport) return
+
+      // Clear any existing interval first
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+      }
+
+      // Clear any existing pulse timeout
+      if (pulseTimeoutId !== null) {
+        clearTimeout(pulseTimeoutId)
+      }
+
+      // Start new interval and store the ID
+      intervalId = setInterval(() => {
+        if (!isInViewport) return
+
+        // Schedule the pulse animation to start with the scroll
+        pulseTimeoutId = setTimeout(() => {
+          if (!isInViewport) return
+
+          // Add pulse class to both box elements
+          boxElements.forEach((box) => {
+            box.classList.add('pulse')
+          })
+
+          // Remove pulse class after animation completes
+          setTimeout(() => {
+            boxElements.forEach((box) => {
+              box.classList.remove('pulse')
+            })
+          }, PULSE_DURATION)
+        }, PULSE_DELAY) as unknown as number
+
+        // Call scroll columns to move the images
+        scrollColumns()
+      }, INTERVAL_TIME) as unknown as number
+    }
+
+    // Function to stop the animation
+    const stopAnimation = (): void => {
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+        intervalId = null
+      }
+
+      if (pulseTimeoutId !== null) {
+        clearTimeout(pulseTimeoutId)
+        pulseTimeoutId = null
+      }
+
+      // Remove pulse class from boxes if present
+      boxElements.forEach((box) => {
+        box.classList.remove('pulse')
+      })
+    }
+
+    // Set up the intersection observer to detect when the component is in viewport
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1,
+    }
+
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          isInViewport = true
+          startAnimation()
+        } else {
+          // Component is no longer visible
+          isInViewport = false
+          stopAnimation()
+        }
+      })
+    }, observerOptions)
+
+    // Start observing the component
+    if (stepsListSection) {
+      intersectionObserver.observe(stepsListSection)
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      // Pause animation during resize
+      stopAnimation()
+
+      imagesWrapper1.forEach((image, index) => {
+        if (index === 7) {
+          image.setAttribute('data-visible', 'true')
+        } else {
+          image.setAttribute('data-visible', 'false')
+        }
+      })
+
+      imagesWrapper2.forEach((image, index) => {
+        if (index === 7) {
+          image.setAttribute('data-visible', 'true')
+        } else {
+          image.setAttribute('data-visible', 'false')
+        }
+      })
+
+      currentVisibleImage = [7, 7]
+
+      // Recalculate dimensions
+      itemHeight = calculateItemHeight()
+
+      // Recalculate initial positions
+      initialPositions[0] = CENTER_IMAGE_INDICES[0] * itemHeight * -1
+      initialPositions[1] = CENTER_IMAGE_INDICES[1] * itemHeight * 1
+
+      // Reset positions without animation
+      columnWrappers.forEach((wrapper, i) => {
+        const wrapperElement = wrapper as HTMLElement
+
+        // Remove transition
+        wrapperElement.style.transition = 'none'
+
+        // Reset position
+        currentPositions[i] = initialPositions[i]
+        wrapperElement.style.transform = `translateY(${currentPositions[i]}px)`
+
+        // Force reflow
+        wrapperElement.offsetHeight
+      })
+
+      // Restore transition
+      columnWrappers.forEach((wrapper) => {
+        ;(wrapper as HTMLElement).style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.19,1,0.22,1)`
+      })
+
+      // Reset animation flag
+      isAnimating = false
+
+      // Restart animation after small delay if in viewport
+      setTimeout(() => {
+        if (isInViewport) {
+          startAnimation()
+        }
+      }, 100)
+    })
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+      if (intersectionObserver) {
+        intersectionObserver.disconnect()
+      }
+      stopAnimation()
+    })
+  })
+</script>
