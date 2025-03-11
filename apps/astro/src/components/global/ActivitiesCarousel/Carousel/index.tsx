@@ -1,6 +1,7 @@
 import type { GetImageResult } from 'astro'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback } from 'preact/hooks'
+import ArrowButton from '../../../ui/ArrowButton'
 import styles from './carousel.module.scss'
 
 type CarouselProps = {
@@ -41,46 +42,8 @@ export default function Carousel({ children, activities, index }: CarouselProps)
       <div className={styles.container}>
         {children}
         <div className={styles.controls}>
-          <button className={`${styles.control} ${styles.prev}`} onClick={scrollPrev}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="m15 17-5-5 5-5"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="m15 17-5-5 5-5"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
-          <button className={`${styles.control} ${styles.controlNext}`} onClick={scrollNext}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="m10 7 5 5-5 5"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="m10 7 5 5-5 5"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
+          <ArrowButton direction="left" onClick={scrollPrev} />
+          <ArrowButton direction="right" onClick={scrollNext} />
         </div>
       </div>
       <div className={styles.embla}>

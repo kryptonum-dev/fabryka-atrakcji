@@ -5,12 +5,12 @@
  * @type {{type: string}[]}
  */
 export const InternalLinkableTypes: { type: string }[] = [
-  // Singleton document types
   { type: 'Index_Page' },
-
-  // Collection document types
-  { type: 'Pages_Collection' },
-
-  // CaseStudy document types
   { type: 'CaseStudy_Page' },
+  { type: 'Activities_Page' },
+  { type: 'Blog_Page' },
+  { type: 'Pages_Collection' },
+  { type: 'BlogPost_Collection' },
+  { type: 'BlogCategory_Collection' },
+  { type: 'Activities_Collection' },
 ]

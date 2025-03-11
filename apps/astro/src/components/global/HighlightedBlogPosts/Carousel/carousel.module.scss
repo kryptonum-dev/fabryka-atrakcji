@@ -1,0 +1,102 @@
+$slide-width: clamp(18.625rem, calc(18.625vw / 0.48), 27.1875rem);
+$slide-margin: clamp(0.375rem, calc(0.5vw / 0.48), 0.5rem);
+
+.embla {
+  grid-row: 1 / 2;
+  grid-column: 2 / 4;
+  &__viewport {
+    overflow: hidden;
+    max-width: max-content;
+    min-width: calc(2 * $slide-width + 2 * $slide-margin);
+  }
+
+  &__container {
+    display: flex;
+    touch-action: pan-y pinch-zoom;
+    align-items: stretch;
+  }
+
+  &__slide {
+    transform: translate3d(0, 0, 0);
+    flex: 0 0 $slide-width;
+    margin-right: $slide-margin;
+
+    :global(article) {
+      height: 100%;
+    }
+  }
+}
+.controlers {
+  grid-row: 2 / 3;
+  grid-column: 2 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 2rem;
+  width: 100%;
+  max-width: 39.875rem;
+
+  .buttons {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.125rem, calc(0.5vw / 0.48), 0.5rem);
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .dot {
+      background-color: var(--neutral-500, #d2c1b0);
+      width: 0.25rem;
+      height: 0.25rem;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        inset: 0;
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 200ms;
+        background: conic-gradient(
+          from 135deg at 50% 50%,
+          #798ddc 0deg,
+          #e7c78f 90deg,
+          #fa7468 266.40000343322754deg,
+          #798ddc 360deg
+        );
+      }
+
+      &_active {
+        &::before {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 56.1875rem) {
+  .embla {
+    margin-right: calc(-1 * var(--pageMargin));
+    margin-bottom: clamp(1.25rem, calc(2vw / 0.48), 2rem);
+  }
+  .controlers {
+    max-width: 39.875rem;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 37.4375rem) {
+  $slide-width: 20.5rem;
+
+  .embla {
+    &__slide {
+      flex: 0 0 $slide-width;
+    }
+  }
+}

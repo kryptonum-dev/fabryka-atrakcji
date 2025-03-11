@@ -263,6 +263,8 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
     gap: 1rem;
     position: relative;
     align-content: start;
+    min-height: 48rem;
+
     .container {
       min-height: 48rem;
       width: 100%;
@@ -358,7 +360,7 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
 
       .header {
         padding: 4rem var(--pageMargin) 0;
-        margin: 0 auto;
+        margin: 0 auto 40vw;
         text-align: center;
         max-width: calc(38rem + 2 * var(--pageMargin));
       }
@@ -367,8 +369,6 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
         padding: 3rem var(--pageMargin);
         max-width: 46rem;
         margin: 0 auto;
-        position: relative;
-        top: 40vw;
 
         .item {
           .list-heading {
@@ -382,26 +382,29 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
       }
     }
     @media (max-width: 54.3125rem) {
-      .list {
-        top: 35vw;
+      .header {
+        margin-bottom: 35vw;
       }
     }
     @media (max-width: 47.9375rem) {
-      .list {
-        top: 31vw;
+      .header {
+        margin-bottom: 31vw;
       }
     }
     @media (max-width: 41.1875rem) {
+      .header {
+        margin-bottom: 31vw;
+      }
       .list {
         grid-template-columns: 1fr;
-        top: 24vw;
       }
     }
 
     @media (max-width: 35.5625rem) {
       gap: 1.75rem;
       .header {
-        margin-top: 63vw;
+        margin: 63vw auto 0;
+
         padding: 0 var(--pageMargin);
 
         .heading {

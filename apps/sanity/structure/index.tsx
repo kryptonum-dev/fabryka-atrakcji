@@ -1,4 +1,4 @@
-import { FileArchive, Handshake, Settings2 } from 'lucide-react'
+import { BookOpen, FileArchive, Handshake, Settings2 } from 'lucide-react'
 import type { StructureResolver } from 'sanity/structure'
 import { createCollection } from '../utils/create-collection'
 import { createSingleton } from '../utils/create-singleton'
@@ -25,6 +25,18 @@ export const structure: StructureResolver = (S) =>
           S.list()
             .title('Integracje')
             .items([createSingleton({ S, name: 'Activities_Page' }), createCollection(S, 'Activities_Collection')])
+        ),
+      S.listItem()
+        .title('Blog')
+        .icon(BookOpen)
+        .child(
+          S.list()
+            .title('Blog')
+            .items([
+              createSingleton({ S, name: 'Blog_Page' }),
+              createCollection(S, 'BlogPost_Collection'),
+              createCollection(S, 'BlogCategory_Collection'),
+            ])
         ),
       createCollection(S, 'Faq_Collection'),
       S.divider(),

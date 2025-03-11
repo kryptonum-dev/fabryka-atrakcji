@@ -45,7 +45,24 @@ export default defineField({
       name: 'activities',
       type: 'array',
       title: 'Lista Integracji',
-      of: [{ type: 'reference', to: [{ type: 'Activities_Collection' }] }],
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'Activities_Collection' }],
+          options: {
+            disableNew: true,
+            filter: ({ parent, document }) => {
+              const language = (document as { language?: string })?.language
+              const selectedIds =
+                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
+              return {
+                filter: '!(_id in $selectedIds) && !(_id in path("drafts.**")) && language == $lang',
+                params: { selectedIds, lang: language },
+              }
+            },
+          },
+        },
+      ],
       validation: (Rule) =>
         Rule.required()
           .min(4)

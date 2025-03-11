@@ -1,13 +1,13 @@
-import { FileText } from 'lucide-react'
+import { Book } from 'lucide-react'
 import { createPageSchema } from '../templates/pageTemplate'
 
 const name = 'Blog_Page'
-const title = 'Blog'
+const title = 'Strona bloga'
 
 export default createPageSchema({
   name,
   title,
-  icon: FileText,
+  icon: Book,
   slugs: {
     pl: '/pl/blog',
     en: '/en/blog',
