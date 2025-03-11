@@ -200,6 +200,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+  font-variant-numeric: lining-nums proportional-nums;
   font-size: var(--typography-body-l, 1rem);
   line-height: 1.55;
   letter-spacing: -0.02em;

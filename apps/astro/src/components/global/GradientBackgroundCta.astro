@@ -271,12 +271,20 @@ const outerSizes = '(max-width: 35rem) 243px, (max-width: 64.125rem) 42vw, 432px
       .outside-wrapper {
         .ctas {
           flex-direction: column;
-          a {
+          :global(a) {
+            max-width: 100%;
             width: 100%;
-            max-width: none;
-            :global(span) {
-              margin: 0 auto;
-              padding-right: 1.75rem;
+
+            &[data-theme='secondary'] {
+              display: flex;
+              justify-content: center;
+            }
+
+            &[data-theme='primary'] {
+              :global(span) {
+                margin: 0 auto;
+                padding-right: 1.75rem;
+              }
             }
           }
         }
