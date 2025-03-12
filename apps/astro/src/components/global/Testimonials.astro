@@ -1,22 +1,407 @@
 ---
+import imageToInlineSvg from '@/src/utils/image-to-inline-svg'
+import Image, { ImageDataQuery, type ImageDataProps } from '../ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
+import RatingBox from '../ui/RatingBox'
+import Button from '../ui/button'
+import TestimonialsPopup from '../ui/TestimonialsPopup'
+import { toPlainText } from '../../utils/to-plain-text'
+import { optimizeImage } from '@/src/utils/optimize-images'
 export const Testimonials_Query = `
   _type == "Testimonials" => {
-  
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    testimonials[] -> {
+      name,
+      position,
+      company,
+      "logo": logo.asset->url,
+      image{
+        ${ImageDataQuery('profileImage')}
+      },
+      date,
+      ${PortableTextQuery('review')}
+    },
+    "googleData": *[_type == "global"][0].googleData {
+      rating,
+      ratingCount,
+    },
+    "allTestimonials": *[_type == "Testimonial_Collection"] {
+       name,
+      position,
+      company,
+      "logo": logo.asset->url,
+      image{
+        ${ImageDataQuery('profileImage')}
+      },
+      date,
+      ${PortableTextQuery('review')}
+    },
   },
 `
 
 type Props = {
   index: number
   sectionId?: string
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  testimonials: {
+    name: string
+    position: string
+    company: string
+    logo: string
+    image: {
+      profileImage: ImageDataProps
+    }
+    date: string
+    review: PortableTextValue
+  }[]
+  googleData: {
+    rating: number
+    ratingCount: number
+  }
+  allTestimonials: {
+    name: string
+    position: string
+    company: string
+    logo: string
+    image: {
+      profileImage: ImageDataProps
+    }
+    date: string
+    review: PortableTextValue
+  }[]
 }
 
-const { index, sectionId } = Astro.props
+const { index, sectionId, heading, paragraph, testimonials, googleData, allTestimonials } = Astro.props
+
+const translateDates = testimonials.map((testimonial) => {
+  const date = new Date(testimonial.date)
+  return new Intl.DateTimeFormat('pl-PL', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date))
+})
+
+const logoSvgs = await Promise.all(testimonials.map(async ({ logo }) => (logo ? await imageToInlineSvg(logo) : null)))
+
+const popupId = crypto.randomUUID()
+
+const clientTestimonials = await Promise.all(
+  allTestimonials.map(async (testimonial) => ({
+    ...testimonial,
+    review: toPlainText(testimonial.review),
+    logo: testimonial.logo ? await imageToInlineSvg(testimonial.logo) : null,
+    image: {
+      profileImage: testimonial.image
+        ? await optimizeImage({ image: testimonial.image.profileImage.asset.url, width: 36, height: 36 })
+        : null,
+    },
+  }))
+)
 ---
 
-<section class="Testimonials" id={sectionId}></section>
+<section class="Testimonials max-width" id={sectionId}>
+  <header class="header">
+    <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+    <PortableText value={paragraph} class="paragraph" />
+  </header>
+  <div class="container">
+    <ul class="testimonials">
+      {
+        testimonials.map(({ name, position, company, image, logo, review }, testimonialIndex) => (
+          <li class="testimonial">
+            <PortableText value={review} class="review" />
+            <span class="name">{name}</span>
+            <span class="position">
+              {position} - {company}
+            </span>
+            {(image || logo) && (
+              <div class="wrapper">
+                {image ? (
+                  <Image {...image.profileImage} sizes="36px" />
+                ) : (
+                  <Fragment set:html={logoSvgs[testimonialIndex]} />
+                )}
+              </div>
+            )}
+            <span class="date">{translateDates[testimonialIndex]}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <Button data-popup-id={popupId} className="all-reviews" theme="secondary"
+      >{`Przeczytaj wszystkie opinie (${allTestimonials.length})`}</Button
+    >
+    <RatingBox {...googleData} />
+  </div>
+  <TestimonialsPopup
+    client:load
+    testimonials={[
+      ...clientTestimonials,
+      ...clientTestimonials,
+      ...clientTestimonials,
+      ...clientTestimonials,
+      ...clientTestimonials,
+      ...clientTestimonials,
+      ...clientTestimonials,
+      ...clientTestimonials,
+    ]}
+    googleData={googleData}
+    popupId={popupId}
+  />
+</section>
 
 <style lang="scss">
   .Testimonials {
+    padding-top: clamp(3rem, calc(5vw / 0.48), 6rem);
+    .header {
+      max-width: 41rem;
+      margin: 0 auto;
+      text-align: center;
+      margin-bottom: 2.25rem;
+      .heading {
+        margin-bottom: 1rem;
+      }
+
+      .paragraph {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+      }
+    }
+
+    .container {
+      background: var(--neutral-200, #f5f1ec);
+      padding: clamp(1rem, calc(1.5vw / 0.48), 2rem) clamp(1rem, calc(1.5vw / 0.48), 2rem)
+        clamp(4rem, calc(5vw / 0.48), 8rem);
+      border-radius: clamp(24px, calc(48vw / 7.68), 48px) clamp(24px, calc(48vw / 7.68), 48px) 0 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      .testimonials {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-column: 1/3;
+        grid-row: 1/2;
+        margin-bottom: clamp(1rem, calc(1vw / 0.48), 2rem);
+
+        .testimonial {
+          display: grid;
+          background: var(--neutral-100, #faf7f7);
+          border-radius: clamp(16px, calc(24vw / 7.68), 32px);
+          padding: clamp(1.25rem, calc(2vw / 0.48), 2rem);
+          grid-template-columns: repeat(2, auto);
+          grid-template-rows: auto auto auto 1fr;
+
+          .review {
+            margin-bottom: 1.5rem;
+          }
+
+          .name {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+            color: var(--primary-800, #45051c);
+            font-weight: 700;
+            font-size: var(--typography-body-m, 14px);
+            line-height: 1.2;
+          }
+          .position {
+            font-size: var(--typography-body-m, 14px);
+            line-height: 1.7;
+            letter-spacing: -0.01em;
+            grid-column: 1 / 2;
+            grid-row: 3 / 4;
+          }
+
+          .wrapper {
+            grid-column: 2 / 3;
+            grid-row: 2 / 4;
+            align-self: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            position: relative;
+            padding: 0.25rem;
+            z-index: 2;
+            display: grid;
+            place-items: center;
+
+            &::before,
+            &::after {
+              content: '';
+              position: absolute;
+              display: block;
+              border-radius: 50%;
+              inset: 0;
+              background: var(--neutral-100, #faf7f7);
+              z-index: -1;
+            }
+
+            &::before {
+              inset: -2px;
+              background: conic-gradient(
+                from 135deg at 50% 50%,
+                #798ddc 0deg,
+                #e7c78f 90deg,
+                #fa7468 266.40000343322754deg,
+                #798ddc 360deg
+              );
+              z-index: -2;
+            }
+          }
+
+          .date {
+            grid-column: 1 / 2;
+            grid-row: 4 / 5;
+            font-size: var(--typography-body-m, 14px);
+            line-height: 1.7;
+            letter-spacing: -0.01em;
+            margin-top: 1rem;
+            align-self: end;
+          }
+        }
+      }
+
+      > :global(div) {
+        width: max-content;
+        grid-column: 2/3;
+        justify-self: end;
+      }
+
+      :global(.all-reviews) {
+        isolation: isolate;
+        z-index: 2;
+      }
+    }
+
+    @media (max-width: 73.6875rem) {
+      .container {
+        .testimonials {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem;
+
+          .testimonial:nth-of-type(3) {
+            grid-column: 1 / 3;
+            max-width: 50%;
+            justify-self: center;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 56.1875rem) {
+      .container > .testimonials {
+        grid-template-columns: 1fr;
+
+        .testimonial {
+          grid-template-columns: max-content auto 1fr;
+          grid-template-rows: repeat(3, auto);
+
+          .review {
+            grid-column: 1/4;
+          }
+
+          .name {
+            grid-column: 2/3;
+            grid-row: 2/3;
+          }
+
+          .position {
+            grid-column: 2/3;
+            grid-row: 3/4;
+          }
+
+          .wrapper {
+            grid-column: 1/2;
+            grid-row: 2/4;
+            margin-right: 0.5rem;
+          }
+          .date {
+            grid-column: 3/4;
+            grid-row: 2/4;
+            justify-self: end;
+            margin-left: 2rem;
+            align-self: start;
+            margin-top: 0;
+          }
+          &:nth-of-type(3) {
+            grid-column: 1 / 2;
+            max-width: 100%;
+          }
+        }
+      }
+    }
+    @media (max-width: 42.4375rem) {
+      .container {
+        grid-template-columns: 1fr;
+
+        > :global(div) {
+          grid-column: 1/2;
+          justify-self: stretch;
+          margin-bottom: 0.5rem;
+          grid-row: 2/3;
+          max-width: 100%;
+          width: 100%;
+        }
+
+        :global(.all-reviews) {
+          grid-column: 1/2;
+          justify-self: stretch;
+          grid-row: 3/4;
+          max-width: 100%;
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+      }
+    }
+    @media (max-width: 29.9375rem) {
+      .container {
+        margin: 0 calc(-1 * var(--pageMargin));
+        .testimonials > .testimonial {
+          grid-template-columns: 1fr auto;
+          grid-template-rows: repeat(4, auto);
+
+          .review {
+            grid-column: 1/3;
+          }
+
+          .name {
+            grid-column: 1/2;
+            grid-row: 2/3;
+          }
+
+          .position {
+            grid-column: 1/2;
+            grid-row: 3/4;
+          }
+
+          .wrapper {
+            grid-column: 2/3;
+            grid-row: 2/4;
+            margin-left: 1.5rem;
+          }
+
+          .date {
+            grid-column: 1/2;
+            grid-row: 4/5;
+            justify-self: start;
+            margin-left: 0;
+            margin-top: 0.75rem;
+          }
+        }
+      }
+    }
   }
 </style>
 
+<script>
+  document.querySelectorAll<HTMLDivElement>('.Testimonials').forEach((section) => {
+    const button = section.querySelector<HTMLButtonElement>('.all-reviews')
+    const buttonPopupId = button?.dataset.popupId
+    button?.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent(`testimonials-${buttonPopupId}:open`))
+    })
+  })
+</script>

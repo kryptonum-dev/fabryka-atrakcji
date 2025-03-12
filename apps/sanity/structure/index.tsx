@@ -38,6 +38,7 @@ export const structure: StructureResolver = (S) =>
               createCollection(S, 'BlogCategory_Collection'),
             ])
         ),
+      createCollection(S, 'Testimonial_Collection'),
       createCollection(S, 'Faq_Collection'),
       S.divider(),
       S.listItem()

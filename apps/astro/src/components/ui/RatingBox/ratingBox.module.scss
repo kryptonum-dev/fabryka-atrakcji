@@ -1,0 +1,26 @@
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: var(--typography-body-m, 14px);
+  line-height: 1.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--neutral-100, #faf7f7);
+  padding: 0.375rem 0.75rem 0.4375rem;
+  border-radius: 999px;
+
+  .rating {
+    color: var(--primary-800, #45051c);
+    font-weight: 700;
+  }
+
+  .stars {
+    display: flex;
+    align-items: center;
+    gap: 0.1875rem;
+  }
+}

@@ -26,11 +26,6 @@ export default defineType({
       title: 'Phone number (optional)',
     }),
     defineField({
-      name: 'cta',
-      type: 'cta',
-      title: 'Call to action',
-    }),
-    defineField({
       name: 'socials',
       type: 'object',
       title: 'Social media',
@@ -60,6 +55,34 @@ export default defineType({
           title: 'LinkedIn',
           validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
         }),
+      ],
+    }),
+    defineField({
+      name: 'googleData',
+      type: 'object',
+      title: 'Dane z Google',
+      fields: [
+        defineField({
+          name: 'rating',
+          type: 'number',
+          title: 'Ocena (1.0 - 5.0)',
+          validation: (Rule) => Rule.required().max(5).min(1),
+          fieldset: 'rating',
+        }),
+        defineField({
+          name: 'ratingCount',
+          type: 'number',
+          title: 'Liczba opinii',
+          validation: (Rule) => Rule.required(),
+          fieldset: 'rating',
+        }),
+      ],
+      fieldsets: [
+        {
+          name: 'rating',
+          title: 'Ocena (opcjonalna)',
+          options: { columns: 2 },
+        },
       ],
     }),
     defineField({
