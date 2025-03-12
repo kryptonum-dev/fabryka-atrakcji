@@ -1,21 +1,178 @@
 ---
+import Button, { ButtonDataQuery, type ButtonDataProps } from '../ui/button'
+import Image, { ImageDataQuery, type ImageDataProps } from '../ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
+
 export const BackgroundImageWithCenteredHeading_Query = `
   _type == "BackgroundImageWithCenteredHeading" => {
-  
+    ${ImageDataQuery('backgroundImage')}
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    ${ButtonDataQuery('cta')}
+    points[]
   },
 `
 
 type Props = {
   index: number
   sectionId?: string
+  backgroundImage: ImageDataProps
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  cta: ButtonDataProps
+  points: string[]
 }
 
-const { index, sectionId } = Astro.props
+const { index, sectionId, backgroundImage, heading, paragraph, cta, points } = Astro.props
 ---
 
-<section class="BackgroundImageWithCenteredHeading" id={sectionId}></section>
+<section class="BackgroundImageWithCenteredHeading" id={sectionId}>
+  <Image {...backgroundImage} sizes="100vw" />
+  <div class="container">
+    <header class="header">
+      <PortableText value={heading} heading={index === 0 ? 'h1' : 'h2'} class="heading" />
+      <PortableText value={paragraph} class="paragraph" />
+      <Button {...cta} shade="light" />
+    </header>
+    <ul class="points">
+      {
+        points.map((point) => (
+          <li class="point">
+            <span>{point}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
 
 <style lang="scss">
   .BackgroundImageWithCenteredHeading {
+    max-width: 85.375rem;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    img {
+      width: 100%;
+      aspect-ratio: 1366/585;
+    }
+
+    .container {
+      .header {
+        background: var(--neutral-200, #f5f1ec);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+        border-radius: 16px;
+        padding: clamp(1.5rem, calc(2.25vw / 0.48), 2.25rem) clamp(2rem, calc(2.5vw / 0.48), 2.5rem);
+        min-height: clamp(20rem, calc(25.75vw / 0.48), 25.75rem);
+        max-width: 27.125rem;
+        .heading {
+          margin-bottom: 1.25rem;
+        }
+
+        .paragraph {
+          margin-bottom: auto;
+          padding-bottom: 2rem;
+          border-bottom: 2px solid var(--neutral-300, #e5e1dd);
+        }
+      }
+
+      .points {
+        position: absolute;
+        inset: 0;
+
+        .point {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 0.5rem;
+          padding: 0.1875rem 0.375rem 0.375rem;
+          background: var(--neutral-100, #faf7f7);
+          border-radius: 8px;
+          max-width: 17.25rem;
+          position: absolute;
+
+          &::before {
+            content: '';
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSIjRjY3MjU4IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xNC42NyA4QTYuNjY3IDYuNjY3IDAgMSAxIDEuMzM1IDhhNi42NjcgNi42NjcgMCAwIDEgMTMuMzMzIDBabS0zLjk4LTIuMDJhLjUuNSAwIDAgMSAwIC43MDhMNy4zNTYgMTAuMDJhLjUuNSAwIDAgMS0uNzA3IDBMNS4zMTYgOC42ODhhLjUuNSAwIDAgMSAuNzA3LS43MDhsLjk4Ljk4IDEuNDktMS40OSAxLjQ5LTEuNDlhLjUuNSAwIDAgMSAuNzA3IDBaIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=')
+              center / contain no-repeat;
+            display: block;
+            width: 1rem;
+            height: 1rem;
+            margin-top: 0.25rem;
+          }
+
+          &:nth-of-type(1) {
+            left: clamp(30px, calc(30vw / 7.68), 61px);
+            bottom: clamp(123px, calc(133vw / 7.68), 246px);
+          }
+
+          &:nth-of-type(2) {
+            right: 79px;
+            right: clamp(35px, calc(35vw / 7.68), 79px);
+            top: 97px;
+          }
+
+          &:nth-of-type(3) {
+            left: clamp(50px, calc(37vw / 7.68), 135px);
+            top: 105.332px;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 68.6875rem) {
+      .container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(1rem, calc(2vw / 0.48), 2rem);
+        top: -13vw;
+
+        .header {
+          position: static;
+          transform: none;
+        }
+
+        .points {
+          position: static;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.75rem;
+          padding: 0 var(--pageMargin);
+          max-width: 46rem;
+
+          .point {
+            position: static;
+            grid-template-columns: 1fr;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 29.9375rem) {
+      .container {
+        top: -6 vw;
+        .header {
+          margin: 0 var(--pageMargin);
+        }
+
+        .points {
+          grid-template-columns: 1fr;
+
+          .point {
+            max-width: 100%;
+            grid-template-columns: auto 1fr;
+          }
+        }
+      }
+    }
   }
 </style>
