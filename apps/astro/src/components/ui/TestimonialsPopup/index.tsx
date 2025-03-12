@@ -104,7 +104,15 @@ export default function TestimonialsPopup({ testimonials, googleData, popupId }:
         <span className={styles.title}>Opinie</span>
         <RatingBox {...googleData} />
         <button className={styles.closeButton} onClick={closePopup} aria-label="Zamknij wszystkie opinie">
-          <CloseIcon />
+          <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
+            <circle cx={12} cy={12} r={10} stroke="#F67258" strokeWidth={1.5} />
+            <path
+              d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+              stroke="#F67258"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
         <ul className={styles.testimonials} ref={testimonialsRef}>
           {visibleTestimonials.map(({ name, position, company, review, date, image, logo }, index) => (
@@ -164,10 +172,3 @@ export default function TestimonialsPopup({ testimonials, googleData, popupId }:
     </div>
   )
 }
-
-const CloseIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
-    <circle cx={12} cy={12} r={10} stroke="#F67258" strokeWidth={1.5} />
-    <path d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5" stroke="#F67258" strokeWidth={1.5} strokeLinecap="round" />
-  </svg>
-)
