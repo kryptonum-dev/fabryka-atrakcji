@@ -1,16 +1,16 @@
 ---
-description: Cleanig up SCSS
-globs: *.astro
+description: A function that is sued to cleanup css written by the developer
+globs: 
 alwaysApply: false
 ---
-# You will refractor and style the scss tag in a given file. Below are essential rules you sohuld follow while refractoring.
+# You will cleanup and refractor tiher the scs file or the style tag in .astro file based what context the developer gave you, below are the main rules you should focus on while cleaning up. YOu can consider the cleanup successfull when the points below are all checked.
 
-- Don't change anything else in the file except the code in css/scss. The only exception is chaning / adding / removing classes from html.
-- For classes always use kebab-case, the only exception is if the wrapping element is a section, then you should use CamelCase with the first word uppercase.
+- Don't change anything else in the file except the code in css/scss.
 - Change timing (ex. transition time, animation time etc), to be in ms instead of s, for example 0.3s -> 300ms.
 - Change every value except images (width and height) and border-radius from px to rem. Always have in mind that 1rem = 16px
-- Always try to nest the elements if possible using the specified scss selectors like '&'.
+- If you see an clamp() property like this: clamp([pixels]px, calc([pixels]vs / 7.68), [pixels]px), change it to clamp([rem]rem, calc([rem]vw /0.48), [rem]rem)
 - Iterate over the entire file and check if there are any overlaps in scss properties, for example if property for element is defined in two places and it doesnt need to be, remove duplicates, but take care of possible consequences.
+- Change every letter spacing from pixels to its corresponding em values, always consider what font-size does the element have. 
 - Always refer to [global.scss](mdc:apps/astro/src/global/global.scss) file and get variables from there if nessecary.
 - Remove unnessecary spaces between styles and empty style objects.
 - For grouping and ordering the css properites in a single selector please go with the ordering by groups, below i present you an example of how should it look, in the code you write dont include comments and any gaps between groups.   
