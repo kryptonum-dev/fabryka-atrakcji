@@ -1,8 +1,7 @@
 import type { GetImageResult } from 'astro'
-import { Fragment } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import RatingBox from '../RatingBox'
-import styles from './TestimonialsPopup.module.scss'
+import styles from './testimonialsPopup.module.scss'
 
 type Props = {
   testimonials: {
