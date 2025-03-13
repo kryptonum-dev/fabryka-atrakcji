@@ -453,55 +453,56 @@ const imageSizes = [
 
 <style lang="scss">
   .NotFoundHero {
-    z-index: 1;
     position: relative;
-    max-width: 1366px;
-    min-height: 660px;
-    margin: 0 auto;
-    padding: clamp(80px, calc(100vw / 7.68), 100px) var(--pageMargin) 40px;
-    background-color: var(--neutral-200);
+    z-index: 1;
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-rows: auto 1fr;
+    max-width: 1366px;
+    min-height: 41.25rem;
+    margin: 0 auto;
+    padding: clamp(5rem, calc(100vw / 0.48), 6.25rem) var(--pageMargin) 2.5rem;
     overflow: hidden;
+    background-color: var(--neutral-200);
+
     .header {
-      max-width: 442px;
       grid-column: 1/2;
       grid-row: 1/3;
-      justify-self: start;
       align-self: start;
+      justify-self: start;
+      max-width: 27.625rem;
       margin-bottom: 3rem;
 
       .heading {
-        margin-bottom: 16px;
+        margin-bottom: 1rem;
       }
     }
 
     .additional {
       grid-column: 2/3;
       grid-row: 1/2;
-      color: var(--primary-500, #f67258);
-      font-size: clamp(88px, calc(124vw / 7.68), 124px);
-      line-height: 90%; /* 111.6px */
-      letter-spacing: -9.92px;
-      text-transform: uppercase;
-      font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
       justify-self: end;
+      color: var(--primary-500, #f67258);
+      font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+      font-size: clamp(5.5rem, calc(7.75vw / 0.48), 7.75rem);
       font-weight: 760;
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+      text-transform: uppercase;
     }
 
     .ctas {
-      max-width: 443px;
+      grid-column: 2/3;
+      grid-row: 2/3;
+      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      grid-column: 2/3;
-      grid-row: 2/3;
       align-self: end;
-      z-index: 2;
+      max-width: 27.6875rem;
 
       .text {
-        margin-bottom: clamp(24px, calc(32vw / 7.68), 32px);
+        margin-bottom: clamp(1.5rem, calc(32vw / 0.48), 2rem);
         text-align: right;
       }
 
@@ -514,21 +515,23 @@ const imageSizes = [
 
     .images {
       isolation: isolate;
+
       .wrapper {
         position: absolute;
-        border-radius: 999px;
-        background: #f5f1ec;
+        padding: 0.75rem;
         overflow: hidden;
-        padding: 12px;
+        background: #f5f1ec;
+        border-radius: 999px;
 
         img {
-          border-radius: 999px;
           aspect-ratio: 1;
+          border-radius: 999px;
         }
 
         &:nth-of-type(1) {
-          right: 302px;
-          bottom: -396px;
+          right: 18.875rem;
+          bottom: -24.75rem;
+
           img {
             width: clamp(260px, calc(576vw / 7.68), 576px);
             aspect-ratio: 1;
@@ -536,25 +539,28 @@ const imageSizes = [
         }
 
         &:nth-of-type(2) {
-          bottom: -423px;
-          left: -146px;
+          bottom: -26.4375rem;
+          left: -9.125rem;
+
           img {
             width: clamp(284px, calc(629vw / 7.68), 629px);
           }
         }
 
         &:nth-of-type(3) {
-          bottom: 18px;
-          right: 683px;
+          right: 42.6875rem;
+          bottom: 1.125rem;
           z-index: 2;
+
           img {
             width: clamp(154px, calc(341vw / 7.68), 341px);
           }
         }
 
         &:nth-of-type(4) {
-          bottom: 116px;
-          right: 364px;
+          right: 22.75rem;
+          bottom: 7.25rem;
+
           img {
             width: clamp(154px, calc(341vw / 7.68), 341px);
           }
@@ -564,30 +570,30 @@ const imageSizes = [
 
     .gradient {
       position: absolute;
-      width: 100%;
-      height: max-content;
       right: 0;
       bottom: 0;
       z-index: -2;
+      width: 100%;
+      height: max-content;
     }
 
     .cloud {
       position: absolute;
-      right: -243px;
-      bottom: -115px;
+      right: -15.1875rem;
+      bottom: -7.1875rem;
       z-index: -1;
-      width: clamp(773px, calc(1717vw / 7.68), 1717px);
+      width: clamp(48.3125rem, calc(107vw / 0.48), 107.3125rem);
     }
 
-    @media (max-width: 1079px) {
+    @media (max-width: 67.4375rem) {
       .images {
         .wrapper {
           transform: scale(0.9);
           transform-origin: bottom;
 
           &:nth-of-type(3) {
-            bottom: 18px;
-            right: 623px;
+            right: 38.9375rem;
+            bottom: 1.125rem;
           }
         }
       }
@@ -597,28 +603,30 @@ const imageSizes = [
       }
     }
 
-    @media (max-width: 1023px) {
+    @media (max-width: 63.9375rem) {
       grid-template-columns: 1fr;
       grid-template-rows: repeat(3, auto);
       align-content: start;
-      min-height: 1080px;
+      min-height: 67.5rem;
 
       .header {
         grid-column: 1/2;
         grid-row: 1/2;
-        max-width: 453px;
+        max-width: 28.3125rem;
       }
+
       .additional {
         grid-column: 1/2;
         grid-row: 3/4;
         justify-self: start;
-        max-width: 453px;
+        max-width: 28.3125rem;
       }
+
       .ctas {
         grid-column: 1/2;
         grid-row: 2/3;
         align-items: flex-start;
-        margin-bottom: clamp(64px, calc(80vw / 7.68), 80px);
+        margin-bottom: clamp(4rem, calc(80vw / 0.48), 5rem);
 
         .text {
           text-align: left;
@@ -630,26 +638,26 @@ const imageSizes = [
           transform: scale(1);
 
           &:nth-of-type(1) {
+            right: -14.6875rem;
+            bottom: -14.9375rem;
             left: unset;
-            right: -235px;
-            bottom: -239px;
           }
 
           &:nth-of-type(2) {
+            right: 18.75rem;
+            bottom: -18.4375rem;
             left: unset;
-            right: 300px;
-            bottom: -295px;
           }
 
           &:nth-of-type(3) {
+            right: 7.5rem;
+            bottom: 9.375rem;
             left: unset;
-            right: 120px;
-            bottom: 150px;
           }
 
           &:nth-of-type(4) {
-            right: -140px;
-            bottom: 300px;
+            right: -8.75rem;
+            bottom: 18.75rem;
           }
         }
       }
@@ -659,79 +667,79 @@ const imageSizes = [
       }
 
       .cloud {
-        left: -300px;
         right: unset;
-        bottom: -60px;
+        bottom: -3.75rem;
+        left: -18.75rem;
         display: block;
       }
     }
 
-    @media (max-width: 839px) {
+    @media (max-width: 52.4375rem) {
       .images {
         .wrapper {
           &:nth-of-type(2) {
             right: unset;
-            left: -160px;
+            left: -10rem;
           }
         }
       }
     }
 
-    @media (max-width: 739px) {
-      min-height: clamp(1000px, calc(1080vw / 7.68), 1080px);
+    @media (max-width: 46.1875rem) {
+      min-height: clamp(62.5rem, calc(1080vw / 0.48), 67.5rem);
+
       .images {
         .wrapper {
           transform: scale(0.92);
 
           &:nth-of-type(1) {
-            right: calc(-10vw - 50px);
-            bottom: calc(-10vw - 60px);
+            right: calc(-10vw - 3.125rem);
+            bottom: calc(-10vw - 3.75rem);
           }
 
           &:nth-of-type(2) {
-            left: calc(-18vw - 85px);
-            bottom: calc(-15vw - 120px);
+            left: calc(-18vw - 5.3125rem);
+            bottom: calc(-15vw - 7.5rem);
           }
 
           &:nth-of-type(3) {
-            right: calc(7vw + 95px);
-            bottom: calc(12vw + 60px);
+            right: calc(7vw + 5.9375rem);
+            bottom: calc(12vw + 3.75rem);
           }
 
           &:nth-of-type(4) {
-            right: calc(-7vw - 30px);
-            bottom: calc(28vw + 70px);
+            right: calc(-7vw - 1.875rem);
+            bottom: calc(28vw + 4.375rem);
           }
         }
       }
     }
 
-    @media (max-width: 679px) {
-      min-height: clamp(960px, calc(1080vw / 7.68), 1080px);
+    @media (max-width: 42.4375rem) {
+      min-height: clamp(60rem, calc(1080vw / 0.48), 67.5rem);
 
       .gradient {
         transform: scale(1.3);
       }
 
       .cloud {
-        // bottom: -2%;
         display: none;
       }
     }
 
-    @media (max-width: 539px) {
-      min-height: clamp(900px, calc(1080vw / 7.68), 1080px);
+    @media (max-width: 33.6875rem) {
+      min-height: clamp(56.25rem, calc(1080vw / 0.48), 67.5rem);
     }
 
-    @media (max-width: 439px) {
+    @media (max-width: 27.4375rem) {
       .ctas {
         .list {
           flex-direction: column;
           width: 100%;
 
           :global(a) {
-            max-width: 100%;
             width: 100%;
+            max-width: 100%;
 
             &[data-theme='secondary'] {
               display: flex;
@@ -751,27 +759,27 @@ const imageSizes = [
       .images {
         .wrapper {
           transform: scale(0.85);
-          padding: 8px;
+          padding: 0.5rem;
 
           &:nth-of-type(1) {
-            right: calc(-12vw - 40px);
+            right: calc(-12vw - 2.5rem);
+            bottom: calc(-12vw - 5.625rem);
             transform: scale(0.95);
-            bottom: calc(-12vw - 90px);
           }
 
           &:nth-of-type(2) {
-            left: calc(-10vw - 60px);
-            bottom: calc(-18vw - 50px);
+            left: calc(-10vw - 3.75rem);
+            bottom: calc(-18vw - 3.125rem);
           }
 
           &:nth-of-type(3) {
-            right: calc(8vw + 50px);
-            bottom: calc(9vw + 35px);
+            right: calc(8vw + 3.125rem);
+            bottom: calc(9vw + 2.1875rem);
           }
 
           &:nth-of-type(4) {
-            right: calc(-9vw - 10px);
-            bottom: calc(18vw + 50px);
+            right: calc(-9vw - 0.625rem);
+            bottom: calc(18vw + 3.125rem);
           }
         }
       }
@@ -781,41 +789,36 @@ const imageSizes = [
       }
     }
 
-    @media (max-width: 359px) {
+    @media (max-width: 22.4375rem) {
       .images {
         .wrapper {
           transform: scale(0.78);
 
           &:nth-of-type(1) {
-            right: -70px;
-            bottom: -70px;
+            right: -4.375rem;
+            bottom: -4.375rem;
             transform: scale(0.78);
           }
 
           &:nth-of-type(2) {
-            left: -50px;
-            bottom: -100px;
+            left: -3.125rem;
+            bottom: -6.25rem;
           }
 
           &:nth-of-type(3) {
-            right: 35px;
-            bottom: 40px;
+            right: 2.1875rem;
+            bottom: 2.5rem;
           }
 
           &:nth-of-type(4) {
-            right: -50px;
-            bottom: 110px;
+            right: -3.125rem;
+            bottom: 6.875rem;
           }
         }
       }
 
       .gradient {
         bottom: 15%;
-      }
-
-      .cloud {
-        left: -240px;
-        bottom: -100px;
       }
     }
   }
