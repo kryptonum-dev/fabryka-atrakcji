@@ -17,6 +17,7 @@
   "dependencies": {
     "@sanity/assist": "^3.2.0",
     "@sanity/document-internationalization": "^3.3.1",
+    "@sanity/icons": "^3.7.0",
     "@sanity/vision": "^3.77.2",
     "lucide-react": "^0.477.0",
     "react": "^19.0.0",

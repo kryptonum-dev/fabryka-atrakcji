@@ -1,9 +1,4 @@
 ---
-description: a
-globs: 
-alwaysApply: false
----
----
 description: A function that is used to clean up CSS written by the developer
 globs: 
 alwaysApply: false
@@ -15,7 +10,7 @@ alwaysApply: false
 - Change every value from px to rem except for image dimensions (width and height) and border-radius. Always use the conversion ratio: 1rem = 16px
 - If you see a clamp() property like this: clamp([pixels]px, calc([pixels]vw / 7.68), [pixels]px), change it to clamp([rem]rem, calc([rem]vw /0.48), [rem]rem). Note that we're converting px to rem and fixing any 'vs' typo to 'vw'.
 - Iterate over the entire file and check if there are any overlaps in scss properties. If a property for an element is defined in two places unnecessarily, remove duplicates. Be careful to maintain cascading behavior and specificity when removing properties.
-- Change every letter-spfrom pixels to its corresponding em values. To calculate: em = px / font-size. For example, if font-size is 16px and letter-spacing is 2px, then letter-spacing would be 0.125em (2px/16px).
+- Change every letter-spacing value from pixels to its corresponding em values. To calculate: em = px / font-size. For example, if font-size is 16px and letter-spacing is 2px, then letter-spacing would be 0.125em (2px/16px).
 - Convert line-height from percentage format to unitless number format, for example 160% -> 1.6, 120% -> 1.2, etc.
 - Always refer to [global.scss](mdc:apps/astro/src/global/global.scss) file and use variables from there whenever necessary.
 - Remove unnecessary spaces between styles and empty style objects.

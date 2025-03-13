@@ -1,3 +1,4 @@
+import { BarChartIcon, CaseIcon, CommentIcon, SearchIcon, UsersIcon } from '@sanity/icons'
 import { CogIcon } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { getLanguagePreview } from '../../structure/languages'
@@ -18,17 +19,20 @@ export default defineType({
       name: 'email',
       type: 'string',
       title: 'Email',
+      group: 'contact',
       validation: (Rule) => Rule.required().email(),
     }),
     defineField({
       name: 'tel',
       type: 'string',
       title: 'Phone number (optional)',
+      group: 'contact',
     }),
     defineField({
       name: 'socials',
       type: 'object',
       title: 'Social media',
+      group: 'social',
       options: { collapsible: true },
       fields: [
         defineField({
@@ -61,6 +65,7 @@ export default defineType({
       name: 'googleData',
       type: 'object',
       title: 'Dane z Google',
+      group: 'analytics',
       fields: [
         defineField({
           name: 'rating',
@@ -89,6 +94,7 @@ export default defineType({
       name: 'seo',
       type: 'object',
       title: 'Global SEO',
+      group: 'seo',
       fields: [
         defineField({
           name: 'img',
@@ -104,16 +110,17 @@ export default defineType({
     defineField({
       name: 'OrganizationSchema',
       type: 'object',
-      title: 'Organization structured data',
+      title: 'Ustrukturyzowane dane organizacji',
+      group: 'organization',
       description: (
         <>
-          Learn more about{' '}
+          Dowiedz się więcej o{' '}
           <a
             href="https://developers.google.com/search/docs/appearance/structured-data/organization?hl=en"
             target="_blank"
             rel="noreferrer"
           >
-            Organization structured data
+            Ustrukturyzowanych danych organizacji
           </a>
         </>
       ),
@@ -122,20 +129,98 @@ export default defineType({
         defineField({
           name: 'name',
           type: 'string',
-          title: 'Name',
-          description: 'Enter the name of your organization as you want it to appear in search results.',
+          title: 'Nazwa',
+          description: 'Wpisz nazwę swojej organizacji, tak jak chcesz, aby pojawiła się w wynikach wyszukiwania.',
           validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'description',
           type: 'text',
           rows: 3,
-          title: 'Description',
-          description: 'A brief description of your organization that will appear in search results.',
+          title: 'Opis',
+          description: 'Krótki opis Twojej organizacji, który pojawi się w wynikach wyszukiwania.',
           validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'businessDetails',
+          type: 'object',
+          title: 'Dane biznesowe (opcjonalne)',
+          description:
+            'Dodatkowe informacje biznesowe, które poprawiają widoczność Twojej organizacji w wynikach wyszukiwania i budują zaufanie z potencjalnymi klientami. Podanie tych danych może znacznie poprawić Twoją pozycję w SEO.',
+          options: { collapsible: true },
+          fields: [
+            defineField({
+              name: 'vatID',
+              type: 'string',
+              title: 'VAT ID (NIP)',
+              validation: (Rule) => Rule.regex(/^[0-9]{10}$/, 'NIP musi składać się z 10 cyfr'),
+            }),
+            defineField({
+              name: 'regon',
+              type: 'string',
+              title: 'REGON',
+              validation: (Rule) => Rule.regex(/^[0-9]{9}$/, 'REGON musi składać się z 9 cyfr'),
+            }),
+            defineField({
+              name: 'legalName',
+              type: 'string',
+              title: 'Pełna nazwa firmy',
+            }),
+            defineField({
+              name: 'foundingDate',
+              type: 'date',
+              title: 'Data założenia firmy',
+            }),
+            defineField({
+              name: 'founder',
+              type: 'string',
+              title: 'Założyciel (imię i nazwisko)',
+            }),
+            defineField({
+              name: 'priceRange',
+              type: 'number',
+              title: 'Zakres cenowy',
+              description: 'Wybierz zakres cenowy od 1 ($) do 4 ($$$$)',
+              options: {
+                list: [
+                  { title: '$ - Budżetowy', value: 1 },
+                  { title: '$$ - Średni', value: 2 },
+                  { title: '$$$ - Premium', value: 3 },
+                  { title: '$$$$ - Luksusowy', value: 4 },
+                ],
+              },
+            }),
+          ],
         }),
       ],
     }),
+  ],
+  groups: [
+    {
+      name: 'contact',
+      title: 'Dane kontaktowe',
+      icon: UsersIcon,
+    },
+    {
+      name: 'social',
+      title: 'Social Media',
+      icon: CommentIcon,
+    },
+    {
+      name: 'analytics',
+      title: 'Analityka',
+      icon: BarChartIcon,
+    },
+    {
+      name: 'seo',
+      title: 'SEO',
+      icon: SearchIcon,
+    },
+    {
+      name: 'organization',
+      title: 'Dane organizacyjne',
+      icon: CaseIcon,
+    },
   ],
   preview: {
     select: {

@@ -1,7 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
-import { languageLabel } from '../../utils/language-label'
 import { getLanguagePreview } from '../../structure/languages'
 
 const name = 'NotFound_Page'

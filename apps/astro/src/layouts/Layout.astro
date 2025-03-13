@@ -2,6 +2,7 @@
 import '@/global/global.scss'
 import { LOCALE } from '../global/constants'
 import Head, { type HeadProps } from './Head.astro'
+import OrganizationSchema from '../Schema/OrganizationSchema.astro'
 
 type Props = HeadProps
 
@@ -12,6 +13,7 @@ const { ...props } = Astro.props
 <html lang={LOCALE}>
   <head>
     <Head {...props} />
+    <OrganizationSchema />
   </head>
   <body>
     <main id="main">
