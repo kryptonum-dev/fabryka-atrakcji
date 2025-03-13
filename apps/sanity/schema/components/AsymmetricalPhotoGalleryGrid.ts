@@ -5,7 +5,7 @@ import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
 
 const name = 'AsymmetricalPhotoGalleryGrid'
-const title = 'Asymetryczna siatka galerii zdjęć'
+const title = 'Asymetryczna taśma zdjęć'
 const icon = Grid
 
 export default defineField({
@@ -17,10 +17,102 @@ export default defineField({
     defineField({
       name: 'heading',
       type: 'Heading',
-      title: 'Heading',
+      title: 'Nagłówek',
       validation: (Rule) => Rule.required(),
     }),
+    defineField({
+      name: 'imageTape',
+      type: 'array',
+      title: 'Taśma zdjęć',
+      validation: (Rule) => Rule.required().length(8).error('Taśma zdjęć musi zawierać 8 zdjęć'),
+      of: [{ type: 'image' }],
+    }),
+    defineField({
+      name: 'firstColumn',
+      type: 'object',
+      title: 'Pierwsza kolumna',
+      fieldset: 'columns',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'mainParagraph',
+          type: 'Heading',
+          title: 'Główny paragraf',
+        }),
+        defineField({
+          name: 'secondaryParagraph',
+          type: 'PortableText',
+          title: 'Dodatkowy paragraf (opcjonalny)',
+        }),
+        defineField({
+          name: 'image',
+          type: 'image',
+          title: 'Zdjęcie',
+        }),
+      ],
+    }),
+    defineField({
+      name: 'secondColumn',
+      type: 'object',
+      title: 'Druga kolumna',
+      fieldset: 'columns',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'image',
+          type: 'image',
+          title: 'Zdjęcie',
+        }),
+        defineField({
+          name: 'icon',
+          type: 'image',
+          options: {
+            accept: '.svg',
+          },
+          title: 'Ikona',
+        }),
+        defineField({
+          name: 'boldText',
+          type: 'string',
+          title: 'Tekst wyróżniony',
+        }),
+        defineField({
+          name: 'normalText',
+          type: 'string',
+          title: 'Tekst normalny',
+        }),
+      ],
+    }),
+    defineField({
+      name: 'thirdColumn',
+      type: 'object',
+      title: 'Trzecia kolumna',
+      fieldset: 'columns',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'image',
+          type: 'image',
+          title: 'Zdjęcie',
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf',
+        }),
+      ],
+    }),
     ...sectionId,
+  ],
+  fieldsets: [
+    {
+      name: 'columns',
+      title: 'Kolumny',
+      options: {
+        collapsible: true,
+        collapsed: false,
+      },
+    },
   ],
   preview: {
     select: {

@@ -10,17 +10,23 @@ export async function fetchPageData({ name, lang, slug }: { name: string; lang: 
   const singleTypeQuery = groq`
     *[_type == "${name}" && language == $language][0] {
   "slug": slug.current,
+  "name": name,
+  "firstItemType": components[0]._type,
   ${Components_Query}
 }
 `
   const collectionTypeQuery = groq`
     *[_type == "Pages_Collection" && language == $language && slug.current == $slug][0] {
         "slug": slug.current,
+        "name": name,
+        "firstItemType": components[0]._type,
         ${Components_Query}
     }
 `
   const page = await sanityFetch<{
     slug: string
+    name: string
+    firstItemType: string
     components: ComponentsProps
   }>({
     query: slug ? collectionTypeQuery : singleTypeQuery,

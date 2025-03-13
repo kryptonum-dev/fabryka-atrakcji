@@ -4,10 +4,9 @@ export type Language = (typeof LANGUAGES)[number]
 const translations = {
   pl: {
     breadcrumbsName: 'Strona główna',
-    skipLink: 'Przejdź do treści głównej',
-    'header.services': 'Usługi',
-    'header.caseStudies': 'Zobacz projekty',
-    'header.about': 'Dowiedz się o nas',
+  },
+  en: {
+    breadcrumbsName: 'Homepage',
   },
 }
 

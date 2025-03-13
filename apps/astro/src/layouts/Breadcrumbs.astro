@@ -1,0 +1,139 @@
+---
+import BreadcrumbsSchema from '@/src/Schema/BreadcrumbsSchema.astro';
+import { useTranslations, type Language } from '../global/languages';
+
+
+type Props = {
+  data?: Array<{
+    name: string;
+    path: string;
+  }>;
+  firstItemType?: string;
+};
+
+const { data = [], firstItemType } = Astro.props;
+
+const lang = Astro.params.lang as Language || 'pl'
+const t = useTranslations(lang)
+
+
+const breadcrumbsData = [
+  { name: t('breadcrumbsName'), path: `/${lang}` },
+  ...data,
+];
+
+---
+
+<BreadcrumbsSchema breadcrumbsData={breadcrumbsData} slot="head" />
+{breadcrumbsData.length >= 2 && !firstItemType &&   
+    <style is:global lang="scss">
+        main {
+        & > section:first-of-type {
+            padding-top: clamp(1rem, calc(2vw / 0.48), 2rem) !important;
+        }
+        }
+    </style>}
+{breadcrumbsData.length >= 2 && (
+  <nav class="Breadcrumbs max-width" data-first-item-type={firstItemType}>
+    {breadcrumbsData.map(({ name, path }, i) => {
+      const isLastItem = i === breadcrumbsData.length - 1
+      const truncatedName = name.length > 40 ? name.slice(0, 40) + '...' : name
+      return (
+        isLastItem ? <span>{truncatedName}</span> : (
+          <>
+            <a href={path}>{truncatedName}</a>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 13"><path stroke="#74535E" stroke-linecap="round" stroke-linejoin="round" d="m4.5 3 3 3.5-3 3.5"/></svg>          </>
+        )
+      )
+    })}
+  </nav>
+)}
+
+<style lang="scss">
+  .Breadcrumbs {    
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--typography-body-s, 12px);
+    letter-spacing: -0.01em;
+    line-height: 160%; /* 19.2px */
+    padding-top: clamp(1rem, calc(2vw / 0.48), 2rem);
+
+    a,
+    span {
+
+      white-space: nowrap;
+      min-height: 44px;
+display: flex;
+align-items: center;
+      &:first-child {
+        color: var(--primary-800, #45051C);
+        font-weight: 700;
+      }
+
+      &:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    
+    svg {
+      flex-shrink: 0;
+      width: 12px;
+      height: 12px;
+    }
+
+
+    a{
+      position: relative;
+      border-radius: 4px;
+      overflow: hidden;
+
+      &::before, &::after{
+        content: '';
+        position: absolute;
+
+      }
+
+        &::before{
+          bottom: 10px;       
+           transform: scaleX(0);
+          transform-origin: left;
+          left: 0;
+          width: 100%;        
+          transition: transform 450ms var(--easing);
+          height: 2px;  
+          background: linear-gradient(to right, #798DDC, #E7C78F 25%, #FA7468 74%, #798DDC 100%);
+          z-index: 1;
+        }
+
+
+        &::after{
+          transform:  translate(-50%, -50%) scale(0);
+          left: 50%;
+          top: 50%;
+          transform-origin: center;
+          width: 100%;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          transition: transform 450ms var(--easing);
+          background-color: var(--neutral-300, #EDE6DE);
+          z-index: -1;
+        }
+
+        &:hover{
+          &::before{
+            transform: scaleX(1);
+          }
+        }
+
+        &:focus:not(:focus-visible){
+          &::after{
+            transform:  translate(-50%, -50%) scale(1.2);
+          }
+        }
+    }
+   
+  }
+</style>
+

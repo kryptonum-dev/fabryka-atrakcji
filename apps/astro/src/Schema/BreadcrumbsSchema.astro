@@ -1,0 +1,28 @@
+---
+import { DOMAIN } from '@/global/constants';
+
+type Props = {
+  breadcrumbsData: Array<{
+    name: string;
+    path: string;
+  }>;
+};
+
+const { breadcrumbsData } = Astro.props;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${DOMAIN}#breadcrumb`,
+  itemListOrder: 'ItemListOrderAscending',
+  numberOfItems: breadcrumbsData.length,
+  itemListElement: breadcrumbsData.map(({ name, path }, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: name,
+    item: `${DOMAIN}${path}`,
+  })),
+};
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
