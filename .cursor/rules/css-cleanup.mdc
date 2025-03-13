@@ -1,19 +1,25 @@
 ---
-description: A function that is sued to cleanup css written by the developer
+description: 
 globs: 
 alwaysApply: false
 ---
-# You will cleanup and refractor tiher the scs file or the style tag in .astro file based what context the developer gave you, below are the main rules you should focus on while cleaning up. YOu can consider the cleanup successfull when the points below are all checked.
+---
+description: A function that is used to clean up CSS written by the developer
+globs: 
+alwaysApply: false
+---
+# You will clean up and refactor either the scss file or the style tag in .astro file based on what context the developer gave you. Below are the main rules you should focus on while cleaning up. You can consider the cleanup successful when the points below are all checked.
 
 - Don't change anything else in the file except the code in css/scss.
 - Change timing (ex. transition time, animation time etc), to be in ms instead of s, for example 0.3s -> 300ms.
-- Change every value except images (width and height) and border-radius from px to rem. Always have in mind that 1rem = 16px
-- If you see an clamp() property like this: clamp([pixels]px, calc([pixels]vs / 7.68), [pixels]px), change it to clamp([rem]rem, calc([rem]vw /0.48), [rem]rem)
-- Iterate over the entire file and check if there are any overlaps in scss properties, for example if property for element is defined in two places and it doesnt need to be, remove duplicates, but take care of possible consequences.
-- Change every letter spacing from pixels to its corresponding em values, always consider what font-size does the element have. 
-- Always refer to [global.scss](mdc:apps/astro/src/global/global.scss) file and get variables from there if nessecary.
-- Remove unnessecary spaces between styles and empty style objects.
-- For grouping and ordering the css properites in a single selector please go with the ordering by groups, below i present you an example of how should it look, in the code you write dont include comments and any gaps between groups.   
+- Change every value from px to rem except for image dimensions (width and height) and border-radius. Always use the conversion ratio: 1rem = 16px
+- If you see a clamp() property like this: clamp([pixels]px, calc([pixels]vw / 7.68), [pixels]px), change it to clamp([rem]rem, calc([rem]vw /0.48), [rem]rem). Note that we're converting px to rem and fixing any 'vs' typo to 'vw'.
+- Iterate over the entire file and check if there are any overlaps in scss properties. If a property for an element is defined in two places unnecessarily, remove duplicates. Be careful to maintain cascading behavior and specificity when removing properties.
+- Change every letter-spfrom pixels to its corresponding em values. To calculate: em = px / font-size. For example, if font-size is 16px and letter-spacing is 2px, then letter-spacing would be 0.125em (2px/16px).
+- Convert line-height from percentage format to unitless number format, for example 160% -> 1.6, 120% -> 1.2, etc.
+- Always refer to [global.scss](mdc:apps/astro/src/global/global.scss) file and use variables from there whenever necessary.
+- Remove unnecessary spaces between styles and empty style objects.
+- For grouping and ordering the css properties in a single selector please follow this order of property groups (don't include the comments in your actual code):   
     .selector {
     /* Positioning */
     position: absolute;

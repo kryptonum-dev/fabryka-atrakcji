@@ -24,7 +24,7 @@ export default defineField({
       name: 'imageTape',
       type: 'array',
       title: 'Taśma zdjęć',
-      validation: (Rule) => Rule.required().length(8).error('Taśma zdjęć musi zawierać 8 zdjęć'),
+      validation: (Rule) => Rule.required().length(10).error('Taśma zdjęć musi zawierać 10 zdjęć'),
       of: [{ type: 'image' }],
     }),
     defineField({
