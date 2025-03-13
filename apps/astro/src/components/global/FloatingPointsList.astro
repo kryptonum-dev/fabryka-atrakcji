@@ -362,16 +362,17 @@ console.log(upDownPoints.map(({ character }) => character))
             justify-content: center;
             margin-bottom: -0.75rem;
             .character-point {
+              transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+              position: static;
+              transform: scale(0);
+              z-index: 2;
               &:nth-of-type(1),
               &:nth-of-type(2),
               &:nth-of-type(3),
               &:nth-of-type(4),
               &:nth-of-type(5) {
-                position: static;
-                transform: none;
-                z-index: 2;
                 &[data-fired='true'] {
-                  transform: scale(1) rotate(var(--rotate-deg, 0deg));
+                  transform: scale(1);
                 }
                 &[data-character='negatywny'] {
                   &[data-fired='true'] {

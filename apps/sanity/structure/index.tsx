@@ -51,6 +51,7 @@ export const structure: StructureResolver = (S) =>
               createSingleton({ S, name: 'navbar' }),
               createSingleton({ S, name: 'footer' }),
               createSingleton({ S, name: 'global' }),
+              createSingleton({ S, name: 'NotFound_Page' }),
               createSingleton({ S, name: 'redirects' }),
             ])
         ),

@@ -7,7 +7,18 @@ import Index_Page from '../schema/singleTypes/Index_Page'
 import navbar from '../schema/singleTypes/navbar'
 import redirects from '../schema/singleTypes/redirects'
 import Blog_Page from '../schema/singleTypes/Blog_Page'
-const singleTypes = [global, redirects, Index_Page, CaseStudy_Page, Activities_Page, Blog_Page, navbar, footer]
+import NotFound_Page from '../schema/singleTypes/NotFound_Page'
+const singleTypes = [
+  global,
+  redirects,
+  Index_Page,
+  CaseStudy_Page,
+  Activities_Page,
+  Blog_Page,
+  NotFound_Page,
+  navbar,
+  footer,
+]
 
 // Collections Types
 import Activities_Collection from '../schema/collectionTypes/Activities_Collection'

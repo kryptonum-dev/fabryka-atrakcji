@@ -1,1 +1,46 @@
-<div>hej tu nic nie ma</div>
+---
+import { Components_Query, type ComponentsProps } from '../components/Components.astro'
+import { ButtonDataQuery } from '../components/ui/button'
+import { ImageDataQuery } from '../components/ui/image'
+import { PortableTextQuery } from '../components/ui/portable-text'
+import type { Language } from '../global/languages'
+import metadataFetch from '../utils/metadata.fetch'
+import sanityFetch from '../utils/sanity.fetch'
+import Layout from '../layouts/Layout.astro'
+import Breadcrumbs from '../layouts/Breadcrumbs.astro'
+import Components from '../components/Components.astro'
+import NotFoundHero, { type Props as NotFoundHeroProps } from '../components/global/NotFoundHero.astro'
+
+const lang = (Astro.params.lang as Language) || 'pl'
+
+const page = await sanityFetch<{
+  name: string
+  slug: string
+  hero: NotFoundHeroProps
+  components: ComponentsProps
+}>({
+  query: `
+    *[_type == "NotFound_Page" && language == $language][0] {
+      name,
+      "slug": slug.current,
+      hero {
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+        ${ImageDataQuery('imageList[]')}
+        ${PortableTextQuery('ctaText')}
+        ${ButtonDataQuery('ctas[]')}
+      },
+      ${Components_Query}
+    }
+  `,
+  params: { language: lang },
+})
+
+const metadata = await metadataFetch(page.slug)
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs data={[{ name: page.name, path: page.slug }]} firstItemType="NotFound" />
+  <NotFoundHero {...page.hero} />
+  <Components data={page.components} indexStart={1} />
+</Layout>

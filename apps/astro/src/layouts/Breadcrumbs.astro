@@ -145,8 +145,18 @@ const breadcrumbsData = [
       max-width: 1366px;
       width: 100%;
       padding-left: var(--pageMargin);
+    }
 
-
+    &[data-first-item-type="NotFound"] {
+      position: absolute; 
+      top: clamp(14px, calc(20vw / 7.68), 24px);      
+      left: 50%;      
+      transform: translateX(-50%);
+      padding-top: 0;
+      max-width: 1366px;
+      width: 100%;
+      padding-left: var(--pageMargin);
+      z-index: 2;
     }
   }
 </style>

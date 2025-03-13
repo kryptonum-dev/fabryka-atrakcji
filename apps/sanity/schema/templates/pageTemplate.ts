@@ -44,7 +44,7 @@ export const createPageSchema = ({
       defineField({
         name: 'components',
         type: 'components',
-        title: 'Page Components',
+        title: 'Komponenty podstrony',
       }),
       defineField({
         name: 'seo',
