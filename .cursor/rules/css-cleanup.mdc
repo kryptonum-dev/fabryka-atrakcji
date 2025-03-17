@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: A function that is used to clean up CSS written by the developer
 globs: 
 alwaysApply: false
