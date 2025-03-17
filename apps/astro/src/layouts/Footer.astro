@@ -1,0 +1,102 @@
+---
+import type { Language } from '../global/languages'
+import sanityFetch from '../utils/sanity.fetch'
+import Button, { ButtonDataQuery, type ButtonDataProps } from '../components/ui/button'
+import Image, { ImageDataQuery, type ImageDataProps } from '../components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../components/ui/portable-text'
+
+const lang = (Astro.props.lang as Language) || 'pl'
+const translations = {
+  pl: {
+    copyEmailSuccess: 'Pomyślnie skopiowano adres e-mail',
+    copyTelSuccess: 'Pomyślnie skopiowano numer telefonu',
+  },
+  en: {
+    copyEmailSuccess: 'Successfully copied email address',
+    copyTelSuccess: 'Successfully copied phone number',
+  },
+}
+const t = translations[lang]
+
+const data = await sanityFetch<{
+  contact: { email: string; tel: string }
+  footer: {
+    heading: PortableTextValue
+    cta: ButtonDataProps
+    highlightedActivitiesCategories: { name: string; slug: string }[]
+    otherLinks: { name: string; slug: string }[]
+    restOfInformation: {
+      phoneHeading: string
+      addressHeading: string
+      contactForm: { heading: string; link: { _ref: string } }
+      socialMedia: {
+        heading: string
+        highlightedSocialMedia: { name: string; link: string; icon: string }[]
+      }
+    }
+  }
+}>({
+  query: `
+    { 
+      "contact": *[_type == "global" && language == $language][0] {
+        email,
+        tel,
+      },
+      "footer": *[_type == "footer" && language == $language][0] {
+        ${PortableTextQuery('heading')}
+        ${ButtonDataQuery('cta')}
+        highlightedActivitiesCategories[]->{
+          name,
+          slug,
+        },
+        otherLinks[]->{
+          name,
+          slug,
+        },
+        restOfInformation {
+          phoneHeading,
+          addressHeading,
+          contactForm{
+            heading,
+            link
+          },
+          socialMedia {
+            heading,
+            highlightedSocialMedia[]->{
+              name,
+              link,
+              "icon": icon.asset->url,
+            },
+          },
+        },
+      },
+    }
+  `,
+  params: { language: lang },
+})
+---
+
+<footer class="footer">
+  <PortableText value={data.footer.heading} class="heading" heading="h2" />
+  <Button {...data.footer.cta} />
+  <div class="container"></div>
+  <div class="bottom-row"></div>
+</footer>
+
+<style lang="scss">
+  .footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    .heading {
+    }
+    > a {
+    }
+    .container {
+      background: var(--neutral-200, #f5f1ec);
+    }
+
+    .bottom-row {
+      background: var(--primary-800, #45051c);
+    }
+  }
+</style>

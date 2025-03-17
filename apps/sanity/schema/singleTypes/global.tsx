@@ -25,40 +25,71 @@ export default defineType({
     defineField({
       name: 'tel',
       type: 'string',
-      title: 'Phone number (optional)',
+      title: 'Telefon (opcjonalny)',
       group: 'contact',
     }),
     defineField({
-      name: 'socials',
+      name: 'openHours',
       type: 'object',
-      title: 'Social media',
-      group: 'social',
-      options: { collapsible: true },
+      title: 'Godziny otwarcia',
+      group: 'contact',
+      description: 'Wpisz czas w formacie HH:MM',
       fields: [
         defineField({
-          name: 'instagram',
-          type: 'url',
-          title: 'Instagram',
-          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          name: 'from',
+          type: 'string',
+          title: 'Od',
+          validation: (Rule) =>
+            Rule.custom((value: any, context) => {
+              if (!value) {
+                return 'Czas jest wymagany'
+              }
+              if (value && !value.match(/^\d{2}:\d{2}$/)) {
+                return 'Czas musi być w formacie HH:MM'
+              }
+              const [hh, mm] = value.split(':').map(Number)
+              if (hh > 24 || mm > 60) {
+                return 'Czas musi być w formacie HH:MM, gdzie HH <= 24 i MM <= 60'
+              }
+              return true
+            }),
+          fieldset: 'openHours',
         }),
         defineField({
-          name: 'facebook',
-          type: 'url',
-          title: 'Facebook',
-          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          name: 'to',
+          type: 'string',
+          title: 'Do',
+          validation: (Rule) =>
+            Rule.custom((value: any, context) => {
+              if (!value) {
+                return 'Czas jest wymagany'
+              }
+              if (value && !value.match(/^\d{2}:\d{2}$/)) {
+                return 'Czas musi być w formacie HH:MM'
+              }
+              const [hh, mm] = value.split(':').map(Number)
+              if (hh > 24 || mm > 60) {
+                return 'Czas musi być w formacie HH:MM, gdzie HH <= 24 i MM <= 60'
+              }
+              return true
+            }),
+          fieldset: 'openHours',
         }),
         defineField({
-          name: 'tiktok',
-          type: 'url',
-          title: 'TikTok',
-          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          name: 'closedWeekends',
+          type: 'boolean',
+          title: 'Zamknięte w weekendy',
+          fieldset: 'openHours',
         }),
-        defineField({
-          name: 'linkedin',
-          type: 'url',
-          title: 'LinkedIn',
-          validation: (Rule) => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
-        }),
+      ],
+      fieldsets: [
+        {
+          name: 'openHours',
+          title: 'Godziny otwarcia',
+          options: {
+            columns: 2,
+          },
+        },
       ],
     }),
     defineField({
@@ -200,11 +231,6 @@ export default defineType({
       name: 'contact',
       title: 'Dane kontaktowe',
       icon: UsersIcon,
-    },
-    {
-      name: 'social',
-      title: 'Social Media',
-      icon: CommentIcon,
     },
     {
       name: 'analytics',

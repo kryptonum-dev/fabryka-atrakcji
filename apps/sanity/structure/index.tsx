@@ -24,7 +24,11 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.list()
             .title('Integracje')
-            .items([createSingleton({ S, name: 'Activities_Page' }), createCollection(S, 'Activities_Collection')])
+            .items([
+              createSingleton({ S, name: 'Activities_Page' }),
+              createCollection(S, 'Activities_Collection'),
+              createCollection(S, 'ActivitiesCategory_Collection'),
+            ])
         ),
       S.listItem()
         .title('Blog')
@@ -51,6 +55,7 @@ export const structure: StructureResolver = (S) =>
               createSingleton({ S, name: 'navbar' }),
               createSingleton({ S, name: 'footer' }),
               createSingleton({ S, name: 'global' }),
+              createCollection(S, 'SocialMedia_Collection'),
               createSingleton({ S, name: 'NotFound_Page' }),
               createSingleton({ S, name: 'redirects' }),
             ])

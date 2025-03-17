@@ -28,14 +28,18 @@ import Pages_Collection from '../schema/collectionTypes/Pages_Collection'
 import BlogPost_Collection from '../schema/collectionTypes/BlogPost_Collection'
 import BlogCategory_Collection from '../schema/collectionTypes/BlogCategory_Collection'
 import Testimonial_Collection from '../schema/collectionTypes/Testimonial_Collection'
+import ActivitiesCategory_Collection from '../schema/collectionTypes/ActivitiesCategory_Collection'
+import SocialMedia_Collection from '../schema/collectionTypes/SocialMedia_Collection'
 const collectionTypes = [
   Faq_Collection,
   Pages_Collection,
   CaseStudy_Collection,
   Activities_Collection,
+  ActivitiesCategory_Collection,
   BlogPost_Collection,
   BlogCategory_Collection,
   Testimonial_Collection,
+  SocialMedia_Collection,
 ]
 
 // Components

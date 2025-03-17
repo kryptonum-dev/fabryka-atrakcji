@@ -13,4 +13,5 @@ export const InternalLinkableTypes: { type: string }[] = [
   { type: 'BlogPost_Collection' },
   { type: 'BlogCategory_Collection' },
   { type: 'Activities_Collection' },
+  { type: 'ActivitiesCategory_Collection' },
 ]

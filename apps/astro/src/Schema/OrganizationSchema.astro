@@ -15,7 +15,7 @@ const {
   address,
   googleData,
 } = await sanityFetch<{
-  socials: { facebook: string; instagram: string; linkedin: string; tiktok: string }
+  socials: { name: string; link: string }[]
   OrganizationSchema: {
     name: string
     description: string
@@ -36,7 +36,9 @@ const {
 }>({
   query: `
     *[_type == "global" && language == $language][0] {
-      socials,
+      "socials": *[_type == "SocialMedia_Collection" && language == $language] {
+        link,
+      },
       OrganizationSchema,
       email,
       tel,
@@ -57,7 +59,7 @@ const schema = {
   url: DOMAIN,
   ...(email && { email: email }),
   ...(tel && { telephone: tel }),
-  sameAs: [socials?.facebook, socials?.instagram, socials?.linkedin, socials?.tiktok].filter(Boolean),
+  sameAs: socials ? socials.map((social) => social.link) : [],
   image: [
     {
       '@type': 'ImageObject',
