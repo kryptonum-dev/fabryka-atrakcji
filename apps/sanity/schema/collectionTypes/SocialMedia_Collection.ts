@@ -53,6 +53,13 @@ export default defineType({
       validation: (Rule) => Rule.required(),
       hidden: true,
     }),
+    defineField({
+      name: 'iconString',
+      type: 'text',
+      title: 'Tekst ikony',
+      validation: (Rule) => Rule.required(),
+      hidden: true,
+    }),
   ],
   preview: {
     select: {

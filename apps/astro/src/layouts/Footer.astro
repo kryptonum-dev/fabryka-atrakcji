@@ -2,24 +2,40 @@
 import type { Language } from '../global/languages'
 import sanityFetch from '../utils/sanity.fetch'
 import Button, { ButtonDataQuery, type ButtonDataProps } from '../components/ui/button'
-import Image, { ImageDataQuery, type ImageDataProps } from '../components/ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../components/ui/portable-text'
+import { getOpenHours } from '../utils/get-open-hours'
 
 const lang = (Astro.props.lang as Language) || 'pl'
 const translations = {
   pl: {
-    copyEmailSuccess: 'Pomyślnie skopiowano adres e-mail',
-    copyTelSuccess: 'Pomyślnie skopiowano numer telefonu',
+    activities: 'Integracje firmowe',
+    url: '/integracje',
+    contactForm: 'Formularz kontaktowy',
+    createdBy: 'Stworzone przez',
+    privacyPolicy: 'Polityka prywatności',
+    privacyPolicyUrl: '/pl/polityka-prywatnosci',
+    termsOfService: 'Regulamin',
+    termsOfServiceUrl: '/pl/regulamin',
+    cookiePolicy: 'Zarządzanie plikami cookies',
+    copyright: 'Wszystkie prawa zastrzeżone',
   },
   en: {
-    copyEmailSuccess: 'Successfully copied email address',
-    copyTelSuccess: 'Successfully copied phone number',
+    activities: 'Team activities',
+    url: '/activities',
+    contactForm: 'Contact form',
+    createdBy: 'Created by',
+    privacyPolicy: 'Privacy policy',
+    privacyPolicyUrl: '/en/privacy-policy',
+    termsOfService: 'Terms of service',
+    termsOfServiceUrl: '/en/terms-of-service',
+    cookiePolicy: 'Cookie policy',
+    copyright: 'All rights reserved',
   },
 }
 const t = translations[lang]
 
 const data = await sanityFetch<{
-  contact: { email: string; tel: string }
+  contact: { email: string; tel: string; openHours: { from: string; to: string; closedWeekends: boolean } }
   footer: {
     heading: PortableTextValue
     cta: ButtonDataProps
@@ -28,10 +44,10 @@ const data = await sanityFetch<{
     restOfInformation: {
       phoneHeading: string
       addressHeading: string
-      contactForm: { heading: string; link: { _ref: string } }
+      contactForm: { heading: string; link: { slug: string } }
       socialMedia: {
         heading: string
-        highlightedSocialMedia: { name: string; link: string; icon: string }[]
+        highlightedSocialMedia: { name: string; link: string; iconString: string }[]
       }
     }
   }
@@ -41,6 +57,11 @@ const data = await sanityFetch<{
       "contact": *[_type == "global" && language == $language][0] {
         email,
         tel,
+        openHours {
+          from,
+          to,
+          closedWeekends,
+        },
       },
       "footer": *[_type == "footer" && language == $language][0] {
         ${PortableTextQuery('heading')}
@@ -58,14 +79,16 @@ const data = await sanityFetch<{
           addressHeading,
           contactForm{
             heading,
-            link
+            link->{
+              "slug": slug.current,
+            },
           },
           socialMedia {
             heading,
             highlightedSocialMedia[]->{
               name,
               link,
-              "icon": icon.asset->url,
+              iconString,
             },
           },
         },
@@ -74,29 +97,701 @@ const data = await sanityFetch<{
   `,
   params: { language: lang },
 })
+
+const OpenHoursText = getOpenHours({
+  from: data.contact.openHours.from,
+  to: data.contact.openHours.to,
+  closeWeekends: data.contact.openHours.closedWeekends,
+})
+
+console.log(data.footer.restOfInformation.socialMedia.highlightedSocialMedia[0].iconString)
 ---
 
-<footer class="footer">
+<footer class="footer max-width">
   <PortableText value={data.footer.heading} class="heading" heading="h2" />
   <Button {...data.footer.cta} />
-  <div class="container"></div>
-  <div class="bottom-row"></div>
+  <div class="container">
+    <div class="activities-col">
+      <a class="footer-link" href={t.url}>{t.activities}</a>
+      <ul>
+        {
+          data.footer.highlightedActivitiesCategories.map(({ slug, name }) => (
+            <li>
+              <a class="footer-link" href={slug}>
+                {name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <svg viewBox="0 0 5 516" fill="none" xmlns="http://www.w3.org/2000/svg"
+        ><path stroke="#FAF7F7" stroke-width="5" stroke-linecap="round" stroke-dasharray="16 12" d="M2.5 3.225v510"
+        ></path></svg
+      >
+    </div>
+    <ul class="links-col">
+      {
+        data.footer.otherLinks.map(({ slug, name }) => (
+          <li>
+            <a class="footer-link" href={slug}>
+              {name}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="contact-col">
+      <div class="phone">
+        <p>{data.footer.restOfInformation.phoneHeading}</p>
+        <a href={`tel:${data.contact.tel}`}>
+          {data.contact.tel}
+        </a>
+        <p>{`${OpenHoursText.days} ${OpenHoursText.time}`}</p>
+      </div>
+      <div class="email">
+        <p>{data.footer.restOfInformation.contactForm.heading}</p>
+        <a href={`mailto:${data.contact.email}`}>
+          {data.contact.email}
+        </a>
+      </div>
+      <div class="form">
+        <p>{data.footer.restOfInformation.contactForm.heading}</p>
+        <a class="footer-link" href={data.footer.restOfInformation.contactForm.link.slug}>
+          {t.contactForm}
+        </a>
+      </div>
+      <div class="socials">
+        <p>{data.footer.restOfInformation.socialMedia.heading}</p>
+        {
+          data.footer.restOfInformation.socialMedia.highlightedSocialMedia.map(({ name, link, iconString }) => (
+            <a href={link}>
+              <Fragment set:html={iconString} />
+              <span>{name}</span>
+              <span class="circle" />
+            </a>
+          ))
+        }
+      </div>
+      <svg viewBox="0 0 5 516" fill="none" xmlns="http://www.w3.org/2000/svg"
+        ><path stroke="#FAF7F7" stroke-width="5" stroke-linecap="round" stroke-dasharray="16 12" d="M2.5 3.225v510"
+        ></path></svg
+      >
+    </div>
+  </div>
+  <div class="bottom-row">
+    <svg width="1366" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"
+      ><circle cx="-3" cy="8" r="8" fill="#FAF7F7"></circle><circle cx="25" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="53"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="81" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="109"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="137" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="165"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="193" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="221"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="249" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="277"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="305" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="333"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="361" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="389"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="417" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="445"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="473" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="501"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="529" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="557"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="585" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="613"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="641" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="669"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="697" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="725"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="753" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="781"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="809" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="837"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="865" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="893"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="921" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="949"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="977" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="1005"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="1033" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="1061"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="1089" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="1117"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="1145" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="1173"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="1201" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="1229"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="1257" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="1285"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="1313" cy="8" r="8" fill="#FAF7F7"></circle><circle
+        cx="1341"
+        cy="8"
+        r="8"
+        fill="#FAF7F7"></circle><circle cx="1369" cy="8" r="8" fill="#FAF7F7"></circle></svg
+    >
+    <p class="created-by">
+      {t.createdBy}{' '}
+      <a class="link dark-link" target="_blank" rel="nofollow" href="https://kryptonum.eu/pl"
+        ><span>Kryptonum</span><span aria-hidden="true">Kryptonum</span></a
+      >{' & '}
+      <a href="https://www.linkedin.com/in/damian-budny/" target="_blank" rel="nofollow" class="link dark-link"
+        ><span>Luksari</span><span aria-hidden="true">Luksari</span></a
+      >
+    </p>
+    <div>
+      <a href={t.privacyPolicyUrl} class="annotation-link">{t.privacyPolicy}</a>
+      <a href={t.termsOfServiceUrl} class="annotation-link">{t.termsOfService}</a>
+      <button class="annotation-link">{t.cookiePolicy}</button>
+    </div>
+    <p class="copyright"><span>&copy;</span> {new Date().getFullYear()}. {t.copyright}</p>
+  </div>
 </footer>
 
 <style lang="scss">
   .footer {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr auto;
+
+    padding-top: clamp(3rem, calc(4vw / 0.48), 6rem);
     .heading {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+      max-width: clamp(12rem, calc(11.7vw / 0.48), 20rem);
+      font-size: var(--typography-header-m, 1.5rem);
+      margin-bottom: 2.5rem;
     }
-    > a {
+    > :global(a) {
+      grid-column: 1 / 2;
+      align-self: start;
+      grid-row: 2 / 3;
     }
     .container {
-      background: var(--neutral-200, #f5f1ec);
+      grid-column: 2 / 3;
+      grid-row: 1 / 3;
+      max-width: 61.625rem;
+      width: 100%;
+      justify-self: end;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+
+      .activities-col,
+      .links-col,
+      .contact-col {
+        background: var(--neutral-200, #f5f1ec);
+        padding: clamp(1.25rem, calc(2vw / 0.48), 2rem) clamp(1.5rem, calc(1.5vw / 0.48), 2rem);
+        border-radius: clamp(16px, calc(20vw / 7.68), 32px);
+        position: relative;
+        &::before,
+        &::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: var(--neutral-100, #f5f1ec);
+          width: 2.5rem;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+          top: 0;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        &::after {
+          top: unset;
+          bottom: 0;
+          transform: translate(-50%, 50%);
+        }
+      }
+
+      .activities-col {
+        > a {
+          font-weight: 700;
+        }
+        a {
+          margin-bottom: clamp(0.125rem, calc(0.25vw / 0.48), 0.25rem);
+        }
+
+        svg {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          right: -2.5px;
+          width: auto;
+          height: 100%;
+          z-index: 5;
+        }
+      }
+      .links-col {
+        li:nth-child(2) > a {
+          margin-bottom: clamp(1.25rem, calc(2.5vw / 0.48), 4rem);
+        }
+      }
+
+      .contact-col {
+        padding: clamp(1.25rem, calc(2vw / 0.48), 2rem) clamp(1rem, calc(1vw / 0.48), 2rem)
+          clamp(1.25rem, calc(2vw / 0.48), 4rem);
+        display: flex;
+        flex-direction: column;
+        font-size: var(--typography-body-m, 0.875rem);
+
+        p {
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+        }
+
+        a {
+          font-weight: 700;
+          color: var(--primary-800, #45051c);
+          letter-spacing: -0.02em;
+        }
+
+        .phone {
+          margin-bottom: 1rem;
+        }
+
+        .email {
+          margin-bottom: 1rem;
+        }
+
+        .form {
+          margin-bottom: auto;
+
+          .footer-link {
+            min-height: 2rem;
+
+            &:before {
+              bottom: 2px;
+            }
+          }
+        }
+
+        .socials {
+          display: grid;
+          grid-template-columns: repeat(2, auto);
+          grid-template-rows: repeat(2, auto);
+          justify-content: start;
+          column-gap: 1rem;
+
+          p {
+            grid-column: 1 / 3;
+            grid-row: 1 / 2;
+          }
+
+          a {
+            min-height: 2.75rem;
+            display: flex;
+            isolation: isolate;
+            align-items: center;
+            gap: 0.375rem;
+            transition: color 150ms;
+            position: relative;
+            color: var(--primary-800, #45051c);
+            line-height: 1.7;
+            letter-spacing: -0.02em;
+            font-size: var(--typography-body-m, 0.875rem);
+            font-weight: 700;
+            &:nth-of-type(1) {
+              grid-column: 1 / 2;
+              grid-row: 2 / 3;
+            }
+
+            &:nth-of-type(2) {
+              grid-column: 2 / 3;
+              grid-row: 2 / 3;
+            }
+
+            &::before {
+              content: '';
+              position: absolute;
+              inset: 0;
+              border-radius: 999px;
+              z-index: -1;
+              background-color: var(--primary-800, #45051c);
+              transition: transform 250ms var(--easing);
+              transform: scale(0);
+              inset: 2px -6px;
+            }
+
+            .circle {
+              position: absolute;
+              inset: 2px -6px;
+              content: '';
+              z-index: -2;
+              transition: transform 300ms var(--easing);
+              transform: scale(0);
+
+              &::before {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                border-radius: 999px;
+                z-index: -2;
+                background: conic-gradient(
+                  from 135deg at 50% 50%,
+                  #798ddc 0deg,
+                  #e7c78f 90deg,
+                  #fa7468 266.40000343322754deg,
+                  #798ddc 360deg
+                );
+              }
+
+              &::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background-color: var(--neutral-200, #f5f1ec);
+                border-radius: 999px;
+                z-index: -1;
+              }
+            }
+
+            &:hover {
+              .circle {
+                transform: scale(1);
+              }
+            }
+
+            &:focus:not(:focus-visible) {
+              color: var(--neutral-200, #f5f1ec);
+              &::before {
+                transform: scale(1);
+              }
+            }
+
+            &:focus-visible {
+              border-radius: 999px;
+              outline-offset: 3px;
+            }
+          }
+        }
+
+        svg {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          left: -2.5px;
+          width: auto;
+          height: 100%;
+          z-index: 5;
+        }
+      }
+    }
+
+    .footer-link {
+      min-height: 2.75rem;
+      align-items: center;
+      display: inline-flex;
+      position: relative;
+      line-height: 1.7;
+      min-height: 2.75rem;
+      letter-spacing: -0.01em;
+      font-size: var(--typography-body-m, 0.875rem);
+      transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+      isolation: isolate;
+      padding-bottom: 6px;
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: 6px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        transform: scaleX(0);
+        transform-origin: left;
+        background: linear-gradient(90deg, #798ddc 0%, #e7c78f 33%, #fa7468 66%, #798ddc 100%);
+        transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        height: 100%;
+        left: 0;
+        width: 100%;
+        transform: scale(0);
+        transform-origin: center;
+        background: var(--neutral-300, #d9d9d9);
+        border-radius: 4px;
+        transition: transform 400ms var(--easing);
+        z-index: -1;
+      }
+
+      &:hover {
+        &::before {
+          transition: transform 450ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+
+          transform: scaleX(1);
+        }
+      }
+
+      &:focus:not(:focus-visible) {
+        &::after {
+          transform: scaleX(1);
+        }
+      }
+
+      &:focus-visible {
+        border-radius: 4px;
+      }
     }
 
     .bottom-row {
       background: var(--primary-800, #45051c);
+      font-size: var(--typography-body-m, 0.875rem);
+      color: var(--neutral-400, #ffe4ca);
+      line-height: 1.7;
+      grid-column: 1 / 3;
+      letter-spacing: -0.01em;
+      grid-row: 3 / 4;
+      width: 100%;
+      flex-wrap: wrap;
+      column-gap: 2rem;
+      position: relative;
+      margin: clamp(3rem, calc(3vw / 0.48), 4rem) calc(-1 * var(--pageMargin)) 0;
+      width: calc(100% + calc(2 * var(--pageMargin)));
+      padding: clamp(0.625rem, calc(0.75vw / 0.48), 1rem) var(--pageMargin)
+        clamp(0.375rem, calc(0.375vw / 0.48), 0.75rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      > svg {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: none;
+      }
+
+      div {
+        column-gap: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .copyright {
+        min-height: 2.75rem;
+        display: inline-flex;
+        align-items: center;
+        span {
+          margin-right: 0.75rem;
+        }
+      }
+
+      .annotation-link {
+        min-height: 2.75rem;
+        display: inline-flex;
+        align-items: center;
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        border-radius: 4px;
+        &:before {
+          content: '';
+          position: absolute;
+          bottom: 6px;
+          left: 0;
+          width: 100%;
+          height: 1.25px;
+          background-color: var(--neutral-400, #ede6de);
+          border-radius: 4px;
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 450ms var(--easing);
+          z-index: -1;
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: auto;
+          aspect-ratio: 1 / 1;
+          top: 50%;
+          left: 50%;
+
+          background-color: var(--primary-400, #45051c);
+          transform: translate(-50%, -50%) scale(0);
+          border-radius: 50%;
+          transition: transform 450ms var(--easing);
+
+          z-index: -2;
+        }
+
+        &:hover {
+          &::before {
+            transform: scaleX(1);
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          &::after {
+            transform: translate(-50%, -50%) scale(1.2);
+          }
+        }
+
+        &:focus-visible {
+          outline-color: var(--neutral-400, #ede6de);
+        }
+      }
+    }
+
+    @media (max-width: 1079px) {
+      grid-template-columns: 1fr auto;
+      column-gap: 2rem;
+
+      .heading {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        max-width: 32rem;
+        margin-bottom: 2rem;
+      }
+
+      :global(a) {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+      }
+
+      .container {
+        grid-column: 1 / 3;
+        grid-row: 2 / 3;
+        grid-template-columns: 1fr 1fr;
+        justify-self: center;
+        row-gap: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+        .contact-col {
+          grid-column: 1 / 3;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          justify-items: start;
+          overflow: hidden;
+
+          > svg {
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4.8px;
+            height: 496px;
+          }
+          > div {
+            padding-left: 4rem;
+          }
+        }
+      }
+
+      .bottom-row {
+        grid-column: 1 / 3;
+        grid-row: 3 / 4;
+      }
+    }
+
+    @media (max-width: 739px) {
+      .container > .contact-col > div {
+        padding-left: clamp(1rem, calc(2vw / 0.48), 2rem);
+      }
+    }
+
+    @media (max-width: 659px) {
+      grid-template-columns: 1fr;
+
+      .heading {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        margin-bottom: 1.25rem;
+      }
+
+      > :global(a) {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        margin-bottom: 2rem;
+      }
+
+      .container {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+        grid-template-columns: 1fr;
+
+        .activities-col {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+
+          > svg {
+            display: none;
+          }
+        }
+
+        .links-col {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+        }
+
+        .contact-col {
+          grid-column: 1 / 2;
+          grid-row: 3 / 4;
+          grid-template-columns: 1fr;
+
+          > svg {
+            display: none;
+          }
+
+          .form {
+            margin-bottom: 1.75rem;
+          }
+        }
+      }
+
+      .bottom-row {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+      }
     }
   }
 </style>
