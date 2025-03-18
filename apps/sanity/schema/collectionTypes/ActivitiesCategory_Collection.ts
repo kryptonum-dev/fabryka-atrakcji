@@ -32,6 +32,34 @@ export default defineType({
         en: '/en/activities/category/',
       },
     }),
+    defineField({
+      name: 'image',
+      type: 'image',
+      title: 'Zdjęcie kategorii',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'description',
+      type: 'object',
+      title: 'Opis kategorii',
+      fields: [
+        defineField({
+          name: 'short',
+          type: 'text',
+          title: 'Krótki opis',
+          description:
+            'Krótki opis kategorii, wyświetlany podczas referowania kategorii i w listach kategorii (Maksymalnie 75 znaków)',
+          validation: (Rule) => Rule.required().max(75).error('Maksymalnie 75 znaków'),
+        }),
+        defineField({
+          name: 'long',
+          type: 'text',
+          title: 'Długi opis',
+          description: 'Długi opis kategorii, wyświetlany na samej podstronie kategorii',
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
   ],
   preview: {
     select: {

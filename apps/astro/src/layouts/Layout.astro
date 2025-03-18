@@ -4,6 +4,7 @@ import { LOCALE } from '../global/constants'
 import Head, { type HeadProps } from './Head.astro'
 import OrganizationSchema from '../Schema/OrganizationSchema.astro'
 import Footer from './Footer.astro'
+import Header from './Header.astro'
 import type { Language } from '../global/languages'
 type Props = HeadProps
 
@@ -19,6 +20,7 @@ const lang = (Astro.params.lang as Language) || 'pl'
     <OrganizationSchema />
   </head>
   <body>
+    <Header />
     <main id="main">
       <slot />
     </main>

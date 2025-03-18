@@ -1,7 +1,8 @@
 ---
 import { ButtonDataQuery, type ButtonDataProps } from '../ui/button'
 import Button from '../ui/button'
-import Image, { ImageDataQuery, type ImageDataProps } from '../ui/image'
+import CaseStudyCard from '../ui/CaseStudyCard.astro'
+import { ImageDataQuery, type ImageDataProps } from '../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
 
 export const CaseStudyList_Query = `
@@ -104,18 +105,20 @@ const imgSizes =
     <nav class="list">
       {
         caseStudies.map(({ slug, primaryImage, secondaryImage, name }, i) => (
-          <a href={slug || '/'} class="item">
-            <div class="img-container">
-              <Image
-                {...primaryImage}
-                sizes={imgSizes}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                priority={i === 0 && index === 0}
-              />
-              <Image {...secondaryImage} sizes={imgSizes} loading="lazy" />
-            </div>
-            <span>{name}</span>
-          </a>
+          <CaseStudyCard
+            title={name}
+            primaryImage={{
+              src: primaryImage,
+              loading: index === 0 ? 'eager' : 'lazy',
+              priority: i === 0 && index === 0,
+            }}
+            secondaryImage={{
+              src: secondaryImage,
+              loading: 'lazy',
+            }}
+            imageSizes={imgSizes}
+            slug={slug}
+          />
         ))
       }
     </nav>

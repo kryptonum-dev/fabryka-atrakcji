@@ -5,7 +5,13 @@ import Button, { ButtonDataQuery, type ButtonDataProps } from '../components/ui/
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../components/ui/portable-text'
 import { getOpenHours } from '../utils/get-open-hours'
 
-const lang = (Astro.props.lang as Language) || 'pl'
+type Props = {
+  lang?: Language
+  minify?: boolean
+}
+
+const { lang = 'pl', minify = false } = Astro.props as Props
+
 const translations = {
   pl: {
     activities: 'Integracje firmowe',
@@ -103,81 +109,87 @@ const OpenHoursText = getOpenHours({
   to: data.contact.openHours.to,
   closeWeekends: data.contact.openHours.closedWeekends,
 })
-
-console.log(data.footer.restOfInformation.socialMedia.highlightedSocialMedia[0].iconString)
 ---
 
-<footer class="footer max-width">
-  <PortableText value={data.footer.heading} class="heading" heading="h2" />
-  <Button {...data.footer.cta} />
-  <div class="container">
-    <div class="activities-col">
-      <a class="footer-link" href={t.url}>{t.activities}</a>
-      <ul>
-        {
-          data.footer.highlightedActivitiesCategories.map(({ slug, name }) => (
-            <li>
-              <a class="footer-link" href={slug}>
-                {name}
+<footer class="footer max-width" data-minify={minify}>
+  {
+    !minify && (
+      <>
+        <PortableText value={data.footer.heading} class="heading" heading="h2" />
+        <Button {...data.footer.cta} />
+        <div class="container">
+          <div class="activities-col">
+            <a class="footer-link" href={t.url}>
+              {t.activities}
+            </a>
+            <ul>
+              {data.footer.highlightedActivitiesCategories.map(({ slug, name }) => (
+                <li>
+                  <a class="footer-link" href={slug}>
+                    {name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <svg viewBox="0 0 5 516" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                stroke="#FAF7F7"
+                stroke-width="5"
+                stroke-linecap="round"
+                stroke-dasharray="16 12"
+                d="M2.5 3.225v510"
+              />
+            </svg>
+          </div>
+          <ul class="links-col">
+            {data.footer.otherLinks.map(({ slug, name }) => (
+              <li>
+                <a class="footer-link" href={slug}>
+                  {name}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div class="contact-col">
+            <div class="phone">
+              <p>{data.footer.restOfInformation.phoneHeading}</p>
+              <a href={`tel:${data.contact.tel}`}>{data.contact.tel}</a>
+              <p>{`${OpenHoursText.days} ${OpenHoursText.time}`}</p>
+            </div>
+            <div class="email">
+              <p>{data.footer.restOfInformation.contactForm.heading}</p>
+              <a href={`mailto:${data.contact.email}`}>{data.contact.email}</a>
+            </div>
+            <div class="form">
+              <p>{data.footer.restOfInformation.contactForm.heading}</p>
+              <a class="footer-link" href={data.footer.restOfInformation.contactForm.link.slug}>
+                {t.contactForm}
               </a>
-            </li>
-          ))
-        }
-      </ul>
-      <svg viewBox="0 0 5 516" fill="none" xmlns="http://www.w3.org/2000/svg"
-        ><path stroke="#FAF7F7" stroke-width="5" stroke-linecap="round" stroke-dasharray="16 12" d="M2.5 3.225v510"
-        ></path></svg
-      >
-    </div>
-    <ul class="links-col">
-      {
-        data.footer.otherLinks.map(({ slug, name }) => (
-          <li>
-            <a class="footer-link" href={slug}>
-              {name}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-    <div class="contact-col">
-      <div class="phone">
-        <p>{data.footer.restOfInformation.phoneHeading}</p>
-        <a href={`tel:${data.contact.tel}`}>
-          {data.contact.tel}
-        </a>
-        <p>{`${OpenHoursText.days} ${OpenHoursText.time}`}</p>
-      </div>
-      <div class="email">
-        <p>{data.footer.restOfInformation.contactForm.heading}</p>
-        <a href={`mailto:${data.contact.email}`}>
-          {data.contact.email}
-        </a>
-      </div>
-      <div class="form">
-        <p>{data.footer.restOfInformation.contactForm.heading}</p>
-        <a class="footer-link" href={data.footer.restOfInformation.contactForm.link.slug}>
-          {t.contactForm}
-        </a>
-      </div>
-      <div class="socials">
-        <p>{data.footer.restOfInformation.socialMedia.heading}</p>
-        {
-          data.footer.restOfInformation.socialMedia.highlightedSocialMedia.map(({ name, link, iconString }) => (
-            <a href={link}>
-              <Fragment set:html={iconString} />
-              <span>{name}</span>
-              <span class="circle" />
-            </a>
-          ))
-        }
-      </div>
-      <svg viewBox="0 0 5 516" fill="none" xmlns="http://www.w3.org/2000/svg"
-        ><path stroke="#FAF7F7" stroke-width="5" stroke-linecap="round" stroke-dasharray="16 12" d="M2.5 3.225v510"
-        ></path></svg
-      >
-    </div>
-  </div>
+            </div>
+            <div class="socials">
+              <p>{data.footer.restOfInformation.socialMedia.heading}</p>
+              {data.footer.restOfInformation.socialMedia.highlightedSocialMedia.map(({ name, link, iconString }) => (
+                <a href={link}>
+                  <Fragment set:html={iconString} />
+                  <span>{name}</span>
+                  <span class="circle" />
+                </a>
+              ))}
+            </div>
+            <svg viewBox="0 0 5 516" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                stroke="#FAF7F7"
+                stroke-width="5"
+                stroke-linecap="round"
+                stroke-dasharray="16 12"
+                d="M2.5 3.225v510"
+              />
+            </svg>
+          </div>
+        </div>
+      </>
+    )
+  }
   <div class="bottom-row">
     <svg width="1366" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"
       ><circle cx="-3" cy="8" r="8" fill="#FAF7F7"></circle><circle cx="25" cy="8" r="8" fill="#FAF7F7"></circle><circle
@@ -287,11 +299,19 @@ console.log(data.footer.restOfInformation.socialMedia.highlightedSocialMedia[0].
         ><span>Luksari</span><span aria-hidden="true">Luksari</span></a
       >
     </p>
-    <div>
-      <a href={t.privacyPolicyUrl} class="annotation-link">{t.privacyPolicy}</a>
-      <a href={t.termsOfServiceUrl} class="annotation-link">{t.termsOfService}</a>
-      <button class="annotation-link">{t.cookiePolicy}</button>
-    </div>
+    {
+      !minify && (
+        <div>
+          <a href={t.privacyPolicyUrl} class="annotation-link">
+            {t.privacyPolicy}
+          </a>
+          <a href={t.termsOfServiceUrl} class="annotation-link">
+            {t.termsOfService}
+          </a>
+          <button class="annotation-link">{t.cookiePolicy}</button>
+        </div>
+      )
+    }
     <p class="copyright"><span>&copy;</span> {new Date().getFullYear()}. {t.copyright}</p>
   </div>
 </footer>
@@ -302,6 +322,14 @@ console.log(data.footer.restOfInformation.socialMedia.highlightedSocialMedia[0].
     grid-template-columns: auto 1fr;
     grid-template-rows: auto 1fr auto;
     padding-top: clamp(3rem, calc(4vw / 0.48), 6rem);
+
+    &[data-minify='true'] {
+      padding-top: 2rem;
+
+      .bottom-row {
+        margin-top: 0;
+      }
+    }
 
     .heading {
       grid-column: 1 / 2;

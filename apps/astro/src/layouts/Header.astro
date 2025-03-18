@@ -1,0 +1,1069 @@
+---
+import CaseStudyCard from '../components/ui/CaseStudyCard.astro'
+import CategoryBlock from '../components/ui/CategoryBlock.astro'
+import { ImageDataQuery, type ImageDataProps } from '../components/ui/image'
+import { type Language } from '../global/languages'
+import sanityFetch from '../utils/sanity.fetch'
+
+const language = (Astro.props.lang as Language) || 'pl'
+
+const translations = {
+  pl: {
+    activities: 'Integracje firmowe',
+    activitiesUrl: '/pl/integracje',
+    showActivitiesLg: 'Sprawdź wszystkie integracje',
+    showActivitiesSm: 'Wszystkie integracje',
+    hotels: 'Hotele dla firm',
+    hotelsUrl: '/pl/hotele-dla-firm',
+    caseStudies: 'Realizacje',
+    caseStudiesUrl: '/pl/realizacje',
+    showCaseStudiesLg: 'Zobacz wszystkie realizacje',
+    showCaseStudiesSm: 'Wszystkie realizacje',
+    cart: 'Koszyk',
+    cartUrl: '/pl/koszyk',
+    defaultUrl: '/pl',
+    logoLabel: 'Przejdź do strony głównej',
+    skipLink: 'Przejdź do treści głównej',
+  },
+  en: {
+    activities: 'Team activities',
+    activitiesUrl: '/en/activities',
+    showActivitiesLg: 'See all activities',
+    showActivitiesSm: 'All activities',
+    hotels: 'Company hotels',
+    hotelsUrl: '/en/hotels',
+    caseStudies: 'Case studies',
+    caseStudiesUrl: '/en/case-studies',
+    showCaseStudiesLg: 'See all case studies',
+    showCaseStudiesSm: 'All case studies',
+    cart: 'Cart',
+    cartUrl: '/en/cart',
+    defaultUrl: '/en',
+    logoLabel: 'Visit Homepage',
+    skipLink: 'Skip to main content',
+  },
+}
+const t = translations[language]
+
+const data = await sanityFetch<{
+  highlightedActivities: {
+    slug: string
+    name: string
+    description: {
+      short: string
+    }
+    image: ImageDataProps
+    referenceCount: number
+  }[]
+  highlightedCaseStudies: {
+    slug: string
+    name: string
+    primaryImage: ImageDataProps
+    secondaryImage: ImageDataProps
+  }[]
+}>({
+  query: `
+   *[_type == "navbar" && language == $language][0]{
+    highlightedCaseStudies[] -> {
+        "slug": slug.current,
+        name,
+        ${ImageDataQuery('primaryImage')}
+        ${ImageDataQuery('secondaryImage')}
+    },
+    highlightedActivities[] -> {
+        "slug": slug.current,
+        name,
+        description{
+          short,
+        },
+        ${ImageDataQuery('image')}
+        "referenceCount": count(*[_type == "Activities_Collection" && references(^._id)])
+        },
+    }
+`,
+  params: { language },
+})
+---
+
+<a class="skip-link" href="#main">{t.skipLink}</a>
+
+<header class="header" data-active="false">
+  <div class="container">
+    <a href={t.defaultUrl} class="logo" aria-label={t.logoLabel}
+      ><svg viewBox="0 0 103 32" fill="none" xmlns="http://www.w3.org/2000/svg"
+        ><path
+          d="M28.122 11.669h4.487v1.735h-4.487v3.198h-2.349V8.286h8.904v1.709h-6.555v1.674ZM32 16.602l5.197-8.316h2.488l5.24 8.316h-2.628l-.815-1.393h-6.1l-.814 1.393H32Zm6.441-6.52-2.086 3.506h4.163l-2.086-3.505h.009ZM54.158 12.116c.236.052.455.14.666.271.201.132.385.28.543.456.158.175.28.368.368.587.088.22.132.447.132.693 0 .394-.07.744-.202 1.051-.14.307-.333.56-.605.771-.271.21-.596.368-.999.482a5.151 5.151 0 0 1-1.402.175h-7.3V8.286h7.361c.421 0 .798.044 1.131.132.333.087.622.219.859.385.236.167.42.386.552.631.131.254.193.543.193.859 0 .202-.027.394-.088.578a2.12 2.12 0 0 1-.254.509c-.114.148-.245.289-.412.394a2.324 2.324 0 0 1-.552.28v.053l.009.009Zm-6.441-2.104v1.429h4.346c.15 0 .29-.018.412-.053a.903.903 0 0 0 .307-.14.661.661 0 0 0 .184-.228.752.752 0 0 0 .061-.315.588.588 0 0 0-.07-.29.717.717 0 0 0-.49-.35 1.727 1.727 0 0 0-.386-.044h-4.373l.009-.009Zm0 3.024v1.823h4.434c.219 0 .412-.018.578-.062.158-.044.29-.096.395-.166a.602.602 0 0 0 .227-.28 1.077 1.077 0 0 0 .009-.78.592.592 0 0 0-.228-.281 1.37 1.37 0 0 0-.394-.175 2.174 2.174 0 0 0-.578-.07h-4.443v-.01ZM66.867 11.861a2.328 2.328 0 0 1-.438.72c-.193.218-.42.402-.692.56-.272.158-.57.28-.912.368l2.507 3.093h-2.63l-2.252-2.909h-3.172v2.91H56.93V8.285h6.73c.473 0 .92.053 1.332.167.412.114.771.28 1.069.508.307.228.535.517.701.859.167.341.245.736.245 1.191 0 .307-.052.596-.148.86l.008-.01Zm-7.589-1.866v2.033h4.102c.201 0 .385-.018.543-.061a1.03 1.03 0 0 0 .403-.202.8.8 0 0 0 .245-.324c.053-.132.08-.272.08-.42a1.12 1.12 0 0 0-.08-.439.858.858 0 0 0-.245-.315 1.338 1.338 0 0 0-.403-.202 2.044 2.044 0 0 0-.544-.07h-4.1ZM73.702 16.602h-2.401v-2.655l-4.934-5.66h2.7l3.434 4.1 3.436-4.1h2.707l-4.942 5.625v2.7-.01ZM88.922 8.524c-.175.149-.394.333-.648.543-.254.21-.526.447-.824.692-.298.254-.57.482-.824.701-.254.22-.464.395-.63.544-.167.149-.263.219-.28.228 0 .017.07.105.174.262.106.158.254.36.439.614.184.254.385.534.604.85l.675.964c.228.324.456.648.683.955.228.307.43.596.605.841.175.254.324.456.438.614.114.157.176.245.193.263H86.82s-.052-.07-.131-.193a10.53 10.53 0 0 0-.307-.456c-.131-.184-.272-.386-.438-.622a90.52 90.52 0 0 1-.5-.719c-.166-.245-.341-.482-.508-.71-.166-.227-.315-.429-.438-.613a12.237 12.237 0 0 1-.316-.456c-.078-.122-.122-.175-.13-.175-.018 0-.097.062-.229.175-.14.123-.306.263-.517.439-.21.175-.438.368-.683.57-.246.2-.474.393-.684.569-.21.175-.385.324-.534.447-.15.122-.22.184-.228.184v1.542h-2.34V8.261h2.34v4.399l5.047-4.4h2.962l-.28.237.017.027Z"
+          fill="#45051C"></path><path
+          d="m89.04 16.602 5.196-8.316h2.488l5.241 8.316h-2.63l-.814-1.393h-6.1l-.814 1.393h-2.568Zm6.44-6.52-2.086 3.506h4.163l-2.086-3.505h.01ZM24.797 26.964l5.197-8.316h2.488l5.24 8.316h-2.628l-.815-1.394h-6.1l-.814 1.394h-2.568Zm6.432-6.52-2.085 3.505h4.162l-2.086-3.505h.01ZM41.367 26.964H39v-6.608H35.18v-1.709h9.937v1.71h-3.76v6.607h.01ZM55.54 22.223a2.331 2.331 0 0 1-.44.719c-.192.218-.42.403-.691.56-.272.158-.57.28-.912.368l2.507 3.094h-2.63l-2.252-2.91H47.95v2.91h-2.348v-8.316h6.73c.473 0 .92.052 1.332.166.412.114.77.28 1.069.508.307.228.534.517.7.859.167.342.246.736.246 1.192 0 .307-.052.596-.149.859l.01-.01Zm-7.59-1.867v2.033h4.101c.202 0 .386-.017.544-.061.157-.044.289-.105.403-.201a.8.8 0 0 0 .245-.325c.053-.131.079-.271.079-.42 0-.167-.026-.316-.079-.439a.856.856 0 0 0-.245-.315 1.336 1.336 0 0 0-.403-.202 2.043 2.043 0 0 0-.544-.07h-4.1Z"
+          fill="#45051C"></path><path
+          d="m55.844 26.964 5.196-8.316h2.49l5.24 8.316h-2.63l-.814-1.394h-6.1l-.815 1.394h-2.567Zm6.44-6.52L60.2 23.949h4.163l-2.086-3.505h.009ZM79.024 18.88c-.175.15-.394.333-.648.543-.255.21-.526.447-.824.693-.298.254-.57.482-.824.7-.254.22-.464.395-.63.544-.167.15-.264.22-.281.228 0 .017.07.105.175.263.105.158.254.36.438.613.184.254.386.535.605.85.219.316.447.64.675.964.227.325.455.649.683.956.228.306.43.595.605.84.175.255.324.456.438.614.114.158.175.245.193.263H76.92s-.053-.07-.132-.193a10.655 10.655 0 0 0-.306-.455c-.132-.184-.272-.386-.439-.623a92.39 92.39 0 0 1-.499-.718c-.166-.246-.342-.482-.508-.71-.167-.228-.316-.43-.438-.613a12.207 12.207 0 0 1-.316-.456c-.079-.123-.123-.175-.131-.175-.018 0-.097.06-.228.175-.14.122-.307.263-.517.438-.21.175-.438.368-.684.57-.245.201-.473.394-.683.57l-.535.446c-.149.123-.219.184-.228.184v1.543h-2.34v-8.317h2.34v4.4l5.048-4.4h2.962l-.28.237.017.026Z"
+          fill="#45051C"></path><path
+          d="M88.227 21.688a5.862 5.862 0 0 0-.745-.552 5.554 5.554 0 0 0-.859-.412 6.114 6.114 0 0 0-.929-.254 4.971 4.971 0 0 0-.955-.088c-.307 0-.605.027-.894.07a3.747 3.747 0 0 0-1.48.57 2.296 2.296 0 0 0-.527.482 2.34 2.34 0 0 0-.341.613 1.95 1.95 0 0 0-.123.728c0 .394.088.736.263 1.034.175.298.42.543.727.745.307.201.675.35 1.096.455.42.106.876.15 1.367.15.394 0 .762-.027 1.095-.08.342-.052.666-.14.964-.245.298-.114.587-.245.85-.403.263-.158.508-.333.745-.517 0 0 .035.035.088.114.052.079.114.175.192.29.08.113.158.236.255.367.096.132.175.245.254.368.079.114.149.21.201.29.061.078.088.113.079.113a6.004 6.004 0 0 1-1.954 1.104 8.836 8.836 0 0 1-2.91.473c-.911 0-1.717-.105-2.427-.297-.71-.193-1.306-.465-1.788-.824a3.546 3.546 0 0 1-1.095-1.306c-.246-.508-.368-1.095-.368-1.744 0-.429.061-.832.184-1.218.123-.385.307-.745.534-1.069a4.604 4.604 0 0 1 1.945-1.542 6.852 6.852 0 0 1 1.342-.412c.482-.096.99-.149 1.542-.149.596 0 1.14.044 1.621.131.482.088.92.202 1.315.342.394.15.745.316 1.051.526.307.21.587.43.824.666-.114.149-.21.29-.298.394-.088.114-.175.228-.272.35-.096.124-.184.246-.271.36-.08.114-.15.21-.21.28a.439.439 0 0 0-.088.123v-.026ZM99.416 22.651c0 .771-.123 1.446-.36 1.998a3.66 3.66 0 0 1-.998 1.385c-.43.368-.947.63-1.552.806a7.49 7.49 0 0 1-1.989.254c-.648 0-1.235-.07-1.752-.201a5.1 5.1 0 0 1-1.385-.579 3.654 3.654 0 0 1-1.008-.929 4.088 4.088 0 0 1-.622-1.27l2.033-.894c.088.36.22.666.386.929.175.263.385.482.622.648.237.167.5.29.789.368.289.08.595.114.92.114.42 0 .78-.061 1.095-.175a2.15 2.15 0 0 0 .789-.508c.21-.22.377-.482.482-.798.105-.315.157-.657.157-1.034v-4.127h2.402v4.013h-.01ZM100.562 18.648h2.367v8.316h-2.367v-8.316Z"
+          fill="#45051C"></path><g clip-path="url(#a)"
+          ><path
+            d="M7.38 8.198a.473.473 0 0 0-.47.447L6.72 11.71a.479.479 0 0 0 .47.517l4.688-.876a.479.479 0 0 0 .47-.517l-.188-2.19a.473.473 0 0 0-.47-.447H7.38Z"
+            fill="url(#b)"></path><path
+            d="M6.926 14.427a.473.473 0 0 0-.47.447l-.223 2.654a.479.479 0 0 0 .47.517l5.664.876a.479.479 0 0 0 .47-.517l-.222-3.53a.473.473 0 0 0-.47-.447H6.925Z"
+            fill="url(#c)"></path><path
+            d="M6.439 21.12a.473.473 0 0 0-.47.447l-.223 3.53a.479.479 0 0 0 .47.518l6.638-.876a.479.479 0 0 0 .47-.517l-.222-2.655a.473.473 0 0 0-.47-.447H6.439Z"
+            fill="url(#d)"></path><path
+            d="m5.48 28.26-.196 2.708a.479.479 0 0 0 .47.517h7.554a.479.479 0 0 0 .47-.517l-.197-2.707a.473.473 0 0 0-.47-.447H5.95a.473.473 0 0 0-.47.447Z"
+            fill="url(#e)"></path><path
+            d="M9.048 4.448c.154.044.316.062.479.062.162 0 .325-.027.479-.062a1.985 1.985 0 0 0 1.471-1.936c0-1.104-.873-1.997-1.95-1.997-1.078 0-1.95.893-1.95 1.997 0 .938.624 1.717 1.47 1.936Z"
+            fill="url(#f)"></path><path
+            d="M4.326 15.05a1.923 1.923 0 0 0-2.66-.737c-.933.552-1.25 1.77-.719 2.734a1.94 1.94 0 0 0 2.669.735 2.008 2.008 0 0 0 .907-2.233 2.017 2.017 0 0 0-.197-.5Z"
+            fill="url(#g)"></path><path
+            d="M17.396 14.138a1.874 1.874 0 0 0-.872-.263 1.955 1.955 0 0 0-2.027 1.674c-.129.797.222 1.629.95 2.058.931.552 2.13.228 2.668-.736a2.026 2.026 0 0 0-.718-2.733Z"
+            fill="url(#h)"></path><path
+            d="M.973 8.811a1.93 1.93 0 0 0 2.669-.727c.538-.955.222-2.181-.71-2.733a1.93 1.93 0 0 0-2.67.727c-.538.955-.222 2.181.71 2.733Z"
+            fill="url(#i)"></path><path
+            d="M18.08 8.636c.933-.552 1.25-1.778.71-2.733a1.93 1.93 0 0 0-2.668-.728c-.932.552-1.249 1.779-.71 2.734a1.93 1.93 0 0 0 2.669.727Z"
+            fill="url(#j)"></path></g
+        ><defs
+          ><linearGradient id="b" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="c" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="d" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="e" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="f" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="g" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="h" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="i" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><linearGradient id="j" x1="9.527" y1=".515" x2="10.74" y2="31.437" gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#FA7468"></stop><stop offset=".245" stop-color="#F86E6D"></stop><stop
+              offset=".5"
+              stop-color="#E7C78F"></stop><stop offset=".75" stop-color="#9EC5A8"></stop><stop
+              offset="1"
+              stop-color="#798DDC"></stop></linearGradient
+          ><clipPath id="a"><path fill="#fff" transform="translate(0 .515)" d="M0 0h19.058v30.97H0z"></path></clipPath
+          ></defs
+        ></svg
+      ></a
+    >
+    <nav class="navigation">
+      <div class="activities">
+        <button class="nav-button"
+          ><span>{t.activities}</span><div class="svg-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
+              ><path
+                d="m9.969 4.75-3.5 3-3.5-3"
+                stroke="#74535E"
+                stroke-width="1.25"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path></svg
+            ><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
+              ><path
+                d="m9.969 4.75-3.5 3-3.5-3"
+                stroke="#74535E"
+                stroke-width="1.25"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path></svg
+            >
+          </div>
+        </button>
+        <div class="expand expand-activities">
+          <div>
+            <a href={t.activitiesUrl} class="show-all">
+              <span class="wrapper">
+                <span class="box">
+                  <span class="svg-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
+                      ><path
+                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                        stroke="#F67258"
+                        stroke-width="1.5"
+                        stroke-linecap="round"></path></svg
+                    ><svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
+                      ><path
+                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                        stroke="#F67258"
+                        stroke-width="1.5"
+                        stroke-linecap="round"></path></svg
+                    >
+                  </span><span class="scale"></span></span
+                >
+
+                <span class="text">{t.showActivitiesLg}</span></span
+              ></a
+            >
+            <nav class="list">
+              {
+                data.highlightedActivities.map(({ image, name, referenceCount, description, slug }) => (
+                  <CategoryBlock
+                    image={image}
+                    title={name}
+                    count={referenceCount}
+                    description={description.short}
+                    imageSizes=""
+                    slug={slug}
+                  />
+                ))
+              }
+            </nav>
+          </div>
+        </div>
+      </div>
+      <a class="nav-link" href={t.hotelsUrl}>{t.hotels}</a>
+      <div class="case-study">
+        <button class="nav-button"
+          ><span>{t.caseStudies}</span><span class="svg-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
+              ><path
+                d="m9.969 4.75-3.5 3-3.5-3"
+                stroke="#74535E"
+                stroke-width="1.25"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path></svg
+            ><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
+              ><path
+                d="m9.969 4.75-3.5 3-3.5-3"
+                stroke="#74535E"
+                stroke-width="1.25"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path></svg
+            >
+          </span>
+        </button>
+        <div class="expand expand-case-study">
+          <div>
+            <a href={t.caseStudiesUrl} class="show-all">
+              <span class="wrapper">
+                <span class="box">
+                  <span class="svg-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
+                      ><path
+                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                        stroke="#F67258"
+                        stroke-width="1.5"
+                        stroke-linecap="round"></path></svg
+                    ><svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
+                      ><path
+                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                        stroke="#F67258"
+                        stroke-width="1.5"
+                        stroke-linecap="round"></path></svg
+                    >
+                  </span><span class="scale"></span></span
+                >
+
+                <span class="text">{t.showCaseStudiesLg}</span></span
+              ></a
+            >
+            <nav class="list">
+              {
+                data.highlightedCaseStudies.map(({ slug, primaryImage, secondaryImage, name }) => (
+                  <CaseStudyCard
+                    title={name}
+                    primaryImage={{
+                      src: primaryImage,
+                      loading: 'lazy',
+                    }}
+                    secondaryImage={{
+                      src: secondaryImage,
+                      loading: 'lazy',
+                    }}
+                    imageSizes=""
+                    slug={slug}
+                  />
+                ))
+              }
+            </nav>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <a href={t.cartUrl} class="cart"
+      ><div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+          ><path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M5.49 4.676a.01.01 0 0 0 .01-.01V4a2.5 2.5 0 0 1 5 0v.667c0 .005.003.009.008.009.86.024 1.384.114 1.786.444.553.453.707 1.223 1.015 2.762l.4 2c.443 2.214.664 3.32.064 4.053-.6.732-1.729.732-3.986.732H6.212c-2.258 0-3.386 0-3.986-.732-.6-.732-.38-1.84.064-4.053l.4-2c.307-1.54.461-2.309 1.014-2.762.402-.33.927-.42 1.786-.444ZM6.5 4a1.5 1.5 0 1 1 3 0v.667H6.498V4ZM8 11.5a1.5 1.5 0 0 1-1.415-1 .5.5 0 0 0-.943.333 2.5 2.5 0 0 0 4.715 0 .5.5 0 0 0-.943-.333A1.5 1.5 0 0 1 8 11.5Z"
+            fill="currentColor"></path></svg
+        ><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+          ><path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M5.49 4.676a.01.01 0 0 0 .01-.01V4a2.5 2.5 0 0 1 5 0v.667c0 .005.003.009.008.009.86.024 1.384.114 1.786.444.553.453.707 1.223 1.015 2.762l.4 2c.443 2.214.664 3.32.064 4.053-.6.732-1.729.732-3.986.732H6.212c-2.258 0-3.386 0-3.986-.732-.6-.732-.38-1.84.064-4.053l.4-2c.307-1.54.461-2.309 1.014-2.762.402-.33.927-.42 1.786-.444ZM6.5 4a1.5 1.5 0 1 1 3 0v.667H6.498V4ZM8 11.5a1.5 1.5 0 0 1-1.415-1 .5.5 0 0 0-.943.333 2.5 2.5 0 0 0 4.715 0 .5.5 0 0 0-.943-.333A1.5 1.5 0 0 1 8 11.5Z"
+            fill="currentColor"></path></svg
+        >
+      </div>
+      <span>{t.cart}</span>
+    </a>
+  </div>
+  <div class="overlay overlay-desktop" aria-hidden="true"></div>
+  <div class="overlay overlay-mobile" aria-hidden="true"></div>
+</header>
+
+<style lang="scss">
+  .skip-link {
+    position: fixed;
+    top: 2.5rem;
+    left: 2.5rem;
+    border-radius: 16px;
+    padding: 0.75rem 1.5rem;
+    font-size: var(--typography-body-m, 0.875rem);
+    z-index: 110;
+    opacity: 0;
+    pointer-events: none;
+    isolation: isolate;
+    color: var(--primary-800);
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 16px;
+      z-index: -2;
+      background: conic-gradient(
+        from 135deg at 50% 50%,
+        #798ddc 0deg,
+        #e7c78f 90deg,
+        #fa7468 266.40000343322754deg,
+        #798ddc 360deg
+      );
+    }
+
+    &::after {
+      background: var(--neutral-100);
+      inset: 0px;
+      z-index: -1;
+    }
+
+    &:focus-visible {
+      opacity: 1;
+      pointer-events: auto;
+      outline: 2px solid var(--neutral-600);
+    }
+  }
+  .header {
+    position: sticky;
+    background-color: var(--neutral-100);
+    top: 0;
+    isolation: isolate;
+    z-index: 100;
+    padding: clamp(0.25rem, calc(0.5vw / 0.48), 0.75rem) clamp(1rem, calc(2vw / 0.48), 2rem)
+      clamp(0.25rem, calc(0.5vw / 0.48), 0.75rem) clamp(0.375rem, calc(2vw / 0.48), 2rem);
+    border-bottom: 2px solid;
+    border-image: linear-gradient(270deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+    transition: background-color 100ms;
+
+    &[data-active='true'] {
+      background-color: var(--neutral-200);
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: calc(1366px - 2 * var(--pageMargin));
+      margin: 0 auto;
+      z-index: 200;
+      .logo {
+        min-height: 2.75rem;
+        display: grid;
+        place-items: center;
+        svg {
+          width: 103px;
+          height: auto;
+        }
+      }
+
+      .navigation {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        .nav-button,
+        .nav-link {
+          font-size: var(--typography-body-m, 0.875rem);
+          color: var(--primary-700, #600d2a);
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+          display: flex;
+          align-items: center;
+          min-height: 2.75rem;
+        }
+
+        .nav-button {
+          gap: 0.25rem;
+          isolation: isolate;
+          overflow: hidden;
+          padding-left: 4px;
+          border-radius: 4px;
+          position: relative;
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0%;
+            border-radius: 50%;
+            transform: translateY(calc(-50% + 1px)) scale(0);
+            transition: transform 400ms var(--easing);
+            z-index: -1;
+            width: 17px;
+            height: 17px;
+          }
+
+          .svg-box {
+            width: 17px;
+            height: 17px;
+            display: grid;
+            margin-top: 2px;
+            position: relative;
+            place-items: center;
+            overflow: hidden;
+          }
+
+          svg {
+            padding-left: 0.15px;
+            transition: transform 400ms var(--easing);
+            &:nth-of-type(2) {
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -150%) scale(0.1);
+            }
+          }
+
+          &:hover {
+            &::before {
+              transform: translateY(calc(-50% + 1px)) scale(1);
+            }
+            .svg-box {
+              svg {
+                &:nth-of-type(1) {
+                  transform: translateY(150%);
+                }
+
+                &:nth-of-type(2) {
+                  transform: translate(-50%, -50%);
+                  transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+                }
+              }
+            }
+          }
+
+          &:focus-visible {
+            border-radius: 4px;
+          }
+
+          &[aria-expanded='true'] {
+            &::before {
+              transform: translateY(calc(-50% + 1px)) scale(16);
+              transition: transform 450ms var(--easing);
+            }
+
+            .svg-box {
+              svg {
+                &:nth-of-type(1) {
+                  transform: rotate(180deg);
+                }
+
+                &:nth-of-type(2) {
+                  transform: translate(-50%, -150%) scale(0.1) rotate(180deg);
+                }
+              }
+            }
+
+            &:hover {
+              .svg-box {
+                svg {
+                  &:nth-of-type(1) {
+                    transform: translateY(150%) rotate(180deg);
+                  }
+
+                  &:nth-of-type(2) {
+                    transform: translate(-50%, -50%) rotate(180deg);
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .nav-link {
+          position: relative;
+          isolation: isolate;
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 110%;
+            transform: translate(-50%, -50%) scaleX(0) scaleY(0.05);
+            transform-origin: bottom;
+            height: 100%;
+            background-color: #ffecbc;
+            transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+            border-radius: 4px;
+            z-index: -1;
+          }
+
+          &:hover {
+            &::before {
+              transform: translate(-50%, -50%) scaleX(1) scaleY(0.05);
+            }
+          }
+
+          &:focus:not(:focus-visible) {
+            &::before {
+              transform: translate(-50%, -50%) scaleX(1) scaleY(1);
+            }
+          }
+
+          &:focus-visible {
+            border-radius: 4px;
+          }
+        }
+
+        .activities {
+          .nav-button::before {
+            background-color: #d0e0ff;
+          }
+          .expand > div {
+            .list {
+              display: flex;
+              align-items: flex-start;
+              gap: 1rem;
+
+              :global(.CategoryBlock) {
+                max-width: 216px;
+                :global(.title) {
+                  :global(.text) {
+                    font-size: var(--typography-body-l, 1rem);
+                  }
+                }
+
+                :global(.description) {
+                  font-size: var(--typography-body-m, 0.875rem);
+                }
+              }
+            }
+          }
+          &[data-expanded='true'] {
+            .expand-activities {
+              transform: translateY(0);
+              opacity: 1;
+              visibility: visible;
+              filter: blur(0px);
+            }
+          }
+        }
+      }
+
+      .case-study {
+        .nav-button {
+          &::before {
+            background-color: #ffbcba;
+          }
+
+          &[aria-expanded='true'] {
+            &::before {
+              transition-duration: 600ms;
+            }
+          }
+        }
+
+        .expand > div {
+          .list {
+            display: flex;
+            align-items: stretch;
+            gap: 0.5rem;
+
+            :global(.CaseStudyCard) {
+              max-width: 216px;
+
+              > :global(a) {
+                height: 100%;
+                :global(.img-container) {
+                  height: 122px;
+                }
+
+                :global(.text) {
+                  font-size: var(--typography-body-l, 1rem);
+                }
+              }
+            }
+          }
+        }
+
+        &[data-expanded='true'] {
+          .expand-case-study {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+            filter: blur(0px);
+          }
+        }
+      }
+
+      .expand {
+        padding: 2rem;
+        position: absolute;
+        left: 0;
+        width: 100%;
+        top: 100%;
+        background: var(--neutral-200, #f5f1ec);
+        transform: translateY(-0.5rem);
+        opacity: 0;
+        visibility: hidden;
+        filter: blur(10px);
+        transition:
+          transform 300ms var(--easing),
+          opacity 200ms,
+          visibility 200ms,
+          filter 200ms;
+        border-bottom: 2px solid;
+        border-image: linear-gradient(270deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+
+        > div {
+          display: flex;
+          max-width: calc(1366px - 2 * var(--pageMargin));
+          margin: 0 auto;
+          align-items: center;
+          justify-content: space-between;
+        }
+      }
+
+      .cart {
+        display: flex;
+        align-items: center;
+        min-height: 2.75rem;
+        gap: 0.25rem;
+        color: var(--primary-700, #600d2a);
+        font-size: var(--typography-body-s, 0.75rem);
+        line-height: 1.6;
+        letter-spacing: -0.01em;
+        transition: color 150ms;
+        position: relative;
+        border-radius: 4px;
+
+        &::before {
+          content: '';
+          position: absolute;
+          inset: 0 -6px;
+          z-index: -1;
+          background: var(--neutral-300, #ede6de);
+          transform: scale(0);
+          transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
+          border-radius: inherit;
+        }
+
+        .icon {
+          position: relative;
+          overflow: hidden;
+          svg {
+            transition: transform 400ms var(--easing);
+            &:nth-of-type(2) {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform-origin: bottom;
+              transform: translate(-150%, -50%) rotate(-60deg) scale(0.7);
+            }
+          }
+        }
+
+        span {
+          padding-top: 1px;
+        }
+
+        &:hover {
+          color: var(--primary-600);
+          .icon {
+            svg {
+              &:nth-of-type(1) {
+                transform: translateX(150%) rotate(60deg) scale(0.7);
+              }
+              &:nth-of-type(2) {
+                transform: translate(-50%, -50%);
+                transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+              }
+            }
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          &::before {
+            transform: scale(1);
+          }
+        }
+      }
+
+      .show-all {
+        max-width: 216px;
+        text-align: center;
+        background-color: var(--neutral-200);
+        position: relative;
+        isolation: isolate;
+        // height: 100%;
+        align-self: stretch;
+
+        border-radius: 4px;
+
+        &::before,
+        &::after {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 4px;
+          z-index: -2;
+          background: conic-gradient(
+            from 135deg at 50% 50%,
+            #798ddc 0deg,
+            #e7c78f 90deg,
+            #fa7468 266.40000343322754deg,
+            #798ddc 360deg
+          );
+        }
+
+        &::after {
+          inset: 0;
+          background: var(--neutral-200, #f5f1ec);
+          z-index: -1;
+        }
+
+        .wrapper {
+          display: flex;
+          gap: 1rem;
+          padding: clamp(16px, calc(16vw / 7.68), 32px) clamp(20px, calc(20vw / 7.68), 32px);
+          height: 100%;
+          flex-direction: column;
+          align-items: center;
+          overflow: hidden;
+          justify-content: center;
+
+          .box {
+            position: relative;
+            isolation: isolate;
+            .svg-box {
+              min-width: 2.75rem;
+              aspect-ratio: 1;
+              border-radius: 50%;
+              background: var(--neutral-400, #ffe4ca);
+              place-items: center;
+              position: relative;
+              display: grid;
+              z-index: 2;
+              overflow: hidden;
+
+              svg {
+                width: 1.25rem;
+                height: 1.25rem;
+
+                &:nth-of-type(1) {
+                  transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
+                }
+
+                &:nth-of-type(2) {
+                  position: absolute;
+                  left: 50%;
+                  top: 50%;
+                  transform: translate(-200%, -50%) rotate(90deg) scale(0.5);
+                  transition: transform 300ms var(--easing);
+                }
+              }
+            }
+            .scale {
+              position: absolute;
+              inset: 0;
+              border-radius: 50%;
+              background: var(--primary-800, #45051c);
+              transform: scale(0);
+              transition: transform 400ms var(--easing);
+              z-index: 1;
+            }
+          }
+
+          .text {
+            color: var(--primary-800, #45051c);
+            font-weight: 700;
+            transition:
+              transform 300ms var(--easing),
+              color 150ms;
+            z-index: 5;
+          }
+        }
+
+        &:hover {
+          .wrapper {
+            .box {
+              .svg-box {
+                svg {
+                  &:nth-of-type(1) {
+                    transform: translateX(150%);
+                    transition: transform 300ms var(--easing);
+                  }
+
+                  &:nth-of-type(2) {
+                    transform: translate(-50%, -50%);
+                    transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+                  }
+                }
+              }
+            }
+
+            .text {
+              transform: translateY(-2px);
+            }
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          .wrapper {
+            .box {
+              .scale {
+                transform: scale(12);
+              }
+            }
+
+            .text {
+              color: var(--neutral-200, #f5f1ec);
+            }
+          }
+        }
+
+        &:focus-visible {
+          outline-offset: 6px;
+        }
+      }
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(237, 230, 222, 0.25);
+      backdrop-filter: blur(6px);
+      z-index: -1;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 200ms,
+        visibility 200ms;
+
+      &.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      &-desktop {
+        top: calc(100%);
+      }
+    }
+
+    @media (max-width: 1269px) {
+      .container {
+        .navigation {
+          .expand > div {
+            flex-direction: column;
+            align-items: center;
+
+            .show-all {
+              max-width: 100%;
+              width: 100%;
+              align-self: center;
+              margin-bottom: 2rem;
+
+              .wrapper {
+                flex-direction: row;
+                justify-content: space-between;
+                .box {
+                  order: 2;
+                  .scale {
+                    display: none;
+                  }
+                }
+
+                .text {
+                  order: 1;
+                }
+              }
+            }
+          }
+
+          .activities {
+            .expand {
+              div {
+                .list {
+                  :global(.CategoryBlock) {
+                    max-width: 100%;
+                  }
+                }
+              }
+            }
+          }
+
+          .case-study {
+            .expand {
+              div {
+                .list {
+                  display: grid;
+                  grid-template-columns: repeat(4, 1fr);
+
+                  :global(.CaseStudyCard) {
+                    max-width: 100%;
+                    > :global(a) {
+                      > :global(.img-container) {
+                        aspect-ratio: 344/194.3;
+                        height: auto;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    @media (max-width: 899px) {
+      .container {
+        .navigation {
+          .activities {
+            .expand {
+              div {
+                .list {
+                  display: grid;
+                  grid-template-columns: repeat(2, 1fr);
+                  gap: 1rem;
+
+                  :global(.CategoryBlock) {
+                    display: grid;
+                    grid-template-columns: clamp(6rem, calc(7vw / 0.48), 8rem) 1fr;
+                    grid-template-rows: auto 1fr;
+                    gap: 1rem;
+                    max-width: 100%;
+                    row-gap: 0;
+
+                    :global(.wrapper) {
+                      grid-column: 1/2;
+                      grid-row: 1/3;
+                      align-self: start;
+                    }
+
+                    :global(.title) {
+                      grid-column: 2/3;
+                      grid-row: 1/2;
+                    }
+
+                    :global(.description) {
+                      grid-column: 2/3;
+                      grid-row: 2/3;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          .case-study {
+            .expand {
+              div {
+                .list {
+                  display: grid;
+                  grid-template-columns: repeat(2, 1fr);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  const activitiesButton = document.querySelector('.activities .nav-button')! as HTMLElement
+  const activitiesContainer = document.querySelector('.activities')! as HTMLElement
+  const caseStudyButton = document.querySelector('.case-study .nav-button')! as HTMLElement
+  const caseStudyContainer = document.querySelector('.case-study')! as HTMLElement
+  const overlayDesktop = document.querySelector('.overlay-desktop')! as HTMLElement
+  const header = document.querySelector('.header')! as HTMLElement
+
+  activitiesButton.addEventListener('click', () => {
+    const isExpanded = activitiesContainer.getAttribute('data-expanded') === 'true'
+
+    if (caseStudyContainer) {
+      caseStudyContainer.setAttribute('data-expanded', 'false')
+      caseStudyButton?.setAttribute('aria-expanded', 'false')
+    }
+
+    activitiesContainer.setAttribute('data-expanded', !isExpanded ? 'true' : 'false')
+    overlayDesktop.classList.toggle('active', !isExpanded)
+    activitiesButton.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false')
+    header.setAttribute('data-active', !isExpanded ? 'true' : 'false')
+  })
+
+  overlayDesktop.addEventListener('click', () => {
+    activitiesContainer.setAttribute('data-expanded', 'false')
+    overlayDesktop.classList.remove('active')
+    activitiesButton.setAttribute('aria-expanded', 'false')
+
+    if (caseStudyContainer) {
+      caseStudyContainer.setAttribute('data-expanded', 'false')
+      caseStudyButton?.setAttribute('aria-expanded', 'false')
+    }
+
+    header.setAttribute('data-active', 'false')
+  })
+
+  caseStudyButton.addEventListener('click', () => {
+    const isExpanded = caseStudyContainer.getAttribute('data-expanded') === 'true'
+    if (activitiesContainer) {
+      activitiesContainer.setAttribute('data-expanded', 'false')
+      activitiesButton?.setAttribute('aria-expanded', 'false')
+    }
+
+    caseStudyContainer.setAttribute('data-expanded', !isExpanded ? 'true' : 'false')
+    overlayDesktop.classList.toggle('active', !isExpanded)
+    caseStudyButton.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false')
+    header.setAttribute('data-active', !isExpanded ? 'true' : 'false')
+  })
+</script>

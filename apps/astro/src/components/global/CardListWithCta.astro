@@ -218,52 +218,50 @@ const { index, sectionId, heading, paragraph, ctas, cards } = Astro.props
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const sections = document.querySelectorAll('.CardListWithCta')
+  const sections = document.querySelectorAll('.CardListWithCta')
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const section = entry.target as HTMLElement
-            const heading = section.querySelector('.animated-heading') as HTMLElement
-            const paragraph = section.querySelector('.paragraph') as HTMLElement
-            const ctas = section.querySelector('.ctas') as HTMLElement
-            const cards = section.querySelectorAll('.card') as NodeListOf<HTMLElement>
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const section = entry.target as HTMLElement
+          const heading = section.querySelector('.animated-heading') as HTMLElement
+          const paragraph = section.querySelector('.paragraph') as HTMLElement
+          const ctas = section.querySelector('.ctas') as HTMLElement
+          const cards = section.querySelectorAll('.card') as NodeListOf<HTMLElement>
 
-            if (heading) {
-              heading.dataset.fired = 'true'
-            }
-
-            if (paragraph) {
-              paragraph.dataset.fired = 'true'
-            }
-
-            if (ctas) {
-              ctas.dataset.fired = 'true'
-            }
-
-            if (cards.length) {
-              cards.forEach((card, index) => {
-                card.style.zIndex = `${100 - index}`
-                const delay = 400 + index * 150
-                setTimeout(() => {
-                  card.dataset.fired = 'true'
-                }, delay)
-              })
-            }
-            observer.unobserve(section)
+          if (heading) {
+            heading.dataset.fired = 'true'
           }
-        })
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px',
-      }
-    )
 
-    sections.forEach((section) => {
-      observer.observe(section)
-    })
+          if (paragraph) {
+            paragraph.dataset.fired = 'true'
+          }
+
+          if (ctas) {
+            ctas.dataset.fired = 'true'
+          }
+
+          if (cards.length) {
+            cards.forEach((card, index) => {
+              card.style.zIndex = `${50 - index}`
+              const delay = 400 + index * 150
+              setTimeout(() => {
+                card.dataset.fired = 'true'
+              }, delay)
+            })
+          }
+          observer.unobserve(section)
+        }
+      })
+    },
+    {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px',
+    }
+  )
+
+  sections.forEach((section) => {
+    observer.observe(section)
   })
 </script>
