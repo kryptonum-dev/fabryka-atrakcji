@@ -21,8 +21,6 @@ const translations = {
     caseStudiesUrl: '/pl/realizacje',
     showCaseStudiesLg: 'Zobacz wszystkie realizacje',
     showCaseStudiesSm: 'Wszystkie realizacje',
-    cart: 'Koszyk',
-    cartUrl: '/pl/koszyk',
     defaultUrl: '/pl',
     logoLabel: 'Przejdź do strony głównej',
     skipLink: 'Przejdź do treści głównej',
@@ -40,8 +38,6 @@ const translations = {
     caseStudiesUrl: '/en/case-studies',
     showCaseStudiesLg: 'See all case studies',
     showCaseStudiesSm: 'All case studies',
-    cart: 'Cart',
-    cartUrl: '/en/cart',
     defaultUrl: '/en',
     logoLabel: 'Visit Homepage',
     skipLink: 'Skip to main content',
@@ -93,7 +89,7 @@ const data = await sanityFetch<{
 
 <a class="skip-link" href="#main">{t.skipLink}</a>
 
-<header class="header" data-active="false">
+<header class="header" data-element="LayoutHeader">
   <div class="container">
     <button class="open-menu">
       <span class="box">
@@ -200,8 +196,8 @@ const data = await sanityFetch<{
       ></a
     >
     <nav class="navigation">
-      <div class="activities">
-        <button class="nav-button"
+      <div class="item" data-tab="activities">
+        <button type="button" class="item-button"
           ><span>{t.activities}</span><div class="svg-box">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
               ><path
@@ -220,7 +216,7 @@ const data = await sanityFetch<{
             >
           </div>
         </button>
-        <div class="expand expand-activities">
+        <div class="item-expand">
           <div>
             <a href={t.activitiesUrl} class="show-all">
               <span class="wrapper">
@@ -264,8 +260,8 @@ const data = await sanityFetch<{
         </div>
       </div>
       <a class="nav-link" href={t.hotelsUrl}>{t.hotels}</a>
-      <div class="case-study">
-        <button class="nav-button"
+      <div class="item" data-tab="case-study">
+        <button class="item-button"
           ><span>{t.caseStudies}</span><span class="svg-box">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
               ><path
@@ -284,7 +280,7 @@ const data = await sanityFetch<{
             >
           </span>
         </button>
-        <div class="expand expand-case-study">
+        <div class="item-expand">
           <div>
             <a href={t.caseStudiesUrl} class="show-all">
               <span class="wrapper">
@@ -335,8 +331,8 @@ const data = await sanityFetch<{
       <CartLink inverted />
     </nav>
     <CartLink />
-    <div class="overlay overlay-desktop" aria-hidden="true"></div>
-    <div class="overlay overlay-mobile" aria-hidden="true"></div>
+    <div class="overlay" data-variant="desktop" aria-hidden="true"></div>
+    <div class="overlay" data-variant="mobile" aria-hidden="true"></div>
   </div>
 </header>
 
@@ -395,7 +391,9 @@ const data = await sanityFetch<{
     transition: background-color 100ms;
 
     &[data-active='true'] {
-      background-color: var(--neutral-200);
+      @media (min-width: 660px) {
+        background-color: var(--neutral-200);
+      }
     }
 
     .container {
@@ -405,420 +403,6 @@ const data = await sanityFetch<{
       max-width: calc(1366px - 2 * var(--pageMargin));
       margin: 0 auto;
       z-index: 200;
-      .logo {
-        min-height: 2.75rem;
-        display: grid;
-        z-index: 3;
-        place-items: center;
-        svg {
-          width: 103px;
-          height: auto;
-        }
-      }
-
-      .navigation {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        .nav-button,
-        .nav-link {
-          font-size: var(--typography-body-m, 0.875rem);
-          color: var(--primary-700, #600d2a);
-          line-height: 1.7;
-          letter-spacing: -0.01em;
-          display: flex;
-          align-items: center;
-          min-height: 2.75rem;
-        }
-
-        .nav-button {
-          gap: 0.25rem;
-          isolation: isolate;
-          overflow: hidden;
-          padding-left: 4px;
-          border-radius: 4px;
-          position: relative;
-
-          &::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            right: 0%;
-            border-radius: 50%;
-            transform: translateY(calc(-50% + 1px)) scale(0);
-            transition: transform 400ms var(--easing);
-            z-index: -1;
-            width: 17px;
-            height: 17px;
-          }
-
-          .svg-box {
-            width: 17px;
-            height: 17px;
-            display: grid;
-            margin-top: 2px;
-            position: relative;
-            place-items: center;
-            overflow: hidden;
-          }
-
-          svg {
-            padding-left: 0.15px;
-            transition: transform 400ms var(--easing);
-            &:nth-of-type(2) {
-              position: absolute;
-              left: 50%;
-              top: 50%;
-              transform: translate(-50%, -150%) scale(0.1);
-            }
-          }
-
-          &:hover {
-            &::before {
-              transform: translateY(calc(-50% + 1px)) scale(1);
-            }
-            .svg-box {
-              svg {
-                &:nth-of-type(1) {
-                  transform: translateY(150%);
-                }
-
-                &:nth-of-type(2) {
-                  transform: translate(-50%, -50%);
-                  transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
-                }
-              }
-            }
-          }
-
-          &:focus-visible {
-            border-radius: 4px;
-          }
-
-          &[aria-expanded='true'] {
-            &::before {
-              transform: translateY(calc(-50% + 1px)) scale(16);
-              transition: transform 450ms var(--easing);
-            }
-
-            .svg-box {
-              svg {
-                &:nth-of-type(1) {
-                  transform: rotate(180deg);
-                }
-
-                &:nth-of-type(2) {
-                  transform: translate(-50%, -150%) scale(0.1) rotate(180deg);
-                }
-              }
-            }
-
-            &:hover {
-              .svg-box {
-                svg {
-                  &:nth-of-type(1) {
-                    transform: translateY(150%) rotate(180deg);
-                  }
-
-                  &:nth-of-type(2) {
-                    transform: translate(-50%, -50%) rotate(180deg);
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        .nav-link {
-          position: relative;
-          isolation: isolate;
-
-          &::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 110%;
-            transform: translate(-50%, -50%) scaleX(0) scaleY(0.05);
-            transform-origin: bottom;
-            height: 100%;
-            background-color: #ffecbc;
-            transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
-            border-radius: 4px;
-            z-index: -1;
-          }
-
-          &:hover {
-            &::before {
-              transform: translate(-50%, -50%) scaleX(1) scaleY(0.05);
-            }
-          }
-
-          &:focus:not(:focus-visible) {
-            &::before {
-              transform: translate(-50%, -50%) scaleX(1) scaleY(1);
-            }
-          }
-
-          &:focus-visible {
-            border-radius: 4px;
-          }
-        }
-
-        .activities {
-          .nav-button::before {
-            background-color: #d0e0ff;
-          }
-          .expand > div {
-            .list {
-              display: flex;
-              align-items: flex-start;
-              gap: 1rem;
-
-              :global(.CategoryBlock) {
-                max-width: 216px;
-                :global(.title) {
-                  :global(.text) {
-                    font-size: var(--typography-body-l, 1rem);
-                  }
-                }
-
-                :global(.description) {
-                  font-size: var(--typography-body-m, 0.875rem);
-                }
-              }
-            }
-          }
-          &[data-expanded='true'] {
-            .expand-activities {
-              transform: translateY(0);
-              opacity: 1;
-              visibility: visible;
-              filter: blur(0px);
-            }
-          }
-        }
-
-        :global(.cart) {
-          display: none;
-        }
-      }
-
-      .case-study {
-        .nav-button {
-          &::before {
-            background-color: #ffbcba;
-          }
-
-          &[aria-expanded='true'] {
-            &::before {
-              transition-duration: 600ms;
-            }
-          }
-        }
-
-        .expand > div {
-          .list {
-            display: flex;
-            align-items: stretch;
-            gap: 0.5rem;
-
-            :global(.CaseStudyCard) {
-              max-width: 216px;
-
-              > :global(a) {
-                height: 100%;
-                :global(.img-container) {
-                  height: 122px;
-                }
-
-                :global(.text) {
-                  font-size: var(--typography-body-l, 1rem);
-                }
-              }
-            }
-          }
-        }
-
-        &[data-expanded='true'] {
-          .expand-case-study {
-            transform: translateY(0);
-            opacity: 1;
-            visibility: visible;
-            filter: blur(0px);
-          }
-        }
-      }
-
-      .expand {
-        padding: 2rem;
-        position: absolute;
-        left: 0;
-        width: 100%;
-        top: 100%;
-        background: var(--neutral-200, #f5f1ec);
-        transform: translateY(-0.5rem);
-        opacity: 0;
-        visibility: hidden;
-        filter: blur(10px);
-        transition:
-          transform 300ms var(--easing),
-          opacity 200ms,
-          visibility 200ms,
-          filter 200ms;
-        border-bottom: 2px solid;
-        border-image: linear-gradient(270deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
-
-        > div {
-          display: flex;
-          max-width: calc(1366px - 2 * var(--pageMargin));
-          margin: 0 auto;
-          align-items: center;
-          justify-content: space-between;
-
-          & > * {
-            &:last-child {
-              display: none;
-            }
-          }
-        }
-      }
-
-      .show-all {
-        max-width: 216px;
-        text-align: center;
-        background-color: var(--neutral-200);
-        position: relative;
-        isolation: isolate;
-        align-self: stretch;
-        border-radius: 4px;
-
-        &::before,
-        &::after {
-          content: '';
-          position: absolute;
-          inset: -2px;
-          border-radius: 4px;
-          z-index: -2;
-          background: conic-gradient(
-            from 135deg at 50% 50%,
-            #798ddc 0deg,
-            #e7c78f 90deg,
-            #fa7468 266.40000343322754deg,
-            #798ddc 360deg
-          );
-        }
-
-        &::after {
-          inset: 0;
-          background: var(--neutral-200, #f5f1ec);
-          z-index: -1;
-        }
-
-        .wrapper {
-          display: flex;
-          gap: 1rem;
-          padding: clamp(16px, calc(16vw / 7.68), 32px) clamp(20px, calc(20vw / 7.68), 32px);
-          height: 100%;
-          flex-direction: column;
-          align-items: center;
-          overflow: hidden;
-          justify-content: center;
-
-          .box {
-            position: relative;
-            isolation: isolate;
-            .svg-box {
-              min-width: 2.75rem;
-              aspect-ratio: 1;
-              border-radius: 50%;
-              background: var(--neutral-400, #ffe4ca);
-              place-items: center;
-              position: relative;
-              display: grid;
-              z-index: 2;
-              overflow: hidden;
-
-              svg {
-                width: 1.25rem;
-                height: 1.25rem;
-
-                &:nth-of-type(1) {
-                  transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
-                }
-
-                &:nth-of-type(2) {
-                  position: absolute;
-                  left: 50%;
-                  top: 50%;
-                  transform: translate(-200%, -50%) rotate(90deg) scale(0.5);
-                  transition: transform 300ms var(--easing);
-                }
-              }
-            }
-            .scale {
-              position: absolute;
-              inset: 0;
-              border-radius: 50%;
-              background: var(--primary-800, #45051c);
-              transform: scale(0);
-              transition: transform 400ms var(--easing);
-              z-index: 1;
-            }
-          }
-
-          .text {
-            color: var(--primary-800, #45051c);
-            font-weight: 700;
-            transition:
-              transform 300ms var(--easing),
-              color 150ms;
-            z-index: 5;
-          }
-        }
-
-        &:hover {
-          .wrapper {
-            .box {
-              .svg-box {
-                svg {
-                  &:nth-of-type(1) {
-                    transform: translateX(150%);
-                    transition: transform 300ms var(--easing);
-                  }
-
-                  &:nth-of-type(2) {
-                    transform: translate(-50%, -50%);
-                    transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
-                  }
-                }
-              }
-            }
-
-            .text {
-              transform: translateY(-2px);
-            }
-          }
-        }
-
-        &:focus:not(:focus-visible) {
-          .wrapper {
-            .box {
-              .scale {
-                transform: scale(12);
-              }
-            }
-
-            .text {
-              color: var(--neutral-200, #f5f1ec);
-            }
-          }
-        }
-
-        &:focus-visible {
-          outline-offset: 6px;
-        }
-      }
 
       .open-menu {
         align-items: center;
@@ -912,6 +496,658 @@ const data = await sanityFetch<{
           }
         }
       }
+
+      .logo {
+        min-height: 2.75rem;
+        display: grid;
+        z-index: 3;
+        place-items: center;
+        svg {
+          width: 103px;
+          height: auto;
+        }
+      }
+
+      .navigation {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        .item-button,
+        .nav-link {
+          font-size: var(--typography-body-m, 0.875rem);
+          color: var(--primary-700, #600d2a);
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+          display: flex;
+          align-items: center;
+          min-height: 2.75rem;
+        }
+
+        .item {
+          .item-button {
+            gap: 0.25rem;
+            isolation: isolate;
+            overflow: hidden;
+            padding-left: 4px;
+            border-radius: 4px;
+            position: relative;
+
+            &::before {
+              content: '';
+              position: absolute;
+              top: 50%;
+              right: 0%;
+              border-radius: 50%;
+              transform: translateY(calc(-50% + 1px)) scale(0);
+              transition: transform 400ms var(--easing);
+              z-index: -1;
+              width: 17px;
+              height: 17px;
+            }
+
+            svg {
+              padding-left: 0.15px;
+              transition: transform 400ms var(--easing);
+              &:nth-of-type(2) {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -150%) scale(0.1);
+              }
+            }
+
+            .svg-box {
+              width: 17px;
+              height: 17px;
+              display: grid;
+              margin-top: 2px;
+              position: relative;
+              place-items: center;
+              overflow: hidden;
+            }
+
+            &:hover {
+              &::before {
+                transform: translateY(calc(-50% + 1px)) scale(1);
+              }
+              .svg-box {
+                svg {
+                  &:nth-of-type(1) {
+                    transform: translateY(150%);
+                  }
+
+                  &:nth-of-type(2) {
+                    transform: translate(-50%, -50%);
+                    transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+                  }
+                }
+              }
+            }
+
+            &:focus-visible {
+              border-radius: 4px;
+            }
+
+            @media (max-width: 659px) {
+              width: 100%;
+              justify-content: space-between;
+              padding-left: 0;
+            }
+          }
+
+          .item-expand {
+            padding: 2rem;
+            position: absolute;
+            left: 0;
+            width: 100%;
+            top: 100%;
+            background: var(--neutral-200, #f5f1ec);
+            transform: translateY(-0.5rem);
+            opacity: 0;
+            visibility: hidden;
+            filter: blur(10px);
+            transition:
+              transform 300ms var(--easing),
+              opacity 200ms,
+              visibility 200ms,
+              filter 200ms;
+            border-bottom: 2px solid;
+            border-image: linear-gradient(270deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+
+            > div {
+              display: flex;
+              max-width: calc(1366px - 2 * var(--pageMargin));
+              margin: 0 auto;
+              align-items: center;
+              justify-content: space-between;
+
+              .show-all {
+                max-width: 216px;
+                text-align: center;
+                background-color: var(--neutral-200);
+                position: relative;
+                isolation: isolate;
+                align-self: stretch;
+                border-radius: 4px;
+
+                &::before,
+                &::after {
+                  content: '';
+                  position: absolute;
+                  inset: -2px;
+                  border-radius: 4px;
+                  z-index: -2;
+                  background: conic-gradient(
+                    from 135deg at 50% 50%,
+                    #798ddc 0deg,
+                    #e7c78f 90deg,
+                    #fa7468 266.40000343322754deg,
+                    #798ddc 360deg
+                  );
+                }
+
+                &::after {
+                  inset: 0;
+                  background: var(--neutral-200, #f5f1ec);
+                  z-index: -1;
+                }
+
+                .wrapper {
+                  display: flex;
+                  gap: 1rem;
+                  padding: clamp(16px, calc(16vw / 7.68), 32px) clamp(20px, calc(20vw / 7.68), 32px);
+                  height: 100%;
+                  flex-direction: column;
+                  align-items: center;
+                  overflow: hidden;
+                  justify-content: center;
+
+                  .box {
+                    position: relative;
+                    isolation: isolate;
+                    .svg-box {
+                      min-width: 2.75rem;
+                      aspect-ratio: 1;
+                      border-radius: 50%;
+                      background: var(--neutral-400, #ffe4ca);
+                      place-items: center;
+                      position: relative;
+                      display: grid;
+                      z-index: 2;
+                      overflow: hidden;
+
+                      svg {
+                        width: 1.25rem;
+                        height: 1.25rem;
+
+                        &:nth-of-type(1) {
+                          transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
+                        }
+
+                        &:nth-of-type(2) {
+                          position: absolute;
+                          left: 50%;
+                          top: 50%;
+                          transform: translate(-200%, -50%) rotate(90deg) scale(0.5);
+                          transition: transform 300ms var(--easing);
+                        }
+                      }
+                    }
+                    .scale {
+                      position: absolute;
+                      inset: 0;
+                      border-radius: 50%;
+                      background: var(--primary-800, #45051c);
+                      transform: scale(0);
+                      transition: transform 400ms var(--easing);
+                      z-index: 1;
+                    }
+                  }
+
+                  .text {
+                    color: var(--primary-800, #45051c);
+                    font-weight: 700;
+                    transition:
+                      transform 300ms var(--easing),
+                      color 150ms;
+                    z-index: 5;
+                  }
+                }
+
+                &:hover {
+                  .wrapper {
+                    .box {
+                      .svg-box {
+                        svg {
+                          &:nth-of-type(1) {
+                            transform: translateX(150%);
+                            transition: transform 300ms var(--easing);
+                          }
+
+                          &:nth-of-type(2) {
+                            transform: translate(-50%, -50%);
+                            transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+                          }
+                        }
+                      }
+                    }
+
+                    .text {
+                      transform: translateY(-2px);
+                    }
+                  }
+                }
+
+                &:focus:not(:focus-visible) {
+                  .wrapper {
+                    .box {
+                      .scale {
+                        transform: scale(12);
+                      }
+                    }
+
+                    .text {
+                      color: var(--neutral-200, #f5f1ec);
+                    }
+                  }
+                }
+
+                &:focus-visible {
+                  outline-offset: 6px;
+                }
+              }
+
+              .list {
+                display: flex;
+
+                :global(.CategoryBlock) {
+                  max-width: 216px;
+                  :global(.title) {
+                    :global(.text) {
+                      font-size: var(--typography-body-l, 1rem);
+                    }
+                  }
+
+                  :global(.description) {
+                    font-size: var(--typography-body-m, 0.875rem);
+                  }
+                }
+
+                :global(.CaseStudyCard) {
+                  max-width: 216px;
+
+                  > :global(a) {
+                    height: 100%;
+                    :global(.img-container) {
+                      height: 122px;
+                    }
+
+                    :global(.text) {
+                      font-size: var(--typography-body-l, 1rem);
+                    }
+                  }
+                }
+              }
+
+              & > * {
+                &:last-child {
+                  display: none;
+                }
+              }
+
+              @media (max-width: 1269px) {
+                flex-direction: column;
+                align-items: center;
+
+                .show-all {
+                  max-width: 100%;
+                  width: 100%;
+                  align-self: center;
+                  margin-bottom: 2rem;
+
+                  .wrapper {
+                    flex-direction: row;
+                    justify-content: space-between;
+                    .box {
+                      order: 2;
+                      .scale {
+                        display: none;
+                      }
+                    }
+
+                    .text {
+                      order: 1;
+                    }
+                  }
+
+                  &:focus:not(:focus-visible) {
+                    .wrapper {
+                      .text {
+                        color: var(--primary-800, #45051c);
+                      }
+                    }
+                  }
+                }
+
+                .list {
+                  :global(.CategoryBlock) {
+                    max-width: 100%;
+                  }
+
+                  :global(.CaseStudyCard) {
+                    max-width: 100%;
+                    > :global(a) {
+                      > :global(.img-container) {
+                        aspect-ratio: 344/194.3;
+                        height: auto;
+                      }
+                    }
+                  }
+                }
+              }
+              @media (max-width: 899px) {
+                .list {
+                  :global(.CategoryBlock) {
+                    display: grid;
+                    grid-template-columns: clamp(6rem, calc(7vw / 0.48), 8rem) 1fr;
+                    grid-template-rows: auto 1fr;
+                    gap: 1rem;
+                    max-width: 100%;
+                    row-gap: 0;
+
+                    :global(.wrapper) {
+                      grid-column: 1/2;
+                      grid-row: 1/3;
+                      align-self: start;
+                    }
+
+                    :global(.title) {
+                      grid-column: 2/3;
+                      grid-row: 1/2;
+                      align-self: center;
+                    }
+
+                    :global(.description) {
+                      grid-column: 2/3;
+                      grid-row: 2/3;
+                    }
+                  }
+                }
+              }
+              @media (max-width: 659px) {
+                .list {
+                  :global(.CategoryBlock) {
+                    display: grid;
+                    grid-template-columns: clamp(5rem, calc(5vw / 0.48), 6rem) 1fr;
+                    grid-template-rows: auto;
+                    gap: 0.625rem;
+                    max-width: 100%;
+                    background-color: var(--neutral-100);
+                    border-radius: 999px 64px 64px 999px;
+                    position: relative;
+                    padding-right: 0.5rem;
+                    :global(.wrapper) {
+                      grid-column: 1/2;
+                      grid-row: 1/2;
+                      align-self: start;
+                      margin-bottom: 0;
+                    }
+
+                    :global(.title) {
+                      grid-column: 2/3;
+                      grid-row: 1/2;
+                      align-self: center;
+
+                      :global(.text) {
+                        font-size: var(--typography-body-m, 0.875rem);
+                        margin-right: 0;
+                        display: block;
+                      }
+
+                      :global(.count) {
+                        position: absolute;
+                        left: 3.375rem;
+                        bottom: 0.25rem;
+                        transform: scale(0.8);
+                      }
+                    }
+
+                    :global(.description) {
+                      display: none;
+                    }
+                  }
+
+                  :global(.CaseStudyCard) {
+                    > :global(a) {
+                      display: grid;
+                      grid-template-columns: 1fr auto;
+                      gap: 0.375rem;
+                      padding: 0;
+                      background-color: transparent;
+                      :global(.img-container) {
+                        grid-column: 2/3;
+                        grid-row: 1/2;
+                        max-width: 5.5rem;
+                        width: 100%;
+                        aspect-ratio: 58/32;
+                      }
+
+                      :global(.text) {
+                        font-size: var(--typography-body-s, 0.75rem);
+                        grid-column: 1/2;
+                        grid-row: 1/2;
+                        width: 100%;
+                        display: block;
+                        padding: 0;
+                        overflow: hidden;
+                        align-self: center;
+                        :global(span) {
+                          display: -webkit-box;
+                          -webkit-box-orient: vertical;
+                          -webkit-line-clamp: 2;
+                          text-overflow: ellipsis;
+                          text-align: start;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            @media (max-width: 659px) {
+              position: static;
+              max-height: 0;
+              padding: 0;
+              border-bottom: none;
+              overflow: hidden;
+              transition:
+                transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.2),
+                opacity 150ms,
+                visibility 150ms,
+                filter 150ms;
+
+              > div {
+                .show-all {
+                  display: none;
+                }
+
+                & > * {
+                  &:last-child {
+                    display: flex;
+                    margin-top: 1rem;
+                  }
+                }
+              }
+            }
+          }
+          &[data-tab][data-active='true'] {
+            .item-button {
+              &::before {
+                transform: translateY(calc(-50% + 1px)) scale(16);
+                transition: transform 450ms var(--easing);
+              }
+
+              .svg-box {
+                svg {
+                  &:nth-of-type(1) {
+                    transform: rotate(180deg);
+                  }
+
+                  &:nth-of-type(2) {
+                    transform: translate(-50%, -150%) scale(0.1) rotate(180deg);
+                  }
+                }
+              }
+
+              &:hover {
+                .svg-box {
+                  svg {
+                    &:nth-of-type(1) {
+                      transform: translateY(150%) rotate(180deg);
+                    }
+
+                    &:nth-of-type(2) {
+                      transform: translate(-50%, -50%) rotate(180deg);
+                    }
+                  }
+                }
+              }
+
+              @media (max-width: 659px) {
+                &::before {
+                  transform: translateY(calc(-50% + 1px)) scale(36);
+                  transition: transform 450ms var(--easing);
+                }
+              }
+            }
+
+            .item-expand {
+              transform: translateY(0);
+              opacity: 1;
+              visibility: visible;
+              filter: blur(0px);
+
+              @media (max-width: 659px) {
+                display: block;
+                opacity: 1;
+                visibility: visible;
+                max-height: 100%;
+                padding: 0.5rem 0.25rem 0;
+                margin: 0 -0.25rem;
+              }
+            }
+          }
+
+          &[data-tab='activities'] {
+            .item-button::before {
+              background-color: #d0e0ff;
+            }
+
+            .item-expand > div > .list {
+              align-items: flex-start;
+              gap: 1rem;
+            }
+
+            @media (max-width: 899px) {
+              .item-expand > div > .list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+              }
+            }
+
+            @media (max-width: 659px) {
+              .item-expand > div > .list {
+                grid-template-columns: 1fr;
+                gap: 0.375rem;
+              }
+            }
+          }
+
+          &[data-tab='case-study'] {
+            .item-button {
+              &::before {
+                background-color: #ffbcba;
+              }
+            }
+
+            &[data-active='true'] {
+              .item-button {
+                &::before {
+                  transition-duration: 600ms;
+                }
+              }
+            }
+
+            .item-expand > div > .list {
+              align-items: stretch;
+              gap: 0.5rem;
+            }
+
+            @media (max-width: 1269px) {
+              .item-expand > div > .list {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+              }
+            }
+
+            @media (max-width: 899px) {
+              .item-expand > div > .list {
+                grid-template-columns: repeat(2, 1fr);
+              }
+            }
+
+            @media (max-width: 659px) {
+              .item-expand > div > .list {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+                margin-top: 0;
+              }
+            }
+          }
+        }
+
+        :global(.cart) {
+          display: none;
+        }
+      }
+
+      .nav-link {
+        position: relative;
+        isolation: isolate;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 110%;
+          transform: translate(-50%, -50%) scaleX(0) scaleY(0.05);
+          transform-origin: bottom;
+          height: 100%;
+          background-color: #ffecbc;
+          transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          border-radius: 4px;
+          z-index: -1;
+        }
+
+        &:hover {
+          &::before {
+            transform: translate(-50%, -50%) scaleX(1) scaleY(0.05);
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          &::before {
+            transform: translate(-50%, -50%) scaleX(1) scaleY(1);
+          }
+        }
+
+        &:focus-visible {
+          border-radius: 4px;
+        }
+      }
     }
 
     .overlay {
@@ -930,141 +1166,13 @@ const data = await sanityFetch<{
         opacity 200ms,
         visibility 200ms;
 
-      &.active {
+      &[aria-hidden='false'] {
         opacity: 1;
         visibility: visible;
       }
 
-      &-desktop {
-        top: calc(100%);
-      }
-    }
-
-    @media (max-width: 1269px) {
-      .container {
-        .navigation {
-          .expand > div {
-            flex-direction: column;
-            align-items: center;
-
-            .show-all {
-              max-width: 100%;
-              width: 100%;
-              align-self: center;
-              margin-bottom: 2rem;
-
-              .wrapper {
-                flex-direction: row;
-                justify-content: space-between;
-                .box {
-                  order: 2;
-                  .scale {
-                    display: none;
-                  }
-                }
-
-                .text {
-                  order: 1;
-                }
-              }
-
-              &:focus:not(:focus-visible) {
-                .wrapper {
-                  .text {
-                    color: var(--primary-800, #45051c);
-                  }
-                }
-              }
-            }
-          }
-
-          .activities {
-            .expand {
-              div {
-                .list {
-                  :global(.CategoryBlock) {
-                    max-width: 100%;
-                  }
-                }
-              }
-            }
-          }
-
-          .case-study {
-            .expand {
-              div {
-                .list {
-                  display: grid;
-                  grid-template-columns: repeat(4, 1fr);
-
-                  :global(.CaseStudyCard) {
-                    max-width: 100%;
-                    > :global(a) {
-                      > :global(.img-container) {
-                        aspect-ratio: 344/194.3;
-                        height: auto;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    @media (max-width: 899px) {
-      .container {
-        .navigation {
-          .activities {
-            .expand {
-              div {
-                .list {
-                  display: grid;
-                  grid-template-columns: repeat(2, 1fr);
-                  gap: 1rem;
-
-                  :global(.CategoryBlock) {
-                    display: grid;
-                    grid-template-columns: clamp(6rem, calc(7vw / 0.48), 8rem) 1fr;
-                    grid-template-rows: auto 1fr;
-                    gap: 1rem;
-                    max-width: 100%;
-                    row-gap: 0;
-
-                    :global(.wrapper) {
-                      grid-column: 1/2;
-                      grid-row: 1/3;
-                      align-self: start;
-                    }
-
-                    :global(.title) {
-                      grid-column: 2/3;
-                      grid-row: 1/2;
-                    }
-
-                    :global(.description) {
-                      grid-column: 2/3;
-                      grid-row: 2/3;
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          .case-study {
-            .expand {
-              div {
-                .list {
-                  display: grid;
-                  grid-template-columns: repeat(2, 1fr);
-                }
-              }
-            }
-          }
-        }
+      &[data-variant='desktop'] {
+        top: 10%;
       }
     }
 
@@ -1108,186 +1216,6 @@ const data = await sanityFetch<{
             transform 250ms var(--easing);
           scrollbar-width: none;
           -webkit-overflow-scrolling: touch;
-
-          .nav-button {
-            width: 100%;
-            justify-content: space-between;
-            padding-left: 0;
-
-            &[aria-expanded='true'] {
-              &::before {
-                transform: translateY(calc(-50% + 1px)) scale(36);
-                transition: transform 450ms var(--easing);
-              }
-            }
-          }
-
-          .expand {
-            position: static;
-            max-height: 0;
-            padding: 0;
-            border-bottom: none;
-            overflow: hidden;
-            transition:
-              transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.2),
-              opacity 150ms,
-              visibility 150ms,
-              filter 150ms;
-            > div {
-              .show-all {
-                display: none;
-              }
-
-              & > * {
-                &:last-child {
-                  display: flex;
-                  margin-top: 1rem;
-                }
-              }
-            }
-          }
-
-          .activities {
-            .expand {
-              position: static;
-              max-height: 0;
-              padding: 0;
-              border-bottom: none;
-              overflow: hidden;
-              transition:
-                transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2),
-                opacity 100ms,
-                visibility 100ms,
-                filter 100ms;
-
-              > div {
-                .list {
-                  grid-template-columns: 1fr;
-                  gap: 0.375rem;
-                  :global(.CategoryBlock) {
-                    display: grid;
-                    grid-template-columns: clamp(5rem, calc(5vw / 0.48), 6rem) 1fr;
-                    grid-template-rows: auto;
-                    gap: 0.625rem;
-                    max-width: 100%;
-                    background-color: var(--neutral-100);
-                    border-radius: 999px 64px 64px 999px;
-                    position: relative;
-                    padding-right: 0.5rem;
-                    :global(.wrapper) {
-                      grid-column: 1/2;
-                      grid-row: 1/2;
-                      align-self: start;
-                      margin-bottom: 0;
-                    }
-
-                    :global(.title) {
-                      grid-column: 2/3;
-                      grid-row: 1/2;
-                      align-self: center;
-
-                      :global(.text) {
-                        font-size: var(--typography-body-m, 0.875rem);
-                        margin-right: 0;
-                        display: block;
-                      }
-
-                      :global(.count) {
-                        position: absolute;
-                        left: 3.375rem;
-                        bottom: 0.25rem;
-                        transform: scale(0.8);
-                      }
-                    }
-
-                    :global(.description) {
-                      display: none;
-                    }
-                  }
-                }
-              }
-            }
-
-            &[data-expanded='true'] {
-              .expand {
-                display: block;
-                opacity: 1;
-                visibility: visible;
-                max-height: 100%;
-                padding: 0.5rem 0.25rem 0;
-                margin: 0 -0.25rem;
-              }
-            }
-          }
-
-          .case-study {
-            .expand {
-              position: static;
-              max-height: 0;
-              padding: 0;
-              border-bottom: none;
-              overflow: hidden;
-              transition:
-                transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2),
-                opacity 100ms,
-                visibility 100ms,
-                filter 100ms;
-
-              > div {
-                .list {
-                  grid-template-columns: 1fr;
-                  gap: 0.5rem;
-                  margin-top: 0;
-
-                  :global(.CaseStudyCard) {
-                    > :global(a) {
-                      display: grid;
-                      grid-template-columns: 1fr auto;
-                      gap: 0.375rem;
-                      padding: 0;
-                      background-color: transparent;
-                      :global(.img-container) {
-                        grid-column: 2/3;
-                        grid-row: 1/2;
-                        max-width: 5.5rem;
-                        width: 100%;
-                        aspect-ratio: 58/32;
-                      }
-
-                      :global(.text) {
-                        font-size: var(--typography-body-s, 0.75rem);
-                        grid-column: 1/2;
-                        grid-row: 1/2;
-                        width: 100%;
-                        display: block;
-                        padding: 0;
-                        overflow: hidden;
-                        align-self: center;
-                        :global(span) {
-                          display: -webkit-box;
-                          -webkit-box-orient: vertical;
-                          -webkit-line-clamp: 2;
-                          text-overflow: ellipsis;
-                          text-align: start;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-
-            &[data-expanded='true'] {
-              .expand {
-                display: block;
-                opacity: 1;
-                visibility: visible;
-                max-height: 100%;
-                padding: 0.5rem 0.25rem 0;
-                margin: 0 -0.25rem;
-              }
-            }
-          }
 
           .nav-link {
             &::before {
@@ -1357,78 +1285,64 @@ const data = await sanityFetch<{
 </style>
 
 <script>
-  const activitiesButton = document.querySelector('.activities .nav-button')! as HTMLElement
-  const activitiesContainer = document.querySelector('.activities')! as HTMLElement
-  const caseStudyButton = document.querySelector('.case-study .nav-button')! as HTMLElement
-  const caseStudyContainer = document.querySelector('.case-study')! as HTMLElement
-  const overlayDesktop = document.querySelector('.overlay-desktop')! as HTMLElement
-  const overlayMobile = document.querySelector('.overlay-mobile')! as HTMLElement
-  const header = document.querySelector('.header')! as HTMLElement
-  const openMobileMenu = document.querySelector('.open-menu')! as HTMLElement
+  const header = document.querySelector('.header[data-element="LayoutHeader"]')!
+  const menuButton = header.querySelector('.open-menu')!
+  const expandItems = header.querySelectorAll('.navigation .item[data-tab]')
+  const mobileOverlay = header.querySelector('.overlay[data-variant="mobile"]')!
+  const desktopOverlay = header.querySelector('.overlay[data-variant="desktop"]')!
 
-  const setMobile = () => {
-    return window.innerWidth < 660
+  function closeExpandItems(forceClose: boolean = true) {
+    expandItems.forEach((item) => {
+      item.setAttribute('data-active', 'false')
+    })
+    if (header.getAttribute('data-mobile-open') === 'true' && !forceClose) return
+    header.setAttribute('data-mobile-open', 'false')
+    mobileOverlay.setAttribute('aria-hidden', 'true')
+    desktopOverlay.setAttribute('aria-hidden', 'true')
+    header.setAttribute('data-active', 'false')
   }
 
-  let isMobile = setMobile()
+  menuButton.addEventListener('click', () => {
+    const isCurrentlyOpened = header.getAttribute('data-mobile-open') === 'true'
+    if (isCurrentlyOpened) {
+      closeExpandItems()
+      console.log('hej')
+    } else {
+      header.setAttribute('data-mobile-open', 'true')
+      mobileOverlay.setAttribute('aria-hidden', 'false')
+    }
+  })
+
+  expandItems.forEach((item) => {
+    const button = item.querySelector('button.item-button')!
+    button.addEventListener('click', () => {
+      const isCurrentlyActive = item.getAttribute('data-active') === 'true'
+      expandItems.forEach((otherItem) => {
+        otherItem.setAttribute('data-active', 'false')
+      })
+      if (!isCurrentlyActive) {
+        item.setAttribute('data-active', 'true')
+        desktopOverlay.setAttribute('aria-hidden', 'false')
+        header.setAttribute('data-active', 'true')
+      } else {
+        closeExpandItems(false)
+        header.setAttribute('data-active', 'false')
+      }
+    })
+  })
+  ;[mobileOverlay, desktopOverlay].forEach((overlay) => {
+    overlay.addEventListener('click', () => {
+      closeExpandItems()
+    })
+  })
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeExpandItems()
+  })
 
   window.addEventListener('resize', () => {
-    isMobile = setMobile()
-    console.log(isMobile)
-  })
-
-  activitiesButton.addEventListener('click', () => {
-    const isExpanded = activitiesContainer.getAttribute('data-expanded') === 'true'
-
-    caseStudyContainer.setAttribute('data-expanded', 'false')
-    caseStudyButton?.setAttribute('aria-expanded', 'false')
-
-    if (!isMobile) {
-      overlayDesktop.classList.toggle('active', !isExpanded)
-    }
-
-    activitiesContainer.setAttribute('data-expanded', !isExpanded ? 'true' : 'false')
-
-    activitiesButton.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false')
-    header.setAttribute('data-active', !isExpanded && !isMobile ? 'true' : 'false')
-  })
-
-  overlayDesktop.addEventListener('click', () => {
-    activitiesContainer.setAttribute('data-expanded', 'false')
-    overlayDesktop.classList.remove('active')
-    activitiesButton.setAttribute('aria-expanded', 'false')
-    caseStudyContainer.setAttribute('data-expanded', 'false')
-    caseStudyButton?.setAttribute('aria-expanded', 'false')
-    header.setAttribute('data-active', 'false')
-  })
-
-  overlayMobile.addEventListener('click', () => {
-    activitiesContainer.setAttribute('data-expanded', 'false')
-    overlayMobile.classList.remove('active')
-    activitiesButton.setAttribute('aria-expanded', 'false')
-    caseStudyContainer.setAttribute('data-expanded', 'false')
-    caseStudyButton?.setAttribute('aria-expanded', 'false')
-    header.setAttribute('data-active', 'false')
-  })
-
-  caseStudyButton.addEventListener('click', () => {
-    const isExpanded = caseStudyContainer.getAttribute('data-expanded') === 'true'
-
-    activitiesContainer.setAttribute('data-expanded', 'false')
-    activitiesButton?.setAttribute('aria-expanded', 'false')
-
-    if (!isMobile) {
-      overlayDesktop.classList.toggle('active', !isExpanded)
-    }
-
-    caseStudyContainer.setAttribute('data-expanded', !isExpanded ? 'true' : 'false')
-    caseStudyButton.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false')
-    header.setAttribute('data-active', !isExpanded && !isMobile ? 'true' : 'false')
-  })
-
-  openMobileMenu.addEventListener('click', () => {
-    const isOpen = header.getAttribute('data-mobile-open') === 'true'
-    header.setAttribute('data-mobile-open', !isOpen ? 'true' : 'false')
-    overlayMobile.classList.toggle('active', !isOpen)
+    const isItemOpened = Array.from(expandItems).some((item) => item.getAttribute('data-active') === 'true')
+    const isMobileOpen = header.getAttribute('data-mobile-open') === 'true'
+    const isDesktopView = window.innerWidth > 659
+    if ((isDesktopView && isMobileOpen) || (!isDesktopView && isItemOpened && !isMobileOpen)) closeExpandItems()
   })
 </script>
