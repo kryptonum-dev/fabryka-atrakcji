@@ -246,7 +246,7 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
       textIconList.map((item, listIndex) => (
         <li class="item">
           <Fragment set:html={listIcons[listIndex]} />
-          <PortableText class="list-heading" value={item.heading} heading={index === 0 ? 'h3' : 'h4'} />
+          <PortableText class="list-heading" value={item.heading} heading={index === 0 ? 'h2' : 'h3'} />
           <PortableText class="paragraph" value={item.paragraph} />
         </li>
       ))
