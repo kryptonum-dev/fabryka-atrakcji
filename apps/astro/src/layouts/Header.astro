@@ -249,7 +249,7 @@ const data = await sanityFetch<{
                     title={name}
                     count={referenceCount}
                     description={description.short}
-                    imageSizes=""
+                    imageSizes="(max-width: 41.1875rem) 76px, (max-width: 56.1875rem) 124px, (max-width: 79.3215rem) 23vw, 212px"
                     slug={slug}
                   />
                 ))
@@ -318,7 +318,7 @@ const data = await sanityFetch<{
                       src: secondaryImage,
                       loading: 'lazy',
                     }}
-                    imageSizes=""
+                    imageSizes="(max-width: 41.1875rem) 88px, (max-width: 56.1875rem) 45vw, (max-width: 79.3215rem) 23vw, 204px"
                     slug={slug}
                   />
                 ))
@@ -878,6 +878,7 @@ const data = await sanityFetch<{
               }
               @media (max-width: 41.1875rem) {
                 .list {
+                  width: 100%;
                   :global(.CategoryBlock) {
                     display: grid;
                     grid-template-columns: clamp(5rem, calc(5vw / 0.48), 6rem) 1fr;
@@ -1018,8 +1019,13 @@ const data = await sanityFetch<{
 
               @media (max-width: 41.1875rem) {
                 &::before {
-                  transform: translateY(calc(-50% + 0.0625rem)) scale(36);
-                  transition: transform 450ms var(--easing);
+                  transform: translateY(calc(-50% + 0.0625rem)) scale(43);
+                }
+              }
+
+              @media (max-width: 29.3125rem) {
+                &::before {
+                  transition: transform 600ms var(--easing);
                 }
               }
             }
