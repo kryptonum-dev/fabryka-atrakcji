@@ -24,9 +24,10 @@ export type HeadProps = ({ path: string; url?: never } | { url: string; path?: n
   description: string
   openGraphImage?: string
   alternates?: Array<{ lang: Language; url: string }>
+  doNotIndex?: boolean
 }
 
-const { path, url: _url, title, description, openGraphImage, alternates } = Astro.props as HeadProps
+const { path, url: _url, title, description, openGraphImage, alternates, doNotIndex } = Astro.props as HeadProps
 
 const getOgImage = async () => {
   const asset = await getImage({
@@ -51,6 +52,7 @@ const url = _url || `${DOMAIN}${path}`
 <meta name="description" content={description} />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="generator" content={Astro.generator} />
+{doNotIndex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow" />}
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href={icons.favicon.src} type="image/svg+xml" />
 <link rel="apple-touch-icon" href={icons.appleTouchIcon.src} />

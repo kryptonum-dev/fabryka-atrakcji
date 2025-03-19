@@ -11,6 +11,7 @@ type LanguageValues = {
 
 type DefineSlugConfig = {
   source?: string
+  group?: string
 } & (
   | { prefixes: LanguageValues; slugs?: never; slugify?: never; validate?: never }
   | { slugs: LanguageValues; prefixes?: never; slugify?: never; validate?: never }
@@ -28,6 +29,7 @@ export const defineSlugForDocument = ({
   slugs,
   slugify: customSlugify,
   validate: customValidate,
+  group,
 }: DefineSlugConfig) => [
   ...(source
     ? []
@@ -36,6 +38,7 @@ export const defineSlugForDocument = ({
           name: 'name',
           type: 'string',
           title: 'Nazwa',
+          ...(group ? { group } : {}),
           description: 'Nazwa dokumentu, używana do wyświetlania w ścieżce nawigacyjnej.',
           validation: (Rule) => Rule.required(),
         }),
@@ -44,6 +47,7 @@ export const defineSlugForDocument = ({
     name: 'slug',
     type: 'slug',
     title: 'Slug',
+    ...(group ? { group } : {}),
     components: {
       field: (props) => <PathnameFieldComponent {...props} prefixes={prefixes} />,
     },

@@ -210,6 +210,10 @@ export default defineField({
             defineField({
               name: 'visibleImage',
               type: 'image',
+              options: {
+                hotspot: true,
+              },
+
               title: 'Widoczne zdjęcie',
               description: 'Zdjęcie widoczne na karcie',
               validation: (Rule) => Rule.required(),
@@ -217,6 +221,9 @@ export default defineField({
             defineField({
               name: 'hoverImage',
               type: 'image',
+              options: {
+                hotspot: true,
+              },
               title: 'Ukryte zdjęcie',
               description: 'Zdjęcie ukryte na karcie, widoczne po najechaniu kursorem',
               validation: (Rule) => Rule.required(),

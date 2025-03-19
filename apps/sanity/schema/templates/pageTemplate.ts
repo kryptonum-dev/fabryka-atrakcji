@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { getLanguagePreview } from '../../structure/languages'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
+import { SearchIcon, ComposeIcon } from '@sanity/icons'
 
 type PageTemplateProps = {
   name: string
@@ -40,11 +41,13 @@ export const createPageSchema = ({
         : []),
       ...defineSlugForDocument({
         slugs,
+        group: 'content',
       }),
       defineField({
         name: 'components',
         type: 'components',
         title: 'Komponenty podstrony',
+        group: 'content',
       }),
       defineField({
         name: 'seo',
@@ -55,8 +58,14 @@ export const createPageSchema = ({
     ],
     groups: [
       {
+        name: 'content',
+        title: 'Treść',
+        icon: ComposeIcon,
+      },
+      {
         name: 'seo',
         title: 'SEO',
+        icon: SearchIcon,
       },
     ],
     preview: {

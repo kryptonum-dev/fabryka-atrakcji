@@ -38,5 +38,12 @@ export default defineType({
         </>
       ),
     }),
+    defineField({
+      name: 'doNotIndex',
+      type: 'boolean',
+      title: 'Nie indeksuj strony',
+      description: 'Zaznacz to pole, jeśli strona nie powinna być indeksowana przez wyszukiwarki.',
+      initialValue: false,
+    }),
   ],
 })

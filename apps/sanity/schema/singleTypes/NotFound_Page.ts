@@ -1,7 +1,8 @@
+import { ComposeIcon, SearchIcon } from '@sanity/icons'
 import { AlertTriangle } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
-import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { getLanguagePreview } from '../../structure/languages'
+import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 
 const name = 'NotFound_Page'
 const title = 'Nie znaleziono strony (404)'
@@ -29,6 +30,7 @@ export default defineType({
       type: 'object',
       title: 'Sekcja główna',
       description: 'Sekcja główna jest widoczna przed reużywalnymi kompontentami z listy "Komponenty podstrony".',
+      group: 'content',
       fields: [
         defineField({
           name: 'heading',
@@ -69,6 +71,7 @@ export default defineType({
       name: 'components',
       type: 'components',
       title: 'Komponenty podstrony',
+      group: 'content',
     }),
     defineField({
       name: 'seo',
@@ -79,8 +82,14 @@ export default defineType({
   ],
   groups: [
     {
+      name: 'content',
+      title: 'Treść',
+      icon: ComposeIcon,
+    },
+    {
       name: 'seo',
       title: 'SEO',
+      icon: SearchIcon,
     },
   ],
   preview: {

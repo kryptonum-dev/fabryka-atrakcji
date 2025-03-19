@@ -6,6 +6,7 @@ type MetadataProps = ({ path: string; url?: never } | { url: string; path?: neve
   description: string
   openGraphImage?: string
   alternates?: Array<{ lang: Language; url: string }>
+  doNotIndex?: boolean
 }
 
 export default async function metadataFetch(slug: string) {
@@ -17,6 +18,7 @@ export default async function metadataFetch(slug: string) {
         "title": seo.title,
         "description": seo.description,
         "openGraphImage": seo.img.asset -> url + "?w=1200",
+        "doNotIndex": seo.doNotIndex,
         "alternates": coalesce(
           *[_type == 'translation.metadata' && references(^._id)][0] {
             "urls": translations[] {
