@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: General for cursor
 globs: 
 alwaysApply: true
@@ -78,6 +83,7 @@ Performance Optimization
 Refractoring
 
 - Avoid huge refactors. Break this down into smaller steps.
+- Don't rewrite any svg files unless asked to do so.
 
 Data Fetching
 
@@ -86,17 +92,6 @@ Data Fetching
 - Use Astro.glob() for working with local files efficiently.
 - Implement proper error handling for data fetching operations.
 
-SEO and Meta Tags
-
-- Use Astro's <head> tag for adding meta information.
-- Implement canonical URLs for proper SEO.
-- Use the <SEO> component pattern for reusable SEO setups.
-
-Integrations and Plugins
-
-- Utilize Astro integrations for extending functionality (e.g., @astrojs/image).
-- Implement proper configuration for integrations in astro.config.mjs.
-- Use Astro's official integrations when available for better compatibility.
 
 SCSS and Best Practices
 
@@ -127,20 +122,5 @@ Performance Metrics
 - Prioritize Core Web Vitals (LCP, FID, CLS) in development.
 - Use PageSpeed Insights to check the performance of the website
 - Implement performance budgets and monitoring.
-
-Git Usage
-
-- Use the following prefixes for commit messages followed by a colon and a space:
-  - "fix" for bug fixes
-  - "feat" for new features
-  - "perf" for performance improvements
-  - "docs" for documentation changes
-  - "style" for formatting changes
-  - "refactor" for code refactoring
-  - "test" for adding missing tests
-  - "chore" for chore tasks
-- When determining the commit message prefix, pick the most relevant prefix from the list above
-- Use lower case for commit messages
-- The commit message should also include a list of the changes made in the commit after the summary line if the changes are not self explanatory
 
 

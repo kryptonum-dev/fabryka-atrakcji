@@ -341,22 +341,23 @@ const data = await sanityFetch<{
     position: fixed;
     top: 2.5rem;
     left: 2.5rem;
-    border-radius: 16px;
-    padding: 0.75rem 1.5rem;
-    font-size: var(--typography-body-m, 0.875rem);
     z-index: 110;
+    padding: 0.75rem 1.5rem;
+    border-radius: 16px;
+    background: none;
+    color: var(--primary-800);
+    font-size: var(--typography-body-m, 0.875rem);
     opacity: 0;
     pointer-events: none;
     isolation: isolate;
-    color: var(--primary-800);
 
     &::before,
     &::after {
       content: '';
       position: absolute;
-      inset: -2px;
-      border-radius: 16px;
+      inset: -0.125rem;
       z-index: -2;
+      border-radius: 16px;
       background: conic-gradient(
         from 135deg at 50% 50%,
         #798ddc 0deg,
@@ -367,31 +368,31 @@ const data = await sanityFetch<{
     }
 
     &::after {
-      background: var(--neutral-100);
-      inset: 0px;
+      inset: 0;
       z-index: -1;
+      background: var(--neutral-100);
     }
 
     &:focus-visible {
       opacity: 1;
       pointer-events: auto;
-      outline: 2px solid var(--neutral-600);
+      outline: 0.125rem solid var(--neutral-600);
     }
   }
   .header {
     position: sticky;
-    background-color: var(--neutral-100);
     top: 0;
-    isolation: isolate;
     z-index: 100;
     padding: clamp(0.25rem, calc(0.5vw / 0.48), 0.75rem) clamp(1rem, calc(2vw / 0.48), 2rem)
       clamp(0.25rem, calc(0.5vw / 0.48), 0.75rem) clamp(0.375rem, calc(2vw / 0.48), 2rem);
-    border-bottom: 2px solid;
+    border-bottom: 0.125rem solid;
     border-image: linear-gradient(270deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+    background-color: var(--neutral-100);
+    isolation: isolate;
     transition: background-color 100ms;
 
     &[data-active='true'] {
-      @media (min-width: 660px) {
+      @media (min-width: 41.25rem) {
         background-color: var(--neutral-200);
       }
     }
@@ -400,42 +401,41 @@ const data = await sanityFetch<{
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: calc(1366px - 2 * var(--pageMargin));
+      max-width: calc(85.375rem - 2 * var(--pageMargin));
       margin: 0 auto;
-      z-index: 200;
 
       .open-menu {
-        align-items: center;
-        gap: 0.375rem;
-        min-height: 2.75rem;
-        display: none;
         position: relative;
         z-index: 3;
+        display: none;
+        align-items: center;
+        min-height: 2.75rem;
+        gap: 0.375rem;
 
         &::before {
           content: '';
           position: absolute;
-          inset: -2px -4px -2px -5px;
-          background-color: var(--neutral-100);
+          inset: -0.125rem -0.25rem -0.125rem -0.3125rem;
           z-index: -1;
           border-radius: 999px;
+          background-color: var(--neutral-100);
         }
 
         .box {
-          border-radius: 50%;
-          background: var(--neutral-200, #f5f1ec);
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          width: 2.5rem;
-          height: 2.5rem;
-          gap: 3px;
           position: relative;
           display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 2.5rem;
+          height: 2.5rem;
+          gap: 0.1875rem;
+          border-radius: 50%;
+          background: var(--neutral-200, #f5f1ec);
           span {
             display: block;
-            width: 14px;
-            height: 1px;
+            width: 0.875rem;
+            height: 0.0625rem;
             background: var(--primary-500, #f67258);
             transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
           }
@@ -444,29 +444,29 @@ const data = await sanityFetch<{
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-180deg) scale(0);
             width: 1.25rem;
             height: 1.25rem;
+            transform: translate(-50%, -50%) rotate(-180deg) scale(0);
             transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
           }
         }
         .text {
+          position: relative;
+          overflow: hidden;
+          padding-right: 0.25rem;
           color: var(--primary-700, #600d2a);
-          font-size: var(--typography-body-s, 12px);
+          font-size: var(--typography-body-s, 0.75rem);
           line-height: 1.6;
           letter-spacing: -0.01em;
           transition: transform 300ms var(--easing);
-          position: relative;
-          overflow: hidden;
-          padding-right: 4px;
           span {
             display: block;
             transition: transform 300ms var(--easing);
             &:nth-of-type(1) {
               position: absolute;
               top: 50%;
-              width: max-content;
               left: 0%;
+              width: max-content;
               transform: translateY(-50%);
             }
             &:nth-of-type(2) {
@@ -477,12 +477,12 @@ const data = await sanityFetch<{
 
         &:hover {
           .text {
-            transform: translateX(-1px);
+            transform: translateX(-0.0625rem);
           }
           .box {
             span {
               &:nth-of-type(1) {
-                transform: translateY(-2px) scale(1.2);
+                transform: translateY(-0.125rem) scale(1.2);
               }
 
               &:nth-of-type(2) {
@@ -490,7 +490,7 @@ const data = await sanityFetch<{
               }
 
               &:nth-of-type(3) {
-                transform: translateY(2px) scale(1.2);
+                transform: translateY(0.125rem) scale(1.2);
               }
             }
           }
@@ -498,12 +498,13 @@ const data = await sanityFetch<{
       }
 
       .logo {
-        min-height: 2.75rem;
-        display: grid;
+        position: relative;
         z-index: 3;
+        display: grid;
         place-items: center;
+        min-height: 2.75rem;
         svg {
-          width: 103px;
+          width: 6.4375rem;
           height: auto;
         }
       }
@@ -514,61 +515,61 @@ const data = await sanityFetch<{
         gap: 1.5rem;
         .item-button,
         .nav-link {
-          font-size: var(--typography-body-m, 0.875rem);
-          color: var(--primary-700, #600d2a);
-          line-height: 1.7;
-          letter-spacing: -0.01em;
           display: flex;
           align-items: center;
           min-height: 2.75rem;
+          color: var(--primary-700, #600d2a);
+          font-size: var(--typography-body-m, 0.875rem);
+          line-height: 1.7;
+          letter-spacing: -0.01em;
         }
 
         .item {
           .item-button {
-            gap: 0.25rem;
-            isolation: isolate;
-            overflow: hidden;
-            padding-left: 4px;
-            border-radius: 4px;
             position: relative;
+            overflow: hidden;
+            padding-left: 0.25rem;
+            gap: 0.25rem;
+            border-radius: 0.25rem;
+            isolation: isolate;
 
             &::before {
               content: '';
               position: absolute;
               top: 50%;
               right: 0%;
-              border-radius: 50%;
-              transform: translateY(calc(-50% + 1px)) scale(0);
-              transition: transform 400ms var(--easing);
               z-index: -1;
-              width: 17px;
-              height: 17px;
+              width: 1.0625rem;
+              height: 1.0625rem;
+              border-radius: 50%;
+              transform: translateY(calc(-50% + 0.0625rem)) scale(0);
+              transition: transform 400ms var(--easing);
             }
 
             svg {
-              padding-left: 0.15px;
+              padding-left: 0.0094rem;
               transition: transform 400ms var(--easing);
               &:nth-of-type(2) {
                 position: absolute;
-                left: 50%;
                 top: 50%;
+                left: 50%;
                 transform: translate(-50%, -150%) scale(0.1);
               }
             }
 
             .svg-box {
-              width: 17px;
-              height: 17px;
-              display: grid;
-              margin-top: 2px;
               position: relative;
+              display: grid;
               place-items: center;
+              width: 1.0625rem;
+              height: 1.0625rem;
+              margin-top: 0.125rem;
               overflow: hidden;
             }
 
             &:hover {
               &::before {
-                transform: translateY(calc(-50% + 1px)) scale(1);
+                transform: translateY(calc(-50% + 0.0625rem)) scale(1);
               }
               .svg-box {
                 svg {
@@ -585,10 +586,10 @@ const data = await sanityFetch<{
             }
 
             &:focus-visible {
-              border-radius: 4px;
+              border-radius: 0.25rem;
             }
 
-            @media (max-width: 659px) {
+            @media (max-width: 41.1875rem) {
               width: 100%;
               justify-content: space-between;
               padding-left: 0;
@@ -596,47 +597,48 @@ const data = await sanityFetch<{
           }
 
           .item-expand {
-            padding: 2rem;
             position: absolute;
-            left: 0;
-            width: 100%;
             top: 100%;
+            left: 0;
+            z-index: auto;
+            width: 100%;
+            padding: 2rem;
+            border-bottom: 0.125rem solid;
+            border-image: linear-gradient(270deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
             background: var(--neutral-200, #f5f1ec);
             transform: translateY(-0.5rem);
+            filter: blur(10px);
             opacity: 0;
             visibility: hidden;
-            filter: blur(10px);
             transition:
               transform 300ms var(--easing),
               opacity 200ms,
               visibility 200ms,
               filter 200ms;
-            border-bottom: 2px solid;
-            border-image: linear-gradient(270deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
 
             > div {
               display: flex;
-              max-width: calc(1366px - 2 * var(--pageMargin));
-              margin: 0 auto;
               align-items: center;
               justify-content: space-between;
+              max-width: calc(85.375rem - 2 * var(--pageMargin));
+              margin: 0 auto;
 
               .show-all {
-                max-width: 216px;
-                text-align: center;
-                background-color: var(--neutral-200);
                 position: relative;
-                isolation: isolate;
                 align-self: stretch;
-                border-radius: 4px;
+                max-width: 13.5rem;
+                border-radius: 0.25rem;
+                background-color: var(--neutral-200);
+                text-align: center;
+                isolation: isolate;
 
                 &::before,
                 &::after {
                   content: '';
                   position: absolute;
-                  inset: -2px;
-                  border-radius: 4px;
+                  inset: -0.125rem;
                   z-index: -2;
+                  border-radius: 0.25rem;
                   background: conic-gradient(
                     from 135deg at 50% 50%,
                     #798ddc 0deg,
@@ -648,33 +650,33 @@ const data = await sanityFetch<{
 
                 &::after {
                   inset: 0;
-                  background: var(--neutral-200, #f5f1ec);
                   z-index: -1;
+                  background: var(--neutral-200, #f5f1ec);
                 }
 
                 .wrapper {
                   display: flex;
-                  gap: 1rem;
-                  padding: clamp(16px, calc(16vw / 7.68), 32px) clamp(20px, calc(20vw / 7.68), 32px);
-                  height: 100%;
                   flex-direction: column;
                   align-items: center;
-                  overflow: hidden;
                   justify-content: center;
+                  height: 100%;
+                  padding: clamp(1rem, calc(1vw / 0.48), 2rem) clamp(1.25rem, calc(1.25vw / 0.48), 2rem);
+                  gap: 1rem;
+                  overflow: hidden;
 
                   .box {
                     position: relative;
                     isolation: isolate;
                     .svg-box {
+                      position: relative;
+                      z-index: 2;
+                      display: grid;
+                      place-items: center;
+                      overflow: hidden;
                       min-width: 2.75rem;
                       aspect-ratio: 1;
                       border-radius: 50%;
                       background: var(--neutral-400, #ffe4ca);
-                      place-items: center;
-                      position: relative;
-                      display: grid;
-                      z-index: 2;
-                      overflow: hidden;
 
                       svg {
                         width: 1.25rem;
@@ -686,8 +688,8 @@ const data = await sanityFetch<{
 
                         &:nth-of-type(2) {
                           position: absolute;
-                          left: 50%;
                           top: 50%;
+                          left: 50%;
                           transform: translate(-200%, -50%) rotate(90deg) scale(0.5);
                           transition: transform 300ms var(--easing);
                         }
@@ -696,21 +698,21 @@ const data = await sanityFetch<{
                     .scale {
                       position: absolute;
                       inset: 0;
+                      z-index: 1;
                       border-radius: 50%;
                       background: var(--primary-800, #45051c);
                       transform: scale(0);
                       transition: transform 400ms var(--easing);
-                      z-index: 1;
                     }
                   }
 
                   .text {
+                    z-index: 5;
                     color: var(--primary-800, #45051c);
                     font-weight: 700;
                     transition:
                       transform 300ms var(--easing),
                       color 150ms;
-                    z-index: 5;
                   }
                 }
 
@@ -733,7 +735,7 @@ const data = await sanityFetch<{
                     }
 
                     .text {
-                      transform: translateY(-2px);
+                      transform: translateY(-0.125rem);
                     }
                   }
                 }
@@ -753,7 +755,7 @@ const data = await sanityFetch<{
                 }
 
                 &:focus-visible {
-                  outline-offset: 6px;
+                  outline-offset: 0.375rem;
                 }
               }
 
@@ -761,7 +763,7 @@ const data = await sanityFetch<{
                 display: flex;
 
                 :global(.CategoryBlock) {
-                  max-width: 216px;
+                  max-width: 13.5rem;
                   :global(.title) {
                     :global(.text) {
                       font-size: var(--typography-body-l, 1rem);
@@ -774,12 +776,12 @@ const data = await sanityFetch<{
                 }
 
                 :global(.CaseStudyCard) {
-                  max-width: 216px;
+                  max-width: 13.5rem;
 
                   > :global(a) {
                     height: 100%;
                     :global(.img-container) {
-                      height: 122px;
+                      height: 7.625rem;
                     }
 
                     :global(.text) {
@@ -795,14 +797,14 @@ const data = await sanityFetch<{
                 }
               }
 
-              @media (max-width: 1269px) {
+              @media (max-width: 79.3125rem) {
                 flex-direction: column;
                 align-items: center;
 
                 .show-all {
-                  max-width: 100%;
-                  width: 100%;
                   align-self: center;
+                  width: 100%;
+                  max-width: 100%;
                   margin-bottom: 2rem;
 
                   .wrapper {
@@ -838,14 +840,14 @@ const data = await sanityFetch<{
                     max-width: 100%;
                     > :global(a) {
                       > :global(.img-container) {
-                        aspect-ratio: 344/194.3;
                         height: auto;
+                        aspect-ratio: 344/194.3;
                       }
                     }
                   }
                 }
               }
-              @media (max-width: 899px) {
+              @media (max-width: 56.1875rem) {
                 .list {
                   :global(.CategoryBlock) {
                     display: grid;
@@ -874,7 +876,7 @@ const data = await sanityFetch<{
                   }
                 }
               }
-              @media (max-width: 659px) {
+              @media (max-width: 41.1875rem) {
                 .list {
                   :global(.CategoryBlock) {
                     display: grid;
@@ -882,10 +884,10 @@ const data = await sanityFetch<{
                     grid-template-rows: auto;
                     gap: 0.625rem;
                     max-width: 100%;
-                    background-color: var(--neutral-100);
-                    border-radius: 999px 64px 64px 999px;
                     position: relative;
                     padding-right: 0.5rem;
+                    border-radius: 999px 64px 64px 999px;
+                    background-color: var(--neutral-100);
                     :global(.wrapper) {
                       grid-column: 1/2;
                       grid-row: 1/2;
@@ -899,15 +901,15 @@ const data = await sanityFetch<{
                       align-self: center;
 
                       :global(.text) {
-                        font-size: var(--typography-body-m, 0.875rem);
-                        margin-right: 0;
                         display: block;
+                        margin-right: 0;
+                        font-size: var(--typography-body-m, 0.875rem);
                       }
 
                       :global(.count) {
                         position: absolute;
-                        left: 3.375rem;
                         bottom: 0.25rem;
+                        left: 3.375rem;
                         transform: scale(0.8);
                       }
                     }
@@ -927,26 +929,26 @@ const data = await sanityFetch<{
                       :global(.img-container) {
                         grid-column: 2/3;
                         grid-row: 1/2;
-                        max-width: 5.5rem;
                         width: 100%;
+                        max-width: 5.5rem;
                         aspect-ratio: 58/32;
                       }
 
                       :global(.text) {
-                        font-size: var(--typography-body-s, 0.75rem);
                         grid-column: 1/2;
                         grid-row: 1/2;
-                        width: 100%;
                         display: block;
+                        align-self: center;
+                        width: 100%;
                         padding: 0;
                         overflow: hidden;
-                        align-self: center;
+                        font-size: var(--typography-body-s, 0.75rem);
                         :global(span) {
                           display: -webkit-box;
                           -webkit-box-orient: vertical;
                           -webkit-line-clamp: 2;
-                          text-overflow: ellipsis;
                           text-align: start;
+                          text-overflow: ellipsis;
                         }
                       }
                     }
@@ -955,12 +957,12 @@ const data = await sanityFetch<{
               }
             }
 
-            @media (max-width: 659px) {
+            @media (max-width: 41.1875rem) {
               position: static;
               max-height: 0;
               padding: 0;
-              border-bottom: none;
               overflow: hidden;
+              border-bottom: none;
               transition:
                 transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.2),
                 opacity 150ms,
@@ -984,7 +986,7 @@ const data = await sanityFetch<{
           &[data-tab][data-active='true'] {
             .item-button {
               &::before {
-                transform: translateY(calc(-50% + 1px)) scale(16);
+                transform: translateY(calc(-50% + 0.0625rem)) scale(16);
                 transition: transform 450ms var(--easing);
               }
 
@@ -1014,9 +1016,9 @@ const data = await sanityFetch<{
                 }
               }
 
-              @media (max-width: 659px) {
+              @media (max-width: 41.1875rem) {
                 &::before {
-                  transform: translateY(calc(-50% + 1px)) scale(36);
+                  transform: translateY(calc(-50% + 0.0625rem)) scale(36);
                   transition: transform 450ms var(--easing);
                 }
               }
@@ -1024,17 +1026,17 @@ const data = await sanityFetch<{
 
             .item-expand {
               transform: translateY(0);
+              filter: blur(0px);
               opacity: 1;
               visibility: visible;
-              filter: blur(0px);
 
-              @media (max-width: 659px) {
+              @media (max-width: 41.1875rem) {
                 display: block;
-                opacity: 1;
-                visibility: visible;
                 max-height: 100%;
                 padding: 0.5rem 0.25rem 0;
                 margin: 0 -0.25rem;
+                opacity: 1;
+                visibility: visible;
               }
             }
           }
@@ -1045,11 +1047,12 @@ const data = await sanityFetch<{
             }
 
             .item-expand > div > .list {
+              display: flex;
               align-items: flex-start;
               gap: 1rem;
             }
 
-            @media (max-width: 899px) {
+            @media (max-width: 56.1875rem) {
               .item-expand > div > .list {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
@@ -1057,7 +1060,7 @@ const data = await sanityFetch<{
               }
             }
 
-            @media (max-width: 659px) {
+            @media (max-width: 41.1875rem) {
               .item-expand > div > .list {
                 grid-template-columns: 1fr;
                 gap: 0.375rem;
@@ -1081,24 +1084,25 @@ const data = await sanityFetch<{
             }
 
             .item-expand > div > .list {
+              display: flex;
               align-items: stretch;
               gap: 0.5rem;
             }
 
-            @media (max-width: 1269px) {
+            @media (max-width: 79.3125rem) {
               .item-expand > div > .list {
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
               }
             }
 
-            @media (max-width: 899px) {
+            @media (max-width: 56.1875rem) {
               .item-expand > div > .list {
                 grid-template-columns: repeat(2, 1fr);
               }
             }
 
-            @media (max-width: 659px) {
+            @media (max-width: 41.1875rem) {
               .item-expand > div > .list {
                 grid-template-columns: 1fr;
                 gap: 0.5rem;
@@ -1122,14 +1126,14 @@ const data = await sanityFetch<{
           position: absolute;
           top: 50%;
           left: 50%;
+          z-index: -1;
           width: 110%;
+          height: 100%;
+          border-radius: 0.25rem;
+          background-color: #ffecbc;
           transform: translate(-50%, -50%) scaleX(0) scaleY(0.05);
           transform-origin: bottom;
-          height: 100%;
-          background-color: #ffecbc;
           transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
-          border-radius: 4px;
-          z-index: -1;
         }
 
         &:hover {
@@ -1145,7 +1149,7 @@ const data = await sanityFetch<{
         }
 
         &:focus-visible {
-          border-radius: 4px;
+          border-radius: 0.25rem;
         }
       }
     }
@@ -1176,14 +1180,14 @@ const data = await sanityFetch<{
       }
     }
 
-    @media (max-width: 659px) {
-      padding-left: clamp(7px, calc(12vw / 7.68), 12px);
+    @media (max-width: 41.1875rem) {
+      padding-left: clamp(0.4375rem, calc(0.75vw / 0.48), 0.75rem);
       padding-right: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
       .container {
         position: relative;
         .logo {
           position: absolute;
-          bottom: 1px;
+          bottom: 0.0625rem;
           left: 50%;
           z-index: 5;
           transform: translateX(-50%);
@@ -1193,29 +1197,30 @@ const data = await sanityFetch<{
         }
         .navigation {
           position: fixed;
-          z-index: 250;
-          background: var(--neutral-200, #f5f1ec);
-          border-right: 2px solid;
-          border-image: linear-gradient(0deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
-          flex-direction: column;
-          padding: 4rem 1rem 2rem;
-          left: 0;
           top: 0;
+          left: 0;
+          z-index: 250;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
           gap: 0.75rem;
-          height: 100vh;
-          overflow-y: auto;
           width: 100%;
-          max-width: clamp(280px, calc(380vw / 7.68), 400px);
+          max-width: clamp(18.5rem, calc(30.75vw / 0.48), 25rem);
+          height: 100vh;
+          padding: 4rem 1rem 2rem;
+          overflow-y: auto;
+          border-right: 0.125rem solid;
+          border-image: linear-gradient(0deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+          background: var(--neutral-200, #f5f1ec);
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          transform: translateX(-50%);
           opacity: 0;
           visibility: hidden;
-          transform: translateX(-50%);
-          align-items: stretch;
           transition:
             opacity 100ms,
             visibility 100ms,
             transform 250ms var(--easing);
-          scrollbar-width: none;
-          -webkit-overflow-scrolling: touch;
 
           .nav-link {
             &::before {
@@ -1228,7 +1233,7 @@ const data = await sanityFetch<{
             display: flex;
             gap: 0.5rem;
             padding-top: 0.25rem;
-            border-top: 1px solid var(--neutral-300, #ede6de);
+            border-top: 0.0625rem solid var(--neutral-300, #ede6de);
             margin-top: 1.25rem;
           }
         }
@@ -1274,9 +1279,9 @@ const data = await sanityFetch<{
             }
           }
           .navigation {
+            transform: translateX(0);
             opacity: 1;
             visibility: visible;
-            transform: translateX(0);
           }
         }
       }
