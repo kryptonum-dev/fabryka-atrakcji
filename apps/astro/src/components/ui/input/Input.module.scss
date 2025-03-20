@@ -4,18 +4,18 @@
     display: grid;
     grid-template-columns: repeat(2, auto);
     grid-template-rows: auto 1fr;
+    margin-bottom: 0.125rem;
+    font-size: var(--typography-body-s, 0.75rem);
     line-height: 1.6;
-    font-size: var(--typography-body-s, 12px);
     letter-spacing: -0.01em;
-    margin-bottom: 2px;
 
     > * {
       margin-bottom: 0;
     }
     .label {
-      color: var(--primary-800, #45051c);
       grid-column: 1 / 2;
       grid-row: 1 / 2;
+      color: var(--primary-800, #45051c);
     }
 
     .additonalInfo {
@@ -33,26 +33,25 @@
     $background: var(--neutral-100, #faf7f7);
     position: relative;
     isolation: isolate;
-    // overflow: hidden;
-    border-radius: 4px;
     background-color: $background;
+    border-radius: 0.25rem;
 
     &::before,
     &::after {
       position: absolute;
-      content: '';
-      inset: 0;
       z-index: -3;
-      border-radius: 4px;
-      transition: background-color 275ms;
+      inset: 0;
+      content: '';
       background-color: var(--neutral-500, #d2c1b0);
+      border-radius: 0.25rem;
+      transition: background-color 275ms;
     }
 
     &::after {
-      background: linear-gradient($background, $background) padding-box;
-      inset: 2px;
-      border-radius: 2px;
       z-index: -1;
+      inset: 0.125rem;
+      background: linear-gradient($background, $background) padding-box;
+      border-radius: 0.125rem;
     }
 
     &:has(input:hover, textarea:hover) {
@@ -63,21 +62,15 @@
 
     .gradient {
       position: absolute;
-      inset: 0px;
-      overflow: hidden;
-      border-radius: 4px;
       z-index: -2;
+      inset: 0;
       overflow: hidden;
+      border-radius: 0.25rem;
 
       &::before {
-        content: '';
-        transform: scaleX(0);
         position: absolute;
-        inset: -1px;
-        opacity: 0;
-        transition:
-          opacity 125ms,
-          transform 475ms var(--easing);
+        inset: -0.0625rem;
+        content: '';
         background: conic-gradient(
           from 135deg at 50% 50%,
           #798ddc 0deg,
@@ -85,6 +78,11 @@
           #fa7468 266.40000343322754deg,
           #798ddc 360deg
         );
+        opacity: 0;
+        transform: scaleX(0);
+        transition:
+          opacity 125ms,
+          transform 475ms var(--easing);
       }
     }
 
@@ -117,12 +115,12 @@
 
     input,
     textarea {
-      border-radius: 4px;
-      padding: 0.625rem;
-      font-size: 1rem;
-      color: var(--primary-800, #45051c);
       width: 100%;
+      padding: 0.625rem;
+      color: var(--primary-800, #45051c);
+      font-size: 1rem;
       line-height: 1.4;
+      border-radius: 0.25rem;
       transition: border-color 275ms;
 
       &::placeholder {
@@ -131,8 +129,8 @@
       }
 
       &:focus-visible {
-        border-color: var(--neutral-800, #333d37);
         outline: none;
+        border-color: var(--neutral-800, #333d37);
       }
 
       &[aria-invalid='true'] {

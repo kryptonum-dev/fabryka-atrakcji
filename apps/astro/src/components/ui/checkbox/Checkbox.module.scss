@@ -1,20 +1,19 @@
 .Checkbox {
   display: grid;
-  width: fit-content;
-  align-items: center;
   grid-template-columns: auto 1fr;
-  column-gap: 0.5rem;
+  align-items: center;
+  width: fit-content;
   min-height: 2.75rem;
-  font-size: var(--typography-body-m, 14px);
+  column-gap: 0.5rem;
   color: var(--primary-800, #45051c);
-
+  font-size: var(--typography-body-m, 0.875rem);
   cursor: pointer;
   user-select: none;
 
   a {
-    font-size: var(--typography-body-m, 14px);
     display: inline-flex;
-    margin-top: 0.875px;
+    margin-top: 0.0547rem;
+    font-size: var(--typography-body-m, 0.875rem);
   }
 
   &:not(:has(input:checked)):not(:has(input[aria-invalid='true'])):hover {
@@ -25,8 +24,8 @@
 
   &:has(input:focus-visible) {
     .checkmark {
-      outline: 2px solid var(--primary-800);
-      outline-offset: 3px;
+      outline: 0.125rem solid var(--primary-800);
+      outline-offset: 0.1875rem;
     }
   }
   &:has(input:checked) {
@@ -43,34 +42,34 @@
     }
   }
   .checkmark {
+    position: relative;
     width: 1.125rem;
     height: 1.125rem;
-    border-radius: 4px;
-    border: 1.25px solid var(--primary-500, #87988b);
-    position: relative;
+    margin-bottom: 0.125rem;
     overflow: hidden;
-    margin-bottom: 2px;
     background-color: var(--neutral-100, #f5f1ec);
+    border: 0.078125rem solid var(--primary-500, #87988b);
+    border-radius: 0.25rem;
     isolation: isolate;
     transition: background-color 200ms;
 
     input {
-      opacity: 0;
       position: absolute;
+      opacity: 0;
     }
 
     .icon {
-      width: 100%;
-      height: 100%;
       display: grid;
       place-items: center;
+      width: 100%;
+      height: 100%;
+      background-color: var(--primary-500, #5f6d62);
+      border-radius: 0.25rem;
+      opacity: 0;
       transform: scale(0);
       transition:
         transform 350ms var(--easing),
         opacity 150ms;
-      background-color: var(--primary-500, #5f6d62);
-      opacity: 0;
-      border-radius: 4px;
     }
   }
 
@@ -79,7 +78,7 @@
     grid-column: 2 / 3;
     margin-top: -0.75rem;
     span {
-      padding-top: 3px;
+      padding-top: 0.1875rem;
     }
   }
 }

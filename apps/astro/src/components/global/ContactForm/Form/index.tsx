@@ -4,67 +4,76 @@ import { REGEX } from '@/src/global/constants'
 import { useEffect, useState } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 
-const translations = {
-  pl: {
-    legal: {
-      label: (
-        <>
-          Wyrażam zgodę na{' '}
-          <a
-            href="/pl/polityka-prywatnosci"
-            data-shade="light"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="link"
-          >
-            politykę prywatności
-          </a>
-        </>
-      ),
-      required: 'Zgoda jest wymagana',
+const translations = (status?: 'idle' | 'loading' | 'success' | 'error') => {
+  return {
+    pl: {
+      legal: {
+        label: (
+          <>
+            Wyrażam zgodę na{' '}
+            <a
+              href="/pl/polityka-prywatnosci"
+              data-shade="light"
+              target="_blank"
+              rel="noreferrer"
+              className="link"
+              tabIndex={status === 'loading' ? -1 : 0}
+            >
+              politykę prywatności
+            </a>
+          </>
+        ),
+        required: 'Zgoda jest wymagana',
+      },
+      email: {
+        label: 'Email',
+        required: 'Email jest wymagany',
+        pattern: 'Niepoprawny adres e-mail',
+      },
+      phone: {
+        label: 'Telefon (opcjonalnie)',
+        description: 'Gwarantujemy kontakt wyłącznie w odpowiedzi na zadane pytania',
+      },
+      message: {
+        label: 'Temat wiadomości',
+        required: 'Temat jest wymagany',
+      },
     },
-    email: {
-      label: 'Email',
-      required: 'Email jest wymagany',
-      pattern: 'Niepoprawny adres e-mail',
+    en: {
+      legal: {
+        label: (
+          <>
+            I agree to the{' '}
+            <a
+              href="/en/privacy-policy"
+              data-shade="light"
+              target="_blank"
+              rel="noreferrer"
+              className="link"
+              tabIndex={status === 'loading' ? -1 : 0}
+            >
+              privacy policy
+            </a>
+          </>
+        ),
+        required: 'Legal consent is required',
+      },
+      email: {
+        label: 'Email',
+        required: 'Email is required',
+        pattern: 'Invalid email address',
+      },
+      phone: {
+        label: 'Phone (optional)',
+        description: 'We guarantee contact only in response to questions asked',
+      },
+      message: {
+        label: 'Message subject',
+        required: 'Subject is required',
+      },
     },
-    phone: {
-      label: 'Telefon (opcjonalnie)',
-      description: 'Gwarantujemy kontakt wyłącznie w odpowiedzi na zadane pytania',
-    },
-    message: {
-      label: 'Temat wiadomości',
-      required: 'Temat jest wymagany',
-    },
-  },
-  en: {
-    legal: {
-      label: (
-        <>
-          I agree to the{' '}
-          <a href="/en/privacy-policy" data-shade="light" target="_blank" rel="noopener noreferrer" className="link">
-            privacy policy
-          </a>
-        </>
-      ),
-      required: 'Legal consent is required',
-    },
-    email: {
-      label: 'Email',
-      required: 'Email is required',
-      pattern: 'Invalid email address',
-    },
-    phone: {
-      label: 'Phone (optional)',
-      description: 'We guarantee contact only in response to questions asked',
-    },
-    message: {
-      label: 'Message subject',
-      required: 'Subject is required',
-    },
-  },
+  }
 }
-
 export default function Form({
   children,
   lang = 'pl',
@@ -87,12 +96,32 @@ export default function Form({
       setStatus('idle')
     }
 
-    document.addEventListener('Contact-TryAgain', tryAgain)
-    return () => document.removeEventListener('Contact-TryAgain', tryAgain)
+    document.addEventListener('contact:try-again', tryAgain)
+    return () => document.removeEventListener('contact:try-again', tryAgain)
   }, [])
+
+  useEffect(() => {
+    if (status === 'loading') {
+      const submitButton = document.querySelectorAll('#submit')
+
+      submitButton.forEach((button) => {
+        button.setAttribute('disabled', 'disabled')
+      })
+    }
+
+    if (status === 'idle') {
+      const submitButton = document.querySelectorAll('#submit')
+
+      submitButton.forEach((button) => {
+        button.removeAttribute('disabled')
+      })
+    }
+  }, [status])
 
   const onSubmit = async (data: FieldValues) => {
     setStatus('loading')
+
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     //   const response = await sendContactEmail(data as sendContactEmailProps)
 
@@ -106,17 +135,15 @@ export default function Form({
     }
   }
 
-  console.log(errors)
-
   return (
     <form {...props} onSubmit={handleSubmit(onSubmit)} data-status={status}>
       <Input
         aria-hidden={status === 'loading'}
-        tabIndex={status === 'loading' ? -1 : 0}
-        label={translations[lang].email.label}
+        disabled={status === 'loading'}
+        label={translations()[lang].email.label}
         register={register('email', {
-          required: { value: true, message: translations[lang].email.required },
-          pattern: { value: REGEX.email, message: translations[lang].email.pattern },
+          required: { value: true, message: translations()[lang].email.required },
+          pattern: { value: REGEX.email, message: translations()[lang].email.pattern },
         })}
         errors={errors}
         type="email"
@@ -126,8 +153,8 @@ export default function Form({
         disabled={status === 'loading'}
         register={{ name: 'phone' }}
         errors={errors}
-        additonalInfo={translations[lang].phone.description}
-        label={translations[lang].phone.label}
+        additonalInfo={translations()[lang].phone.description}
+        label={translations()[lang].phone.label}
         phone={{
           isPhone: true,
           control,
@@ -136,9 +163,9 @@ export default function Form({
       <Input
         aria-hidden={status === 'loading'}
         disabled={status === 'loading'}
-        label={translations[lang].message.label}
+        label={translations()[lang].message.label}
         register={register('message', {
-          required: { value: true, message: translations[lang].message.required },
+          required: { value: true, message: translations()[lang].message.required },
         })}
         errors={errors}
         isTextarea
@@ -147,11 +174,11 @@ export default function Form({
         aria-hidden={status === 'loading'}
         disabled={status === 'loading'}
         register={register('legal', {
-          required: { value: true, message: translations[lang].legal.required },
+          required: { value: true, message: translations()[lang].legal.required },
         })}
         errors={errors}
       >
-        {translations[lang].legal.label}
+        {translations(status)[lang].legal.label}
       </Checkbox>
       {children}
     </form>

@@ -107,6 +107,8 @@ const data = await sanityFetch<{
 const OpenHoursText = getOpenHours({
   ...data.contact.openHours,
 })
+
+console.log(data.footer.restOfInformation.socialMedia.highlightedSocialMedia[0].iconString)
 ---
 
 <footer class="footer max-width" data-minify={minify}>
@@ -167,7 +169,7 @@ const OpenHoursText = getOpenHours({
             <div class="socials">
               <p>{data.footer.restOfInformation.socialMedia.heading}</p>
               {data.footer.restOfInformation.socialMedia.highlightedSocialMedia.map(({ name, link, iconString }) => (
-                <a href={link}>
+                <a href={link} target="_blank" rel="noreferrer">
                   <Fragment set:html={iconString} />
                   <span>{name}</span>
                   <span class="circle" />
