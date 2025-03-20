@@ -10,23 +10,12 @@ const language = (Astro.params.lang as Language) || 'pl'
 
 const translations = {
   pl: {
-    phoneLabel: 'Telefon (opcjonalnie)',
-    phoneDescription: 'Gwarantujemy kontakt wyłącznie w odpowiedzi na zadane pytania',
-    messageLabel: 'Temat wiadomości',
-    privacyLabel: 'Wyrażam zgodę na politykę prywatności',
-    privacyLink: '/pl/polityka-prywatnosci',
     sendButton: 'Wyślij wiadomość',
     responseBox: 'Odpowiadamy do 24 h',
     phoneContact: 'Skontaktuj się telefonicznie',
     emailContact: 'Napisz do nas',
   },
   en: {
-    phoneLabel: 'Phone (optional)',
-    phoneDescription: 'We guarantee contact only in response to questions asked',
-    emailLabel: 'Email (optional)',
-    messageLabel: 'Message subject',
-    privacyLabel: 'I agree to the privacy policy',
-    privacyLink: '/en/privacy-policy',
     sendButton: 'Send message',
     responseBox: 'We respond within 24 hours',
     phoneContact: 'Call us by phone',
@@ -124,12 +113,7 @@ const OpenHoursText = getOpenHours({
     </div>
     <PortableText value={paragraph} class="paragraph" />
   </header>
-  <FormWrapper
-    privacyPolicy={{ text: t.privacyLabel, link: t.privacyLink }}
-    response={t.responseBox}
-    state={state}
-    phoneDescription={t.phoneDescription}
-  />
+  <FormWrapper response={t.responseBox} lang={language} state={state} />
   <div class="contact">
     <div class="phone">
       <div class="icon">

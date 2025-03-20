@@ -288,8 +288,11 @@ h2,
 
   &::after {
     content: '';
-    inset: 0;
-    transform: scale(0);
+    width: 100%;
+    aspect-ratio: 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
     position: absolute;
     background-color: var(--primary-400, #74535e);
     transition: transform 400ms var(--easing);
@@ -317,14 +320,20 @@ h2,
   }
   &:focus:not(:focus-visible) {
     &::after {
-      transform: scale(1.5);
+      transform: translate(-50%, -50%) scale(1.5);
     }
   }
-  &.dark-link {
+  &[data-shade='light'] {
+    &::after {
+      background-color: var(--neutral-300, #ede6de);
+    }
+  }
+  &[data-shade='dark'] {
     &:focus-visible {
       outline-color: var(--neutral-400, #ede6de);
     }
   }
+
   &[target='_blank'] {
     &::after {
     }
