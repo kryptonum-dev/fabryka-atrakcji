@@ -1,0 +1,77 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'div'>;
+
+const { ...props } = Astro.props;
+---
+
+<div {...props} aria-label="Ładowanie...">
+  <div></div>
+</div>
+
+<style lang="scss">
+  div {
+    animation: loaderFadeIn 400ms ease forwards;
+    &[aria-label='Ładowanie...'] {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 5;
+      background-color: rgba(233, 242, 237, 0.3);
+      backdrop-filter: blur(4px);
+      border-radius: 8px;
+
+      div {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 50%;
+        animation: rotate 1s linear infinite;
+
+        &::before {
+          content: '';
+          box-sizing: border-box;
+          position: absolute;
+          inset: 0px;
+          border-radius: 50%;
+          border: 3px solid var(--neutral-700, #5f6d62);
+          animation: prixClipFix 2s linear infinite;
+        }
+
+        @keyframes rotate {
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes prixClipFix {
+          0% {
+            clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
+          }
+          25% {
+            clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
+          }
+          50% {
+            clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
+          }
+          75% {
+            clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%);
+          }
+          100% {
+            clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+          }
+        }
+      }
+    }
+
+    @keyframes loaderFadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+</style>

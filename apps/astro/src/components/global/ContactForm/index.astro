@@ -1,0 +1,408 @@
+---
+import type { Language } from '@/src/global/languages'
+import Image, { ImageDataQuery, type ImageDataProps } from '../../ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
+import FormWrapper from './Form/FormWrapper.astro'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import { getOpenHours } from '@/src/utils/get-open-hours'
+
+const language = (Astro.params.lang as Language) || 'pl'
+
+const translations = {
+  pl: {
+    phoneLabel: 'Telefon (opcjonalnie)',
+    phoneDescription: 'Gwarantujemy kontakt wyłącznie w odpowiedzi na zadane pytania',
+    messageLabel: 'Temat wiadomości',
+    privacyLabel: 'Wyrażam zgodę na politykę prywatności',
+    privacyLink: '/pl/polityka-prywatnosci',
+    sendButton: 'Wyślij wiadomość',
+    responseBox: 'Odpowiadamy do 24 h',
+    phoneContact: 'Skontaktuj się telefonicznie',
+    emailContact: 'Napisz do nas',
+  },
+  en: {
+    phoneLabel: 'Phone (optional)',
+    phoneDescription: 'We guarantee contact only in response to questions asked',
+    emailLabel: 'Email (optional)',
+    messageLabel: 'Message subject',
+    privacyLabel: 'I agree to the privacy policy',
+    privacyLink: '/en/privacy-policy',
+    sendButton: 'Send message',
+    responseBox: 'We respond within 24 hours',
+    phoneContact: 'Call us by phone',
+    emailContact: 'Write to us',
+  },
+}
+
+const t = translations[language]
+
+export const ContactForm_Query = `
+  _type == "ContactForm" => {
+    ${ImageDataQuery('headingImage')}
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    state{
+      success{
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+        highlightedSocialMedia[] -> {
+            name,
+            link,
+            iconString,
+        },
+      },
+      error{
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+      },
+    },
+  },
+`
+
+const global = await sanityFetch<{
+  email: string
+  tel: string
+  openHours: {
+    from: string
+    to: string
+    closedWeekends: boolean
+  }
+}>({
+  query: `*[_type == "global" && language == $language][0]{
+    email,
+    tel,
+    openHours {
+      from,
+      to,
+      closedWeekends,
+    }
+  }`,
+  params: {
+    language,
+  },
+})
+
+export type FormState = {
+  success: {
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+    highlightedSocialMedia: {
+      name: string
+      link: string
+      iconString: string
+    }[]
+  }
+  error: {
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+  }
+}
+
+type Props = {
+  index: number
+  sectionId?: string
+  headingImage: ImageDataProps
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  state: FormState
+}
+
+const { index, sectionId, headingImage, heading, paragraph, state } = Astro.props
+
+const OpenHoursText = getOpenHours({
+  ...global.openHours,
+})
+---
+
+<section class="ContactForm max-width" id={sectionId}>
+  <header class="header">
+    <div class="wrapper">
+      <div class="profile">
+        <Image {...headingImage} sizes="28px" />
+      </div>
+      <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+    </div>
+    <PortableText value={paragraph} class="paragraph" />
+  </header>
+  <FormWrapper
+    privacyPolicy={{ text: t.privacyLabel, link: t.privacyLink }}
+    response={t.responseBox}
+    state={state}
+    phoneDescription={t.phoneDescription}
+  />
+  <div class="contact">
+    <div class="phone">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
+          ><path
+            d="m14.296 10.755-.38.377s-.902.897-3.365-1.552c-2.462-2.448-1.56-3.345-1.56-3.345l.239-.238c.589-.585.644-1.525.13-2.211L8.31 2.382c-.636-.85-1.865-.962-2.593-.237l-1.308 1.3c-.362.36-.604.826-.575 1.342.076 1.322.674 4.166 4.01 7.484 3.54 3.52 6.86 3.66 8.218 3.533.43-.04.803-.26 1.104-.558l1.184-1.178c.8-.794.574-2.156-.449-2.712l-1.592-.865c-.67-.365-1.489-.258-2.014.264Z"
+            fill="#F67258"></path></svg
+        >
+      </div>
+      <div class="text">
+        <span>{t.phoneContact}</span><a href={`tel:${global.tel}`}>+48 {global.tel}</a><span>{OpenHoursText}</span>
+      </div>
+    </div>
+    <div class="email">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
+          ><path
+            d="M8.418 16.666v1.667a.625.625 0 1 0 1.25 0v-1.667h-1.25ZM13.001 16.666h-1.25v1.667a.625.625 0 1 0 1.25 0v-1.667Z"
+            fill="#F67258"></path><path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="m14.986 5.487.213-.043c.347-.07.705-.036 1.034.095a2.93 2.93 0 0 0 1.804.124l.051-.013c.436-.11.744-.515.744-.981V2.893c0-.614-.553-1.067-1.129-.923-.33.082-.677.058-.994-.068l-.06-.025a2.931 2.931 0 0 0-1.668-.154l-.374.075c-.45.09-.775.499-.775.975v5.794c0 .33.258.599.577.599a.588.588 0 0 0 .577-.6v-3.08Z"
+            fill="#F67258"></path><path
+            d="M12.585 5v3.567c0 .976.773 1.85 1.827 1.85 1.053 0 1.826-.874 1.826-1.85v-1.71c.635.17 1.3.19 1.947.055.41.702.65 1.55.65 2.463v5.146c0 1.185-.824 2.146-1.84 2.146h-6.077V9.375c0-1.692-.693-3.312-1.848-4.375h3.515Z"
+            fill="#F67258"></path><path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M2.168 9.375C2.168 6.959 3.847 5 5.918 5c2.071 0 3.75 1.959 3.75 4.375v7.292h-5.64c-1.027 0-1.86-.972-1.86-2.17V9.374Zm1.875 3.958c0-.345.28-.625.625-.625h2.5a.625.625 0 0 1 0 1.25h-2.5a.625.625 0 0 1-.625-.625Z"
+            fill="#F67258"></path></svg
+        >
+      </div>
+      <div class="text"><span>{t.emailContact}</span><a href={`mailto:${global.email}`}>{global.email}</a></div>
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .ContactForm {
+    display: grid;
+    grid-template-columns: 1fr 410px 307px;
+    align-items: center;
+    column-gap: 3rem;
+
+    .header {
+      max-width: 433px;
+      justify-self: start;
+
+      .wrapper {
+        max-width: 340px;
+        .profile {
+          display: inline-block;
+          width: 32px;
+          aspect-ratio: 1/1;
+          border-radius: 50%;
+          transform: translateY(-3px);
+          padding: 2px;
+          border: 1px solid var(--neutral-200, #f5f1ec);
+
+          &::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            right: 1px;
+            bottom: 2px;
+            position: absolute;
+            background-color: #61bc72;
+            border: 1px solid var(--neutral-100, #faf7f7);
+          }
+
+          img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+          }
+        }
+        .heading {
+          display: inline;
+          max-width: 310px;
+        }
+      }
+      .paragraph {
+        margin-top: clamp(0.75rem, calc(1.25vw / 0.48), 1.25rem);
+      }
+    }
+
+    .contact {
+      .phone,
+      .email {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: start;
+        gap: 0.75rem;
+      }
+
+      .phone {
+        margin-bottom: 1rem;
+      }
+
+      .icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        display: grid;
+        background: var(--neutral-200, #f5f1ec);
+        place-items: center;
+        transition: transform 350ms var(--easing);
+      }
+
+      .text {
+        color: var(--primary-400, #74535e);
+        font-size: var(--typography-body-m, 14px);
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+        display: grid;
+
+        a {
+          font-weight: 700;
+          font-variant-numeric: lining-nums proportional-nums;
+          letter-spacing: -0.02em;
+          position: relative;
+          justify-self: start;
+          color: var(--primary-800, #45051c);
+
+          &::before {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 6%;
+            background: var(--primary-400, #74535e);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 350ms var(--easing);
+          }
+          &:hover {
+            &::before {
+              transform: scaleX(1);
+              transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+            }
+          }
+        }
+      }
+
+      .phone {
+        &:has(.text a:hover) > .icon {
+          transform: scale(1.05);
+
+          svg {
+            animation: ContactForm-ring-low 700ms var(--easing) infinite alternate;
+            @keyframes ContactForm-ring-low {
+              0% {
+                transform: rotate(0deg);
+              }
+              25% {
+                transform: rotate(6deg);
+              }
+              50% {
+                transform: rotate(-6deg);
+              }
+              75% {
+                transform: rotate(6deg);
+              }
+              100% {
+                transform: rotate(0deg);
+              }
+            }
+          }
+        }
+
+        &:has(.text a:focus:not(:focus-visible)) > .icon {
+          transform: scale(1.1);
+
+          svg {
+            animation: ContactForm-ring-high 600ms var(--easing) infinite alternate;
+          }
+        }
+      }
+
+      .email {
+        &:has(.text a:hover) > .icon {
+          transform: scale(1.05);
+
+          svg {
+            animation: ContactForm-email-notification 1800ms var(--easing) infinite;
+          }
+        }
+
+        &:has(.text a:focus:not(:focus-visible)) > .icon {
+          transform: scale(1.1);
+
+          svg {
+            animation: ContactForm-email-notification-high 1400ms var(--easing) infinite;
+          }
+        }
+      }
+    }
+  }
+
+  @keyframes ContactForm-ring-low {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(6deg);
+    }
+    50% {
+      transform: rotate(-6deg);
+    }
+    75% {
+      transform: rotate(6deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes ContactForm-ring-high {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(12deg);
+    }
+    50% {
+      transform: rotate(-12deg);
+    }
+    75% {
+      transform: rotate(12deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes ContactForm-email-notification {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    10%,
+    30%,
+    50% {
+      transform: translateY(-2px);
+    }
+    20%,
+    40% {
+      transform: translateY(0);
+    }
+    60% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ContactForm-email-notification-high {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    10%,
+    30%,
+    50% {
+      transform: translateY(-3px);
+    }
+    20%,
+    40% {
+      transform: translateY(0);
+    }
+    60% {
+      transform: translateY(0);
+    }
+  }
+</style>

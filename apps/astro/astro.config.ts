@@ -18,7 +18,7 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      noExternal: ['embla-carousel-react'],
+      noExternal: ['react-hook-form', 'react-international-phone', 'embla-carousel-react'],
     },
     css: {
       preprocessorOptions: {

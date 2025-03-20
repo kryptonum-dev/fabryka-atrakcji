@@ -105,9 +105,7 @@ const data = await sanityFetch<{
 })
 
 const OpenHoursText = getOpenHours({
-  from: data.contact.openHours.from,
-  to: data.contact.openHours.to,
-  closeWeekends: data.contact.openHours.closedWeekends,
+  ...data.contact.openHours,
 })
 ---
 
@@ -154,7 +152,7 @@ const OpenHoursText = getOpenHours({
             <div class="phone">
               <p>{data.footer.restOfInformation.phoneHeading}</p>
               <a href={`tel:${data.contact.tel}`}>{data.contact.tel}</a>
-              <p>{`${OpenHoursText.days} ${OpenHoursText.time}`}</p>
+              <p>{OpenHoursText}</p>
             </div>
             <div class="email">
               <p>{data.footer.restOfInformation.contactForm.heading}</p>

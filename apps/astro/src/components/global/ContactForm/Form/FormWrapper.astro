@@ -1,0 +1,290 @@
+---
+import Form from './index.tsx'
+import Button from '@/components/ui/button'
+import Loader from '@/components/ui/Loader.astro'
+import type { FormState } from '../index.astro'
+
+type Props = {
+  privacyPolicy: {
+    text: string
+    link: string
+  }
+  response: string
+  state: FormState
+  phoneDescription: string
+}
+
+const { privacyPolicy, response, state, phoneDescription } = Astro.props
+---
+
+<Form phoneDescription={phoneDescription} privacyPolicy={privacyPolicy} className="Form" client:load>
+  <Button theme="primary" id="submit" type="submit">Wyślij Wiadomość</Button>
+  <div class="response">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+      ><path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M7.999 1.334a6.667 6.667 0 1 0 0 13.333 6.667 6.667 0 0 0 0-13.333Zm-.515 4.38L6.14 6.783c-.563.448-.845.672-.79.923l.003.012c.062.25.42.345 1.134.536.397.107.596.16.689.31l.005.008c.09.153.038.343-.064.725l-.027.1c-.283 1.057-.425 1.586-.152 1.757.273.17.707-.175 1.576-.867l1.343-1.07c.564-.448.845-.673.79-.923l-.003-.013c-.062-.249-.42-.344-1.134-.536-.397-.106-.595-.16-.689-.31l-.004-.008c-.09-.152-.039-.343.063-.724l.027-.1c.283-1.058.425-1.586.152-1.757-.273-.17-.707.175-1.575.866Z"
+        fill="#F67258"></path></svg
+    >
+    <span>{response}</span>
+  </div>
+  <!-- <Loader class="Loader" /> -->
+  <div class="SuccessState"></div>
+  <div class="ErrorState"></div>
+</Form>
+<style lang="scss">
+  .Form {
+    height: 525px;
+    width: 100%;
+    padding: 2.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--neutral-200, #f5f1ec);
+    align-items: stretch;
+    border-radius: clamp(8px, calc(12vw / 7.68), 12px);
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: rgba(233, 242, 237, 0.3);
+      backdrop-filter: blur(4px);
+      border-radius: 8px;
+      z-index: 3;
+      display: none;
+    }
+
+    :global(#submit) {
+      margin-top: 0.75rem;
+    }
+
+    :global(label) {
+      margin-bottom: 1.25rem;
+
+      &:nth-of-type(2) {
+        z-index: 10;
+      }
+
+      &:nth-of-type(3) {
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    .response {
+      margin-top: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--typography-body-m, 14px);
+      letter-spacing: -0.01em;
+
+      line-height: 1.7;
+    }
+
+    &[data-status='success'],
+    &[data-status='error'] {
+      &::before {
+        display: grid;
+      }
+    }
+    .Loader {
+    }
+
+    .SuccessState {
+    }
+
+    .ErrorState {
+    }
+  }
+
+  :global(.react-international-phone-input-container) {
+    // border: 1px solid var(--neutral-600, #87988b);
+    border-radius: 4px;
+    display: flex;
+    gap: 0.5rem;
+    isolation: isolate;
+    z-index: 10;
+    position: relative;
+
+    &:has(input:hover) {
+      :global(.react-international-phone-country-selector) {
+        border-color: var(--primary-400, #74535e);
+      }
+    }
+
+    &:has(input:focus-visible) {
+      :global(.react-international-phone-country-selector) {
+        border-color: var(--neutral-400, #5f6d62);
+      }
+    }
+
+    :global(.react-international-phone-country-selector) {
+      display: grid;
+      place-items: center;
+      border-right: 1px solid var(--neutral-400, #c1d1c8);
+      border-radius: 4px 0 0 4px;
+      position: relative;
+      transition: border-color 275ms;
+
+      :global(button) {
+        width: 2.75rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1px;
+        isolation: isolate;
+        position: relative;
+
+        &::before {
+          content: '';
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: 85%;
+          aspect-ratio: 1;
+          border: 1px solid var(--primary-400, #74535e);
+          border-radius: 50%;
+          z-index: -1;
+          position: absolute;
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0);
+          transition:
+            transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+            opacity 150ms;
+        }
+
+        :global(div) {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1px;
+
+          :global(img) {
+            height: 12px;
+            width: 12px;
+            border-radius: 999px;
+          }
+
+          :global(div) {
+            position: relative;
+            height: 8px;
+            width: 8px;
+
+            &::after {
+              content: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5IiBoZWlnaHQ9IjgiIGZpbGw9Im5vbmUiPjxwYXRoIGZpbGw9IiM4Nzk4OEIiIGQ9Im0yLjUgMyAyIDIgMi0yIi8+PC9zdmc+');
+            }
+          }
+        }
+
+        &:focus-visible {
+          outline: none;
+          &::before {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+        }
+      }
+      :global(ul) {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        max-height: 14rem;
+        padding: 1rem;
+        z-index: 15;
+
+        width: max-content;
+        max-width: 18rem;
+        overflow-y: auto;
+        top: 120%;
+        left: 0;
+        background-color: var(--neutral-100, #f2faf6);
+        border-radius: 8px;
+        animation: fadeIn 450ms var(--easing) 0ms forwards;
+        outline: none;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-400, #74535e) var(--neutral-100, #f2faf6);
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-0.5rem);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: var(--neutral-100, #f2faf6);
+          border-radius: 8px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background-color: var(--neutral-300, #87988b);
+          border-radius: 8px;
+        }
+
+        :global(li) {
+          display: flex;
+          align-items: center;
+          font-size: var(--typography-body-m, 0.875rem);
+          cursor: pointer;
+          padding: 0.5rem;
+          border-radius: 12px;
+          transition: background-color 200ms;
+
+          :global(img) {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            margin-right: 1rem;
+          }
+
+          > :global(span):first-of-type {
+            margin-right: auto;
+            color: var(--primary-800, #5f6d62);
+          }
+
+          > :global(span):last-of-type {
+            color: var(--primary-700, #5f6d62);
+          }
+
+          &:hover {
+            background-color: var(--neutral-200, #e9f2ed);
+          }
+
+          &:focus-visible {
+            outline: 2px solid var(--primary-400, #74535e);
+            outline-offset: 3px;
+            border-radius: 4px;
+          }
+        }
+      }
+    }
+    :global(input) {
+      font-size: 1rem;
+      flex-grow: 1;
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+</style>
+
+<script>
+  //   document.querySelectorAll<HTMLDivElement>('.ContactForm').forEach((section) => {
+  //     section.querySelector<HTMLButtonElement>('.tryAgain')!.addEventListener('click', () => {
+  //       document.dispatchEvent(new CustomEvent('Contact-TryAgain'))
+  //     })
+  //   })
+</script>

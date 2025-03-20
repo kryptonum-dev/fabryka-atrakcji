@@ -63,30 +63,6 @@ export const REGEX: { email: RegExp; phone: RegExp; string: RegExp } = {
 }
 
 /**
- * Global declaration of the Resend API key.
- * This constant is used for sending emails via the Resend API.
- * @constant
- * @type {string}
- */
-export const RESEND_API_KEY: string = process.env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY
-
-/**
- * Global declaration of the Sanity project ID.
- * This constant is used for fetching data from Sanity.
- * @constant
- * @type {string}
- */
-export const PROJECT_ID: string = process.env.SANITY_PROJECT_ID || import.meta.env.SANITY_PROJECT_ID
-
-/**
- * Global declaration of the Sanity API token.
- * This constant is used for fetching data from Sanity.
- * @constant
- * @type {string}
- */
-export const SANITY_API_TOKEN: string = process.env.SANITY_API_TOKEN || import.meta.env.SANITY_API_TOKEN
-
-/**
  * Global declaration of the Sanity dataset.
  * This constant is used for fetching data from Sanity.
  * @constant
