@@ -121,16 +121,20 @@ export default function Form({
   const onSubmit = async (data: FieldValues) => {
     setStatus('loading')
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    //   const response = await sendContactEmail(data as sendContactEmailProps)
-
-    const response = { success: true }
-
-    if (response.success) {
-      setStatus('success')
-      reset()
-    } else {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, lang }),
+      })
+      const responseData = await response.json()
+      if (response.ok && responseData.success) {
+        setStatus('success')
+        reset()
+      } else {
+        setStatus('error')
+      }
+    } catch {
       setStatus('error')
     }
   }
