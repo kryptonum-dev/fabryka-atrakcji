@@ -1,0 +1,67 @@
+---
+import Accordion from '../../ui/Accordion.astro'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
+
+export const Faq_Query = `
+  _type == "Faq" => {
+    ${PortableTextQuery('heading')}
+    questions[] -> {
+      ${PortableTextQuery('question')}
+      ${PortableTextQuery('answer')}
+    },
+    ${PortableTextQuery('paragraph')}
+    ${PortableTextQuery('subheading')}
+    formPopup {
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  heading: PortableTextValue
+  questions: {
+    question: PortableTextValue
+    answer: PortableTextValue
+  }[]
+  paragraph: PortableTextValue
+  subheading: PortableTextValue
+}
+
+const { index, sectionId, heading, questions, paragraph, subheading, formPopup } = Astro.props
+---
+
+<section class="Faq" id={sectionId}>
+  <div class="container">
+    <header class="header">
+      <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+    </header>
+    <div class="questions">
+      {questions.map(({ question, answer }) => <Accordion question={question} answer={answer} open={false} />)}
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .Faq {
+    padding: clamp(4rem, calc(6vw / 0.48), 8rem) var(--pageMargin) 0;
+    background: var(--neutral-200, #f5f1ec);
+
+    .container {
+      margin: 0 auto;
+      max-width: 659px;
+    }
+
+    .header {
+      margin-bottom: clamp(1.25rem, calc(3vw / 0.48), 3rem);
+    }
+
+    .questions {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(4px, calc(4vw / 7.68), 4px);
+    }
+  }
+</style>

@@ -5,7 +5,7 @@ import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
 
 const name = 'Faq'
-const title = 'FAQ'
+const title = 'Sekcja FAQ'
 const icon = HelpCircle
 
 export default defineField({
@@ -17,8 +17,66 @@ export default defineField({
     defineField({
       name: 'heading',
       type: 'Heading',
-      title: 'Heading',
+      title: 'Nagłówek',
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'questions',
+      type: 'array',
+      title: 'Wyróżnione pytania',
+      validation: (Rule) => Rule.required().min(4).max(12).error('Musisz wybrać między 4 a 12 pytań'),
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'Faq_Collection' }],
+          options: {
+            disableNew: true,
+            filter: ({ parent, document }) => {
+              const language = (document as { language?: string })?.language
+              const selectedIds =
+                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
+              return {
+                filter: '!(_id in $selectedIds) && !(_id in path("drafts.**")) && language == $lang',
+                params: { selectedIds, lang: language },
+              }
+            },
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: 'subheading',
+      type: 'Heading',
+      title: 'Nagłówek podrzędny',
+      description: 'Nagłówek widoczny pod listą pytań.',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'paragraph',
+      type: 'PortableText',
+      title: 'Paragraf',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'formPopup',
+      type: 'object',
+      title: 'Okienko formularza',
+      description: 'Okienko formularza wyświetla się po kliknięciu w przycisk informujący o zadaniu pytania.',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf',
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
     }),
     ...sectionId,
   ],
