@@ -5,6 +5,7 @@ import PortableText, { PortableTextQuery, type PortableTextValue } from '../../u
 import FormWrapper from './Form/FormWrapper.astro'
 import sanityFetch from '@/src/utils/sanity.fetch'
 import { getOpenHours } from '@/src/utils/get-open-hours'
+import type { FormState } from '@/src/global/types'
 
 const language = (Astro.params.lang as Language) || 'pl'
 
@@ -12,7 +13,7 @@ const translations = {
   pl: {
     sendButton: 'Wyślij wiadomość',
     tryAgain: 'Spróbuj ponownie',
-    responseBox: 'Odpowiadamy do 24 h',
+    responseBox: 'Odpowiadamy do 24h',
     phoneContact: 'Skontaktuj się telefonicznie',
     emailContact: 'Napisz do nas',
   },
@@ -72,22 +73,6 @@ const global = await sanityFetch<{
     language,
   },
 })
-
-export type FormState = {
-  success: {
-    heading: PortableTextValue
-    paragraph: PortableTextValue
-    highlightedSocialMedia: {
-      name: string
-      link: string
-      iconString: string
-    }[]
-  }
-  error: {
-    heading: PortableTextValue
-    paragraph: PortableTextValue
-  }
-}
 
 type Props = {
   index: number
@@ -260,7 +245,7 @@ const OpenHoursText = getOpenHours({
             left: 0;
             display: block;
             width: 100%;
-            height: 6%;
+            height: 4%;
             content: '';
             background: var(--primary-400, #74535e);
             transform: scaleX(0);
@@ -282,23 +267,6 @@ const OpenHoursText = getOpenHours({
 
           svg {
             animation: ContactForm-ring-low 700ms var(--easing) infinite alternate;
-            @keyframes ContactForm-ring-low {
-              0% {
-                transform: rotate(0deg);
-              }
-              25% {
-                transform: rotate(6deg);
-              }
-              50% {
-                transform: rotate(-6deg);
-              }
-              75% {
-                transform: rotate(6deg);
-              }
-              100% {
-                transform: rotate(0deg);
-              }
-            }
           }
         }
 

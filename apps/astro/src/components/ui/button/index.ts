@@ -1,5 +1,4 @@
-export { default } from './Button.astro'
-export type { Props as ButtonDataProps } from './Button.tsx'
+export { default, type Props as ButtonDataProps } from './Button'
 
 export const ButtonDataQuery = (name: string) => `
   ${name} {

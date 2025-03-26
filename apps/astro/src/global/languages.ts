@@ -1,12 +1,56 @@
 export const LANGUAGES = ['pl'] as const
 export type Language = (typeof LANGUAGES)[number]
 
-const translations = {
+export const translations = {
   pl: {
     breadcrumbsName: 'Strona główna',
+    form: {
+      legal: {
+        labelFirst: 'Wyrażam zgodę na',
+        labelSecond: 'politykę prywatności',
+        link: '/pl/polityka-prywatnosci',
+        required: 'Zgoda jest wymagana',
+      },
+      email: {
+        label: 'Email',
+        required: 'Email jest wymagany',
+        pattern: 'Niepoprawny adres e-mail',
+      },
+      phone: {
+        label: 'Telefon (opcjonalnie)',
+        description: 'Gwarantujemy kontakt wyłącznie w odpowiedzi na zadane pytania',
+      },
+      message: {
+        label: 'Temat wiadomości',
+        required: 'Temat jest wymagany',
+      },
+      submit: 'Wyślij wiadomość',
+    },
   },
   en: {
     breadcrumbsName: 'Homepage',
+    form: {
+      legal: {
+        labelFirst: 'I agree to',
+        labelSecond: 'privacy policy',
+        link: '/en/privacy-policy',
+        required: 'Legal consent is required',
+      },
+      email: {
+        label: 'Email',
+        required: 'Email is required',
+        pattern: 'Invalid email address',
+      },
+      phone: {
+        label: 'Phone (optional)',
+        description: 'We guarantee contact only in response to questions asked',
+      },
+      message: {
+        label: 'Message subject',
+        required: 'Subject is required',
+      },
+      submit: 'Send message',
+    },
   },
 }
 

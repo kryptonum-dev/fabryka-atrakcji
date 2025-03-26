@@ -24,7 +24,7 @@ $gradient-conic: conic-gradient(
   &[data-theme='primary'] {
     min-height: 3rem;
     padding: 0 0.875rem 0 0.125rem;
-    :global(.box) {
+    .box {
       flex-shrink: 0;
       position: relative;
       width: 2.75rem;
@@ -52,7 +52,7 @@ $gradient-conic: conic-gradient(
         opacity: 0;
         transition: opacity 350ms;
       }
-      :global(.icon) {
+      .icon {
         display: grid;
         place-items: center;
         width: 100%;
@@ -112,25 +112,25 @@ $gradient-conic: conic-gradient(
       span {
         color: var(--primary-800, #45051c);
       }
-      :global(.box) {
+      .box {
         padding: 1.5px;
         &::before {
           background-color: var(--neutral-200, #f5f1ec);
         }
 
-        :global(.icon) {
+        .icon {
           background-color: var(--neutral-200, #f5f1ec);
         }
       }
     }
 
     &:hover {
-      :global(.box) {
+      .box {
         &::after {
           opacity: 1;
           animation: Button-rotate 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
         }
-        :global(.icon) {
+        .icon {
           & > svg:first-of-type {
             transform: translateX(175%) rotate(90deg);
           }
@@ -145,7 +145,7 @@ $gradient-conic: conic-gradient(
     }
 
     &:focus:not(:focus-visible) {
-      :global(.box) {
+      .box {
         &::after {
           animation-play-state: paused;
         }
@@ -199,7 +199,7 @@ $gradient-conic: conic-gradient(
       transform: translate(-50%, -50%);
     }
 
-    :global(.wrapper) {
+    .wrapper {
       position: absolute;
       inset: 0;
       overflow: hidden;
@@ -242,7 +242,7 @@ $gradient-conic: conic-gradient(
       span {
         color: var(--neutral-100, #faf7f7);
       }
-      :global(.wrapper) {
+      .wrapper {
         &::after {
           transform: translateY(0);
         }
@@ -253,7 +253,7 @@ $gradient-conic: conic-gradient(
       span {
         color: var(--neutral-100, #faf7f7);
       }
-      :global(.wrapper) {
+      .wrapper {
         &::before {
           transform: translateY(0);
         }

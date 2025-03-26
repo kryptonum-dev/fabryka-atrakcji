@@ -76,6 +76,10 @@ export default defineField({
           title: 'Paragraf',
           validation: (Rule) => Rule.required(),
         }),
+        defineField({
+          name: 'formState',
+          type: 'formState',
+        }),
       ],
     }),
     ...sectionId,

@@ -1,0 +1,127 @@
+---
+
+---
+
+<div class="Wrapper">
+  <slot name="open" />
+  <div class="popup-window" aria-hidden="true">
+    <div class="content">
+      <slot name="content" />
+    </div>
+  </div>
+</div>
+
+<style lang="scss">
+  .Wrapper {
+    z-index: 999;
+    &:has(.popup-window[aria-hidden='true']) {
+      z-index: 50;
+    }
+
+    .popup-window {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      place-items: center;
+      padding: var(--pageMargin);
+      display: grid;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(250, 247, 247, 0.3) 0%, #faf7f7 100%);
+        backdrop-filter: blur(5px);
+        z-index: -1;
+        animation: popup-fade-in 150ms;
+      }
+
+      &[aria-hidden='true'] {
+        display: none;
+      }
+
+      .content {
+        animation: content-bounce-in 250ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+
+        &[data-styled='true'] {
+          border-radius: clamp(12px, calc(24vw / 7.68), 32px);
+          position: relative;
+          max-width: 956px;
+          width: calc(100vw - var(--pageMargin) * 2);
+
+          &::before,
+          &::after {
+            position: absolute;
+            inset: 2px;
+            z-index: -1;
+            content: '';
+            background: var(--neutral-200, #f5f1ec);
+            border-radius: clamp(12px, calc(24vw / 7.68), 32px);
+          }
+
+          &::before {
+            inset: 0;
+            background: conic-gradient(
+              from 135deg at 50% 50%,
+              #798ddc 0deg,
+              #e7c78f 90deg,
+              #fa7468 266.40000343322754deg,
+              #798ddc 360deg
+            );
+          }
+        }
+      }
+
+      @keyframes popup-fade-in {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes content-bounce-in {
+        0% {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  const wrapperList = document.querySelectorAll('.Wrapper')
+  wrapperList.forEach((wrapper) => {
+    const popupWindow = wrapper.querySelector('.popup-window')
+    const openButton = wrapper.querySelector('button')
+    const content = wrapper.querySelector('.content')
+
+    openButton?.addEventListener('click', () => {
+      popupWindow?.setAttribute('aria-hidden', 'false')
+    })
+
+    popupWindow?.addEventListener('click', (event) => {
+      if (!content?.contains(event.target as Node)) {
+        popupWindow.setAttribute('aria-hidden', 'true')
+      }
+    })
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && popupWindow?.getAttribute('aria-hidden') === 'false') {
+        popupWindow.setAttribute('aria-hidden', 'true')
+      }
+    })
+
+    window.addEventListener('popup:close', () => {
+      popupWindow?.setAttribute('aria-hidden', 'true')
+    })
+  })
+</script>

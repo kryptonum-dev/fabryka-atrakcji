@@ -4,7 +4,7 @@ import CategoryBlock from '../components/ui/CategoryBlock.astro'
 import { ImageDataQuery, type ImageDataProps } from '../components/ui/image'
 import { type Language } from '../global/languages'
 import sanityFetch from '../utils/sanity.fetch'
-import Button from '../components/ui/button'
+import Button from '../components/ui/Button'
 import CartLink from '../components/ui/CartLink.astro'
 
 const language = (Astro.props.lang as Language) || 'pl'
@@ -592,7 +592,8 @@ const data = await sanityFetch<{
             @media (max-width: 41.1875rem) {
               width: 100%;
               justify-content: space-between;
-              padding-left: 0;
+              padding-left: 0.25rem;
+              margin-left: -0.25rem;
             }
           }
 

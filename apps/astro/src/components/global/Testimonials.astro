@@ -3,7 +3,7 @@ import imageToInlineSvg from '@/src/utils/image-to-inline-svg'
 import Image, { ImageDataQuery, type ImageDataProps } from '../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
 import RatingBox from '../ui/RatingBox'
-import Button from '../ui/button'
+import Button from '../ui/Button'
 import TestimonialsPopup from '../ui/TestimonialsPopup'
 import { toPlainText } from '../../utils/to-plain-text'
 import { optimizeImage } from '@/src/utils/optimize-images'
@@ -138,16 +138,7 @@ const clientTestimonials = await Promise.all(
   </div>
   <TestimonialsPopup
     client:load
-    testimonials={[
-      ...clientTestimonials,
-      ...clientTestimonials,
-      ...clientTestimonials,
-      ...clientTestimonials,
-      ...clientTestimonials,
-      ...clientTestimonials,
-      ...clientTestimonials,
-      ...clientTestimonials,
-    ]}
+    testimonials={[...clientTestimonials, ...clientTestimonials, ...clientTestimonials]}
     googleData={googleData}
     popupId={popupId}
   />
