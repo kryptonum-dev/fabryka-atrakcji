@@ -5,6 +5,7 @@ import { htmlToString } from '@/utils/html-to-string'
 import type { APIRoute } from 'astro'
 
 const RESEND_API_KEY = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY
+console.log(RESEND_API_KEY)
 
 const template = ({
   email,
@@ -96,7 +97,7 @@ export const POST: APIRoute = async ({ request }) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: `${lang === 'en' ? 'Fabryka Atrakcji Contact Form' : 'Formularz Fabryki Atrakcji'} <formularz@send.fabryka-atrakcji.com>`,
+        from: `Fabryka Atrakcji <formularz@send.fabryka-atrakcji.com>`,
         to: email,
         subject: `${lang === 'en' ? 'Thank you for contacting Fabryka Atrakcji' : 'Dziękujemy za kontakt z Fabryką Atrakcji'}`,
         html: userConfirmationTemplate({ email, lang }),

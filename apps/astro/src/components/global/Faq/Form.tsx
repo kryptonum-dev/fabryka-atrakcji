@@ -10,7 +10,7 @@ import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
 
 export default function Form({ lang = 'pl', formState }: { lang?: Language; formState: ClientFormStateTypes }) {
-  const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: false })
+  const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })
 
   const {
     register,
@@ -25,10 +25,14 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
   const onSubmit = async (data: FieldValues) => {
     setStatus({ sending: true, success: undefined })
 
-    await new Promise((resolve) => setTimeout(resolve, 2000))
     try {
-      const isTrue = 1 + 1 !== 2
-      if (isTrue) {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, lang }),
+      })
+      const responseData = await response.json()
+      if (response.ok && responseData.success) {
         setStatus({ sending: false, success: true })
         reset()
       } else {
