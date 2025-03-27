@@ -1,0 +1,520 @@
+---
+import type { FormStateTypes } from '@/src/global/types'
+import Button from '../../ui/Button'
+import Image, { ImageDataQuery, type ImageDataProps } from '../../ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
+import PopupWindow from '../../ui/PopupWindow.astro'
+import Form from './Form'
+import { toPlainText } from '@/src/utils/to-plain-text'
+import type { Language } from '@/src/global/languages'
+import CloseButton from '../../ui/CloseButton.astro'
+
+const lang = (Astro.params.lang as Language) || 'pl'
+
+export const Newsletter_Query = `
+  _type == "Newsletter" => {
+    ${ImageDataQuery('background')}
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('subheading')}
+    ${PortableTextQuery('paragraph')}
+    ctaText,
+    ${ImageDataQuery('image')}
+    formPopup{
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+      formState{
+        success{
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+          highlightedSocialMedia[] -> {
+            name,
+            link,
+            iconString,
+          },
+        },
+        error{
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+      },
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  background: ImageDataProps
+  heading: PortableTextValue
+  subheading: PortableTextValue
+  paragraph: PortableTextValue
+  ctaText: string
+  image: ImageDataProps
+  formPopup: {
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+    formState: FormStateTypes
+  }
+}
+
+const { index, sectionId, background, heading, subheading, paragraph, ctaText, image, formPopup } = Astro.props
+
+const clientFormStates = {
+  success: {
+    ...formPopup.formState.success,
+    heading: toPlainText(formPopup.formState.success.heading),
+    paragraph: toPlainText(formPopup.formState.success.paragraph),
+  },
+  error: {
+    heading: toPlainText(formPopup.formState.error.heading),
+    paragraph: toPlainText(formPopup.formState.error.paragraph),
+  },
+}
+---
+
+<section class="Newsletter" id={sectionId}>
+  <div class="background">
+    <Image {...background} sizes="100vw" /><svg
+      width="1366"
+      height="585"
+      viewBox="0 0 1366 585"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      ><g filter="url(#filter0_f_5978_20704)"
+        ><ellipse
+          cx="88.3286"
+          cy="758.599"
+          rx="522.328"
+          ry="400.599"
+          transform="rotate(-180 88.3286 758.599)"
+          fill="#C28AC1"
+          fill-opacity="0.4"></ellipse><ellipse
+          cx="1277.67"
+          cy="847.483"
+          rx="522.328"
+          ry="400.599"
+          transform="rotate(-180 1277.67 847.483)"
+          fill="#EAE8FF"></ellipse><ellipse
+          cx="1382.57"
+          cy="810.363"
+          rx="406.576"
+          ry="311.637"
+          transform="rotate(-180 1382.57 810.363)"
+          fill="#FFF1F2"></ellipse><ellipse
+          opacity="0.7"
+          cx="679.095"
+          cy="691.304"
+          rx="406.576"
+          ry="311.637"
+          transform="rotate(-180 679.095 691.304)"
+          fill="#DB7C68"></ellipse><ellipse
+          opacity="0.7"
+          cx="1141.67"
+          cy="539.666"
+          rx="370.404"
+          ry="283.803"
+          transform="rotate(-180 1141.67 539.666)"
+          fill="#8C484D"></ellipse><ellipse
+          cx="894.244"
+          cy="656.461"
+          rx="370.404"
+          ry="283.803"
+          transform="rotate(-180 894.244 656.461)"
+          fill="#775F89"
+          fill-opacity="0.4"></ellipse><ellipse
+          cx="130.301"
+          cy="772.525"
+          rx="450.707"
+          ry="345.475"
+          transform="rotate(-180 130.301 772.525)"
+          fill="#3A7587"
+          fill-opacity="0.6"></ellipse><ellipse
+          cx="809.924"
+          cy="484.366"
+          rx="134.561"
+          ry="69.3134"
+          transform="rotate(-180 809.924 484.366)"
+          fill="#FFDD65"></ellipse></g
+      ><defs
+        ><filter
+          id="filter0_f_5978_20704"
+          x="-717.591"
+          y="-27.7274"
+          width="2801.18"
+          height="1559.4"
+          filterUnits="userSpaceOnUse"
+          color-interpolation-filters="sRGB"
+          ><feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood><feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="BackgroundImageFix"
+            result="shape"></feBlend><feGaussianBlur stdDeviation="141.795" result="effect1_foregroundBlur_5978_20704"
+          ></feGaussianBlur></filter
+        ></defs
+      ></svg
+    >
+  </div>
+  <div class="wrapper">
+    <header class="header">
+      <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+      <PortableText value={subheading} class="subheading" heading={index === 0 ? 'h2' : 'h3'} />
+      <PortableText value={paragraph} class="paragraph" />
+    </header>
+    <PopupWindow>
+      <Button text={ctaText} theme="primary" slot="open" />
+      <div class="container" slot="content">
+        <PortableText value={formPopup.heading} class="popup-heading" heading={index === 0 ? 'h2' : 'h3'} />
+        <PortableText value={formPopup.paragraph} class="popup-paragraph" />
+        <div class="form-wrapper">
+          <Form client:idle lang={lang} formState={clientFormStates} />
+        </div>
+        <CloseButton />
+      </div>
+    </PopupWindow>
+    <Image
+      {...image}
+      sizes="(max-width: 31.1875rem) 94vw, (max-width: 37.4375rem) 80vw, (max-width: 54.875rem) 55vw, (max-width: 60.5625rem) 480px, 438px"
+    />
+  </div>
+</section>
+
+<style lang="scss">
+  .Newsletter {
+    max-width: 85.375rem;
+    margin: 0 auto;
+    padding: clamp(3rem, calc(4vw / 0.48), 4rem) var(--pageMargin);
+    display: grid;
+    place-items: center;
+    position: relative;
+
+    .background {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+
+      img {
+        height: 100%;
+        width: 100%;
+      }
+
+      > svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .wrapper {
+      background: var(--primary-800, #45051c);
+      padding: clamp(1.5rem, calc(3.5vw / 0.48), 4rem);
+      border-radius: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      column-gap: 2rem;
+      grid-template-rows: auto 1fr;
+      width: 100%;
+      max-width: 69.375rem;
+      overflow: hidden;
+      .header {
+        max-width: 26.4375rem;
+        margin: 0.75rem 0 clamp(1.5rem, calc(2.5vw / 0.48), 2.5rem);
+
+        .heading {
+          margin-bottom: 1rem;
+          font-size: var(--typography-heading-l, 2rem);
+          line-height: 0.9;
+          letter-spacing: -0.065em;
+          color: var(--neutral-400, #ffe4ca);
+        }
+
+        .subheading {
+          margin-bottom: 1rem;
+          line-height: 1;
+          letter-spacing: -0.055em;
+          color: var(--neutral-400, #ffe4ca);
+          font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+          text-transform: uppercase;
+          font-weight: 760;
+          font-size: var(--typography-heading-s, 1.125rem);
+        }
+
+        .paragraph {
+          color: var(--primary-200, #e6cbd5);
+        }
+      }
+
+      :global(.Wrapper) {
+        grid-column: 1/2;
+        grid-row: 2/3;
+        margin-bottom: 0.75rem;
+        align-self: end;
+
+        :global(.popup-window)::before {
+          background: linear-gradient(180deg, rgba(69, 5, 28, 0.6) 0%, rgba(69, 5, 28, 0.9) 100%);
+          backdrop-filter: blur(5px);
+        }
+      }
+
+      > img {
+        grid-column: 2/3;
+        width: clamp(320px, calc(320vw / 7.68), 438px);
+        aspect-ratio: 438/329;
+        grid-row: 1/3;
+        border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      .container {
+        border-radius: clamp(1rem, calc(1.5rem / 0.48), 2rem);
+        isolation: isolate;
+        position: relative;
+        max-width: 59.75rem;
+        width: calc(100vw - var(--pageMargin) * 2);
+        padding: 2.5rem 2rem;
+        display: grid;
+        grid-template-columns: 1fr 24.75rem auto;
+        grid-template-rows: repeat(2, 1fr);
+        column-gap: 1.5rem;
+        max-height: calc(100dvh - 4rem);
+
+        &::before,
+        &::after {
+          position: absolute;
+          inset: 0.125rem;
+          z-index: -1;
+          content: '';
+          background: var(--neutral-200, #f5f1ec);
+          border-radius: clamp(12px, calc(24vw / 7.68), 32px);
+        }
+
+        &::before {
+          inset: 0;
+          background: conic-gradient(
+            from 135deg at 50% 50%,
+            #798ddc 0deg,
+            #e7c78f 90deg,
+            #fa7468 266.40000343322754deg,
+            #798ddc 360deg
+          );
+        }
+
+        .popup-heading,
+        .popup-paragraph {
+          max-width: 22.75rem;
+          grid-column: 1/2;
+          justify-self: start;
+        }
+
+        .popup-heading {
+          grid-row: 1/2;
+          font-weight: 700;
+          font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+          line-height: 1.25;
+          font-size: var(--typography-body-2xl, 1.5rem);
+          letter-spacing: -0.04em;
+          color: var(--primary-700, #600d2a);
+          margin-bottom: clamp(1rem, calc(1vw / 0.48), 1.5rem);
+          align-self: end;
+        }
+
+        .popup-paragraph {
+          font-size: var(--typography-body-xl, 1.125rem);
+          grid-row: 2/3;
+        }
+
+        .form-wrapper {
+          overflow-y: auto;
+          grid-column: 2/3;
+          max-height: 100%;
+          grid-row: 1/3;
+          background-color: var(--neutral-100, #faf7f7);
+          border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+          padding: clamp(1rem, calc(2vw / 0.48), 2rem) clamp(1rem, calc(2vw / 0.48), 2rem)
+            clamp(1.25rem, calc(2vw / 0.48), 2rem);
+          position: relative;
+          display: flex;
+          flex-direction: column;
+
+          :global(form) {
+            :global(label) {
+              &:nth-of-type(1) {
+                margin-bottom: 1.5rem;
+              }
+
+              &:nth-of-type(2) {
+                margin-bottom: 1rem;
+              }
+            }
+
+            :global(button[type='submit']) {
+              width: 100%;
+              max-width: 100%;
+
+              :global(span) {
+                margin: 0 auto;
+                padding-right: 1.75rem;
+              }
+            }
+
+            :global([data-form-state]) {
+              position: static;
+              padding: 0;
+              background-color: var(--neutral-100, #faf7f7);
+              align-items: flex-start;
+              text-align: start;
+              isolation: isolate;
+              min-height: 19.8125rem;
+
+              :global(> *:first-child) {
+                align-self: flex-start;
+              }
+            }
+
+            &[data-finished='true'] {
+              :global(button[type='submit']),
+              :global([data-loader]),
+              :global(label) {
+                display: none;
+              }
+            }
+          }
+        }
+        :global(.CloseButton) {
+          align-self: start;
+          grid-column: 3/4;
+          grid-row: 1/3;
+        }
+      }
+    }
+
+    @media (max-width: 60.5625rem) {
+      .background > svg {
+        height: 50%;
+        bottom: 0;
+        left: 0;
+        right: unset;
+        top: unset;
+      }
+      .wrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(3, auto);
+        max-width: 38rem;
+
+        .header {
+          grid-column: 1/2;
+          grid-row: 1/2;
+          max-width: 100%;
+        }
+
+        :global(.Wrapper) {
+          grid-column: 1/2;
+          grid-row: 2/3;
+
+          margin-bottom: clamp(2.5rem, calc(3.5vw / 0.48), 3.5rem);
+        }
+
+        > img {
+          grid-column: 1/2;
+          grid-row: 3/4;
+          width: 100%;
+        }
+      }
+    }
+
+    @media (max-width: 56.1875rem) {
+      .wrapper .container {
+        max-width: 38rem;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto 1fr;
+        padding: clamp(1.5rem, calc(3.5vw / 0.48), 3.5rem) clamp(1rem, calc(3.5vw / 0.48), 3.5rem);
+        column-gap: 2rem;
+
+        .popup-heading {
+          grid-column: 1/2;
+          grid-row: 1/2;
+          max-width: 100%;
+        }
+
+        .popup-paragraph {
+          grid-column: 1/2;
+          grid-row: 2/3;
+          max-width: 100%;
+        }
+
+        .form-wrapper {
+          grid-column: 1/3;
+          grid-row: 3/4;
+          margin-top: clamp(3rem, calc(4vw / 0.48), 4rem);
+        }
+
+        :global(.CloseButton) {
+          grid-column: 2/3;
+          grid-row: 1/3;
+        }
+      }
+    }
+
+    @media (max-width: 41.8125rem) {
+      .wrapper {
+        .container {
+          :global(.CloseButton) {
+            top: unset;
+            bottom: calc(100% + clamp(1.5rem, calc(3.5vw / 0.48), 3.5rem) + 6px);
+          }
+        }
+      }
+    }
+
+    @media (max-width: 31.1875rem) {
+      .wrapper {
+        padding: 1.5rem 1.5rem 0;
+
+        :global(.Wrapper) {
+          :global(> button) {
+            width: 100%;
+            max-width: 100%;
+
+            :global(span) {
+              margin: 0 auto;
+              padding-right: 1.75rem;
+            }
+          }
+        }
+
+        > img {
+          width: calc(100% + 3rem);
+          max-width: calc(100% + 3rem);
+          margin: 0 -1.5rem;
+          border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        :global(.content) {
+          align-self: end;
+
+          .container {
+            width: 100%;
+            border-radius: 1rem 1rem 0 0;
+            padding: 1.5rem 1rem;
+            padding-bottom: 0rem;
+
+            &::before,
+            &::after {
+              border-radius: 1rem 1rem 0 0;
+            }
+
+            .form-wrapper {
+              width: calc(100% + 2rem);
+              margin: 3rem -1rem 0;
+              border-radius: 0.5rem 0.5rem 0 0;
+            }
+
+            :global(.CloseButton) {
+              bottom: calc(100% + 1.875rem);
+              right: 0.375rem;
+            }
+          }
+        }
+      }
+    }
+  }
+</style>

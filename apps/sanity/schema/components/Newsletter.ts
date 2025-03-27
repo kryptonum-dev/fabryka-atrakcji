@@ -15,9 +15,64 @@ export default defineField({
   icon,
   fields: [
     defineField({
+      name: 'background',
+      type: 'image',
+      title: 'Zdjęcie tła',
+      description: 'Zdjęcie będzie używane jako tło dla sekcji, zalecamy nie zmieniać bazowego zdjęcia',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: 'heading',
       type: 'Heading',
-      title: 'Heading',
+      title: 'Nagłówek',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'subheading',
+      type: 'Heading',
+      title: 'Podtytuł (opcjonalny)',
+    }),
+    defineField({
+      name: 'paragraph',
+      type: 'PortableText',
+      title: 'Paragraf',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'ctaText',
+      type: 'string',
+      title: 'Tekst przycisku',
+      description: 'Tekst przycisku, który otwiera okno z formularzem',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'image',
+      type: 'image',
+      title: 'Zdjęcie',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'formPopup',
+      type: 'object',
+      title: 'Okienko formularza',
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'formState',
+          type: 'formState',
+        }),
+      ],
       validation: (Rule) => Rule.required(),
     }),
     ...sectionId,
