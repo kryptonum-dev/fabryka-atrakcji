@@ -3,11 +3,11 @@ import type { FormStateTypes } from '@/src/global/types'
 import Button from '../../ui/Button'
 import Image, { ImageDataQuery, type ImageDataProps } from '../../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
-import PopupWindow from '../../ui/PopupWindow.astro'
+import PopupWindow from '../../ui/PopupWindow/index.astro'
 import Form from './Form'
+import CloseButton from '../../ui/PopupWindow/CloseButton.astro'
 import { toPlainText } from '@/src/utils/to-plain-text'
 import type { Language } from '@/src/global/languages'
-import CloseButton from '../../ui/CloseButton.astro'
 
 const lang = (Astro.params.lang as Language) || 'pl'
 
@@ -173,6 +173,7 @@ const clientFormStates = {
     </PopupWindow>
     <Image
       {...image}
+      priority={index === 0}
       sizes="(max-width: 31.1875rem) 94vw, (max-width: 37.4375rem) 80vw, (max-width: 54.875rem) 55vw, (max-width: 60.5625rem) 480px, 438px"
     />
   </div>
@@ -250,6 +251,10 @@ const clientFormStates = {
         margin-bottom: 0.75rem;
         align-self: end;
 
+        :global(> button):focus-visible {
+          outline: 2px solid var(--neutral-200, #ffe4ca);
+        }
+
         :global(.popup-window)::before {
           background: linear-gradient(180deg, rgba(69, 5, 28, 0.6) 0%, rgba(69, 5, 28, 0.9) 100%);
           backdrop-filter: blur(5px);
@@ -267,36 +272,12 @@ const clientFormStates = {
       .container {
         border-radius: clamp(1rem, calc(1.5rem / 0.48), 2rem);
         isolation: isolate;
-        position: relative;
         max-width: 59.75rem;
-        width: calc(100vw - var(--pageMargin) * 2);
         padding: 2.5rem 2rem;
         display: grid;
         grid-template-columns: 1fr 24.75rem auto;
         grid-template-rows: repeat(2, 1fr);
         column-gap: 1.5rem;
-        max-height: calc(100dvh - 4rem);
-
-        &::before,
-        &::after {
-          position: absolute;
-          inset: 0.125rem;
-          z-index: -1;
-          content: '';
-          background: var(--neutral-200, #f5f1ec);
-          border-radius: clamp(12px, calc(24vw / 7.68), 32px);
-        }
-
-        &::before {
-          inset: 0;
-          background: conic-gradient(
-            from 135deg at 50% 50%,
-            #798ddc 0deg,
-            #e7c78f 90deg,
-            #fa7468 266.40000343322754deg,
-            #798ddc 360deg
-          );
-        }
 
         .popup-heading,
         .popup-paragraph {
@@ -409,7 +390,6 @@ const clientFormStates = {
         :global(.Wrapper) {
           grid-column: 1/2;
           grid-row: 2/3;
-
           margin-bottom: clamp(2.5rem, calc(3.5vw / 0.48), 3.5rem);
         }
 
@@ -454,17 +434,6 @@ const clientFormStates = {
       }
     }
 
-    @media (max-width: 41.8125rem) {
-      .wrapper {
-        .container {
-          :global(.CloseButton) {
-            top: unset;
-            bottom: calc(100% + clamp(1.5rem, calc(3.5vw / 0.48), 3.5rem) + 6px);
-          }
-        }
-      }
-    }
-
     @media (max-width: 31.1875rem) {
       .wrapper {
         padding: 1.5rem 1.5rem 0;
@@ -488,30 +457,20 @@ const clientFormStates = {
           border-radius: 0.5rem 0.5rem 0 0;
         }
 
-        :global(.content) {
-          align-self: end;
+        .container {
+          border-radius: 1rem 1rem 0 0;
+          padding: 1.5rem 1rem;
+          padding-bottom: 0rem;
 
-          .container {
-            width: 100%;
+          &::before,
+          &::after {
             border-radius: 1rem 1rem 0 0;
-            padding: 1.5rem 1rem;
-            padding-bottom: 0rem;
+          }
 
-            &::before,
-            &::after {
-              border-radius: 1rem 1rem 0 0;
-            }
-
-            .form-wrapper {
-              width: calc(100% + 2rem);
-              margin: 3rem -1rem 0;
-              border-radius: 0.5rem 0.5rem 0 0;
-            }
-
-            :global(.CloseButton) {
-              bottom: calc(100% + 1.875rem);
-              right: 0.375rem;
-            }
+          .form-wrapper {
+            width: calc(100% + 2rem);
+            margin: 3rem -1rem 0;
+            border-radius: 0.5rem 0.5rem 0 0;
           }
         }
       }

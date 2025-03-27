@@ -4,11 +4,9 @@ import Image, { ImageDataQuery, type ImageDataProps } from '../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
 import RatingBox from '../ui/RatingBox'
 import Button from '../ui/Button'
-import TestimonialsPopup from '../ui/TestimonialsPopup'
-import { toPlainText } from '../../utils/to-plain-text'
-import { optimizeImage } from '@/src/utils/optimize-images'
+import TestimonialsPopup from '../ui/TestimonialsPopup/index.astro'
 import type { Language } from '@/src/global/languages'
-import PopupWindow from '../ui/PopupWindow.astro'
+import PopupWindow from '../ui/PopupWindow/index.astro'
 
 const language = (Astro.params.lang as Language) || 'pl'
 
@@ -101,21 +99,6 @@ const translateDates = testimonials.map((testimonial) => {
 })
 
 const logoSvgs = await Promise.all(testimonials.map(async ({ logo }) => (logo ? await imageToInlineSvg(logo) : null)))
-
-const popupId = crypto.randomUUID()
-
-const clientTestimonials = await Promise.all(
-  allTestimonials.map(async (testimonial) => ({
-    ...testimonial,
-    review: toPlainText(testimonial.review),
-    logo: testimonial.logo ? await imageToInlineSvg(testimonial.logo) : null,
-    image: {
-      profileImage: testimonial.image
-        ? await optimizeImage({ image: testimonial.image.profileImage.asset.url, width: 36, height: 36 })
-        : null,
-    },
-  }))
-)
 ---
 
 <section class="Testimonials max-width" id={sectionId}>
@@ -149,13 +132,13 @@ const clientTestimonials = await Promise.all(
     </ul>
     <RatingBox {...googleData} />
     <PopupWindow>
-      <Button slot="open" data-popup-id={popupId} className="all-reviews" theme="secondary"
+      <Button slot="open" className="all-reviews" theme="secondary"
         >{`${t.allReviews} (${allTestimonials.length})`}</Button
       >
       <TestimonialsPopup
         slot="content"
         client:idle
-        testimonials={[...clientTestimonials, ...clientTestimonials, ...clientTestimonials]}
+        testimonials={[...allTestimonials, ...allTestimonials, ...allTestimonials]}
         googleData={googleData}
       />
     </PopupWindow>
@@ -408,13 +391,3 @@ const clientTestimonials = await Promise.all(
     }
   }
 </style>
-
-<script>
-  document.querySelectorAll<HTMLDivElement>('.Testimonials').forEach((section) => {
-    const button = section.querySelector<HTMLButtonElement>('.all-reviews')
-    const buttonPopupId = button?.dataset.popupId
-    button?.addEventListener('click', () => {
-      window.dispatchEvent(new CustomEvent(`testimonials-${buttonPopupId}:open`))
-    })
-  })
-</script>
