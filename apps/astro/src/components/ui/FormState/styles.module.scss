@@ -21,14 +21,14 @@
   .heading {
     margin-bottom: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
     color: var(--primary-700, #600d2a);
-    font-size: var(--typography-body-2xl, 24px);
+    font-size: var(--typography-body-2xl, 1.5rem);
     font-weight: 700;
     line-height: 1.25;
     letter-spacing: -0.04em;
   }
 
   .paragraph {
-    font-size: var(--typography-body-xl, 18px);
+    font-size: var(--typography-body-xl, 1.125rem);
     line-height: 1.5;
     letter-spacing: -0.02em;
   }
@@ -100,7 +100,7 @@
         min-height: 2.75rem;
         overflow: hidden;
         color: var(--primary-800, #45051c);
-        font-size: var(--typography-body-m, 14px);
+        font-size: var(--typography-body-m, 0.875rem);
         font-weight: 700;
         line-height: 1.7;
         border-radius: clamp(8px, calc(12vw / 7.68), 12px);

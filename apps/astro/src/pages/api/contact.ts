@@ -5,7 +5,6 @@ import { htmlToString } from '@/utils/html-to-string'
 import type { APIRoute } from 'astro'
 
 const RESEND_API_KEY = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY
-console.log(RESEND_API_KEY)
 
 const template = ({
   email,

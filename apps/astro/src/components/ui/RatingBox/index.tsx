@@ -249,7 +249,7 @@ const renderStars = (rating: number = 0) => {
 
 export default function RatingBox({ rating, ratingCount }: RatingBoxProps) {
   return (
-    <div className={styles.box}>
+    <div className={styles.box} data-rating-box>
       <span className={styles.rating}>{`${rating}/5`}</span>
       <div className={styles.stars}>{renderStars(rating)}</div>
       <span>{countReviews(ratingCount)}</span>

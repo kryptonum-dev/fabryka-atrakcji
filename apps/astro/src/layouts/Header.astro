@@ -1318,7 +1318,6 @@ const data = await sanityFetch<{
     const isCurrentlyOpened = header.getAttribute('data-mobile-open') === 'true'
     if (isCurrentlyOpened) {
       closeExpandItems()
-      console.log('hej')
     } else {
       header.setAttribute('data-mobile-open', 'true')
       mobileOverlay.setAttribute('aria-hidden', 'false')

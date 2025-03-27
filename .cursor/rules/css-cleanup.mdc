@@ -13,7 +13,7 @@ alwaysApply: false
 - Don't change anything else in the file except the code in css/scss.
 - Change timing (ex. transition time, animation time etc), to be in ms instead of s, for example 0.3s -> 300ms.
 - Change every value from px to rem except for image dimensions (width and height) and border-radius. Always use the conversion ratio: 1rem = 16px
-- If you see a clamp() property like this: clamp([pixels]px, calc([pixels]vw / 7.68), [pixels]px), change it to clamp([rem]rem, calc([rem]vw /0.48), [rem]rem). Note that we're converting px to rem and fixing any 'vs' typo to 'vw'.
+- If you see a clamp() property like this: clamp([pixels]px, calc([pixels]vw / 7.68), [pixels]px), change it to clamp([rem]rem, calc([rem]vw /0.48), [rem]rem). 
 - Iterate over the entire file and check if there are any overlaps in scss properties. If a property for an element is defined in two places unnecessarily, remove duplicates. Be careful to maintain cascading behavior and specificity when removing properties.
 - Change every letter-spacing value from pixels to its corresponding em values. To calculate: em = px / font-size. For example, if font-size is 16px and letter-spacing is 2px, then letter-spacing would be 0.125em (2px/16px).
 - Convert line-height from percentage format to unitless number format, for example 160% -> 1.6, 120% -> 1.2, etc.
@@ -50,3 +50,12 @@ alwaysApply: false
     /* Other */
     cursor: pointer;
     }
+
+## Important tips
+- DO NOT leave any comment made by yourself in the process
+- DO NOT leave any spaces between properties groups as mentioned above
+- ALWAYS repeat the process few timesa to ENSURE, that every clamp calculation has been switched properly, read the point about clamps again
+- ALWAYS keep the border raidius in px, doesn't matter if its a clamp value or a normal one.
+
+
+

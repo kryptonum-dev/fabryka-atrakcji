@@ -9,7 +9,15 @@ import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
 
-export default function Form({ lang = 'pl', formState }: { lang?: Language; formState: ClientFormStateTypes }) {
+export default function Form({
+  lang = 'pl',
+  formState,
+  children,
+}: {
+  lang?: Language
+  formState: ClientFormStateTypes
+  children: React.ReactNode
+}) {
   const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })
 
   const {
@@ -32,6 +40,7 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
         body: JSON.stringify({ ...data, lang }),
       })
       const responseData = await response.json()
+
       if (response.ok && responseData.success) {
         setStatus({ sending: false, success: true })
         reset()
@@ -108,6 +117,7 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
       <Button type="submit" disabled={isFilled}>
         {t.form.submit}
       </Button>
+      {children}
       <Loader
         isLoading={isFilled}
         hasFinishedLoading={status.sending === false && status.success !== undefined}

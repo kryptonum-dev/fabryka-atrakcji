@@ -44,8 +44,6 @@ const { index, sectionId, backgroundImage, heading, mainParagraph, subParagraph,
   Astro.props
 
 const iconPointsSvg = await Promise.all(iconPoints.map(async (point) => await imageToInlineSvg(point.icon)))
-
-console.log(upDownPoints.map(({ character }) => character))
 ---
 
 <section class="FloatingPointsList" id={sectionId}>

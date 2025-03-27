@@ -10,7 +10,6 @@ type MetadataProps = ({ path: string; url?: never } | { url: string; path?: neve
 }
 
 export default async function metadataFetch(slug: string) {
-  console.log(slug)
   const seo = await sanityFetch<MetadataProps>({
     query: /* groq */ `
       *[slug.current == $slug][0] {

@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Rules for interacting with various git actions
 globs: 
 alwaysApply: true

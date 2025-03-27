@@ -7,6 +7,22 @@ import Button from '../ui/Button'
 import TestimonialsPopup from '../ui/TestimonialsPopup'
 import { toPlainText } from '../../utils/to-plain-text'
 import { optimizeImage } from '@/src/utils/optimize-images'
+import type { Language } from '@/src/global/languages'
+import PopupWindow from '../ui/PopupWindow.astro'
+
+const language = (Astro.params.lang as Language) || 'pl'
+
+const translations = {
+  pl: {
+    allReviews: 'Przeczytaj wszystkie opinie',
+  },
+  en: {
+    allReviews: 'Read all reviews',
+  },
+}
+
+const t = translations[language]
+
 export const Testimonials_Query = `
   _type == "Testimonials" => {
     ${PortableTextQuery('heading')}
@@ -27,7 +43,7 @@ export const Testimonials_Query = `
       ratingCount,
     },
     "allTestimonials": *[_type == "Testimonial_Collection"] {
-       name,
+      name,
       position,
       company,
       "logo": logo.asset->url,
@@ -131,17 +147,19 @@ const clientTestimonials = await Promise.all(
         ))
       }
     </ul>
-    <Button data-popup-id={popupId} className="all-reviews" theme="secondary"
-      >{`Przeczytaj wszystkie opinie (${allTestimonials.length})`}</Button
-    >
     <RatingBox {...googleData} />
+    <PopupWindow>
+      <Button slot="open" data-popup-id={popupId} className="all-reviews" theme="secondary"
+        >{`${t.allReviews} (${allTestimonials.length})`}</Button
+      >
+      <TestimonialsPopup
+        slot="content"
+        client:idle
+        testimonials={[...clientTestimonials, ...clientTestimonials, ...clientTestimonials]}
+        googleData={googleData}
+      />
+    </PopupWindow>
   </div>
-  <TestimonialsPopup
-    client:load
-    testimonials={[...clientTestimonials, ...clientTestimonials, ...clientTestimonials]}
-    googleData={googleData}
-    popupId={popupId}
-  />
 </section>
 
 <style lang="scss">
@@ -254,15 +272,16 @@ const clientTestimonials = await Promise.all(
         }
       }
 
-      > :global(div) {
+      > :global([data-rating-box]) {
         width: max-content;
         grid-column: 2/3;
+        grid-row: 2/3;
         justify-self: end;
       }
 
-      :global(.all-reviews) {
-        isolation: isolate;
-        z-index: 2;
+      :global(.Wrapper) {
+        grid-column: 1/2;
+        grid-row: 2/3;
       }
     }
 
@@ -327,7 +346,7 @@ const clientTestimonials = await Promise.all(
       .container {
         grid-template-columns: 1fr;
 
-        > :global(div) {
+        > :global([data-rating-box]) {
           grid-column: 1/2;
           justify-self: stretch;
           margin-bottom: 0.5rem;
@@ -336,14 +355,17 @@ const clientTestimonials = await Promise.all(
           width: 100%;
         }
 
-        :global(.all-reviews) {
+        :global(.Wrapper) {
           grid-column: 1/2;
           justify-self: stretch;
           grid-row: 3/4;
-          max-width: 100%;
-          width: 100%;
-          display: flex;
-          justify-content: center;
+
+          :global(> button) {
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+          }
         }
       }
     }

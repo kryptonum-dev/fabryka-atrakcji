@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: This rule provides important context for creating basic files for page builder components
 globs: 
 alwaysApply: false
