@@ -1,21 +1,182 @@
 ---
+import Button from '../ui/Button'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
+
 export const TextBlocksGrid_Query = `
   _type == "TextBlocksGrid" => {
-  
+    list[] {
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+    }
   },
 `
 
 type Props = {
   index: number
   sectionId?: string
+  list: {
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+  }[]
 }
 
-const { index, sectionId } = Astro.props
+const { index, sectionId, list } = Astro.props
 ---
 
-<section class="TextBlocksGrid" id={sectionId}></section>
+<section class="TextBlocksGrid" id={sectionId}>
+  <div class="wrapper" aria-expanded="false">
+    <ul class="list">
+      {
+        list.map(({ heading, paragraph }, listIndex) => (
+          <li class="item">
+            <PortableText
+              value={heading}
+              class="heading"
+              heading={index === 0 ? (listIndex === 0 ? 'h1' : 'h2') : 'h3'}
+            />
+            <PortableText value={paragraph} class="paragraph" />
+          </li>
+        ))
+      }
+    </ul>
+    <div class="toggle">
+      <Button theme="secondary" data-toggle aria-expanded="false" aria-controls={`${sectionId}-content`}>
+        Wczytaj wszystkie teksty
+      </Button>
+    </div>
+  </div>
+</section>
 
 <style lang="scss">
   .TextBlocksGrid {
+    max-width: 82.375rem;
+    margin: 0 auto;
+    padding: 2rem 0;
+
+    .wrapper {
+      position: relative;
+      max-height: 30.25rem;
+      overflow: hidden;
+      padding: clamp(1rem, calc(2vw / 0.48), 2rem) 2rem 2rem;
+      background: var(--neutral-200, #f5f1ec);
+      border-radius: 1.5rem;
+      transition: max-height 350ms cubic-bezier(0.18, 0.89, 0.32, 1.05);
+
+      .toggle {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: grid;
+        place-items: center;
+        padding-bottom: 2rem;
+
+        &::before {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          background: linear-gradient(180deg, rgba(245, 241, 236, 0) 0%, #f5f1ec 90%);
+          height: 16.8125rem;
+          transition: opacity 350ms;
+        }
+
+        &:has(button[aria-expanded='true']) {
+          &::before {
+            opacity: 0;
+          }
+        }
+      }
+
+      .list {
+        font-size: var(--typography-body-m, 0.875rem);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: clamp(1.25rem, calc(2.25vw / 0.48), 2.25rem) 0.625rem;
+        line-height: 1.7;
+        padding-bottom: 4rem;
+
+        .item {
+          .heading {
+            margin-bottom: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+            color: var(--primary-800, #45051c);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+          }
+
+          .paragraph {
+            letter-spacing: -0.01em;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 989px) {
+      .wrapper {
+        padding-right: var(--pageMargin);
+        padding-left: var(--pageMargin);
+
+        .list {
+          grid-template-columns: repeat(2, 1fr);
+          column-gap: 0.75rem;
+        }
+      }
+    }
+
+    @media (max-width: 549px) {
+      .wrapper {
+        .list {
+          grid-template-columns: repeat(1, 1fr);
+        }
+      }
+    }
   }
 </style>
+
+<script>
+  document.querySelectorAll('.TextBlocksGrid').forEach((section) => {
+    const wrapper = section.querySelector('.wrapper') as HTMLElement
+    const button = section.querySelector('button[data-toggle]') as HTMLButtonElement
+    const buttonText = button.querySelector('span') as HTMLSpanElement
+    let isAnimating = false
+
+    const updateWrapperHeight = () => {
+      if (button.getAttribute('aria-expanded') === 'true') {
+        wrapper.style.maxHeight = wrapper.scrollHeight + 'px'
+      }
+    }
+    window.addEventListener('resize', updateWrapperHeight)
+
+    button.addEventListener('click', () => {
+      if (isAnimating) return
+      isAnimating = true
+
+      const isExpanded = button.getAttribute('aria-expanded') === 'true'
+      const startHeight = wrapper.scrollHeight + 'px'
+      const collapsedHeight = '30.25rem'
+
+      if (!isExpanded) {
+        wrapper.style.maxHeight = startHeight
+        wrapper.setAttribute('aria-expanded', 'true')
+        button.setAttribute('aria-expanded', 'true')
+        buttonText.textContent = 'Zwiń teksty'
+      } else {
+        wrapper.style.maxHeight = collapsedHeight
+        wrapper.setAttribute('aria-expanded', 'false')
+        button.setAttribute('aria-expanded', 'false')
+        buttonText.textContent = 'Wczytaj wszystkie teksty'
+
+        section.scrollIntoView({ behavior: 'instant', block: 'start' })
+      }
+
+      wrapper.addEventListener(
+        'transitionend',
+        () => {
+          isAnimating = false
+        },
+        { once: true }
+      )
+    })
+  })
+</script>

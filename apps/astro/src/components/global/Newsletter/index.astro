@@ -22,6 +22,7 @@ export const Newsletter_Query = `
     formPopup{
       ${PortableTextQuery('heading')}
       ${PortableTextQuery('paragraph')}
+      groupId,
       formState{
         success{
           ${PortableTextQuery('heading')}
@@ -51,6 +52,7 @@ type Props = {
   ctaText: string
   image: ImageDataProps
   formPopup: {
+    groupId: string
     heading: PortableTextValue
     paragraph: PortableTextValue
     formState: FormStateTypes
@@ -166,7 +168,7 @@ const clientFormStates = {
         <PortableText value={formPopup.heading} class="popup-heading" heading={index === 0 ? 'h2' : 'h3'} />
         <PortableText value={formPopup.paragraph} class="popup-paragraph" />
         <div class="form-wrapper">
-          <Form client:idle lang={lang} formState={clientFormStates} />
+          <Form groupId={formPopup.groupId} client:idle lang={lang} formState={clientFormStates} />
         </div>
         <CloseButton />
       </div>

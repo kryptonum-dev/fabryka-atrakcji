@@ -1,8 +1,8 @@
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, Square } from 'lucide-react'
 import { defineField } from 'sanity'
 import { sectionPreview } from '../../utils/section-preview'
-import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
+import { toPlainText } from '../../utils/to-plain-text'
 
 const name = 'TextBlocksGrid'
 const title = 'Siatka bloków tekstowych'
@@ -15,10 +15,31 @@ export default defineField({
   icon,
   fields: [
     defineField({
-      name: 'heading',
-      type: 'Heading',
-      title: 'Heading',
-      validation: (Rule) => Rule.required(),
+      name: 'list',
+      type: 'array',
+      title: 'Lista bloków z tekstem',
+      validation: (Rule) =>
+        Rule.required().min(6).max(16).error('Wymagana jest lista z co najmniej 6 i co najwyżej 16 bloków'),
+      of: [
+        {
+          type: 'object',
+          fields: [
+            defineField({ name: 'heading', type: 'Heading', title: 'Nagłówek' }),
+            defineField({ name: 'paragraph', type: 'Heading', title: 'Paragraf' }),
+          ],
+          preview: {
+            select: {
+              heading: 'heading',
+              paragraph: 'paragraph',
+            },
+            prepare: ({ heading, paragraph }) => ({
+              title: toPlainText(heading),
+              subtitle: toPlainText(paragraph),
+              media: Square,
+            }),
+          },
+        },
+      ],
     }),
     ...sectionId,
   ],
@@ -26,9 +47,8 @@ export default defineField({
     select: {
       heading: 'heading',
     },
-    prepare: ({ heading }) => ({
+    prepare: () => ({
       title: title,
-      subtitle: toPlainText(heading),
       ...sectionPreview({ imgUrl: `/static/components/${name}.webp`, icon }),
     }),
   },

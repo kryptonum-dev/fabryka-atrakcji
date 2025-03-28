@@ -9,7 +9,15 @@ import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
 
-export default function Form({ lang = 'pl', formState }: { lang?: Language; formState: ClientFormStateTypes }) {
+export default function Form({
+  lang = 'pl',
+  formState,
+  groupId,
+}: {
+  lang?: Language
+  formState: ClientFormStateTypes
+  groupId: string
+}) {
   const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })
 
   const {
@@ -23,11 +31,15 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
 
   const onSubmit = async (data: FieldValues) => {
     setStatus({ sending: true, success: undefined })
-
+    data.group_id = groupId
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      const isTrue = 1 + 1 === 2
-      if (isTrue) {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const responseData = await response.json()
+      if (response.ok && responseData.success) {
         setStatus({ sending: false, success: true })
         reset()
       } else {

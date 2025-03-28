@@ -137,7 +137,6 @@ const logoSvgs = await Promise.all(testimonials.map(async ({ logo }) => (logo ? 
       >
       <TestimonialsPopup
         slot="content"
-        client:idle
         testimonials={[...allTestimonials, ...allTestimonials, ...allTestimonials]}
         googleData={googleData}
       />
