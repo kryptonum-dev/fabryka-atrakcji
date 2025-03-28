@@ -112,7 +112,7 @@ const { index, sectionId, list } = Astro.props
       }
     }
 
-    @media (max-width: 989px) {
+    @media (max-width: 61.8125rem) {
       .wrapper {
         padding-right: var(--pageMargin);
         padding-left: var(--pageMargin);
@@ -124,7 +124,7 @@ const { index, sectionId, list } = Astro.props
       }
     }
 
-    @media (max-width: 549px) {
+    @media (max-width: 34.3125rem) {
       .wrapper {
         .list {
           grid-template-columns: repeat(1, 1fr);
@@ -143,7 +143,7 @@ const { index, sectionId, list } = Astro.props
 
     const updateWrapperHeight = () => {
       if (button.getAttribute('aria-expanded') === 'true') {
-        wrapper.style.maxHeight = wrapper.scrollHeight + 'px'
+        wrapper.style.maxHeight = wrapper.scrollHeight / 16 + 'rem'
       }
     }
     window.addEventListener('resize', updateWrapperHeight)
@@ -153,7 +153,7 @@ const { index, sectionId, list } = Astro.props
       isAnimating = true
 
       const isExpanded = button.getAttribute('aria-expanded') === 'true'
-      const startHeight = wrapper.scrollHeight + 'px'
+      const startHeight = wrapper.scrollHeight / 16 + 'rem'
       const collapsedHeight = '30.25rem'
 
       if (!isExpanded) {
