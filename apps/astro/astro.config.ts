@@ -38,7 +38,7 @@ export default defineConfig({
       ? {
           isr: {
             bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
-            exclude: [],
+            exclude: ['/api/contact', '/api/newsletter'],
           },
         }
       : {}),

@@ -60,22 +60,8 @@ export default defineField({
           name: 'groupId',
           type: 'string',
           title: 'ID grupy MailerLite',
-          description: (
-            <>
-              ID Grupy w MailerLite do której ma zostać przypisana osoba.{' '}
-              <a
-                href="https://www.mailerlite.com/pl/help/where-to-find-the-mailerlite-api-key-groupid-and-documentation#new/group-id"
-                target="_blank"
-              >
-                Jak znaleźć ID grupy w MailerLite?
-              </a>
-            </>
-          ),
-          validation: (Rule) =>
-            Rule.required().regex(
-              /^[0-9a-zA-Z]{24}$/,
-              'ID grupy MailerLite powinno składać się z 24 znaków alfanumerycznych'
-            ),
+
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'heading',

@@ -1,9 +1,8 @@
 ---
-import { ButtonDataQuery, type ButtonDataProps } from '../ui/Button'
-import Button from '../ui/Button'
-import CaseStudyCard from '../ui/CaseStudyCard.astro'
-import { ImageDataQuery, type ImageDataProps } from '../ui/image'
-import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
+import Button, { ButtonDataQuery, type ButtonDataProps } from '@/components/ui/Button'
+import CaseStudyCard from '@/components/ui/CaseStudyCard.astro'
+import { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
 
 export const CaseStudyList_Query = `
   _type == "CaseStudyList" => {
