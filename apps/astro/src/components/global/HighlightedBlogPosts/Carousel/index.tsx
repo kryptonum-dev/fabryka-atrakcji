@@ -7,11 +7,10 @@ import styles from './carousel.module.scss'
 
 type CarouselProps = {
   children: React.ReactNode
-  index: number
   blogPosts: BlogCardProps[]
 }
 
-export default function Carousel({ children, index, blogPosts }: CarouselProps) {
+export default function Carousel({ children, blogPosts }: CarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: 'start',

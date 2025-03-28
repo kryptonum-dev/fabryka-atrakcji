@@ -67,7 +67,7 @@ const clientBlogPosts = await Promise.all(
       <PortableText value={subHeading} class="subHeading" />
       <PortableText value={paragraph} class="paragraph" />
     </header>
-    <Carousel client:load blogPosts={clientBlogPosts as BlogCardProps[]} index={index}><Button {...cta} /></Carousel>
+    <Carousel client:load blogPosts={clientBlogPosts as BlogCardProps[]}><Button {...cta} /></Carousel>
   </div>
 </section>
 
