@@ -1,0 +1,37 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import Components from '@/components/Components.astro'
+import { LANGUAGES, type Language } from '@/global/languages'
+import { fetchPageData } from '@/utils/fetch-page-data'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+
+export async function getStaticPaths() {
+  return [
+    {
+      params: {
+        lang: 'pl',
+        caseStudies: 'realizacje',
+      },
+    },
+    {
+      params: {
+        lang: 'en',
+        caseStudies: 'case-studies',
+      },
+    },
+  ]
+}
+
+const { lang } = Astro.params as { lang: Language }
+
+const data = await fetchPageData({ name: 'CaseStudy_Page', lang })
+
+if (!LANGUAGES.includes(lang) || !data) return Astro.rewrite('/404')
+
+const { page, metadata } = data
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs data={[{ name: data.page.name, path: data.page.slug }]} firstItemType={data.page.firstItemType} />
+  <Components data={page.components} />
+</Layout>

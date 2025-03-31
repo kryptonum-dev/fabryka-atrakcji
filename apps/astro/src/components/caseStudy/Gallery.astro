@@ -1,0 +1,458 @@
+---
+import type { ImageDataProps } from '../ui/image'
+import PortableText, { type PortableTextValue } from '../ui/portable-text'
+import Image from '../ui/image'
+
+// import type { Language } from '@/src/global/languages'
+
+// const { lang } = (Astro.params as { lang: Language }) || 'pl'
+
+// const translations = {
+//   pl: {
+//     days: 'dni',
+//     singleDay: 'dzień',
+//   },
+
+//   en: {
+//     days: 'days',
+//     singleDay: 'day',
+//   },
+// }
+
+// const t = translations[lang]
+
+export type Media = { type: string } & (
+  | ImageDataProps
+  | {
+      asset: string
+      alt: string
+      caption: string
+    }
+)
+
+type Props = {
+  mediaArray: Media[]
+  galleryHeading: PortableTextValue
+}
+
+const { mediaArray, galleryHeading } = Astro.props as Props
+---
+
+<section class="CaseStudyGallery">
+  <header class="header">
+    <PortableText value={galleryHeading} heading="h2" class="heading" />
+  </header>
+
+  <div class="grid" data-has-many-images={mediaArray.length > 5}>
+    {
+      mediaArray.map((media) => (
+        <button class="item">
+          <Image {...(media as ImageDataProps)} sizes="(max-width: 768px) 100vw, 33vw" />
+        </button>
+      ))
+    }
+  </div>
+
+  <!-- Popup and overlay -->
+  <div class="popup-overlay" aria-hidden="true"></div>
+  <div class="popup" aria-hidden="true">
+    <button class="popup-close" aria-label="Close popup"
+      ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+        ><path
+          fill="#F67258"
+          fill-rule="evenodd"
+          d="M21.788 21.788a.723.723 0 0 0 0-1.022L18.122 17.1a9.157 9.157 0 1 0-1.022 1.022l3.666 3.666a.723.723 0 0 0 1.022 0ZM8.024 11.157c0-.4.324-.723.723-.723h4.82a.723.723 0 0 1 0 1.446h-4.82a.723.723 0 0 1-.723-.723Z"
+          clip-rule="evenodd"></path></svg
+      ></button
+    >
+    <img src="" alt="" class="popup-image" />
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('.CaseStudyGallery').forEach((gallery) => {
+    if (!gallery) return
+
+    const items = gallery.querySelectorAll('.item') as NodeListOf<HTMLElement>
+    const popup = gallery.querySelector('.popup') as HTMLElement
+    const popupImage = gallery.querySelector('.popup-image') as HTMLImageElement
+    const overlay = gallery.querySelector('.popup-overlay') as HTMLElement
+    const closeButton = gallery.querySelector('.popup-close') as HTMLElement
+
+    function openPopup(imageSrc: string, altText: string) {
+      if (!popup || !popupImage || !overlay) return
+
+      popupImage.src = imageSrc
+      popupImage.alt = altText
+      popup.setAttribute('aria-hidden', 'false')
+      overlay.setAttribute('aria-hidden', 'false')
+      closeButton?.focus()
+    }
+
+    function closePopup() {
+      if (!popup || !overlay) return
+
+      popup.setAttribute('aria-hidden', 'true')
+      overlay.setAttribute('aria-hidden', 'true')
+    }
+
+    items.forEach((item) => {
+      item.addEventListener('click', () => {
+        const img = item.querySelector('img')
+        if (!(img instanceof HTMLImageElement)) return
+        openPopup(img.src, img.alt)
+      })
+    })
+
+    if (closeButton) {
+      closeButton.addEventListener('click', closePopup)
+    }
+
+    if (overlay) {
+      overlay.addEventListener('click', closePopup)
+    }
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePopup()
+    })
+  })
+</script>
+
+<style lang="scss">
+  .CaseStudyGallery {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1366px;
+    margin: 0 auto;
+    .header {
+      max-width: calc(41.1875rem + 2 * var(--pageMargin));
+      padding: 0 var(--pageMargin);
+      text-align: center;
+      margin: clamp(2rem, calc(3vw / 0.48), 3rem) auto 0;
+
+      .heading {
+        font-size: var(--typography-heading-l, 2rem);
+      }
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(12, 1fr);
+      gap: clamp(0.25rem, calc(0.5vw / 0.48), 0.5rem);
+
+      &[data-has-many-images='true'] {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .item {
+        align-self: stretch;
+        overflow: hidden;
+        height: 100%;
+        border-radius: 0.25rem;
+        position: relative;
+        display: block;
+        cursor: pointer;
+
+        &:hover {
+          img {
+            transform: scale(1.1) rotate(3deg);
+          }
+        }
+        &:focus:not(:focus-visible) {
+          img {
+            transform: scale(1.25) rotate(0deg);
+          }
+        }
+
+        img {
+          position: absolute;
+          min-height: 100%;
+          width: 100%;
+          left: 0;
+          top: 0;
+          object-fit: cover;
+          transition: transform 250ms var(--easing);
+        }
+
+        &:nth-child(1),
+        &:nth-child(2) {
+          min-height: clamp(389px, calc(448vw / 7.68), 516px);
+        }
+
+        &:nth-child(3),
+        &:nth-child(4),
+        &:nth-child(5) {
+          min-height: clamp(258px, calc(296vw / 7.68), 341px);
+        }
+
+        &:nth-child(6),
+        &:nth-child(7),
+        &:nth-child(8),
+        &:nth-child(9) {
+          min-height: clamp(197px, calc(197vw / 7.68), 227px);
+        }
+
+        &:nth-child(1) {
+          grid-column: 1/2;
+          grid-row: 1/7;
+        }
+
+        &:nth-child(2) {
+          grid-column: 1/2;
+          grid-row: 7/13;
+        }
+
+        &:nth-child(3) {
+          grid-column: 2/3;
+          grid-row: 1/5;
+        }
+
+        &:nth-child(4) {
+          grid-column: 2/3;
+          grid-row: 5/9;
+        }
+
+        &:nth-child(5) {
+          grid-column: 2/3;
+          grid-row: 9/13;
+        }
+
+        &:nth-child(6) {
+          grid-column: 3/4;
+          grid-row: 1/4;
+        }
+
+        &:nth-child(7) {
+          grid-column: 3/4;
+          grid-row: 4/7;
+        }
+
+        &:nth-child(8) {
+          grid-column: 3/4;
+          grid-row: 7/10;
+        }
+
+        &:nth-child(9) {
+          grid-column: 3/4;
+          grid-row: 10/13;
+        }
+      }
+    }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(250, 247, 247, 0.3) 0%, #faf7f7 100%);
+      backdrop-filter: blur(5px);
+      z-index: 998;
+      animation: CaseStudyGallery-popup-fade-in 150ms;
+
+      &[aria-hidden='true'] {
+        display: none;
+      }
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 999;
+      background: transparent;
+      padding: 1rem;
+      display: grid;
+      place-items: center;
+
+      &[aria-hidden='true'] {
+        display: none;
+      }
+
+      &[aria-hidden='false'] {
+        .popup-image {
+          animation: CaseStudyGallery-content-bounce-in 250ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+          z-index: 1;
+        }
+        .popup-close {
+          animation: CaseStudyGallery-close-button-entrance 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          z-index: 2;
+        }
+      }
+
+      .popup-image {
+        max-width: 90vw;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 0.25rem;
+      }
+
+      .popup-close {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: var(--neutral-200, #f5f1ec);
+        transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+
+        &:hover {
+          transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        &:focus:not(:focus-visible) {
+          transform: translate(-50%, -50%) scale(0.95);
+        }
+
+        &:focus-visible {
+          outline-offset: -2px;
+        }
+      }
+    }
+
+    @media (max-width: 899px) {
+      .header {
+        text-align: left;
+      }
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(8, auto);
+
+        &[data-has-many-images='true'] {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .item {
+          &:nth-child(1) {
+            grid-column: 1/2;
+            grid-row: 1/4;
+          }
+
+          &:nth-child(2) {
+            grid-column: 1/2;
+            grid-row: 4/8;
+          }
+
+          &:nth-child(3) {
+            grid-column: 2/3;
+            grid-row: 1/3;
+          }
+
+          &:nth-child(4) {
+            grid-column: 2/3;
+            grid-row: 3/5;
+          }
+
+          &:nth-child(5) {
+            grid-column: 2/3;
+            grid-row: 5/8;
+          }
+
+          &:nth-child(6) {
+            grid-column: 1/2;
+            grid-row: 8/9;
+          }
+
+          &:nth-child(7) {
+            grid-column: 2/3;
+            grid-row: 8/9;
+          }
+
+          &:nth-child(8) {
+            grid-column: 1/2;
+            grid-row: 9/10;
+          }
+
+          &:nth-child(9) {
+            grid-column: 2/3;
+            grid-row: 9/10;
+          }
+        }
+      }
+
+      .popup {
+        .popup-close {
+          bottom: 0.25rem;
+          top: unset;
+          left: unset;
+          right: 0.25rem;
+        }
+      }
+    }
+
+    @media (max-width: 449px) {
+      .grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(12, auto);
+
+        &[data-has-many-images='true'] {
+          grid-template-columns: 1fr;
+        }
+
+        .item {
+          grid-column: 1/2 !important;
+          grid-row: span 1 !important;
+
+          &:nth-child(1),
+          &:nth-child(2) {
+            min-height: clamp(389px, calc(448vw / 7.68), 516px);
+            aspect-ratio: 328/389;
+          }
+
+          &:nth-child(3),
+          &:nth-child(4),
+          &:nth-child(5) {
+            min-height: clamp(258px, calc(296vw / 7.68), 341px);
+            aspect-ratio: 328/258;
+          }
+
+          &:nth-child(6),
+          &:nth-child(7),
+          &:nth-child(8),
+          &:nth-child(9) {
+            min-height: clamp(197px, calc(197vw / 7.68), 227px);
+            aspect-ratio: 328/197;
+          }
+        }
+      }
+    }
+
+    @keyframes CaseStudyGallery-popup-fade-in {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes CaseStudyGallery-content-bounce-in {
+      0% {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes CaseStudyGallery-close-button-entrance {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 0%) rotate(180deg) scale(0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0) scale(1);
+      }
+    }
+  }
+</style>

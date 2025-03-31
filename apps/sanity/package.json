@@ -22,9 +22,10 @@
     "lucide-react": "^0.477.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sanity": "^3.75.0",
+    "sanity": "^3.81.0",
     "sanity-plugin-iframe-pane": "^3.2.1",
     "sanity-plugin-media-i18n": "^2.3.6",
+    "sanity-plugin-mux-input": "^2.8.0",
     "styled-components": "^6.1.15"
   },
   "devDependencies": {

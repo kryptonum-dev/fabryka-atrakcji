@@ -175,7 +175,20 @@ const breadcrumbsData = [
       padding-left: var(--pageMargin);
       z-index: 2;
     }
+
+    &[data-first-item-type="CaseStudyHero"] {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-top: 0;
+    max-width: 1366px;
+    width: 100%;
+    padding: clamp(1rem, calc(1.5vw / 0.48), 3rem) var(--pageMargin) 0;
   }
+  }
+
+  
 </style>
 
                                                                     

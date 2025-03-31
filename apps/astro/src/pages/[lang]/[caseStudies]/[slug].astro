@@ -1,0 +1,115 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import { LANGUAGES, type Language } from '@/global/languages'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import metadataFetch from '@/src/utils/metadata.fetch'
+import Hero from '@/src/components/caseStudy/Hero.astro'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import type { Media } from '@/src/components/caseStudy/Gallery.astro'
+import Gallery from '@/src/components/caseStudy/Gallery.astro'
+
+const prefixes = { pl: '/pl/realizacje/', en: '/en/case-studies/' }
+
+export async function getStaticPaths() {
+  const { lang, caseStudies } = Astro.params as { lang: Language; caseStudies: string }
+  const prefix = prefixes[lang]
+  const pages = await sanityFetch<{ slug: string }[]>({
+    query: `
+      *[_type == 'CaseStudy_Collection' && language == $language][] {
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+  console.log(pages)
+  return pages?.map(({ slug }) => ({
+    params: { lang: lang, caseStudies: caseStudies, slug: slug.replace(prefix, '') },
+  }))
+}
+
+const { lang, caseStudies, slug } = Astro.params as { lang: Language; caseStudies: string; slug: string }
+
+console.log(lang, caseStudies, slug)
+
+const data = await sanityFetch<{
+  slug: string
+  name: string
+  title: PortableTextValue
+  primaryImage: ImageDataProps
+  galleryHeading: PortableTextValue
+  mediaArray: Media[]
+  duration: number
+  localization: string
+  services: string[]
+  challenge: PortableTextValue
+  solution: PortableTextValue
+  testimonial: {
+    name: string
+    logo: string
+    photo: ImageDataProps
+    content: PortableTextValue
+  }
+}>({
+  query: `
+    *[_type == 'CaseStudy_Collection' && language == $language && slug.current == $slug][0] {
+      "slug": slug.current,
+      name,
+      ${PortableTextQuery('title')}
+      ${ImageDataQuery('primaryImage')}
+      ${PortableTextQuery('galleryHeading')}
+      mediaArray[]{
+        _type,
+        _type == 'image' => {
+          asset -> {
+            url,
+            altText,
+            extension,
+            metadata {
+              dimensions {
+                width,
+                height,
+              },
+              lqip,
+            },
+          },
+        },
+        _type == 'mux.video' => {
+          asset -> {
+            url,
+            altText,
+            extension,
+          },
+        },
+      },
+      duration,
+      localization,
+      services,
+      ${PortableTextQuery('challenge')}
+      ${PortableTextQuery('solution')}
+      testimonial{
+        name,
+        position,
+        company,
+        "logo": logo.asset->url,
+        ${ImageDataQuery('photo')}
+        ${PortableTextQuery('content')}
+      }
+    }
+  `,
+  params: { language: lang, slug: `${prefixes[lang]}${slug}` },
+})
+
+console.log(data)
+
+const metadata = await metadataFetch(data.slug)
+
+if (!LANGUAGES.includes(lang) || !data) return Astro.rewrite('/404')
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs data={[{ name: data.name, path: data.slug }]} firstItemType="CaseStudyHero" />
+  <Hero {...data} />
+  <Gallery mediaArray={data.mediaArray} galleryHeading={data.galleryHeading} />
+</Layout>

@@ -9,7 +9,7 @@ import { Logo } from './schema/ui/logo'
 import { structure } from './structure'
 import { LANGUAGES } from './structure/languages'
 import { i18nTypes, schemaTypes, singletonActions, singletonTypes } from './structure/schema-types'
-
+import { muxInput } from 'sanity-plugin-mux-input'
 export default defineConfig({
   name: STUDIO_HOST,
   title: TITLE,
@@ -24,6 +24,7 @@ export default defineConfig({
       locales: LANGUAGES.map(({ id, title }) => ({ id: id, name: title })),
     }),
     visionTool(),
+    muxInput(),
     documentInternationalization({
       supportedLanguages: LANGUAGES,
       schemaTypes: i18nTypes,
