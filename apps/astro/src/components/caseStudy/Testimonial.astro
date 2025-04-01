@@ -1,0 +1,240 @@
+---
+import PortableText, { type PortableTextValue } from '@/components/ui/portable-text'
+import Image, { type ImageDataProps } from '../ui/image'
+import imageToInlineSvg from '@/src/utils/image-to-inline-svg'
+
+type Props = {
+  name: string
+  position: string
+  company: string
+  logo: string
+  photo: ImageDataProps
+  content: PortableTextValue
+}
+
+const { name, position, company, logo, photo, content } = Astro.props as Props
+
+const logoSvg = await imageToInlineSvg(logo)
+---
+
+<section class="Testimonial">
+  <div class="container">
+    <Image {...photo} sizes="(max-width: 499px) 85vw, 229px" loading="lazy" />
+    <PortableText value={content} class="content" />
+    <div class="details">
+      <span class="name">{name}</span>
+      <span class="position">{`${position} - ${company}`}</span>
+      <div class="logo">
+        <Fragment set:html={logoSvg} />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .Testimonial {
+    padding: clamp(4.5rem, calc(7vw / 0.48), 7rem) var(--pageMargin);
+    max-width: 85.375rem;
+    margin: 0 auto;
+    position: relative;
+
+    &::before {
+      position: absolute;
+      content: '';
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' fill='none'%3E%3Cg stroke='%23F4F0EB' stroke-width='1.5' clip-path='url(%23a)'%3E%3Cpath d='M60 67.5a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Zm-60 0a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Zm0-60a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Zm60 0a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15ZM30 37.5a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='a'%3E%3Cpath fill='%23fff' d='M0 0h60v60H0z'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E");
+      z-index: -1;
+      opacity: 0.8;
+    }
+    .container {
+      max-width: 56rem;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto 1fr;
+      column-gap: 2.5rem;
+
+      > img {
+        grid-column: 1 / 2;
+        grid-row: 1 / 3;
+        border-radius: 1rem;
+        width: 229px;
+        aspect-ratio: 229 / 305;
+      }
+
+      .content {
+        grid-column: 2 / 3;
+        padding: 2rem 2rem 0 0;
+        margin-bottom: 1rem;
+        grid-row: 1 / 2;
+        color: var(--primary-800, #45051c);
+        font-size: var(--typography-body-2xl, 1.5rem);
+        line-height: 1.25;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+      }
+
+      .details {
+        align-self: end;
+        padding: 0 2rem 2rem 0;
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        line-height: 1.4;
+        grid-template-rows: auto 1fr;
+        font-size: var(--typography-body-m, 0.875rem);
+        letter-spacing: -0.01em;
+
+        .name {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+          justify-self: start;
+          color: var(--primary-800, #45051c);
+          letter-spacing: -0.02em;
+          font-weight: 700;
+        }
+
+        .position {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+          justify-self: start;
+        }
+
+        .logo {
+          grid-column: 2 / 3;
+          grid-row: 1 / 3;
+          align-self: center;
+          width: 2.75rem;
+          height: 2.75rem;
+          border-radius: 50%;
+          position: relative;
+          padding: 0.25rem;
+          z-index: 2;
+          display: grid;
+          place-items: center;
+
+          &::before,
+          &::after {
+            content: '';
+            position: absolute;
+            display: block;
+            border-radius: 50%;
+            inset: 0;
+            background: var(--neutral-100, #faf7f7);
+            z-index: -1;
+          }
+
+          &::before {
+            inset: -2px;
+            background: conic-gradient(
+              from 135deg at 50% 50%,
+              #798ddc 0deg,
+              #e7c78f 90deg,
+              #fa7468 266.40000343322754deg,
+              #798ddc 360deg
+            );
+            z-index: -2;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 899px) {
+      .container {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto 1fr;
+
+        > img {
+          grid-column: 2 / 3;
+          grid-row: 2 / 3;
+        }
+
+        .content {
+          grid-column: 1 / 3;
+          grid-row: 1 / 2;
+          padding: 0;
+          margin-bottom: clamp(1.75rem, calc(3vw / 0.48), 3rem);
+        }
+
+        .details {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+          padding: 0;
+          align-self: center;
+          max-width: 24rem;
+        }
+      }
+    }
+
+    @media (max-width: 499px) {
+      .container > .details {
+        grid-template-columns: 1fr;
+
+        .name {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+
+        .position {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+          margin-bottom: 1rem;
+        }
+
+        .logo {
+          grid-column: 1 / 2;
+          grid-row: 3 / 4;
+        }
+      }
+    }
+
+    @media (max-width: 439px) {
+      .container {
+        grid-template-columns: 1fr;
+        position: relative;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+
+        > img {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+          width: 100%;
+          border-radius: 1rem 1rem 0 0;
+        }
+
+        .content {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+
+        .details {
+          position: absolute;
+          background: var(--neutral-100, #faf7f7);
+          border-radius: 0.5rem;
+          grid-template-columns: 1fr auto;
+          padding: 0.625rem 1rem;
+          width: calc(100% - 1rem);
+          bottom: 0;
+          left: 50%;
+          transform: translate(-50%, 50%);
+
+          .name {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+          }
+
+          .position {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+          }
+
+          .logo {
+            grid-column: 2 / 3;
+            grid-row: 1 / 3;
+          }
+        }
+      }
+    }
+  }
+</style>
