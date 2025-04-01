@@ -1,44 +1,38 @@
 ---
-import type { ImageDataProps } from '../ui/image'
 import PortableText, { type PortableTextValue } from '../ui/portable-text'
 import Image from '../ui/image'
+import type { ImageDataProps } from '../ui/image'
 
-// import type { Language } from '@/src/global/languages'
+import type { Language } from '@/src/global/languages'
 
-// const { lang } = (Astro.params as { lang: Language }) || 'pl'
+const { lang } = (Astro.params as { lang: Language }) || 'pl'
 
-// const translations = {
-//   pl: {
-//     days: 'dni',
-//     singleDay: 'dzień',
-//   },
+const translations = {
+  pl: {
+    closePopup: 'Zamknij okno',
+    closeVideo: 'Zamknij wideo',
+  },
 
-//   en: {
-//     days: 'days',
-//     singleDay: 'day',
-//   },
-// }
+  en: {
+    closePopup: 'Close popup',
+    closeVideo: 'Close video',
+  },
+}
 
-// const t = translations[lang]
-
-export type Media = { type: string } & (
-  | ImageDataProps
-  | {
-      asset: string
-      alt: string
-      caption: string
-    }
-)
+const t = translations[lang]
 
 type Props = {
-  mediaArray: Media[]
+  mediaArray: {
+    image: ImageDataProps
+    youtubeId: string
+  }[]
   galleryHeading: PortableTextValue
 }
 
 const { mediaArray, galleryHeading } = Astro.props as Props
 ---
 
-<section class="CaseStudyGallery">
+<section class="CaseStudyGallery" data-media={JSON.stringify(mediaArray)}>
   <header class="header">
     <PortableText value={galleryHeading} heading="h2" class="heading" />
   </header>
@@ -46,17 +40,19 @@ const { mediaArray, galleryHeading } = Astro.props as Props
   <div class="grid" data-has-many-images={mediaArray.length > 5}>
     {
       mediaArray.map((media) => (
-        <button class="item">
-          <Image {...(media as ImageDataProps)} sizes="(max-width: 768px) 100vw, 33vw" />
+        <button class="item" data-has-video={!!media.youtubeId}>
+          <Image
+            {...media.image}
+            sizes="(max-width: 28.0625rem) 100vw, (max-width: 56.1875rem) 50vw, (max-width: 85.375rem) 33vw, 450px"
+            loading="lazy"
+          />
         </button>
       ))
     }
   </div>
-
-  <!-- Popup and overlay -->
   <div class="popup-overlay" aria-hidden="true"></div>
   <div class="popup" aria-hidden="true">
-    <button class="popup-close" aria-label="Close popup"
+    <button class="popup-close" aria-label={t.closePopup}
       ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
         ><path
           fill="#F67258"
@@ -65,66 +61,40 @@ const { mediaArray, galleryHeading } = Astro.props as Props
           clip-rule="evenodd"></path></svg
       ></button
     >
-    <img src="" alt="" class="popup-image" />
+    <button class="popup-close-video">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
+          <circle cx={12} cy={12} r={10} stroke="currentColor" stroke-width={1.5}></circle>
+          <path
+            d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+            stroke="currentColor"
+            stroke-width={1.5}
+            stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <span>{t.closeVideo}</span>
+    </button>
+    <div class="popup-content">
+      <img src="" alt="" class="popup-image" />
+      <div class="popup-video" style="display: none;">
+        <iframe
+          width="100%"
+          height="100%"
+          src=""
+          title="Odtwarzanie wideo"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+      </div>
+    </div>
   </div>
 </section>
-
-<script>
-  document.querySelectorAll('.CaseStudyGallery').forEach((gallery) => {
-    if (!gallery) return
-
-    const items = gallery.querySelectorAll('.item') as NodeListOf<HTMLElement>
-    const popup = gallery.querySelector('.popup') as HTMLElement
-    const popupImage = gallery.querySelector('.popup-image') as HTMLImageElement
-    const overlay = gallery.querySelector('.popup-overlay') as HTMLElement
-    const closeButton = gallery.querySelector('.popup-close') as HTMLElement
-
-    function openPopup(imageSrc: string, altText: string) {
-      if (!popup || !popupImage || !overlay) return
-
-      popupImage.src = imageSrc
-      popupImage.alt = altText
-      popup.setAttribute('aria-hidden', 'false')
-      overlay.setAttribute('aria-hidden', 'false')
-      closeButton?.focus()
-    }
-
-    function closePopup() {
-      if (!popup || !overlay) return
-
-      popup.setAttribute('aria-hidden', 'true')
-      overlay.setAttribute('aria-hidden', 'true')
-    }
-
-    items.forEach((item) => {
-      item.addEventListener('click', () => {
-        const img = item.querySelector('img')
-        if (!(img instanceof HTMLImageElement)) return
-        openPopup(img.src, img.alt)
-      })
-    })
-
-    if (closeButton) {
-      closeButton.addEventListener('click', closePopup)
-    }
-
-    if (overlay) {
-      overlay.addEventListener('click', closePopup)
-    }
-
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closePopup()
-    })
-  })
-</script>
 
 <style lang="scss">
   .CaseStudyGallery {
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    max-width: 1366px;
+    max-width: 85.375rem;
     margin: 0 auto;
     .header {
       max-width: calc(41.1875rem + 2 * var(--pageMargin));
@@ -157,12 +127,12 @@ const { mediaArray, galleryHeading } = Astro.props as Props
 
         &:hover {
           img {
-            transform: scale(1.1) rotate(3deg);
+            transform: translate(-50%, -50%) scale(1.1) rotate(3deg);
           }
         }
         &:focus:not(:focus-visible) {
           img {
-            transform: scale(1.25) rotate(0deg);
+            transform: translate(-50%, -50%) scale(1.25) rotate(0deg);
           }
         }
 
@@ -170,8 +140,9 @@ const { mediaArray, galleryHeading } = Astro.props as Props
           position: absolute;
           min-height: 100%;
           width: 100%;
-          left: 0;
-          top: 0;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
           object-fit: cover;
           transition: transform 250ms var(--easing);
         }
@@ -264,7 +235,6 @@ const { mediaArray, galleryHeading } = Astro.props as Props
       transform: translate(-50%, -50%);
       z-index: 999;
       background: transparent;
-      padding: 1rem;
       display: grid;
       place-items: center;
 
@@ -281,6 +251,14 @@ const { mediaArray, galleryHeading } = Astro.props as Props
           animation: CaseStudyGallery-close-button-entrance 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
           z-index: 2;
         }
+      }
+
+      .popup-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
       }
 
       .popup-image {
@@ -310,14 +288,92 @@ const { mediaArray, galleryHeading } = Astro.props as Props
         &:focus:not(:focus-visible) {
           transform: translate(-50%, -50%) scale(0.95);
         }
+      }
 
-        &:focus-visible {
-          outline-offset: -2px;
+      .popup-close-video {
+        position: absolute;
+        right: 0%;
+        bottom: 100%;
+        display: flex;
+        align-items: center;
+        background: var(--neutral-200, #f5f1ec);
+        border-radius: 999rem;
+        gap: 0.25rem;
+        min-height: 2.75rem;
+        padding: 0.25rem 0.6725rem 0.25rem 0.25rem;
+        animation: CaseStudyGallery-close-video-button-entrance 350ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+        span {
+          color: var(--primary-700, #600d2a);
+          line-height: 1.6;
+          font-size: var(--typography-body-s, 0.75rem);
+          transition: transform 250ms var(--easing);
         }
+
+        .icon {
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          position: relative;
+          isolation: isolate;
+          overflow: hidden;
+          transition:
+            transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.17),
+            color 150ms;
+          color: var(--primary-500, #f67258);
+          &:before,
+          &:after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--neutral-100, #faf7f7);
+            z-index: -2;
+          }
+
+          &:before {
+            transform: scale(0);
+            background: var(--primary-800, #f5f1ec);
+            z-index: -1;
+            transition: transform 250ms var(--easing);
+            border-radius: 50%;
+          }
+        }
+
+        &:hover {
+          .icon {
+            transform: scale(1.05);
+          }
+
+          span {
+            transform: translateX(2px);
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          .icon {
+            color: var(--neutral-100);
+
+            &::before {
+              transform: scale(1);
+            }
+          }
+
+          span {
+            transform: translateX(0);
+          }
+        }
+      }
+
+      .popup-video {
+        width: calc(100vw - clamp(1.6rem, calc(2.4vw / 0.48), 3.2rem));
+        max-width: 80rem;
+        max-height: 90vh;
+        aspect-ratio: 16/9;
       }
     }
 
-    @media (max-width: 899px) {
+    @media (max-width: 56.1875rem) {
       .header {
         text-align: left;
       }
@@ -387,7 +443,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
       }
     }
 
-    @media (max-width: 449px) {
+    @media (max-width: 28.0625rem) {
       .grid {
         grid-template-columns: 1fr;
         grid-template-rows: repeat(12, auto);
@@ -454,5 +510,88 @@ const { mediaArray, galleryHeading } = Astro.props as Props
         transform: translate(-50%, -50%) rotate(0) scale(1);
       }
     }
+
+    @keyframes CaseStudyGallery-close-video-button-entrance {
+      0% {
+        opacity: 0;
+        transform: translateX(30%) scale(0.75);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0%) scale(1);
+      }
+    }
   }
 </style>
+
+<script>
+  type Media = {
+    image: {
+      asset: {
+        url: string
+        altText: string
+        playbackId: string
+        thumbnailUrl: string
+        duration: number
+      }
+    }
+    youtubeId?: string
+  }
+
+  document.querySelectorAll('.CaseStudyGallery').forEach((gallery) => {
+    const mediaArray = gallery.getAttribute('data-media') ? JSON.parse(gallery.getAttribute('data-media') || '[]') : []
+
+    const items = gallery.querySelectorAll('.item')! as NodeListOf<HTMLElement>
+    const popup = gallery.querySelector('.popup')! as HTMLElement
+    const popupImage = gallery.querySelector('.popup-image')! as HTMLImageElement
+    const popupVideo = gallery.querySelector('.popup-video')! as HTMLElement
+    const iframe = popupVideo.querySelector('iframe')! as HTMLIFrameElement
+    const overlay = gallery.querySelector('.popup-overlay')! as HTMLElement
+    const closeButton = gallery.querySelector('.popup-close')! as HTMLElement
+    const closeVideoButton = gallery.querySelector('.popup-close-video')! as HTMLElement
+
+    function openPopup(media: Media) {
+      if (media.youtubeId) {
+        popupImage.style.display = 'none'
+        popupVideo.style.display = 'block'
+        closeVideoButton.style.display = 'flex'
+        closeButton.style.display = 'none'
+        iframe.src = `https://www.youtube.com/embed/${media.youtubeId}?autoplay=1`
+        setTimeout(() => closeVideoButton.focus(), 0)
+      } else {
+        popupImage.src = media.image.asset.url
+        popupImage.alt = media.image.asset.altText
+        closeVideoButton.style.display = 'none'
+        closeButton.style.display = 'block'
+        popupImage.style.display = 'block'
+        popupVideo.style.display = 'none'
+        setTimeout(() => closeButton.focus(), 0)
+      }
+
+      popup.setAttribute('aria-hidden', 'false')
+      overlay.setAttribute('aria-hidden', 'false')
+    }
+
+    function closePopup() {
+      popup.setAttribute('aria-hidden', 'true')
+      overlay.setAttribute('aria-hidden', 'true')
+      iframe.src = ''
+    }
+
+    items.forEach((item, index) => {
+      item.addEventListener('click', () => {
+        const media = mediaArray[index]
+        if (media) {
+          openPopup(media)
+        }
+      })
+    })
+    ;[closeButton, closeVideoButton, overlay].forEach((element: HTMLElement) => {
+      element.addEventListener('click', closePopup)
+    })
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePopup()
+    })
+  })
+</script>

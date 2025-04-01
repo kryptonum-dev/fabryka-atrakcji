@@ -126,13 +126,13 @@ export default defineType({
               type: 'string',
               name: 'youtubeId',
               title: 'ID filmu z YouTube (opcjonalne)',
-              description: `
+              description: (
+                <>
                   Kiedy dodane, filmik z YouTube pojawi się zamiast zdjęcia przy przyblieniu. Zdjęcie wciąż będzie
-                  sprawować rolę miniaturki. 
-                  
-                  Identyfikator filmu YouTube można znaleźć w adresie URL filmu. Na przykład w adresie URL
-                  https://www.youtube.com/watch?v=dQw4w9WgXcQ, ID filmu to dQw4w9WgXcQ.
-                `,
+                  sprawować rolę miniaturki. Identyfikator filmu YouTube można znaleźć w adresie URL filmu. Na przykład
+                  w adresie URL https://www.youtube.com/watch?v=dQw4w9WgXcQ, ID filmu to dQw4w9WgXcQ.
+                </>
+              ),
             },
           ],
           preview: {

@@ -7,7 +7,6 @@ import metadataFetch from '@/src/utils/metadata.fetch'
 import Hero from '@/src/components/caseStudy/Hero.astro'
 import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
-import type { Media } from '@/src/components/caseStudy/Gallery.astro'
 import Gallery from '@/src/components/caseStudy/Gallery.astro'
 
 const prefixes = { pl: '/pl/realizacje/', en: '/en/case-studies/' }
@@ -29,9 +28,7 @@ export async function getStaticPaths() {
   }))
 }
 
-const { lang, caseStudies, slug } = Astro.params as { lang: Language; caseStudies: string; slug: string }
-
-console.log(lang, caseStudies, slug)
+const { lang, slug } = Astro.params as { lang: Language; caseStudies: string; slug: string }
 
 const data = await sanityFetch<{
   slug: string
@@ -39,7 +36,10 @@ const data = await sanityFetch<{
   title: PortableTextValue
   primaryImage: ImageDataProps
   galleryHeading: PortableTextValue
-  mediaArray: Media[]
+  mediaArray: {
+    image: ImageDataProps
+    youtubeId: string
+  }[]
   duration: number
   localization: string
   services: string[]
@@ -60,28 +60,8 @@ const data = await sanityFetch<{
       ${ImageDataQuery('primaryImage')}
       ${PortableTextQuery('galleryHeading')}
       mediaArray[]{
-        _type,
-        _type == 'image' => {
-          asset -> {
-            url,
-            altText,
-            extension,
-            metadata {
-              dimensions {
-                width,
-                height,
-              },
-              lqip,
-            },
-          },
-        },
-        _type == 'mux.video' => {
-          asset -> {
-            url,
-            altText,
-            extension,
-          },
-        },
+        ${ImageDataQuery('image')}
+        youtubeId
       },
       duration,
       localization,
@@ -100,8 +80,6 @@ const data = await sanityFetch<{
   `,
   params: { language: lang, slug: `${prefixes[lang]}${slug}` },
 })
-
-console.log(data)
 
 const metadata = await metadataFetch(data.slug)
 
