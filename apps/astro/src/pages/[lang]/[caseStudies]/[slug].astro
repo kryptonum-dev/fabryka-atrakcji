@@ -8,6 +8,7 @@ import Hero from '@/src/components/caseStudy/Hero.astro'
 import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Gallery from '@/src/components/caseStudy/Gallery.astro'
+import ChallengeSolution from '@/src/components/caseStudy/ChallengeSolution.astro'
 
 const prefixes = { pl: '/pl/realizacje/', en: '/en/case-studies/' }
 
@@ -45,6 +46,7 @@ const data = await sanityFetch<{
   services: string[]
   challenge: PortableTextValue
   solution: PortableTextValue
+  results: PortableTextValue
   testimonial: {
     name: string
     logo: string
@@ -68,6 +70,7 @@ const data = await sanityFetch<{
       services,
       ${PortableTextQuery('challenge')}
       ${PortableTextQuery('solution')}
+      ${PortableTextQuery('results')}
       testimonial{
         name,
         position,
@@ -90,4 +93,5 @@ if (!LANGUAGES.includes(lang) || !data) return Astro.rewrite('/404')
   <Breadcrumbs data={[{ name: data.name, path: data.slug }]} firstItemType="CaseStudyHero" />
   <Hero {...data} />
   <Gallery mediaArray={data.mediaArray} galleryHeading={data.galleryHeading} />
+  <ChallengeSolution {...data} />
 </Layout>

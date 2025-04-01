@@ -3,6 +3,7 @@ import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { toPlainText } from '../../utils/to-plain-text'
 import { ComposeIcon, SearchIcon, UserIcon } from '@sanity/icons'
+import React from 'react'
 const title = 'Realizacje'
 const icon = FileSearch
 
