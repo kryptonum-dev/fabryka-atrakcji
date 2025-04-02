@@ -8,6 +8,7 @@ import Index_Page from '../schema/singleTypes/Index_Page'
 import navbar from '../schema/singleTypes/navbar'
 import NotFound_Page from '../schema/singleTypes/NotFound_Page'
 import redirects from '../schema/singleTypes/redirects'
+import TermsAndConditions_Page from '../schema/singleTypes/legal/TermsAndConditions_Page'
 const singleTypes = [
   global,
   redirects,
@@ -18,6 +19,7 @@ const singleTypes = [
   NotFound_Page,
   navbar,
   footer,
+  TermsAndConditions_Page,
 ]
 
 // Collections Types

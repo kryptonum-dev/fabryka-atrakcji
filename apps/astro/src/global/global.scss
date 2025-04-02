@@ -200,10 +200,11 @@ body {
   min-width: 320px;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
-  font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
   font-variant-numeric: lining-nums proportional-nums;
   font-size: var(--typography-body-l, 1rem);
   line-height: 1.55;
+  font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+
   letter-spacing: -0.02em;
   background-color: var(--neutral-100, #faf7f7);
   color: var(--primary-400, #74535e);
