@@ -1,15 +1,33 @@
 ---
-import Image, { type ImageDataProps } from '../ui/image'
+import Image, { ImageDataQuery, type ImageDataProps } from '../ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from './portable-text'
 
 type Props = {
   title: string
+  description?: PortableTextValue
   primaryImage: { src: ImageDataProps; loading: 'eager' | 'lazy'; priority?: boolean }
   secondaryImage: { src: ImageDataProps; loading: 'eager' | 'lazy' }
   imageSizes: string
   slug: string
 }
 
-const { title, primaryImage, secondaryImage, imageSizes, slug }: Props = Astro.props
+export type CaseStudyCardProps = {
+  name: string
+  challenge: PortableTextValue
+  primaryImage: ImageDataProps
+  secondaryImage: ImageDataProps
+  slug: string
+}
+
+export const CaseStudyCardQuery = `
+  name,
+  ${PortableTextQuery('challenge')}
+  ${ImageDataQuery('primaryImage')}
+  ${ImageDataQuery('secondaryImage')}
+  "slug": slug.current
+`
+
+const { title, description, primaryImage, secondaryImage, imageSizes, slug }: Props = Astro.props
 ---
 
 <article class="CaseStudyCard">
@@ -20,6 +38,7 @@ const { title, primaryImage, secondaryImage, imageSizes, slug }: Props = Astro.p
     </div>
     <div class="text">
       <span>{title}</span>
+      {description && <PortableText value={description} class="description" />}
     </div>
   </a>
 </article>
@@ -57,9 +76,12 @@ const { title, primaryImage, secondaryImage, imageSizes, slug }: Props = Astro.p
 
       .text {
         padding: 0.75rem 0.375rem 0.375rem;
+        transition: color 150ms;
+        text-align: center;
 
         span {
           color: var(--primary-800, #45051c);
+          transition: color 150ms;
           text-align: center;
           letter-spacing: -0.03em;
           font-weight: 700;

@@ -4,6 +4,7 @@ import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { toPlainText } from '../../utils/to-plain-text'
 import { ComposeIcon, SearchIcon, UserIcon } from '@sanity/icons'
 import React from 'react'
+
 const title = 'Realizacje'
 const icon = FileSearch
 
@@ -42,6 +43,25 @@ export default defineType({
       group: 'content',
       description: 'Pełna nazwa realizacji wyświetlana na stronie realizacji',
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'category',
+      type: 'reference',
+      title: 'Kategoria',
+      description: 'Kategoria realizacji, będzie wyświetlana w sekcji z listą wszystkich realizacji.',
+      group: 'content',
+      to: { type: 'CaseStudyCategory_Collection' },
+      validation: (Rule) => Rule.required(),
+      options: {
+        disableNew: true,
+        filter: ({ document }) => {
+          const language = (document as { language?: string })?.language
+          return {
+            filter: 'defined(slug.current) && language == $lang',
+            params: { lang: language },
+          }
+        },
+      },
     }),
     defineField({
       name: 'primaryImage',
@@ -219,6 +239,12 @@ export default defineType({
           validation: (Rule) => Rule.required(),
         }),
       ],
+    }),
+    defineField({
+      name: 'components',
+      type: 'components',
+      title: 'Komponenty podstrony (opcjonalne)',
+      group: 'content',
     }),
     defineField({
       name: 'seo',

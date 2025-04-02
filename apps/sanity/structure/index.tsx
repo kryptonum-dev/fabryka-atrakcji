@@ -16,7 +16,11 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.list()
             .title('Realizacje')
-            .items([createSingleton({ S, name: 'CaseStudy_Page' }), createCollection(S, 'CaseStudy_Collection')])
+            .items([
+              createSingleton({ S, name: 'CaseStudy_Page' }),
+              createCollection(S, 'CaseStudy_Collection'),
+              createCollection(S, 'CaseStudyCategory_Collection'),
+            ])
         ),
       S.listItem()
         .title('Integracje')

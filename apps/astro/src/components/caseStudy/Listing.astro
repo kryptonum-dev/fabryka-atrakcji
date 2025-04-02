@@ -1,0 +1,392 @@
+---
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import { ITEMS_PER_PAGE } from '@/src/templates/CaseStudies.astro'
+import { type Language } from '@/global/languages'
+import CaseStudyCard, { CaseStudyCardQuery, type CaseStudyCardProps } from '@/src/components/ui/CaseStudyCard.astro'
+import CategoryTab from '../ui/CategoryTab.astro'
+import Pagination from '../ui/Pagination.astro'
+
+type Props = {
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  totalCaseStudies: number
+  totalCaseStudiesByCategory: number
+  categories: Array<{
+    name: string
+    slug: string
+    count: number
+  }>
+  listing: Array<CaseStudyCardProps>
+  currentPage: number
+  currentCategory: string | null
+}
+export type ListingProps = Props
+
+const lang = (Astro.params.lang as Language) || 'pl'
+
+const translations = {
+  pl: {
+    pathPrefix: '/pl/realizacje',
+    categories: 'Kategorie',
+    all: 'Wszystkie',
+  },
+  en: {
+    pathPrefix: '/en/case-studies',
+    categories: 'Categories',
+    all: 'All',
+  },
+}
+
+const t = translations[lang]
+
+export const Listing_Query = `
+    "totalCaseStudies": count(*[_type == 'CaseStudy_Collection' && language == $language]),
+    "categories": *[_type == 'CaseStudyCategory_Collection' && language == $language && count(*[_type == 'CaseStudy_Collection' && references(^._id) && defined(category)]) > 0] {
+      name,
+      "slug": slug.current,
+      "count": count(*[_type == 'CaseStudy_Collection' && references(^._id) && defined(category)])
+    },
+    "totalCaseStudiesByCategory": count(*[_type == 'CaseStudy_Collection'
+      && language == $language
+      && select(defined($category) => category -> slug.current match $category + "$", true)
+    ]),
+    "listing": *[_type == 'CaseStudy_Collection'
+      && language == $language
+      && select(defined($category) => category -> slug.current match $category + "$", true)
+    ] | order(coalesce(publishedDate, _createdAt) desc) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
+      ${CaseStudyCardQuery}
+    },
+`
+
+const {
+  listing,
+  currentPage,
+  currentCategory,
+  heading,
+  paragraph,
+  totalCaseStudies,
+  totalCaseStudiesByCategory,
+  categories,
+} = Astro.props
+const slugBase = (() => {
+  const categoryPath = currentCategory ? `/${lang === 'pl' ? 'kategoria' : 'category'}/${currentCategory}` : ''
+  return `${lang === 'pl' ? '/pl/realizacje' : '/en/case-studies'}${categoryPath}`
+})()
+---
+
+<section class="Listing">
+  <div class="top-row">
+    <header class="header">
+      <PortableText value={heading} heading="h1" class="heading" />
+      <PortableText value={paragraph} class="paragraph" />
+    </header>
+    <div class="categories">
+      <p>{translations[lang].categories}</p>
+      <ul>
+        <li>
+          <CategoryTab
+            href={t.pathPrefix}
+            isActive={!currentCategory}
+            count={totalCaseStudies}
+            name={translations[lang].all}
+          />
+        </li>
+        {
+          categories.map((category) => {
+            const isActive = currentCategory ? category.slug.endsWith(currentCategory) : false
+            return (
+              <li>
+                <CategoryTab href={category.slug} isActive={isActive} count={category.count} name={category.name} />
+              </li>
+            )
+          })
+        }
+      </ul>
+    </div>
+  </div>
+  <div class="list">
+    {
+      listing.map((item, index) => (
+        <CaseStudyCard
+          title={item.name}
+          description={[0, 9, 10].includes(index) ? item.challenge : undefined}
+          primaryImage={{ src: item.primaryImage, loading: index === 0 ? 'eager' : 'lazy', priority: index === 0 }}
+          secondaryImage={{ src: item.secondaryImage, loading: 'lazy' }}
+          imageSizes=""
+          slug={item.slug}
+        />
+      ))
+    }
+  </div>
+  <Pagination
+    slugBase={slugBase}
+    totalItems={totalCaseStudiesByCategory}
+    itemsPerPage={ITEMS_PER_PAGE}
+    currentPage={currentPage}
+  />
+</section>
+
+<style lang="scss">
+  .Listing {
+    padding-bottom: clamp(2.25rem, calc(2.5vw / 0.48), 2.5rem);
+    .top-row {
+      padding: clamp(3.5rem, calc(4vw / 0.48), 6.25rem) 1.25rem 0.75rem;
+      border-radius: 0rem 0rem 2rem 2rem;
+      background: #f5f1ec;
+      max-width: 1366px;
+      width: calc(100% - 1rem);
+      margin: 0 auto clamp(1rem, calc(1.5vw / 0.48), 2rem);
+
+      .header {
+        margin-bottom: clamp(1.5rem, calc(1.5vw / 0.48), 3rem);
+        display: grid;
+        grid-template-columns: clamp(24rem, calc(22vw / 0.48), 34rem) clamp(14rem, calc(16vw / 0.48), 20.6875rem);
+        align-items: center;
+        gap: 1rem clamp(2rem, calc(4vw / 0.48), 7.4375rem);
+
+        .heading {
+          font-size: var(--typography-heading-l, 2rem);
+        }
+      }
+      .categories {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.375rem, calc(0.5vw / 0.48), 0.5rem) 2rem;
+        overflow: hidden;
+        p {
+          color: var(--primary-800, #45051c);
+        }
+
+        ul {
+          display: flex;
+          align-items: center;
+          gap: clamp(0.125rem, calc(0.25vw / 0.48), 0.25rem);
+          overflow-x: auto;
+          scrollbar-width: thin;
+          padding-bottom: 0.25rem;
+          scrollbar-color: var(--neutral-500, #45051c) transparent;
+          max-width: 100%;
+
+          &::-webkit-scrollbar {
+            height: 0.125rem;
+          }
+
+          &::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background-color: var(--neutral-500, #45051c);
+            border-radius: 0.125rem;
+          }
+
+          li {
+            flex-shrink: 0;
+          }
+        }
+      }
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: clamp(0.375rem, calc(0.5vw / 0.48), 0.5rem);
+      max-width: 1366px;
+      width: calc(100% - 2 * var(--pageMargin));
+      margin: 0 auto;
+      grid-template-areas:
+        'featured-1 featured-1 normal-1 normal-2'
+        'featured-1 featured-1 normal-3 normal-4'
+        'normal-5 normal-6 featured-2 featured-2'
+        'normal-7 normal-8 featured-2 featured-2'
+        'featured-3 featured-3 normal-9 normal-10'
+        'featured-3 featured-3 normal-11 normal-12';
+
+      > :global(.CaseStudyCard) {
+        margin-bottom: 0.5rem;
+        &:nth-child(1) {
+          grid-area: featured-1;
+        }
+        &:nth-child(2) {
+          grid-area: normal-1;
+        }
+        &:nth-child(3) {
+          grid-area: normal-2;
+        }
+        &:nth-child(4) {
+          grid-area: normal-3;
+        }
+        &:nth-child(5) {
+          grid-area: normal-4;
+        }
+        &:nth-child(6) {
+          grid-area: normal-5;
+        }
+        &:nth-child(7) {
+          grid-area: normal-6;
+        }
+        &:nth-child(8) {
+          grid-area: normal-7;
+        }
+        &:nth-child(9) {
+          grid-area: normal-8;
+        }
+        &:nth-child(10) {
+          grid-area: featured-2;
+        }
+        &:nth-child(11) {
+          grid-area: featured-3;
+        }
+        &:nth-child(12) {
+          grid-area: normal-9;
+        }
+        &:nth-child(13) {
+          grid-area: normal-10;
+        }
+        &:nth-child(14) {
+          grid-area: normal-11;
+        }
+        &:nth-child(15) {
+          grid-area: normal-12;
+        }
+
+        &:nth-child(1),
+        &:nth-child(10),
+        &:nth-child(11) {
+          :global(.img-container) {
+            height: 100%;
+          }
+          :global(.text) {
+            text-align: left;
+            padding: clamp(1rem, calc(1.5vw / 0.48), 2rem) calc(clamp(1rem, calc(1.5vw / 0.48), 2rem) - 0.375rem)
+              calc(clamp(1rem, calc(1.5vw / 0.48), 2rem) - 0.375rem);
+
+            :global(span) {
+              font-size: var(--typography-body-2xl);
+            }
+
+            :global(.description) {
+              margin-top: 0.75rem;
+            }
+          }
+        }
+
+        :global(a) {
+          background-color: var(--neutral-200, #f5f1ec);
+
+          :global(.img-container) {
+            height: clamp(125px, calc(125vw / 7.68), 216px);
+          }
+
+          :global(.description) {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          &:focus:not(:focus-visible) {
+            background-color: var(--primary-700, #600d2a);
+
+            :global(.text) {
+              color: var(--neutral-200, #faf7f7);
+
+              :global(span) {
+                color: var(--neutral-100, #faf7f7);
+              }
+            }
+          }
+        }
+      }
+    }
+    :global(.Pagination) {
+      margin: clamp(1.5rem, calc(2vw / 0.48), 2rem) auto 0.5rem;
+    }
+
+    @media (max-width: 899px) {
+      .top-row {
+        padding-bottom: clamp(1rem, calc(2.5vw / 0.48), 2.5rem);
+        padding-right: clamp(1rem, calc(var(--pageMargin) - 0.5rem), var(--pageMargin));
+        padding-left: clamp(1rem, calc(var(--pageMargin) - 0.5rem), var(--pageMargin));
+
+        .header {
+          grid-template-columns: 1fr;
+        }
+
+        .categories {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      .list {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(8, auto);
+        grid-template-areas:
+          'featured-1 featured-1'
+          'featured-1 featured-1'
+          'normal-1 normal-2'
+          'normal-3 normal-4'
+          'featured-2 featured-2'
+          'featured-2 featured-2'
+          'normal-5 normal-6'
+          'normal-7 normal-8'
+          'featured-3 featured-3'
+          'featured-3 featured-3'
+          'normal-9 normal-10'
+          'normal-11 normal-12';
+
+        > :global(.CaseStudyCard) {
+          :global(.img-container) {
+            height: clamp(150px, calc(198vw / 7.68), 198px);
+          }
+
+          &:nth-child(1),
+          &:nth-child(10),
+          &:nth-child(11) {
+            :global(.img-container) {
+              height: clamp(320px, calc(406vw / 7.68), 406px);
+            }
+          }
+        }
+      }
+    }
+    @media (max-width: 439px) {
+      .top-row {
+        width: 100%;
+        padding-left: var(--pageMargin);
+        padding-bottom: 1rem;
+        padding-right: var(--pageMargin);
+      }
+
+      .list {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(15, auto);
+        grid-template-areas: unset;
+
+        > :global(.CaseStudyCard) {
+          grid-area: unset !important;
+
+          &:nth-child(10) {
+            grid-row: 6/7 !important;
+          }
+
+          &:nth-child(1),
+          &:nth-child(10),
+          &:nth-child(11) {
+            :global(.img-container) {
+              height: 218px;
+            }
+          }
+
+          :global(a) {
+            :global(.img-container) {
+              height: 218px;
+            }
+          }
+        }
+      }
+    }
+  }
+</style>

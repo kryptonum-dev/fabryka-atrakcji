@@ -1,0 +1,55 @@
+---
+export const prerender = true
+
+import { LANGUAGES, type Language } from '@/global/languages'
+import CaseStudies, { fetchData, ITEMS_PER_PAGE } from '@/src/templates/CaseStudies.astro'
+import sanityFetch from '@/src/utils/sanity.fetch'
+
+export async function getStaticPaths() {
+  const translation = {
+    pl: {
+      caseStudies: 'realizacje',
+      pageUrl: 'strona',
+      page: 'strona',
+    },
+    en: {
+      caseStudies: 'case-studies',
+      pageUrl: 'page',
+      page: 'page',
+    },
+  }
+
+  const langItems = await Promise.all(
+    LANGUAGES.map(async (lang) => {
+      return await sanityFetch<number>({
+        query: `count(*[_type == "CaseStudy_Collection" && language == $language])`,
+        params: { language: lang },
+      })
+    })
+  )
+
+  const totalPagesByLang = langItems.map((items) => Math.ceil(items / ITEMS_PER_PAGE))
+
+  const langPages = totalPagesByLang.map((totalPages, index) =>
+    Array.from({ length: totalPages }, (_, i) => ({
+      params: {
+        lang: LANGUAGES[index],
+        caseStudies: translation[LANGUAGES[index]].caseStudies,
+        pageUrl: translation[LANGUAGES[index]].pageUrl,
+        page: (i + 1).toString(),
+      },
+    }))
+  )
+
+  return langPages.flat()
+}
+
+const lang = Astro.params.lang as Language
+
+const category = null
+const page = Number(Astro.params.page) || 1
+const data = await fetchData(lang, category, page)
+if (!LANGUAGES.includes(lang) || !data) return Astro.rewrite('/404')
+---
+
+<CaseStudies {...data} currentPage={page} currentCategory={category} />

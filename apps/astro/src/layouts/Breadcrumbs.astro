@@ -142,7 +142,7 @@ const breadcrumbsData = [
       left: 50%;      
       transform: translateX(-50%);
       padding-top: 0;
-      max-width: 1366px;
+      max-width: 85.375rem;
       width: 100%;
       padding-left: var(--pageMargin);
     }
@@ -153,7 +153,7 @@ const breadcrumbsData = [
       left: 50%;      
       transform: translateX(-50%);
       padding-top: 0;
-      max-width: 1366px;
+      max-width: 85.375rem;
       width: 100%;
       padding-left: var(--pageMargin);
       padding-right: var(--pageMargin);
@@ -170,7 +170,7 @@ const breadcrumbsData = [
       left: 50%;      
       transform: translateX(-50%);
       padding-top: 0;
-      max-width: 1366px;
+      max-width: 85.375rem;
       width: 100%;
       padding-left: var(--pageMargin);
       z-index: 2;
@@ -182,11 +182,26 @@ const breadcrumbsData = [
     left: 50%;
     transform: translateX(-50%);
     padding-top: 0;
-    max-width: 1366px;
+    max-width: 85.375rem;
     width: 100%;
     padding: clamp(1rem, calc(1.5vw / 0.48), 3rem) var(--pageMargin) 0;
   }
+
+  &[data-first-item-type="CaseStudiesListing"] {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-top: 0;
+    max-width: 85.375rem;
+    width: 100%;
+    padding: clamp(0.5rem, calc(1vw / 0.48), 2.5rem) var(--pageMargin) 0;
+
+    @media (max-width: 599px) and (min-width: 440px) {
+      padding-left: calc(var(--pageMargin) + 0.5rem);
+    }
   }
+}
 
   
 </style>

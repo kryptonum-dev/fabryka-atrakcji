@@ -10,6 +10,7 @@ import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/p
 import Gallery from '@/src/components/caseStudy/Gallery.astro'
 import ChallengeSolution from '@/src/components/caseStudy/ChallengeSolution.astro'
 import Testimonial from '@/src/components/caseStudy/Testimonial.astro'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 
 const prefixes = { pl: '/pl/realizacje/', en: '/en/case-studies/' }
 
@@ -24,7 +25,6 @@ export async function getStaticPaths() {
     `,
     params: { language: lang },
   })
-  console.log(pages)
   return pages?.map(({ slug }) => ({
     params: { lang: lang, caseStudies: caseStudies, slug: slug.replace(prefix, '') },
   }))
@@ -56,6 +56,7 @@ const data = await sanityFetch<{
     photo: ImageDataProps
     content: PortableTextValue
   }
+  components: ComponentsProps
 }>({
   query: `
     *[_type == 'CaseStudy_Collection' && language == $language && slug.current == $slug][0] {
@@ -81,7 +82,8 @@ const data = await sanityFetch<{
         "logo": logo.asset->url,
         ${ImageDataQuery('photo')}
         ${PortableTextQuery('content')}
-      }
+      },
+      ${Components_Query}
     }
   `,
   params: { language: lang, slug: `${prefixes[lang]}${slug}` },
@@ -98,4 +100,5 @@ if (!LANGUAGES.includes(lang) || !data) return Astro.rewrite('/404')
   <Gallery mediaArray={data.mediaArray} galleryHeading={data.galleryHeading} />
   <ChallengeSolution {...data} />
   {data.testimonial && <Testimonial {...data.testimonial} />}
+  <Components data={data.components} hasPreviousSections />
 </Layout>

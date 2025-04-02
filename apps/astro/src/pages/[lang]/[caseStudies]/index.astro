@@ -1,37 +1,26 @@
 ---
-import Layout from '@/src/layouts/Layout.astro'
-import Components from '@/components/Components.astro'
-import { LANGUAGES, type Language } from '@/global/languages'
-import { fetchPageData } from '@/utils/fetch-page-data'
-import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+export const prerender = true
 
-export async function getStaticPaths() {
-  return [
-    {
-      params: {
-        lang: 'pl',
-        caseStudies: 'realizacje',
-      },
+import { LANGUAGES, type Language } from '@/global/languages'
+import CaseStudiesPage, { fetchData } from '@/src/templates/CaseStudies.astro'
+
+export function getStaticPaths() {
+  const translation = {
+    pl: {
+      caseStudies: 'realizacje',
     },
-    {
-      params: {
-        lang: 'en',
-        caseStudies: 'case-studies',
-      },
+    en: {
+      caseStudies: 'case-studies',
     },
-  ]
+  }
+  return LANGUAGES.map((lang) => ({
+    params: { lang, caseStudies: translation[lang].caseStudies },
+  }))
 }
 
-const { lang } = Astro.params as { lang: Language }
-
-const data = await fetchPageData({ name: 'CaseStudy_Page', lang })
-
+const lang = Astro.params.lang as Language
+const data = await fetchData(lang, null, 1)
 if (!LANGUAGES.includes(lang) || !data) return Astro.rewrite('/404')
-
-const { page, metadata } = data
 ---
 
-<Layout {...metadata}>
-  <Breadcrumbs data={[{ name: data.page.name, path: data.page.slug }]} firstItemType={data.page.firstItemType} />
-  <Components data={page.components} />
-</Layout>
+<CaseStudiesPage {...data} currentPage={1} currentCategory={null} />
