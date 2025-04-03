@@ -1,0 +1,160 @@
+---
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+
+export const ComparisonTable_Query = `
+  _type == "ComparisonTable" => {
+    comparisonHeading {
+        leftColumn,
+        rightColumn,
+    },
+    comparisonTable {
+        ${PortableTextQuery('heading')}
+        comparisonItems {
+            leftColumn,
+            rightColumn,
+        },
+    }[],
+  },
+`
+
+type Props = {
+  node: {
+    comparisonHeading: {
+      leftColumn: string
+      rightColumn: string
+    }
+    comparisonTable: {
+      heading: PortableTextValue
+      comparisonItems: {
+        leftColumn: string
+        rightColumn: string
+      }
+    }[]
+  }
+}
+
+const { node } = Astro.props
+---
+
+<div class="ComparisonTable">
+  <header class="header">
+    <span>{node.comparisonHeading.leftColumn}</span>
+    <span>{node.comparisonHeading.rightColumn}</span>
+  </header>
+  <ul class="list">
+    {
+      node.comparisonTable.map((item) => (
+        <li class="item">
+          <PortableText value={item.heading} class="heading" />
+          <div class="items">
+            <p>{item.comparisonItems.leftColumn}</p>
+            <p>{item.comparisonItems.rightColumn}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style lang="scss">
+  .ComparisonTable {
+    margin: 1.5rem 0 clamp(3rem, calc(3.25vw / 0.48), 3.25rem);
+    position: relative;
+    isolation: isolate;
+    border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+
+    &::before {
+      content: '';
+      border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+      position: absolute;
+      background: conic-gradient(
+        from 135deg at 50% 50%,
+        #798ddc 0deg,
+        #e7c78f 90deg,
+        #fa7468 266.40000343322754deg,
+        #798ddc 360deg
+      );
+      background-size: 200%;
+      background-position: center;
+      inset: -2px;
+      z-index: -1;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.125rem;
+      align-items: center;
+      margin-bottom: 0.125rem;
+      span {
+        position: relative;
+        font-size: var(--typography-body-xl, 1.125rem);
+        color: var(--primary-800, #45051c);
+        font-weight: 700;
+        line-height: 1.5;
+        letter-spacing: -0.03em;
+        padding: clamp(0.75rem, calc(1vw / 0.48), 1rem) clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+
+        &::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: var(--neutral-100);
+          border-radius: inherit;
+          z-index: -1;
+        }
+
+        &:nth-child(1)::before {
+          border-top-left-radius: clamp(0.45rem, calc(0.7vw / 0.48), 0.7rem);
+        }
+
+        &:nth-child(2)::before {
+          border-top-right-radius: clamp(0.45rem, calc(0.7vw / 0.48), 0.7rem);
+        }
+      }
+    }
+
+    .list {
+      background-color: var(--neutral-400);
+      border-radius: 0 0 clamp(0.45rem, calc(0.7vw / 0.48), 0.7rem) clamp(0.45rem, calc(0.7vw / 0.48), 0.7rem);
+      overflow: hidden;
+
+      .item {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        text-align: start;
+        line-height: 1.7;
+        margin-bottom: 0.125rem;
+
+        .heading {
+          letter-spacing: -0.03em;
+          font-weight: 700;
+          padding: 0.75rem clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+          background-color: var(--neutral-200);
+          margin-bottom: 0.125rem;
+
+          :global(p) {
+            font-size: var(--typography-body-m, 0.875rem);
+            margin-bottom: 0;
+          }
+        }
+
+        .items {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.125rem;
+
+          p {
+            letter-spacing: -0.01em;
+            height: 100%;
+            background-color: var(--neutral-200);
+            padding: clamp(0.75rem, calc(1vw / 0.48), 1rem) clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+            margin-bottom: 0 !important;
+            font-size: var(--typography-body-m, 0.875rem);
+          }
+        }
+      }
+    }
+  }
+</style>

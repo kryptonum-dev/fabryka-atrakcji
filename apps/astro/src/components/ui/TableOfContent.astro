@@ -100,23 +100,29 @@ const groupedHeadings = headings?.reduce<HeadingGroup[]>((acc, heading) => {
         </ul>
       )
     }
-    <button class="show-more" data-show-less={t.showLess} data-show-more={t.showMore}>
-      <span>{t.showMore}</span>
-      <div class="icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" viewBox="0 0 17 16" fill="none">
-          <path
-            d="M12.5 6.66699L8.9714 10.1956C8.71106 10.4559 8.28894 10.4559 8.0286 10.1956L4.5 6.66699"
-            stroke="#74535E"
-            stroke-linecap="round"></path>
-        </svg>
-        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" viewBox="0 0 17 16" fill="none">
-          <path
-            d="M12.5 6.66699L8.9714 10.1956C8.71106 10.4559 8.28894 10.4559 8.0286 10.1956L4.5 6.66699"
-            stroke="#74535E"
-            stroke-linecap="round"></path>
-        </svg>
-      </div>
-    </button>
+    {
+      groupedHeadings.length > 4 && (
+        <button class="show-more" data-show-less={t.showLess} data-show-more={t.showMore}>
+          <span>{t.showMore}</span>
+          <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" viewBox="0 0 17 16" fill="none">
+              <path
+                d="M12.5 6.66699L8.9714 10.1956C8.71106 10.4559 8.28894 10.4559 8.0286 10.1956L4.5 6.66699"
+                stroke="#74535E"
+                stroke-linecap="round"
+              />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" viewBox="0 0 17 16" fill="none">
+              <path
+                d="M12.5 6.66699L8.9714 10.1956C8.71106 10.4559 8.28894 10.4559 8.0286 10.1956L4.5 6.66699"
+                stroke="#74535E"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+        </button>
+      )
+    }
   </div>
 </nav>
 

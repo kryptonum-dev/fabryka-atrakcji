@@ -74,7 +74,7 @@ const { _createdAt, _updatedAt, title, image, description, readingTime } = Astro
       </span>
     </div>
   </div>
-  <Image {...image} sizes="" />
+  <Image {...image} sizes="(max-width: 599px) 94vw, (max-width: 899px) 83vw, (max-width: 1109px) 768px, 655px" />
 </section>
 
 <style lang="scss">
@@ -121,7 +121,7 @@ const { _createdAt, _updatedAt, title, image, description, readingTime } = Astro
 
     img {
       width: 100%;
-      height: clamp(185px, calc(342vw / 7.68), 368px);
+      aspect-ratio: 655/368.34;
       border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
     }
   }

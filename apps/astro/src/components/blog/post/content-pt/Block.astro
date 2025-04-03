@@ -38,15 +38,11 @@ const props = {
     <h2 {...props}>
       <slot />
     </h2>
-  ) : styleIs('h3') ? (
-    <h3 {...props}>
-      <slot />
-    </h3>
   ) : (
-    styleIs('h4') && (
-      <h4 {...props}>
+    styleIs('h3') && (
+      <h3 {...props}>
         <slot />
-      </h4>
+      </h3>
     )
   )
 }

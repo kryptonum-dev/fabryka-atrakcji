@@ -24,7 +24,7 @@ export default defineField({
       name: 'questions',
       type: 'array',
       title: 'Wyróżnione pytania',
-      validation: (Rule) => Rule.required().min(4).max(12).error('Musisz wybrać między 4 a 12 pytań'),
+      validation: (Rule) => Rule.required().min(4).max(12).error('Musisz wybrać między 4 a 12 pytaniami'),
       of: [
         {
           type: 'reference',

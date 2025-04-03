@@ -65,7 +65,8 @@ const { headings, content, heading } = Astro.props as ContentProps
         margin-bottom: 0;
       }
 
-      :global(li):first-child {
+      :global(> ul > li):first-child,
+      :global(> ol > li):first-child {
         margin-top: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
       }
 

@@ -9,22 +9,31 @@ const { node, index, ...attrs } = Astro.props
 
 <style lang="scss">
   li {
-    $alignMargin: clamp(0.31rem, calc(0.62vw / 0.48), 0.62rem);
-    font-size: var(--typography-body-2xl, 1.25rem);
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: clamp(0.75rem, calc(1.25vw / 0.48), 1.25rem);
-    padding-top: $alignMargin;
+    column-gap: 0.625rem;
+
     &:not(:last-child) {
-      margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+      margin-bottom: 0.75rem;
     }
+
     &::before {
       content: '';
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1OCIgaGVpZ2h0PSI1OCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDU4IDU4Ij48cmVjdCB3aWR0aD0iNTciIGhlaWdodD0iNTciIHg9Ii41IiB5PSIuNSIgZmlsbD0iIzAxMDEwNCIgcng9IjI4LjUiLz48cmVjdCB3aWR0aD0iNTciIGhlaWdodD0iNTciIHg9Ii41IiB5PSIuNSIgc3Ryb2tlPSIjMDY0MDQwIiByeD0iMjguNSIvPjxwYXRoIHN0cm9rZT0iI0VGRjBGMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNMjkgMjJ2MTRtLTctN2gxNCIvPjwvc3ZnPg==')
-        center / contain no-repeat;
-      width: clamp(2.5rem, calc(3.5vw / 0.48), 3.5rem);
-      height: clamp(2.5rem, calc(3.5vw / 0.48), 3.5rem);
-      margin-top: calc($alignMargin * -1);
+      width: 0.25rem;
+      height: 0.25rem;
+      border-radius: 50%;
+      background-color: var(--primary-200);
+      margin-top: 0.75rem;
+    }
+
+    :global(ul) {
+      grid-column: 2 / 3;
+
+      :global(li) {
+        &:first-child {
+          margin-top: 0.5rem;
+        }
+      }
     }
   }
 </style>

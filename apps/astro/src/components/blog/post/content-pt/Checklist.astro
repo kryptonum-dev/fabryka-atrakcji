@@ -1,0 +1,39 @@
+---
+export const Checklist_Query = `
+  _type == "Checklist" => {
+    items,
+  },
+`
+
+type Props = {
+  node: {
+    items: string[]
+  }
+}
+
+const { node } = Astro.props
+---
+
+<ul class="Checklist">
+  {node.items.map((item) => <li>{item}</li>)}
+</ul>
+
+<style lang="scss">
+  .Checklist {
+    margin-bottom: 1.5rem;
+    li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 0.75rem;
+
+      &:not(:last-child) {
+        margin-bottom: 0.625rem;
+      }
+
+      &::before {
+        margin-top: 0.125rem;
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'%3E%3Cpath fill='%23F67258' fill-rule='evenodd' d='M14.67 8.341a6.667 6.667 0 1 1-13.334 0 6.667 6.667 0 0 1 13.333 0Zm-3.98-2.02a.5.5 0 0 1 0 .707l-3.334 3.333a.5.5 0 0 1-.707 0L5.316 9.028a.5.5 0 0 1 .707-.707l.98.98 1.49-1.49 1.49-1.49a.5.5 0 0 1 .707 0Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+      }
+    }
+  }
+</style>

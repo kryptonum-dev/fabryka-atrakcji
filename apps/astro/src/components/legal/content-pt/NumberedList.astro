@@ -32,6 +32,10 @@ const { node, index, ...attrs } = Astro.props
         grid-template-columns: auto 1fr;
         gap: 0.625rem;
 
+        &:first-child {
+          margin-top: 0.5rem;
+        }
+
         &::before {
           content: '';
           width: 0.25rem;

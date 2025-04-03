@@ -6,7 +6,7 @@ import Buttons from './Buttons'
 import Image from './Image'
 import Quote from './Quote'
 import ComparisonTable from './ComparisonTable'
-
+import Faq from './Faq'
 export default defineField({
   name: 'content',
   type: 'array',
@@ -119,6 +119,7 @@ export default defineField({
     Checklist,
     Quote,
     ComparisonTable,
+    Faq,
   ],
   validation: (Rule) => Rule.required(),
 })

@@ -11,7 +11,7 @@ const { node, index, ...attrs } = Astro.props
   li {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 0.625rem;
+    column-gap: 0.625rem;
 
     &:not(:last-child) {
       margin-bottom: 0.75rem;
@@ -29,8 +29,13 @@ const { node, index, ...attrs } = Astro.props
     :global(ul) {
       grid-column: 2 / 3;
 
-      :global(li)::before {
-        background-color: var(--primary-200);
+      :global(li) {
+        &:first-child {
+          margin-top: 0.5rem;
+        }
+        ::before {
+          background-color: var(--primary-200);
+        }
       }
     }
   }

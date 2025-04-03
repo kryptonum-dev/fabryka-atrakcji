@@ -98,8 +98,8 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
   <Breadcrumbs data={breadcrumbs} />
   <article class="content max-width">
     <TableOfContent title={t.tableOfContents} headings={page.headings} />
+    <Hero {...page} readingTime={readingTime} />
     <section class="content-body">
-      <Hero {...page} readingTime={readingTime} />
       <ContentPT value={page.content} />
     </section>
   </article>
@@ -110,11 +110,77 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
     display: grid;
     padding: clamp(1rem, calc(1.5vw / 0.48), 1.5rem) 0 4rem;
     grid-template-columns: 20.6875rem 1fr;
-    column-gap: clamp(2rem, calc(4.5vw / 0.48), 7.5rem);
+    column-gap: clamp(2rem, calc(4vw / 0.48), 7.5rem);
+
+    :global(.Hero) {
+      max-width: 40.9375rem;
+      justify-self: start;
+    }
 
     .content-body {
       max-width: 40.9375rem;
       justify-self: start;
+      :global(> :last-child) {
+        margin-bottom: 0;
+      }
+
+      :global(> ul > li):first-child,
+      :global(> ol > li):first-child {
+        margin-top: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+      }
+
+      :global(strong:not(h1 strong, h2 strong)) {
+        font-weight: 700;
+        color: var(--primary-800, #45051c);
+      }
+
+      :global(p),
+      :global(ul),
+      :global(ol) {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      :global(h2) {
+        margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
+        font-size: var(--typography-heading-l);
+      }
+
+      :global(h3) {
+        color: var(--primary-700, #600d2a);
+        font-size: var(--typography-body-2xl, 1.5rem);
+        line-height: 1.25;
+        margin: 1.5rem 0 1rem;
+        letter-spacing: -0.04em;
+        font-variant-numeric: lining-nums proportional-nums;
+
+        font-weight: 700;
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+      }
+    }
+
+    @media (max-width: 1109px) {
+      grid-template-columns: 1fr;
+      justify-items: center;
+
+      :global(.Hero) {
+        margin: 0 auto clamp(3rem, calc(3.25vw / 0.48), 3.25rem);
+        grid-row: 1/2;
+        max-width: 48rem;
+      }
+
+      :global(.TableOfContent) {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+      }
+
+      .content-body {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+        max-width: 48rem;
+        justify-self: center;
+      }
     }
   }
 </style>
