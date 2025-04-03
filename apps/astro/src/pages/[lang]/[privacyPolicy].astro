@@ -12,12 +12,12 @@ const lang = Astro.params.lang as Language
 
 export function getStaticPaths() {
   const translations = {
-    pl: 'regulamin',
-    en: 'terms-and-conditions',
+    pl: 'polityka-prywatnosci',
+    en: 'privacy-policy',
   }
 
   return LANGUAGES.map((lang) => ({
-    params: { lang, termsAndConditions: translations[lang] },
+    params: { lang, privacyPolicy: translations[lang] },
   }))
 }
 
@@ -30,7 +30,7 @@ const page = await sanityFetch<{
   content: ContentProps
 }>({
   query: `
-      *[_type == "TermsAndConditions_Page" && language == $language][0] {
+      *[_type == "PrivacyPolicy_Page" && language == $language][0] {
         name,
         "slug": slug.current,
         ${PortableTextQuery('heading')}
