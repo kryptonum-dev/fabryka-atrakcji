@@ -5,6 +5,12 @@ import Button, { ButtonDataQuery, type ButtonDataProps } from '../../ui/Button'
 import { ImageDataQuery, type ImageDataProps } from '../../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
 import Carousel from './Carousel'
+import { ContentPT_Query } from '../../blog/post/content-pt/index.astro'
+import type { PortableTextProps } from 'astro-portabletext/types'
+import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
+import type { Language } from '@/src/global/languages'
+
+const lang = (Astro.params.lang as Language) || 'pl'
 
 export const HighlightedBlogPosts_Query = `
   _type == "HighlightedBlogPosts" => {
@@ -19,6 +25,7 @@ export const HighlightedBlogPosts_Query = `
       title,
       ${ImageDataQuery('image')}
       _createdAt,
+      ${ContentPT_Query}
     },
   },
 `
@@ -37,6 +44,7 @@ type Props = {
     title: PortableTextValue
     image: ImageDataProps
     _createdAt: string
+    content: PortableTextProps['value']
   }[]
 }
 
@@ -54,7 +62,7 @@ const clientBlogPosts = await Promise.all(
       loading: index === 0 ? 'eager' : 'lazy',
       sizes: '(max-width: 37.4375rem) 328px, (max-width: 48rem) 298px, (max-width: 70.125rem) 40vw, 435px',
     },
-    readTime: '5 minut czytania',
+    readTime: getEstimatedReadingTime({ content: blogPost.content, lang }),
     createdAt: blogPost._createdAt,
   }))
 )
