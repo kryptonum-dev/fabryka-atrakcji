@@ -60,7 +60,6 @@ export default defineField({
           name: 'groupId',
           type: 'string',
           title: 'ID grupy MailerLite',
-
           validation: (Rule) => Rule.required(),
         }),
         defineField({

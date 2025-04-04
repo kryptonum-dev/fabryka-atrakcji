@@ -134,20 +134,24 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
         color: var(--primary-800, #45051c);
       }
 
-      :global(p),
-      :global(ul),
-      :global(ol) {
+      :global(> p),
+      :global(> ul),
+      :global(> ol),
+      :global(> ul li),
+      :global(> ol li),
+      :global(> ul p),
+      :global(> ol p) {
         font-size: var(--typography-body-xl, 1.125rem);
         line-height: 1.5;
         margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
       }
 
-      :global(h2) {
+      :global(> h2) {
         margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
         font-size: var(--typography-heading-l);
       }
 
-      :global(h3) {
+      :global(> h3) {
         color: var(--primary-700, #600d2a);
         font-size: var(--typography-body-2xl, 1.5rem);
         line-height: 1.25;
@@ -157,6 +161,10 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
 
         font-weight: 700;
         font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+      }
+
+      :global(li:last-child) {
+        margin-bottom: 0;
       }
     }
 

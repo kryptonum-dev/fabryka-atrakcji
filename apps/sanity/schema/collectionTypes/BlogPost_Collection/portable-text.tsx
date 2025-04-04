@@ -7,6 +7,9 @@ import Image from './Image'
 import Quote from './Quote'
 import ComparisonTable from './ComparisonTable'
 import Faq from './Faq'
+import Newsletter from './Newsletter'
+import Cta from './Cta'
+
 export default defineField({
   name: 'content',
   type: 'array',
@@ -120,6 +123,8 @@ export default defineField({
     Quote,
     ComparisonTable,
     Faq,
+    Newsletter,
+    Cta,
   ],
   validation: (Rule) => Rule.required(),
 })

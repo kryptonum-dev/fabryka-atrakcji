@@ -12,6 +12,8 @@ import Image, { Image_Query } from './Image.astro'
 import Quote, { Quote_Query } from './Quote.astro'
 import ComparisonTable, { ComparisonTable_Query } from './ComparisonTable.astro'
 import Faq, { Faq_Query } from './Faq.astro'
+import Newsletter, { Newsletter_Query } from './newsletter/index.astro'
+import Cta, { Cta_Query } from './Cta.astro'
 
 export const ContentPT_Query = `
   content[] {
@@ -31,6 +33,8 @@ export const ContentPT_Query = `
     ${Quote_Query}
     ${ComparisonTable_Query}
     ${Faq_Query}
+    ${Newsletter_Query}
+    ${Cta_Query}
   },
 `
 
@@ -62,6 +66,8 @@ const { value } = Astro.props
       Quote,
       ComparisonTable,
       Faq,
+      Newsletter,
+      Cta,
     },
   }}
 />

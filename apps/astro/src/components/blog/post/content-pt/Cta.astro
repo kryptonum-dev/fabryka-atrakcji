@@ -1,0 +1,452 @@
+---
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import CaseStudyCard, { CaseStudyCardQuery, type CaseStudyCardProps } from '@/src/components/ui/CaseStudyCard.astro'
+import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '@/src/components/ui/ActivityCard'
+import Image from '@/src/components/ui/image'
+import Button from '@/src/components/ui/Button'
+import type { Language } from '@/src/global/languages'
+
+const lang = (Astro.params.lang as Language) || 'pl'
+
+const translations = {
+  pl: {
+    allCaseStudies: 'Wszystkie realizacje',
+    caseStudiesUrl: '/pl/realizacje',
+    allActivities: 'Wszystkie integracje',
+    activitiesUrl: '/pl/integracje',
+    allHotels: 'Wszystkie hotele',
+    hotelsUrl: '/pl/hotele',
+  },
+  en: {
+    allCaseStudies: 'All case studies',
+    caseStudiesUrl: '/en/case-studies',
+    allActivities: 'All activities',
+    activitiesUrl: '/en/activities',
+    allHotels: 'All hotels',
+    hotelsUrl: '/en/hotels',
+  },
+}
+
+const t = translations[lang]
+
+export const Cta_Query = `
+  _type == "Cta" => {
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    highlightType,
+    caseStudies[]->{
+      ${CaseStudyCardQuery}
+    },
+    activities[]->{
+      ${ActivityCardQuery}
+    }
+  },
+`
+
+type Props = {
+  node: {
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+    highlightType: 'caseStudies' | 'activities'
+    caseStudies?: CaseStudyCardProps[]
+    activities?: ActivityCardProps[]
+  }
+}
+
+const { node } = Astro.props
+
+const highlightLenght = node.highlightType === 'activities' ? node.activities?.length : node.caseStudies?.length
+---
+
+<div class="Cta" data-highlight-length={highlightLenght} data-highlight-type={node.highlightType}>
+  <header class="header">
+    <PortableText value={node.heading} heading="h2" class="heading" />
+    <PortableText value={node.paragraph} class="paragraph" />
+  </header>
+  <div class="list">
+    {
+      node.highlightType === 'caseStudies' &&
+        node.caseStudies?.map((item) => (
+          <CaseStudyCard
+            {...item}
+            imageSizes={
+              highlightLenght === 1
+                ? '(max-width: 599px) 86vw, (max-width: 659px) 72vw, (max-width: 899px) 40vw, (max-width: 1099px) 368px, 306px'
+                : '(max-width: 499px) 92vw, (max-width: 599px) 44vw, (max-width: 899px) 35vw, (max-width: 1099px) 328px, 272px'
+            }
+            title={item.name}
+            primaryImage={{ src: item.primaryImage, loading: 'lazy' }}
+            secondaryImage={{ src: item.secondaryImage, loading: 'lazy' }}
+          />
+        ))
+    }
+    {
+      node.highlightType === 'activities' &&
+        node.activities?.map((item) => (
+          <ActivityCard {...item} slug="/" description="">
+            <Image
+              {...item.image}
+              sizes={
+                highlightLenght === 1
+                  ? '(max-width: 499px) 90vw, (max-width: 899px) 40vw, (max-width: 1099px) 348px, 292px'
+                  : '(max-width: 439px) 93vw, (max-width: 599px) 47vw, (max-width: 899px) 37vw, (max-width: 1099px) 340px, 284px'
+              }
+            />
+          </ActivityCard>
+        ))
+    }
+  </div>
+  <Button
+    theme="secondary"
+    href={node.highlightType === 'caseStudies'
+      ? t.caseStudiesUrl
+      : node.highlightType === 'activities'
+        ? t.activitiesUrl
+        : t.hotelsUrl}
+  >
+    {t[node.highlightType === 'caseStudies' ? 'allCaseStudies' : 'allActivities']}
+  </Button>
+  {
+    node.highlightType === 'activities' && highlightLenght === 1 && (
+      <svg xmlns="http://www.w3.org/2000/svg" width="655" height="480" fill="none">
+        <g filter="url(#filter0_f_7346_124033)">
+          <ellipse
+            cx="17.669"
+            cy="607.907"
+            fill="#F7D8FF"
+            rx="271.995"
+            ry="208.606"
+            transform="rotate(-180 17.669 607.907)"
+          />
+          <ellipse
+            cx="637.005"
+            cy="559.592"
+            fill="#EAE8FF"
+            rx="271.995"
+            ry="208.606"
+            transform="rotate(-180 637.005 559.592)"
+          />
+          <ellipse
+            cx="691.632"
+            cy="540.261"
+            fill="#FFF1F2"
+            rx="211.719"
+            ry="162.281"
+            transform="rotate(-180 691.632 540.261)"
+          />
+          <ellipse
+            cx="354.468"
+            cy="561.582"
+            fill="#FAF7F7"
+            rx="211.719"
+            ry="162.281"
+            transform="rotate(-180 354.468 561.582)"
+          />
+          <ellipse
+            cx="566.18"
+            cy="399.299"
+            fill="#FBECFF"
+            rx="192.883"
+            ry="147.787"
+            transform="rotate(-180 566.18 399.299)"
+          />
+          <ellipse
+            cx="437.336"
+            cy="460.121"
+            fill="#FBECFF"
+            rx="192.883"
+            ry="147.787"
+            transform="rotate(-180 437.336 460.121)"
+          />
+          <ellipse
+            cx="39.527"
+            cy="520.557"
+            fill="#FFEAEA"
+            rx="234.699"
+            ry="179.902"
+            transform="rotate(-180 39.527 520.557)"
+          />
+        </g>
+        <defs>
+          <filter
+            id="filter0_f_7346_124033"
+            width="1730.51"
+            height="1132.18"
+            x="-537.919"
+            y="-32.078"
+            color-interpolation-filters="sRGB"
+            filterUnits="userSpaceOnUse"
+          >
+            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+            <feGaussianBlur result="effect1_foregroundBlur_7346_124033" stdDeviation="141.795" />
+          </filter>
+        </defs>
+      </svg>
+    )
+  }
+
+  {
+    highlightLenght === 2 && (
+      <svg xmlns="http://www.w3.org/2000/svg" width="655" height="782" fill="none">
+        <g filter="url(#filter0_f_7346_77707)">
+          <ellipse
+            cx="17.669"
+            cy="600.643"
+            fill="#F7D8FF"
+            rx="271.995"
+            ry="208.606"
+            transform="rotate(-180 17.669 600.643)"
+          />
+          <ellipse
+            cx="637.005"
+            cy="552.328"
+            fill="#EAE8FF"
+            rx="271.995"
+            ry="208.606"
+            transform="rotate(-180 637.005 552.328)"
+          />
+          <ellipse
+            cx="691.632"
+            cy="532.997"
+            fill="#FFF1F2"
+            rx="211.719"
+            ry="162.281"
+            transform="rotate(-180 691.632 532.997)"
+          />
+          <ellipse
+            cx="354.468"
+            cy="554.318"
+            fill="#FAF7F7"
+            rx="211.719"
+            ry="162.281"
+            transform="rotate(-180 354.468 554.318)"
+          />
+          <ellipse
+            cx="566.18"
+            cy="392.035"
+            fill="#FBECFF"
+            rx="192.883"
+            ry="147.787"
+            transform="rotate(-180 566.18 392.035)"
+          />
+          <ellipse
+            cx="437.336"
+            cy="452.857"
+            fill="#FBECFF"
+            rx="192.883"
+            ry="147.787"
+            transform="rotate(-180 437.336 452.857)"
+          />
+          <ellipse
+            cx="39.527"
+            cy="513.293"
+            fill="#FFEAEA"
+            rx="234.699"
+            ry="179.902"
+            transform="rotate(-180 39.527 513.293)"
+          />
+          <ellipse
+            cx="647.554"
+            cy="529.876"
+            fill="#FFDA58"
+            rx="70.071"
+            ry="36.094"
+            transform="rotate(-180 647.554 529.876)"
+          />
+          <ellipse
+            cx="647.554"
+            cy="543.518"
+            fill="#FFF1C0"
+            rx="70.071"
+            ry="36.094"
+            transform="rotate(-180 647.554 543.518)"
+          />
+        </g>
+        <defs>
+          <filter
+            id="filter0_f_7346_77707"
+            width="1730.51"
+            height="1132.18"
+            x="-537.919"
+            y="-39.343"
+            color-interpolation-filters="sRGB"
+            filterUnits="userSpaceOnUse"
+          >
+            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+            <feGaussianBlur result="effect1_foregroundBlur_7346_77707" stdDeviation="141.795" />
+          </filter>
+        </defs>
+      </svg>
+    )
+  }
+</div>
+
+<style lang="scss">
+  .Cta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem clamp(0.75rem, calc(1.25vw / 0.48), 1.5rem);
+    grid-template-rows: auto 1fr;
+    padding: 1.5rem clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+    border-radius: 1rem;
+    background-color: var(--neutral-200, #f5f1ec);
+    margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    .header {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+      line-height: 1.5;
+
+      .heading {
+        font-size: var(--typography-heading-l, 2rem);
+        margin-bottom: 1rem;
+      }
+
+      .paragraph {
+        font-size: var(--typography-body-xl, 1.125rem);
+        margin-bottom: clamp(1.5rem, calc(2vw / 0.48), 2rem);
+      }
+    }
+
+    > :global(a) {
+      grid-column: 1 / 2;
+      grid-row: 2 / 3;
+      align-self: end;
+    }
+
+    .list {
+      grid-column: 2/3;
+      grid-row: 1/3;
+    }
+
+    &[data-highlight-length='1'] {
+      .header {
+        .heading {
+          font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+          font-weight: 700;
+          line-height: 1.5;
+          font-size: var(--typography-body-xl, 1.125rem);
+          color: var(--primary-700, #600d2a);
+          font-variant-numeric: lining-nums proportional-nums;
+          letter-spacing: -0.02em;
+          text-transform: none;
+        }
+      }
+    }
+
+    &[data-highlight-length='2'] {
+      display: none;
+      padding: 2.5rem 2.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      align-items: flex-start;
+      .list {
+        margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem 0.5rem;
+      }
+
+      :global(a) {
+        align-self: center;
+      }
+    }
+
+    &[data-highlight-type='activities'] {
+      :global(article) {
+        :global(a > div:first-child) {
+          border-radius: 0.25rem;
+        }
+      }
+    }
+
+    &[data-highlight-type='caseStudies'] {
+      grid-template-columns: 1fr 1.2fr;
+      :global(.CaseStudyCard) {
+        :global(a > .img-container) {
+          height: auto;
+          aspect-ratio: 324/216.11;
+        }
+      }
+    }
+
+    > svg {
+      position: absolute;
+      z-index: -1;
+      bottom: 0;
+      left: 0;
+    }
+
+    @media (max-width: 789px) {
+      &[data-highlight-length='2'] {
+        margin-left: calc(-1 * var(--pageMargin));
+        margin-right: calc(-1 * var(--pageMargin));
+        padding-left: var(--pageMargin);
+        padding-right: var(--pageMargin);
+      }
+    }
+
+    @media (max-width: 659px) {
+      &[data-highlight-type='caseStudies'][data-highlight-length='1'] {
+        grid-template-columns: 1fr;
+
+        .header {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+          max-width: 24rem;
+        }
+
+        .list {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+
+        :global(a) {
+          grid-column: 1 / 2;
+          grid-row: 3 / 4;
+        }
+      }
+    }
+
+    @media (max-width: 499px) {
+      &[data-highlight-type='activities'][data-highlight-length='1'] {
+        grid-template-columns: 1fr;
+
+        .header {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+          max-width: 24rem;
+        }
+
+        .list {
+          grid-column: 1 / 2;
+          grid-row: 3 / 4;
+        }
+
+        :global(a) {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+        }
+      }
+
+      &[data-highlight-type='caseStudies'][data-highlight-length='2'] {
+        .list {
+          grid-template-columns: 1fr;
+          width: 100%;
+        }
+      }
+    }
+
+    @media (max-width: 439px) {
+      &[data-highlight-type='activities'][data-highlight-length='2'] .list {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+</style>

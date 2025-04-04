@@ -1,0 +1,136 @@
+.ActivityCard {
+  .imgWrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: 20px 20px 4px 4px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+
+    .recent,
+    .participants {
+      position: absolute;
+      top: 0.675rem;
+      right: 0.675rem;
+      padding: 0.25rem 0.675rem 0.375rem 0.5rem;
+      border-radius: 999px;
+      gap: 0.375rem;
+      display: flex;
+      align-items: center;
+      background: var(--neutral-400, #ffe4ca);
+      z-index: 3;
+
+      span {
+        color: var(--primary-800, #45051c);
+        line-height: 1.4;
+        font-size: var(--typography-body-m, 0.875rem);
+        letter-spacing: -0.01em;
+      }
+
+      svg {
+        padding-top: 1px;
+      }
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      transition: transform 300ms var(--easing);
+    }
+
+    .participants {
+      top: unset;
+      bottom: 0.675rem;
+      right: 0.90625rem;
+      background: var(--primary-800, #45051c);
+
+      span {
+        color: var(--neutral-100, #faf7f7);
+        padding-top: 1px;
+      }
+
+      svg {
+        padding-top: 0;
+      }
+    }
+  }
+
+  .heading {
+    margin-bottom: 0.375rem;
+    padding: 0 0.675rem;
+
+    position: relative;
+    overflow: hidden;
+    max-width: max-content;
+
+    h2,
+    h3,
+    span {
+      font-size: var(--typography-body-l, 1rem);
+      font-variant-numeric: lining-nums proportional-nums;
+      line-height: 1.55;
+      font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+      font-weight: 700;
+      color: var(--primary-800, #45051c);
+      letter-spacing: -0.03em;
+    }
+
+    h2,
+    h3 {
+      transition:
+        transform 300ms var(--easing),
+        opacity 200ms;
+    }
+
+    span {
+      position: absolute;
+      left: 0.675rem;
+      top: 50%;
+      transform: translate(60%, -50%);
+      width: max-content;
+      opacity: 0;
+      transition:
+        transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.07),
+        opacity 200ms;
+    }
+  }
+
+  p {
+    padding: 0 0.675rem;
+    line-height: 1.7;
+    font-size: var(--typography-body-m, 0.875rem);
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    align-self: stretch;
+  }
+
+  &:has(a:hover) {
+    .imgWrapper {
+      img {
+        transform: rotate(-5deg) scale(1.15);
+      }
+    }
+
+    .heading {
+      h2,
+      h3 {
+        transform: translateX(-80%);
+        opacity: 0;
+      }
+      span {
+        transform: translate(0%, -50%);
+        opacity: 1;
+      }
+    }
+  }
+  &:has(a:focus:not(:focus-visible)) {
+    .imgWrapper {
+      img {
+        transform: rotate(-1deg) scale(1.3);
+      }
+    }
+  }
+}

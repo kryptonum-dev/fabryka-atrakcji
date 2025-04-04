@@ -2,12 +2,31 @@ import Button from '@/src/components/ui/Button'
 import type { Language } from '@/src/global/languages'
 import type { ClientFormStateTypes, FormStatusTypes } from '@/src/global/types'
 import styles from './styles.module.scss'
+import { PortableTextQuery } from '../portable-text'
 
 type Props = ClientFormStateTypes & {
   isSuccess: boolean | undefined
   handleRestart: (e: React.MouseEvent) => void
   lang: Language
 }
+
+export const FormState_Query = (name: string) => `
+    ${name} {
+        success{
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+          highlightedSocialMedia[] -> {
+            name,
+            link,
+            iconString,
+          },
+        },
+        error{
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+    },
+`
 
 const translations = {
   pl: {
