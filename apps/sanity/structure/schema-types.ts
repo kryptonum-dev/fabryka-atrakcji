@@ -29,12 +29,14 @@ import Activities_Collection from '../schema/collectionTypes/Activities_Collecti
 import ActivitiesCategory_Collection from '../schema/collectionTypes/ActivitiesCategory_Collection'
 import BlogCategory_Collection from '../schema/collectionTypes/BlogCategory_Collection'
 import BlogPost_Collection from '../schema/collectionTypes/BlogPost_Collection'
-import CaseStudy_Collection from '../schema/collectionTypes/CaseStudyCollection'
+import CaseStudy_Collection from '../schema/collectionTypes/CaseStudy_Collection'
 import CaseStudyCategory_Collection from '../schema/collectionTypes/CaseStudyCategory_Collection'
 import Faq_Collection from '../schema/collectionTypes/Faq_Collection'
 import Pages_Collection from '../schema/collectionTypes/Pages_Collection'
 import SocialMedia_Collection from '../schema/collectionTypes/SocialMedia_Collection'
 import Testimonial_Collection from '../schema/collectionTypes/Testimonial_Collection'
+import Author_Collection from '../schema/collectionTypes/Author_Collection'
+
 const collectionTypes = [
   Faq_Collection,
   Pages_Collection,
@@ -46,6 +48,7 @@ const collectionTypes = [
   BlogCategory_Collection,
   Testimonial_Collection,
   SocialMedia_Collection,
+  Author_Collection,
 ]
 
 // Components

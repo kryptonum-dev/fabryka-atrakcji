@@ -17,6 +17,7 @@ import ContentPT, {
   type Props as ContentPTProps,
 } from '@/src/components/blog/post/content-pt/index.astro'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
+import Author, { AuthorQuery, type AuthorProps } from '@/src/components/blog/post/Author.astro'
 
 export async function staticPaths() {
   const blogPostByLang = await Promise.all(
@@ -60,6 +61,7 @@ const page = await sanityFetch<
       slug: string
     }
     content: ContentPTProps['value']
+    author: AuthorProps
   } & HeroProps &
     TableOfContentProps
 >({
@@ -77,6 +79,7 @@ const page = await sanityFetch<
         },
         ${TableOfContent_Query}
         ${ContentPT_Query}
+        ${AuthorQuery}
         }
     `,
   params: { slug: fullSlug, language: lang },
@@ -102,6 +105,7 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
     <section class="content-body">
       <ContentPT value={page.content} />
     </section>
+    <Author {...page.author} />
   </article>
 </Layout>
 
@@ -113,6 +117,14 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
     column-gap: clamp(2rem, calc(4vw / 0.48), 7.5rem);
 
     :global(.Hero) {
+      max-width: 40.9375rem;
+      justify-self: start;
+    }
+
+    :global(.Author) {
+      grid-column: 2 / 3;
+      grid-row: 3 / 4;
+      width: 100%;
       max-width: 40.9375rem;
       justify-self: start;
     }
@@ -178,6 +190,14 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
         max-width: 48rem;
       }
 
+      :global(.Author) {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+        width: 100%;
+        max-width: 48rem;
+        justify-self: center;
+      }
+
       :global(.TableOfContent) {
         grid-column: 1 / 2;
         grid-row: 2 / 3;
@@ -188,6 +208,17 @@ const readingTime = getEstimatedReadingTime({ content: page.content, lang })
         grid-row: 3 / 4;
         max-width: 48rem;
         justify-self: center;
+      }
+    }
+
+    @media (max-width: 839px) {
+      :global(.Author) {
+        margin-left: calc(-1 * var(--pageMargin));
+        margin-right: calc(-1 * var(--pageMargin));
+        padding-left: var(--pageMargin);
+        width: 100vw;
+        max-width: none;
+        padding-right: var(--pageMargin);
       }
     }
   }

@@ -57,8 +57,25 @@ export default defineType({
     defineField({
       name: 'category',
       type: 'reference',
-      to: [{ type: 'BlogCategory_Collection' }],
       title: 'Kategoria wpisu',
+      to: [{ type: 'BlogCategory_Collection' }],
+      options: {
+        filter: ({ document }) => {
+          const language = (document as { language?: string })?.language
+          return {
+            filter: 'language == $language',
+            params: { language: language },
+          }
+        },
+      },
+      group: 'content',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'author',
+      type: 'reference',
+      title: 'Autor',
+      to: [{ type: 'Author_Collection' }],
       options: {
         filter: ({ document }) => {
           const language = (document as { language?: string })?.language

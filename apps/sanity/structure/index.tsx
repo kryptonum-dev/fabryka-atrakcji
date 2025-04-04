@@ -44,6 +44,7 @@ export const structure: StructureResolver = (S) =>
               createSingleton({ S, name: 'Blog_Page' }),
               createCollection(S, 'BlogPost_Collection'),
               createCollection(S, 'BlogCategory_Collection'),
+              createCollection(S, 'Author_Collection'),
             ])
         ),
       createCollection(S, 'Testimonial_Collection'),
