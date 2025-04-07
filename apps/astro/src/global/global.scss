@@ -204,7 +204,6 @@ body {
   font-size: var(--typography-body-l, 1rem);
   line-height: 1.55;
   font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
-
   letter-spacing: -0.02em;
   background-color: var(--neutral-100, #faf7f7);
   color: var(--primary-400, #74535e);
@@ -334,11 +333,6 @@ h2,
       outline-color: var(--neutral-400, #ede6de);
     }
   }
-
-  &[target='_blank'] {
-    &::after {
-    }
-  }
 }
 
 @keyframes linkColorLoop {
@@ -370,4 +364,15 @@ div.paragraph {
   & > *:not(:last-child) {
     margin-bottom: 0.5rem;
   }
+}
+
+.visually-hidden {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(0px 0px 99.9% 99.9%);
+  overflow: hidden;
+  height: 1px;
+  width: 1px;
+  padding: 0;
+  border: 0;
 }

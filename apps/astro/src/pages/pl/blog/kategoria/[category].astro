@@ -1,0 +1,13 @@
+---
+import BlogPage, { fetchData, staticPathsCategory } from '@/src/templates/blog/BlogPage.astro'
+
+const page = 1
+const category = Astro.params.category as string
+const data = await fetchData('pl', category, page)
+
+if (!data) return Astro.rewrite('/404')
+
+export const getStaticPaths = () => staticPathsCategory('pl')
+---
+
+<BlogPage {...data} currentPage={page} currentCategory={category} />

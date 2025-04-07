@@ -1,1 +1,9 @@
-<div>hej</div>
+---
+import BlogPage, { fetchData } from '@/src/templates/blog/BlogPage.astro'
+
+const data = await fetchData('pl', null, 1)
+
+if (!data) return Astro.rewrite('/404')
+---
+
+<BlogPage {...data} currentPage={1} currentCategory={null} />
