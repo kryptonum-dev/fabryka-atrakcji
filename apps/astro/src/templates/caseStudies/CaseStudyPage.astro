@@ -5,8 +5,8 @@ import metadataFetch from '@/utils/metadata.fetch'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
-import { type Language } from '@/global/languages'
-import Listing, { Listing_Query, type ListingProps } from '../components/caseStudy/Listing.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Listing, { Listing_Query, type ListingProps } from '@/src/components/caseStudy/Listing.astro'
 
 export const ITEMS_PER_PAGE = 3
 
@@ -57,39 +57,93 @@ export async function fetchData(lang: Language, category: string | null, pageNum
   return { page, metadata }
 }
 
+export async function staticPathsPage(lang: Language) {
+  const pages = await sanityFetch<number>({
+    query: `count(*[_type == "CaseStudy_Collection" && language == $language])`,
+    params: { language: lang },
+  })
+
+  const totalPages = Math.ceil(pages / ITEMS_PER_PAGE)
+
+  return Array.from({ length: totalPages - 1 }, (_, i) => ({
+    params: { page: (i + 1).toString() },
+  }))
+}
+
+export async function staticPathsCategory(lang: Language) {
+  const categories = await sanityFetch<{ lang: Language; slug: string }[]>({
+    query: `
+      *[_type == "CaseStudyCategory_Collection" && language == $language][] {
+        "lang": language,
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+
+  return categories.map(({ slug }) => ({
+    params: {
+      category: slug.split('/').pop(),
+    },
+  }))
+}
+
+export async function staticPathsCategoryPage(lang: Language) {
+  const categories = await sanityFetch<{ lang: Language; slug: string; postCount: number }[]>({
+    query: `
+      *[_type == 'CaseStudyCategory_Collection' && language == $language][] {
+        "slug": slug.current,
+        "postCount": count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]),
+      }
+    `,
+    params: { language: lang },
+  })
+
+  return categories.map(({ slug, postCount }) => {
+    const totalPages = Math.ceil(postCount / ITEMS_PER_PAGE)
+    return Array.from({ length: totalPages - 1 }, (_, i) => ({
+      params: {
+        category: slug.split('/').pop(),
+        page: (i + 2).toString(),
+      },
+    }))
+  })
+}
+
 const { page, metadata: _metadata, currentPage, currentCategory } = Astro.props
-const lang = Astro.params.lang as Language
+const lang = getLangFromPath(Astro.url.pathname) as Language
 const totalPages = Math.ceil(page.totalCaseStudiesByCategory / ITEMS_PER_PAGE)
 
 const translation = {
   pl: {
     page: 'Strona',
+    prefix: '/pl/realizacje',
   },
   en: {
     page: 'Page',
+    prefix: '/en/case-studies',
   },
 } as const
-const useTranslation = translation[lang]
+
+const t = translation[lang]
 
 const metadata = {
   ..._metadata,
-  title: `${_metadata.title} | ${useTranslation.page} ${currentPage}`,
+  title: `${_metadata.title} | ${t.page} ${currentPage}`,
   description: _metadata.description,
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,
 }
 const getPaginationUrl = (page: number) => {
   if (lang === 'pl')
-    return currentCategory
-      ? `/${lang}/blog/kategoria/${currentCategory}/strona/${page}`
-      : `/${lang}/blog/strona/${page}`
-  return currentCategory ? `/${lang}/blog/category/${currentCategory}/page/${page}` : `/${lang}/blog/page/${page}`
+    return currentCategory ? `${t.prefix}/kategoria/${currentCategory}/strona/${page}` : `${t.prefix}/strona/${page}`
+  return currentCategory ? `${t.prefix}/kategoria/${currentCategory}/strona/${page}` : `${t.prefix}/page/${page}`
 }
 
 const breadcrumbs = [
   { name: page.name, path: page.slug },
   ...(page?.selectedCategory ? [{ name: page.selectedCategory.name, path: page.selectedCategory.slug }] : []),
-  ...(currentPage > 1 ? [{ name: `${useTranslation.page} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
+  ...(currentPage > 1 ? [{ name: `${t.page} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
 ---
 

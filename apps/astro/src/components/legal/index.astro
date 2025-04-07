@@ -2,9 +2,9 @@
 import TableOfContent, { TableOfContent_Query, type TableOfContentProps } from '../ui/TableOfContent.astro'
 import PortableText, { type PortableTextValue } from '../ui/portable-text'
 import ContentPT, { ContentPT_Query, type Props as ContentPTProps } from './content-pt/index.astro'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 
-const lang = Astro.params.lang as Language
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

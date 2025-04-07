@@ -74,11 +74,11 @@ const data = await sanityFetch<{
         ${ButtonDataQuery('cta')}
         highlightedActivitiesCategories[]->{
           name,
-          slug,
+          "slug": slug.current,
         },
         otherLinks[]->{
           name,
-          slug,
+          "slug": slug.current,
         },
         restOfInformation {
           phoneHeading,

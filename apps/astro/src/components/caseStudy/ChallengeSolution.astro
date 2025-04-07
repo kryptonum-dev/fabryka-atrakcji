@@ -1,8 +1,8 @@
 ---
 import PortableText, { type PortableTextValue } from '@/components/ui/portable-text'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/global/languages'
 
-const { lang } = (Astro.params as { lang: Language }) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

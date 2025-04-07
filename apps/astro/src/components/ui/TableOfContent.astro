@@ -423,7 +423,6 @@ const groupedHeadings = headings?.reduce<HeadingGroup[]>((acc, heading) => {
       navLinks.forEach((link) => link.setAttribute('aria-current', 'false'))
       if (currentHeading) {
         const id = currentHeading.getAttribute('id')
-        console.log(id)
         nav.querySelector(`a[href="#${id}"]`)?.setAttribute('aria-current', 'true')
       }
     }

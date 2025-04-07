@@ -83,7 +83,7 @@ const highlightLenght = node.highlightType === 'activities' ? node.activities?.l
     {
       node.highlightType === 'activities' &&
         node.activities?.map((item) => (
-          <ActivityCard {...item} slug="/" description="">
+          <ActivityCard {...item} description="">
             <Image
               {...item.image}
               sizes={

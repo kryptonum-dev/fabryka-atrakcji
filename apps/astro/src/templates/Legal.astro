@@ -1,0 +1,46 @@
+---
+import { type Language } from '@/src/global/languages'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import Layout from '@/src/layouts/Layout.astro'
+import metadataFetch from '@/src/utils/metadata.fetch'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import Content, { Content_Query, type ContentProps } from '@/src/components/legal/index.astro'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+
+export async function fetchData(type: 'PrivacyPolicy' | 'TermsAndConditions', lang: Language) {
+  const page = await sanityFetch<{
+    name: string
+    slug: string
+    heading: PortableTextValue
+    content: ContentProps
+  }>({
+    query: `
+      *[_type == "${type}_Page" && language == $language][0] {
+        name,
+        "slug": slug.current,
+        ${PortableTextQuery('heading')}
+        ${Content_Query}
+      }
+    `,
+    params: { language: lang },
+  })
+
+  if (!page) return null
+
+  const metadata = await metadataFetch(page.slug)
+
+  if (!metadata) return null
+
+  return {
+    metadata,
+    page,
+  }
+}
+
+const { metadata, page } = Astro.props
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs data={[{ name: page.name, path: page.slug }]} />
+  <Content {...page.content} heading={page.heading} />
+</Layout>

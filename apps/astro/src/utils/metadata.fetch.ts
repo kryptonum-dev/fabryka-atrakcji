@@ -1,7 +1,7 @@
 import type { Language } from '@/global/languages'
 import sanityFetch from '@/utils/sanity.fetch'
 
-type MetadataProps = ({ path: string; url?: never } | { url: string; path?: never }) & {
+export type MetadataProps = ({ path: string; url?: never } | { url: string; path?: never }) & {
   title: string
   description: string
   openGraphImage?: string

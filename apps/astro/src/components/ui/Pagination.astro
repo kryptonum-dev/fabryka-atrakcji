@@ -1,5 +1,5 @@
 ---
-import { type Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/global/languages'
 
 interface Props {
   slugBase: string
@@ -10,7 +10,7 @@ interface Props {
 
 const { slugBase, totalItems, itemsPerPage, currentPage } = Astro.props
 
-const lang = Astro.params.lang as Language
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const LABELS = {
   en: {

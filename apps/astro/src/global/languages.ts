@@ -58,6 +58,11 @@ export const langPrefixes = {
   pl: '/pl/',
 }
 
+export function getLangFromPath(pathname: string) {
+  const [, lang] = pathname.split('/')
+  return lang
+}
+
 export function useTranslations(lang: Language) {
   return function t(key: keyof (typeof translations)['pl']) {
     return translations[lang][key]

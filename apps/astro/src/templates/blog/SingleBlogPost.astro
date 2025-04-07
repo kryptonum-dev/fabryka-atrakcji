@@ -3,7 +3,7 @@ import type { HeroProps } from '@/src/components/blog/post/Hero.astro'
 import Hero from '@/src/components/blog/post/Hero.astro'
 import { ImageDataQuery } from '@/src/components/ui/image'
 import { PortableTextQuery } from '@/src/components/ui/portable-text'
-import { LANGUAGES, type Language } from '@/src/global/languages'
+import { type Language } from '@/src/global/languages'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import Layout from '@/src/layouts/Layout.astro'
 import metadataFetch from '@/src/utils/metadata.fetch'
@@ -19,53 +19,27 @@ import ContentPT, {
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import Author, { AuthorQuery, type AuthorProps } from '@/src/components/blog/post/Author.astro'
 
-export async function staticPaths() {
-  const blogPostByLang = await Promise.all(
-    LANGUAGES.map(async (lang) => {
-      const blogPost = await sanityFetch<{ slug: string }[]>({
-        query: `*[_type == 'BlogPost_Collection' && language == $lang] {
-        "slug": slug.current
-      }`,
-        params: { lang },
-      })
-      return (
-        blogPost?.map(({ slug }) => ({
-          params: { lang, slug: slug.split('/').pop() },
-        })) || []
-      )
-    })
-  )
-  return blogPostByLang.flat()
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
+  lang: Language
+  slug: string
 }
 
-const { lang, slug } = Astro.params as { lang: Language; slug: string }
+export async function fetchData(slug: string, lang: Language) {
+  const fullSlug = `/${lang}/blog/${slug}`
 
-const translations = {
-  pl: {
-    tableOfContents: 'W artykule znajdziesz',
-  },
-  en: {
-    tableOfContents: 'In this article you will find',
-  },
-}
-
-const t = translations[lang]
-
-const fullSlug = `/${lang}/blog/${slug}`
-
-const page = await sanityFetch<
-  {
-    name: string
-    blogPage: {
+  const page = await sanityFetch<
+    {
       name: string
-      slug: string
-    }
-    content: ContentPTProps['value']
-    author: AuthorProps
-  } & HeroProps &
-    TableOfContentProps
->({
-  query: `
+      blogPage: {
+        name: string
+        slug: string
+      }
+      content: ContentPTProps['value']
+      author: AuthorProps
+    } & HeroProps &
+      TableOfContentProps
+  >({
+    query: `
       *[_type == 'BlogPost_Collection' && slug.current == $slug && language == $language][0] {
         name,
         _createdAt,
@@ -82,12 +56,47 @@ const page = await sanityFetch<
         ${AuthorQuery}
         }
     `,
-  params: { slug: fullSlug, language: lang },
-})
+    params: { slug: fullSlug, language: lang },
+  })
 
-const metadata = await metadataFetch(fullSlug)
+  if (!page) return null
 
-if (!LANGUAGES.includes(lang) || !page || !metadata) return Astro.rewrite('/404')
+  const metadata = await metadataFetch(fullSlug)
+
+  if (!metadata) return null
+
+  return {
+    page,
+    metadata,
+  }
+}
+
+export async function staticPaths(lang: Language) {
+  const pages = await sanityFetch<{ slug: string; language: Language }[]>({
+    query: `
+      *[_type == 'BlogPost_Collection' && language == $language][] {
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+  return pages?.map(({ slug }) => ({
+    params: { slug: slug.split('/').pop() },
+  }))
+}
+
+const { metadata, page, lang, slug } = Astro.props
+
+const translations = {
+  pl: {
+    tableOfContents: 'W artykule znajdziesz',
+  },
+  en: {
+    tableOfContents: 'In this article you will find',
+  },
+}
+
+const t = translations[lang]
 
 const breadcrumbs = [
   { name: page.blogPage.name, path: page.blogPage.slug },

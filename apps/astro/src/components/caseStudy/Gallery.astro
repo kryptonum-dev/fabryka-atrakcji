@@ -2,10 +2,9 @@
 import PortableText, { type PortableTextValue } from '../ui/portable-text'
 import Image from '../ui/image'
 import type { ImageDataProps } from '../ui/image'
+import { getLangFromPath, type Language } from '@/global/languages'
 
-import type { Language } from '@/src/global/languages'
-
-const { lang } = (Astro.params as { lang: Language }) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

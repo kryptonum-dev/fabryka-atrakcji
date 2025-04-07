@@ -1,0 +1,9 @@
+---
+import CaseStudiesListing, { fetchData } from '@/src/templates/caseStudies/CaseStudyPage.astro'
+
+const data = await fetchData('pl', null, 1)
+
+if (!data) return Astro.rewrite('/404')
+---
+
+<CaseStudiesListing {...data} currentPage={1} currentCategory={null} />
