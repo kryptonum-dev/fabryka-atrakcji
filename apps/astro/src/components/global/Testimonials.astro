@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import TestimonialsPopup from '@/components/ui/TestimonialsPopup/index.astro'
 import type { Language } from '@/src/global/languages'
 import PopupWindow from '@/components/ui/PopupWindow/index.astro'
+import TestimonialSchema from '@/src/Schema/TestimonialSchema.astro'
 
 const language = (Astro.params.lang as Language) || 'pl'
 
@@ -81,6 +82,7 @@ type Props = {
     logo: string
     image: {
       profileImage: ImageDataProps
+      fullImage: ImageDataProps
     }
     date: string
     review: PortableTextValue
@@ -99,8 +101,16 @@ const translateDates = testimonials.map((testimonial) => {
 })
 
 const logoSvgs = await Promise.all(testimonials.map(async ({ logo }) => (logo ? await imageToInlineSvg(logo) : null)))
+
+const testimonialsSchema = testimonials.map((testimonial) => {
+  return {
+    ...testimonial,
+    image: testimonial.image.profileImage.asset.url,
+  }
+})
 ---
 
+<TestimonialSchema slot="head" testimonials={testimonialsSchema} />
 <section class="Testimonials max-width" id={sectionId}>
   <header class="header">
     <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />

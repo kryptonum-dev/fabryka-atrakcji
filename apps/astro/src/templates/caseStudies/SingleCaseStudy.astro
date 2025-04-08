@@ -43,6 +43,7 @@ export async function fetchData(slug: string, lang: Language) {
       logo: string
       photo: ImageDataProps
       content: PortableTextValue
+      date: string
     }
     components: ComponentsProps
   }>({
@@ -67,6 +68,7 @@ export async function fetchData(slug: string, lang: Language) {
         name,
         position,
         company,
+        date,
         "logo": logo.asset->url,
         ${ImageDataQuery('photo')}
         ${PortableTextQuery('content')}

@@ -1,0 +1,50 @@
+---
+import { DOMAIN } from '@/global/constants'
+import { toPlainText } from '../utils/to-plain-text'
+import type { PortableTextValue } from '../components/ui/portable-text'
+
+type Props = {
+  testimonials: {
+    date: string
+    name: string
+    position: string
+    company: string
+    logo: string
+    image?: string
+    review: PortableTextValue
+  }[]
+}
+
+const { testimonials } = Astro.props
+
+const reviewSchema = testimonials.map(({ date, name, position, company, logo, image, review }) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Review',
+  datePublished: date,
+  name: `${company} - Opinia Klienta`,
+  reviewBody: toPlainText(review),
+  author: {
+    '@type': 'Person',
+    name,
+    jobTitle: position,
+    worksFor: {
+      '@type': 'Organization',
+      name: company,
+      ...(logo && { logo }),
+    },
+    ...(image && { image }),
+  },
+  itemReviewed: {
+    '@type': 'LocalBusiness',
+    name: 'Fabryka Atrakcji',
+    '@id': `${DOMAIN}/#organization`,
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Fabryka Atrakcji',
+    '@id': `${DOMAIN}/#organization`,
+  },
+}))
+---
+
+{reviewSchema.map((schema) => <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />)}

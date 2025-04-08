@@ -2,6 +2,7 @@
 import PortableText, { type PortableTextValue } from '@/components/ui/portable-text'
 import Image, { type ImageDataProps } from '../ui/image'
 import imageToInlineSvg from '@/src/utils/image-to-inline-svg'
+import TestimonialSchema from '@/src/Schema/TestimonialSchema.astro'
 
 type Props = {
   name: string
@@ -10,13 +11,21 @@ type Props = {
   logo: string
   photo: ImageDataProps
   content: PortableTextValue
+  date: string
 }
 
 const { name, position, company, logo, photo, content } = Astro.props as Props
 
 const logoSvg = await imageToInlineSvg(logo)
+
+const testimonialsSchema = {
+  ...Astro.props,
+  review: content,
+  image: photo.asset.url,
+}
 ---
 
+<TestimonialSchema slot="head" testimonials={[testimonialsSchema]} />
 <section class="Testimonial">
   <div class="container">
     <Image {...photo} sizes="(max-width: 499px) 85vw, 229px" loading="lazy" />
