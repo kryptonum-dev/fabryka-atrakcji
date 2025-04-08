@@ -102,7 +102,7 @@ export default defineType({
           name: 'rating',
           type: 'number',
           title: 'Ocena (1.0 - 5.0)',
-          validation: (Rule) => Rule.required().max(5).min(1),
+          validation: (Rule) => Rule.required().min(1).max(5),
           fieldset: 'rating',
         }),
         defineField({
@@ -171,6 +171,51 @@ export default defineType({
           title: 'Opis',
           description: 'Krótki opis Twojej organizacji, który pojawi się w wynikach wyszukiwania.',
           validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'address',
+          type: 'object',
+          title: 'Adres',
+          description: 'Adres fizyczny Twojej organizacji, który będzie widoczny w wynikach wyszukiwania.',
+          validation: (Rule) => Rule.required(),
+          fields: [
+            defineField({
+              name: 'street',
+              type: 'string',
+              title: 'Ulica i numer',
+              validation: (Rule) => Rule.required(),
+              fieldset: 'addressDetails',
+            }),
+            defineField({
+              name: 'city',
+              type: 'string',
+              title: 'Miasto',
+              validation: (Rule) => Rule.required(),
+              fieldset: 'addressDetails',
+            }),
+            defineField({
+              name: 'postalCode',
+              type: 'string',
+              title: 'Kod pocztowy',
+              validation: (Rule) => Rule.required().regex(/^\d{2}-\d{3}$/, 'Kod pocztowy musi być w formacie XX-XXX'),
+              fieldset: 'addressDetails',
+            }),
+            defineField({
+              name: 'country',
+              type: 'string',
+              title: 'Kraj',
+              initialValue: 'Polska',
+              validation: (Rule) => Rule.required(),
+              fieldset: 'addressDetails',
+            }),
+          ],
+          fieldsets: [
+            {
+              name: 'addressDetails',
+              title: 'Szczegóły adresu',
+              options: { columns: 2 },
+            },
+          ],
         }),
         defineField({
           name: 'businessDetails',
