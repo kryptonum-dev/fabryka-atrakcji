@@ -13,8 +13,8 @@ const { questions } = Astro.props as {
 
 const items = await Promise.all(
   questions.map(async (item) => {
-    const answer = await toPlainText(item.answer)
-    const question = await toHTML(item.question)
+    const answer = await toHTML(item.answer)
+    const question = toPlainText(item.question)
     return {
       question,
       answer,
