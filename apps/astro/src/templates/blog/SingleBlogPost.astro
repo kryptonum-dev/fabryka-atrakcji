@@ -117,8 +117,8 @@ const blogSchema = {
 }
 ---
 
-<BlogPostingSchema slot="head" {...blogSchema} />
 <Layout {...metadata}>
+  <BlogPostingSchema slot="head" {...blogSchema} />
   <Breadcrumbs data={breadcrumbs} />
   <article class="content max-width">
     <TableOfContent title={t.tableOfContents} headings={page.headings} />

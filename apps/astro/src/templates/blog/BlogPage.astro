@@ -165,8 +165,8 @@ const blogSchema = {
 } as BlogPageSchemaProps
 ---
 
-<BlogPageSchema slot="head" {...blogSchema} />
 <Layout {...metadata}>
+  <BlogPageSchema slot="head" {...blogSchema} />
   <Fragment slot="head">
     {currentPage > 2 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
     {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
