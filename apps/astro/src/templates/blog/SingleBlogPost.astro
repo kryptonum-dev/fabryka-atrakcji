@@ -19,7 +19,6 @@ import ContentPT, {
 import { ArticleToPlainText, getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import Author, { AuthorQuery, type AuthorProps } from '@/src/components/blog/post/Author.astro'
 import BlogPostingSchema from '@/src/Schema/BlogPostingSchema.astro'
-import { DOMAIN } from '@/src/global/constants'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   lang: Language
@@ -114,7 +113,7 @@ const blogSchema = {
   updatedDate: page._updatedAt,
   content: ArticleToPlainText(page.content),
   image: page.image.asset.url,
-  url: `${DOMAIN}${slug}`,
+  url: Astro.url.pathname,
 }
 ---
 

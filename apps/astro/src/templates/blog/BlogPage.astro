@@ -10,6 +10,7 @@ import Listing, { Listing_Query, type ListingProps } from '@/src/components/blog
 import Hero from '@/src/components/blog/Hero.astro'
 import { BlogPostCardQuery, type BlogPostCardProps } from '@/src/components/ui/BlogPostCard'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
+import BlogPageSchema, { type BlogPageSchemaProps } from '@/src/Schema/BlogPageSchema.astro'
 
 export const ITEMS_PER_PAGE = 20
 
@@ -148,8 +149,23 @@ const breadcrumbs = [
   ...(page?.selectedCategory ? [{ name: page.selectedCategory.name, path: page.selectedCategory.slug }] : []),
   ...(currentPage > 1 ? [{ name: `${t.page} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
+
+const blogSchema = {
+  name: metadata?.title,
+  description: metadata?.description,
+  url: Astro.url.pathname,
+  posts: page.listing.map((post) => ({
+    name: post.name,
+    url: `${page.slug}${post.slug}`,
+    description: post.seo?.description,
+    image: post.image?.asset?.url,
+    title: post.seo?.title,
+    datePublished: post._createdAt,
+  })),
+} as BlogPageSchemaProps
 ---
 
+<BlogPageSchema slot="head" {...blogSchema} />
 <Layout {...metadata}>
   <Fragment slot="Head">
     {currentPage > 2 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}

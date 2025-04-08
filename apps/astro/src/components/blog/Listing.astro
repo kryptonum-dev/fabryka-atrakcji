@@ -3,8 +3,7 @@ import PortableText, { type PortableTextValue } from '@/src/components/ui/portab
 import { getLangFromPath, type Language } from '@/global/languages'
 import CategoryTab from '../ui/CategoryTab.astro'
 import Pagination from '../ui/Pagination.astro'
-import { BlogPostCardQuery, type BlogPostCardProps } from '../ui/BlogPostCard'
-import { AstroBlogCard as BlogCard } from '@/src/components/ui/BlogCard'
+import { AstroBlogCard as BlogCard, BlogCardQuery, type BlogCardProps } from '@/src/components/ui/BlogCard'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import { ITEMS_PER_PAGE } from '@/src/templates/blog/BlogPage.astro'
 
@@ -18,7 +17,7 @@ type Props = {
     slug: string
     count: number
   }>
-  listing: Array<BlogPostCardProps>
+  listing: Array<BlogCardProps>
   currentPage: number
   currentCategory: string | null
 }
@@ -56,7 +55,7 @@ export const Listing_Query = `
       && language == $language
       && select(defined($category) => category -> slug.current match $category + "$", true)
     ] | order(coalesce(publishedDate, _createdAt) desc) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
-      ${BlogPostCardQuery}
+      ${BlogCardQuery}
     },
 `
 
