@@ -35,12 +35,12 @@ const reviewSchema = testimonials.map(({ date, name, position, company, logo, im
     ...(image && { image }),
   },
   itemReviewed: {
-    '@type': 'LocalBusiness',
+    '@type': 'ProfessionalService',
     name: 'Fabryka Atrakcji',
     '@id': `${DOMAIN}/#organization`,
   },
   publisher: {
-    '@type': 'Organization',
+    '@type': 'ProfessionalService',
     name: 'Fabryka Atrakcji',
     '@id': `${DOMAIN}/#organization`,
   },
