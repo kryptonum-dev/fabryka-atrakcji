@@ -2,6 +2,7 @@
 import type { PortableTextValue } from '@/src/components/ui/portable-text'
 import { DOMAIN } from '@/global/constants'
 import { toHTML } from '@/utils/to-html'
+import { toPlainText } from '@/utils/to-plain-text'
 
 const { questions } = Astro.props as {
   questions: {
@@ -12,7 +13,7 @@ const { questions } = Astro.props as {
 
 const items = await Promise.all(
   questions.map(async (item) => {
-    const answer = await toHTML(item.answer)
+    const answer = await toPlainText(item.answer)
     const question = await toHTML(item.question)
     return {
       question,
