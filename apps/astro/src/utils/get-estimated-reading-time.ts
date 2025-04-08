@@ -11,7 +11,7 @@ export const ArticleToPlainText = (blocks: PortableTextProps['value']) => {
     }
 
     // Skip purely visual components
-    const skipTypes = ['image', 'reference', 'ImageCta', 'Video']
+    const skipTypes = ['image', 'reference', 'Cta']
     if (skipTypes.includes(block._type)) {
       return ''
     }
@@ -21,6 +21,48 @@ export const ArticleToPlainText = (blocks: PortableTextProps['value']) => {
       const quote = block.quote || ''
       const author = block.author ? `${block.author.name}, ${block.author.title}` : ''
       return `${quote} ${author}`
+    }
+
+    if (block._type === 'ComparisonTable') {
+      const headingLeft = block.comparisonHeading?.leftColumn || ''
+      const headingRight = block.comparisonHeading?.rightColumn || ''
+      const items = (block.comparisonTable || [])
+        .map((item: any) => {
+          const heading = extractTextFromBlock(item.heading)
+          const leftCol = item.comparisonItems?.leftColumn || ''
+          const rightCol = item.comparisonItems?.rightColumn || ''
+          return `${heading} ${leftCol} ${rightCol}`
+        })
+        .join(' ')
+      return `${headingLeft} ${headingRight} ${items}`
+    }
+
+    if (block._type === 'BulletList') {
+      return block.children ? block.children.map((child: any) => extractTextFromBlock(child)).join(' ') : ''
+    }
+
+    if (block._type === 'Buttons') {
+      return (block.buttons || []).map((button: any) => button.text || '').join(' ')
+    }
+
+    if (block._type === 'Checklist') {
+      return (block.items || []).join(' ')
+    }
+
+    if (block._type === 'Faq') {
+      const heading = extractTextFromBlock(block.heading)
+      const questions = (block.questions || [])
+        .map((q: any) => {
+          const question = extractTextFromBlock(q.question)
+          const answer = extractTextFromBlock(q.answer)
+          return `${question} ${answer}`
+        })
+        .join(' ')
+      return `${heading} ${questions}`
+    }
+
+    if (block._type === 'NumberedList') {
+      return block.children ? block.children.map((child: any) => extractTextFromBlock(child)).join(' ') : ''
     }
 
     // Handle arrays (for nested content)

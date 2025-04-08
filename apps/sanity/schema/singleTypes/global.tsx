@@ -184,37 +184,19 @@ export default defineType({
               type: 'string',
               title: 'Ulica i numer',
               validation: (Rule) => Rule.required(),
-              fieldset: 'addressDetails',
             }),
             defineField({
               name: 'city',
               type: 'string',
               title: 'Miasto',
               validation: (Rule) => Rule.required(),
-              fieldset: 'addressDetails',
             }),
             defineField({
               name: 'postalCode',
               type: 'string',
               title: 'Kod pocztowy',
               validation: (Rule) => Rule.required().regex(/^\d{2}-\d{3}$/, 'Kod pocztowy musi być w formacie XX-XXX'),
-              fieldset: 'addressDetails',
             }),
-            defineField({
-              name: 'country',
-              type: 'string',
-              title: 'Kraj',
-              initialValue: 'Polska',
-              validation: (Rule) => Rule.required(),
-              fieldset: 'addressDetails',
-            }),
-          ],
-          fieldsets: [
-            {
-              name: 'addressDetails',
-              title: 'Szczegóły adresu',
-              options: { columns: 2 },
-            },
           ],
         }),
         defineField({
