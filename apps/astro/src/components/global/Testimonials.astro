@@ -105,7 +105,7 @@ const logoSvgs = await Promise.all(testimonials.map(async ({ logo }) => (logo ? 
 const testimonialsSchema = testimonials.map((testimonial) => {
   return {
     ...testimonial,
-    image: testimonial.image.profileImage.asset.url,
+    image: testimonial.image ? testimonial.image.profileImage.asset.url : null,
   }
 })
 ---
