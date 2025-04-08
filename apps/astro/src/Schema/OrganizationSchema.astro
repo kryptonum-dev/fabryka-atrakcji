@@ -12,13 +12,13 @@ const {
   email,
   tel,
   openHours,
-  address,
   googleData,
 } = await sanityFetch<{
   socials: { name: string; link: string }[]
   OrganizationSchema: {
     name: string
     description: string
+    address: { street: string; city: string; postalCode: string; country: string; mapLink: string }
     businessDetails?: {
       vatID?: string
       regon?: string
@@ -31,7 +31,6 @@ const {
   email: string
   tel: string
   openHours: { from: string; to: string; closedWeekends: boolean }
-  address: { street: string; city: string; postalCode: string; country: string; mapLink: string }
   googleData: { rating: number; ratingCount: number }
 }>({
   query: `
@@ -86,13 +85,13 @@ const schema = {
       validFrom: organizationSchema.businessDetails?.foundingDate,
     },
   }),
-  ...(address && {
+  ...(organizationSchema.address && {
     address: {
       '@type': 'PostalAddress',
-      streetAddress: address.street,
-      addressLocality: address.city,
-      postalCode: address.postalCode,
-      addressCountry: address.country,
+      streetAddress: organizationSchema.address.street,
+      addressLocality: organizationSchema.address.city,
+      postalCode: organizationSchema.address.postalCode,
+      addressCountry: organizationSchema.address.country,
     },
   }),
   ...(googleData && {
