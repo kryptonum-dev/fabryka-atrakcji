@@ -23,15 +23,15 @@ const schema = {
   dateModified: updatedDate,
   articleBody: content,
   author: {
-    '@type': 'Organization',
+    '@type': 'ProfessionalService',
     name: 'Fabryka Atrakcji',
-    '@id': 'https://fabryka-atrakcji.com/#organization',
+    '@id': `${DOMAIN}/#organization`,
     url: DOMAIN,
   },
   publisher: {
-    '@type': 'Organization',
+    '@type': 'ProfessionalService',
     name: 'Fabryka Atrakcji',
-    '@id': 'https://fabryka-atrakcji.com/#organization',
+    '@id': `${DOMAIN}/#organization`,
     url: DOMAIN,
   },
   mainEntityOfPage: {

@@ -40,15 +40,15 @@ const schema = {
           ...(post.image && { image: [post.image] }),
           ...(post.datePublished && { datePublished: post.datePublished }),
           author: {
-            '@type': 'Organization',
+            '@type': 'ProfessionalService',
             name: 'Fabryka Atrakcji',
-            '@id': 'https://fabryka-atrakcji.com/#organization',
+            '@id': `${DOMAIN}/#organization`,
             url: DOMAIN,
           },
           publisher: {
-            '@type': 'Organization',
+            '@type': 'ProfessionalService',
             name: 'Fabryka Atrakcji',
-            '@id': 'https://fabryka-atrakcji.com/#organization',
+            '@id': `${DOMAIN}/#organization`,
             url: DOMAIN,
           },
         },
@@ -56,8 +56,6 @@ const schema = {
     },
   }),
 }
-
-console.log(schema)
 ---
 
 <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
