@@ -313,5 +313,26 @@ const generatePagination = () => {
         background: var(--neutral-500);
       }
     }
+
+    @media (max-width: 499px) {
+      :global(> a),
+      :global(> div) {
+        &:first-child,
+        &:last-child {
+          margin-right: 0;
+          margin-left: 0;
+        }
+      }
+    }
+
+    @media (max-width: 359px) {
+      gap: 0.125rem;
+
+      :global(> a),
+      :global(> div) {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+    }
   }
 </style>

@@ -1,22 +1,28 @@
 import { getRelativeDate } from '@/src/utils/get-relative-date'
 import type { GetImageResult } from 'astro'
-import styles from './blogCard.module.scss'
+import styles from './styles.module.scss'
+import type { BlogCardProps } from './index'
 
-export type BlogCardProps = {
-  name: string
-  slug: string
-  description: string
-  image: GetImageResult & { sizes: string; loading: 'lazy' | 'eager' }
-  readTime: string
-  createdAt: string
-}
-
-export default function BlogCard({ name, slug, description, image, readTime, createdAt }: BlogCardProps) {
+export default function BlogCard({
+  name,
+  slug,
+  description,
+  image,
+  readingTime,
+  _createdAt,
+  imageConfig,
+}: BlogCardProps & { image: GetImageResult }) {
   return (
     <article className={styles.blogCard}>
       <a href={slug}>
         <div className={styles.wrapper}>
-          <img src={image.src} srcSet={image.srcSet.attribute} alt={''} sizes={image.sizes} loading={image.loading} />
+          <img
+            src={image.src}
+            srcSet={image.srcSet.attribute}
+            alt={''}
+            sizes={imageConfig.sizes}
+            loading={imageConfig.loading}
+          />
         </div>
         <p className={styles.name}>{name}</p>
         <p className={styles.description}>{description}</p>
@@ -31,7 +37,7 @@ export default function BlogCard({ name, slug, description, image, readTime, cre
                 clip-rule="evenodd"
               />
             </svg>
-            <span>{readTime}</span>
+            <span>{readingTime}</span>
           </div>
           <div className={styles.detailsRow}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
@@ -46,7 +52,7 @@ export default function BlogCard({ name, slug, description, image, readTime, cre
                 clip-rule="evenodd"
               />
             </svg>
-            <span>{getRelativeDate({ date: createdAt, upperCase: true })}</span>
+            <span>{getRelativeDate({ date: _createdAt, upperCase: true })}</span>
           </div>
         </div>
       </a>

@@ -12,7 +12,11 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
 
 <section class="BlogHero max-width">
   <article>
-    <Image {...image} sizes="" />
+    <Image
+      {...image}
+      sizes="(max-width: 37.4375rem) 94vw, (max-width: 56.1875rem) 83vw, (max-width: 69.3125rem) 768px, (max-width: 85.375rem) 50vw, 659px"
+      priority
+    />
     <header class="content">
       <h2>{name}</h2>
       <p>{description}</p>
@@ -124,7 +128,6 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
     padding: 5rem 0 2rem;
     position: relative;
     article {
-      // opacity: 0;
       display: grid;
       border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
       grid-template-columns: repeat(2, 1fr);
@@ -195,7 +198,7 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
       z-index: -1;
     }
 
-    @media (max-width: 1109px) {
+    @media (max-width: 69.3125rem) {
       padding: clamp(4rem, calc(7.5vw / 0.48), 7.5rem) 0 clamp(2rem, calc(6vw / 0.48), 6rem);
 
       article {
@@ -209,10 +212,15 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
       }
     }
 
-    @media (max-width: 479px) {
+    @media (max-width: 29.9375rem) {
       padding: 4rem 0 2rem;
       article .content {
-        padding: 1rem 0.25rem;
+        padding: 1rem 0.5rem;
+
+        .details {
+          padding-right: 0;
+          padding-left: 0;
+        }
       }
     }
   }

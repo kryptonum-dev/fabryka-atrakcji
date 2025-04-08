@@ -11,7 +11,7 @@ import Hero from '@/src/components/blog/Hero.astro'
 import { BlogPostCardQuery, type BlogPostCardProps } from '@/src/components/ui/BlogPostCard'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 
-export const ITEMS_PER_PAGE = 3
+export const ITEMS_PER_PAGE = 20
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number

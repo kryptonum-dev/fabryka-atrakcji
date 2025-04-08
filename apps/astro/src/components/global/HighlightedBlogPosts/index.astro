@@ -1,14 +1,12 @@
 ---
 import { optimizeImage } from '@/src/utils/optimize-images'
-import type { BlogCardProps } from '../../ui/BlogCard'
 import Button, { ButtonDataQuery, type ButtonDataProps } from '../../ui/Button'
-import { ImageDataQuery, type ImageDataProps } from '../../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
 import Carousel from './Carousel'
-import { ContentPT_Query } from '../../blog/post/content-pt/index.astro'
-import type { PortableTextProps } from 'astro-portabletext/types'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import type { Language } from '@/src/global/languages'
+import { BlogCardQuery, type BlogCardProps } from '../../ui/BlogCard'
+import type { GetImageResult } from 'astro'
 
 const lang = (Astro.params.lang as Language) || 'pl'
 
@@ -19,13 +17,7 @@ export const HighlightedBlogPosts_Query = `
     ${PortableTextQuery('paragraph')}
     ${ButtonDataQuery('cta')}
     blogPosts[]->{
-      name,
-      "slug": slug.current,
-      description,
-      title,
-      ${ImageDataQuery('image')}
-      _createdAt,
-      ${ContentPT_Query}
+      ${BlogCardQuery}
     },
   },
 `
@@ -37,15 +29,7 @@ type Props = {
   subHeading: PortableTextValue
   paragraph: PortableTextValue
   cta: ButtonDataProps
-  blogPosts: {
-    name: string
-    slug: string
-    description: string
-    title: PortableTextValue
-    image: ImageDataProps
-    _createdAt: string
-    content: PortableTextProps['value']
-  }[]
+  blogPosts: BlogCardProps[]
 }
 
 const { index, sectionId, heading, subHeading, paragraph, cta, blogPosts } = Astro.props
@@ -59,11 +43,12 @@ const clientBlogPosts = await Promise.all(
         width: blogPost.image.asset.metadata.dimensions.width,
         height: blogPost.image.asset.metadata.dimensions.height,
       })),
-      loading: index === 0 ? 'eager' : 'lazy',
-      sizes: '(max-width: 37.4375rem) 328px, (max-width: 48rem) 298px, (max-width: 70.125rem) 40vw, 435px',
     },
-    readTime: getEstimatedReadingTime({ content: blogPost.content, lang }),
-    createdAt: blogPost._createdAt,
+    readingTime: getEstimatedReadingTime({ content: blogPost.content, lang }),
+    imageConfig: {
+      sizes: '(max-width: 37.4375rem) 328px, (max-width: 48rem) 298px, (max-width: 70.125rem) 40vw, 435px',
+      loading: index === 0 ? 'eager' : 'lazy',
+    },
   }))
 )
 ---
@@ -75,7 +60,9 @@ const clientBlogPosts = await Promise.all(
       <PortableText value={subHeading} class="subHeading" />
       <PortableText value={paragraph} class="paragraph" />
     </header>
-    <Carousel client:load blogPosts={clientBlogPosts as BlogCardProps[]}><Button {...cta} /></Carousel>
+    <Carousel client:idle blogPosts={clientBlogPosts as unknown as (BlogCardProps & { image: GetImageResult })[]}
+      ><Button {...cta} /></Carousel
+    >
   </div>
 </section>
 

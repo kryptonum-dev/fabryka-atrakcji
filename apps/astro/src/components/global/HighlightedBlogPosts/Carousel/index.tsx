@@ -1,13 +1,14 @@
 import ArrowButton from '@/src/components/ui/ArrowButton'
 import type { BlogCardProps } from '@/src/components/ui/BlogCard'
-import BlogCard from '@/src/components/ui/BlogCard'
+import { ReactBlogCard } from '@/src/components/ui/BlogCard'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import styles from './carousel.module.scss'
+import type { GetImageResult } from 'astro'
 
 type CarouselProps = {
   children: React.ReactNode
-  blogPosts: BlogCardProps[]
+  blogPosts: (BlogCardProps & { image: GetImageResult })[]
 }
 
 export default function Carousel({ children, blogPosts }: CarouselProps) {
@@ -50,7 +51,7 @@ export default function Carousel({ children, blogPosts }: CarouselProps) {
           <div className={styles.embla__container}>
             {blogPosts.map((blogPost, idx) => (
               <div className={styles.embla__slide} key={idx}>
-                <BlogCard {...blogPost} />
+                <ReactBlogCard {...blogPost} />
               </div>
             ))}
           </div>

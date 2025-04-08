@@ -1,10 +1,12 @@
 ---
 import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
-import { ITEMS_PER_PAGE } from '@/src/templates/caseStudies/CaseStudyPage.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
 import CategoryTab from '../ui/CategoryTab.astro'
 import Pagination from '../ui/Pagination.astro'
 import { BlogPostCardQuery, type BlogPostCardProps } from '../ui/BlogPostCard'
+import { AstroBlogCard as BlogCard } from '@/src/components/ui/BlogCard'
+import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
+import { ITEMS_PER_PAGE } from '@/src/templates/blog/BlogPage.astro'
 
 type Props = {
   subheading: PortableTextValue
@@ -104,9 +106,32 @@ const slugBase = (() => {
   </div>
   <div class="list">
     {
-      listing.map((post) => {
-        return <div>{post.name}</div>
-      })
+      [
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+      ]
+        .slice(0, 20)
+        .map((post) => {
+          return (
+            <BlogCard
+              {...post}
+              imageConfig={{
+                sizes:
+                  '(max-width: 30rem) 94vw, (max-width: 43.6875rem) 30rem, (max-width: 56.1875rem) 41vw, (max-width: 69.3125rem) 23.8125rem, (max-width: 83.25rem) 33vw, 27.1875rem',
+                loading: 'lazy',
+              }}
+              readingTime={getEstimatedReadingTime({ content: post.content, lang })}
+            />
+          )
+        })
     }
   </div>
   <Pagination
@@ -125,9 +150,9 @@ const slugBase = (() => {
     margin: 0 auto;
     padding: clamp(3rem, calc(5vw / 0.48), 8rem) var(--pageMargin) clamp(2.25rem, calc(4vw / 0.48), 6rem);
     display: grid;
-    grid-template-columns: 20.25rem 54.75rem;
+    grid-template-columns: auto 1fr;
     justify-content: space-between;
-    column-gap: 3rem;
+    column-gap: clamp(3rem, calc(3vw / 0.48), 7rem);
 
     .header {
       grid-column: 2 / 3;
@@ -156,7 +181,7 @@ const slugBase = (() => {
       height: fit-content;
       max-height: calc(100vh - 89px);
       overflow-y: auto;
-
+      max-width: clamp(11rem, calc(13.5vw / 0.48), 20.25rem);
       border-image: linear-gradient(
           to bottom,
           rgba(121, 141, 220, 0.7) 0%,
@@ -180,13 +205,71 @@ const slugBase = (() => {
     .list {
       grid-column: 2 / 3;
       grid-row: 2/3;
-      margin-bottom: 2.75rem;
+      margin-bottom: clamp(2rem, calc(2.75vw / 0.48), 2.75rem);
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: clamp(0.625rem, calc(1.5vw / 0.48), 1.5rem) 0.375rem;
+      max-width: 54.75rem;
     }
 
     :global(.Pagination) {
       grid-column: 2 / 3;
       grid-row: 3/4;
       justify-self: center;
+    }
+
+    @media (max-width: 69.3125rem) {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+
+      > * {
+        grid-column: 1 / 2;
+        margin: 0 auto;
+      }
+      .categories {
+        grid-row: 2 / 3;
+        padding-right: none;
+        border-right: none;
+        width: 100%;
+        position: static;
+        max-width: 48rem;
+        margin-bottom: clamp(1.25rem, calc(2vw / 0.48), 2rem);
+        padding-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+        border-bottom: 2px solid;
+        border-image: linear-gradient(
+            to left,
+            rgba(121, 141, 220, 0.6) 0%,
+            rgba(231, 199, 143, 0.6) 25%,
+            rgba(250, 116, 104, 0.6) 74%,
+            rgba(121, 141, 220, 0.6) 100%
+          )
+          1;
+      }
+
+      .header {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        max-width: 48rem;
+      }
+
+      .list {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+        max-width: 48rem;
+      }
+
+      :global(.Pagination) {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+        justify-self: center;
+      }
+    }
+
+    @media (max-width: 43.6875rem) {
+      .list {
+        grid-template-columns: 1fr;
+        max-width: 30rem;
+      }
     }
   }
 </style>

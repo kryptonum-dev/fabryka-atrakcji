@@ -1,0 +1,9 @@
+---
+import DefaultPage, { fetchData } from '@/src/templates/DefaultPage.astro'
+
+const data = await fetchData('', 'pl')
+
+if (!data) return Astro.rewrite('/404')
+---
+
+<DefaultPage {...data} />
