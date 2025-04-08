@@ -112,7 +112,11 @@ const slugBase = (() => {
           description={[0, 9, 10].includes(index) ? item.challenge : undefined}
           primaryImage={{ src: item.primaryImage, loading: index === 0 ? 'eager' : 'lazy', priority: index === 0 }}
           secondaryImage={{ src: item.secondaryImage, loading: 'lazy' }}
-          imageSizes=""
+          imageSizes={
+            [0, 9, 10].includes(index)
+              ? '(max-width: 599px) 92vw, (max-width: 899px) 81vw, (max-width: 1414px) 47vw, 667px'
+              : '(max-width: 439px) 92vw, (max-width: 599px) 44vw, (max-width: 899px) 40vw, (max-width: 1414px) 23vw, 324px'
+          }
           slug={item.slug}
         />
       ))
