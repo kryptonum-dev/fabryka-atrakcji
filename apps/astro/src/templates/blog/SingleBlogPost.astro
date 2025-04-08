@@ -16,8 +16,10 @@ import ContentPT, {
   ContentPT_Query,
   type Props as ContentPTProps,
 } from '@/src/components/blog/post/content-pt/index.astro'
-import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
+import { ArticleToPlainText, getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import Author, { AuthorQuery, type AuthorProps } from '@/src/components/blog/post/Author.astro'
+import BlogPostingSchema from '@/src/Schema/BlogPostingSchema.astro'
+import { DOMAIN } from '@/src/global/constants'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   lang: Language
@@ -104,8 +106,19 @@ const breadcrumbs = [
 ]
 
 const readingTime = getEstimatedReadingTime({ content: page.content, lang })
+
+const blogSchema = {
+  title: metadata.title,
+  description: metadata.description,
+  publishDate: page._createdAt,
+  updatedDate: page._updatedAt,
+  content: ArticleToPlainText(page.content),
+  image: page.image.asset.url,
+  url: `${DOMAIN}${slug}`,
+}
 ---
 
+<BlogPostingSchema slot="head" {...blogSchema} />
 <Layout {...metadata}>
   <Breadcrumbs data={breadcrumbs} />
   <article class="content max-width">
