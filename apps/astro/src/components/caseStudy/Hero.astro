@@ -35,7 +35,7 @@ const { title, primaryImage, duration, localization, services } = Astro.props as
     <PortableText value={title} heading="h1" class="heading" />
   </header>
   <div class="wrapper">
-    <Image {...primaryImage} sizes="" />
+    <Image {...primaryImage} sizes="100vh" priority />
     <div class="info-row">
       <div class="item">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none"
