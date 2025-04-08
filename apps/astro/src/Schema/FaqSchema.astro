@@ -1,0 +1,40 @@
+---
+import type { PortableTextValue } from '@/src/components/ui/portable-text'
+import { DOMAIN } from '@/global/constants'
+import sanityFetch from '@/utils/sanity.fetch'
+import { toHTML } from '@/utils/to-html'
+
+const { questions } = Astro.props as {
+  questions: {
+    question: PortableTextValue
+    answer: PortableTextValue
+  }[]
+}
+
+const items = await Promise.all(
+  questions.map(async (item) => {
+    const answer = await toHTML(item.answer)
+    const question = await toHTML(item.question)
+    return {
+      question,
+      answer,
+    }
+  })
+)
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${DOMAIN}/#faq`,
+  mainEntity: items.map(({ question, answer }) => ({
+    '@type': 'Question',
+    name: question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: answer,
+    },
+  })),
+}
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />

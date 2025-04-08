@@ -9,6 +9,7 @@ import CloseButton from '../../ui/PopupWindow/CloseButton.astro'
 import type { FormStateTypes } from '@/src/global/types'
 import Form from './Form.tsx'
 import { toPlainText } from '@/src/utils/to-plain-text'
+import FaqSchema from '@/src/Schema/FaqSchema.astro'
 
 const language = (Astro.params.lang as Language) || 'pl'
 
@@ -95,6 +96,7 @@ const clientFormStates = {
 }
 ---
 
+<FaqSchema questions={questions} slot="head" />
 <section class="Faq" id={sectionId}>
   <div class="container">
     <header class="header">
