@@ -8,7 +8,7 @@ import Components, { Components_Query, type ComponentsProps } from '@/src/compon
 import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/blog/Listing.astro'
 import Hero from '@/src/components/blog/Hero.astro'
-import { BlogPostCardQuery, type BlogPostCardProps } from '@/src/components/ui/BlogPostCard'
+import { BlogCardQuery, type BlogCardProps } from '@/src/components/ui/BlogCard'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import BlogPageSchema, { type BlogPageSchemaProps } from '@/src/Schema/BlogPageSchema.astro'
 
@@ -32,7 +32,7 @@ export async function fetchData(lang: Language, category: string | null, pageNum
         slug: string
       }
       components: ComponentsProps
-      hero: BlogPostCardProps
+      hero: BlogCardProps
     } & ListingProps
   >({
     query: `
@@ -43,7 +43,7 @@ export async function fetchData(lang: Language, category: string | null, pageNum
         ${PortableTextQuery('subheading')}
         ${PortableTextQuery('paragraph')}
         "hero": *[_type == 'BlogPost_Collection' && language == $language] | order(coalesce(publishedDate, _createdAt) desc)[0] {
-          ${BlogPostCardQuery}
+          ${BlogCardQuery}
         },
         ${Listing_Query}
         ${Components_Query}

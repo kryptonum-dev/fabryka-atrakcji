@@ -1,11 +1,11 @@
 ---
 import Image from '@/components/ui/image'
-import type { BlogPostCardProps } from '../ui/BlogPostCard'
+import type { BlogCardProps } from '../ui/BlogCard'
 import { getRelativeDate } from '@/src/utils/get-relative-date'
 import { getLangFromPath, type Language } from '@/global/languages'
 import CategoryTab from '../ui/CategoryTab.astro'
 
-const { name, image, description, _createdAt, readingTime, category } = Astro.props as BlogPostCardProps
+const { name, image, description, _createdAt, readingTime, category } = Astro.props as BlogCardProps
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 ---

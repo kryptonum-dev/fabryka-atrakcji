@@ -11,7 +11,7 @@ export const ArticleToPlainText = (blocks: PortableTextProps['value']) => {
     }
 
     // Skip purely visual components
-    const skipTypes = ['image', 'reference', 'Cta']
+    const skipTypes = ['image', 'reference', 'Cta', 'Newsletter']
     if (skipTypes.includes(block._type)) {
       return ''
     }

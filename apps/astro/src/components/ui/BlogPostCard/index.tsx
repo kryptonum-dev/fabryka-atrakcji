@@ -15,6 +15,7 @@ export const BlogPostCardQuery = `
   ${PortableTextQuery('title')}
   ${ImageDataQuery('image')}
   _createdAt,
+  seo,
   ${ContentPT_Query}
 `
 export type BlogPostCardProps = {
@@ -30,6 +31,10 @@ export type BlogPostCardProps = {
   image: ImageDataProps
   _createdAt: string
   content: PortableTextProps['value']
+  seo: {
+    title: string
+    description: string
+  }
   readingTime: number
 }
 
