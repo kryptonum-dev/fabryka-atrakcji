@@ -13,7 +13,6 @@ const lang = (Astro.params.lang as Language) || 'pl'
 
 export const Newsletter_Query = `
   _type == "Newsletter" => {
-    ${ImageDataQuery('background')}
     ${PortableTextQuery('heading')}
     ${PortableTextQuery('subheading')}
     ${PortableTextQuery('paragraph')}
@@ -45,7 +44,6 @@ export const Newsletter_Query = `
 type Props = {
   index: number
   sectionId?: string
-  background: ImageDataProps
   heading: PortableTextValue
   subheading: PortableTextValue
   paragraph: PortableTextValue
@@ -59,7 +57,7 @@ type Props = {
   }
 }
 
-const { index, sectionId, background, heading, subheading, paragraph, ctaText, image, formPopup } = Astro.props
+const { index, sectionId, heading, subheading, paragraph, ctaText, image, formPopup } = Astro.props
 
 const clientFormStates = {
   success: {
@@ -76,12 +74,7 @@ const clientFormStates = {
 
 <section class="Newsletter" id={sectionId}>
   <div class="background">
-    <Image {...background} sizes="100vw" /><svg
-      width="1366"
-      height="585"
-      viewBox="0 0 1366 585"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <svg width="1366" height="585" viewBox="0 0 1366 585" fill="none" xmlns="http://www.w3.org/2000/svg"
       ><g filter="url(#filter0_f_5978_20704)"
         ><ellipse
           cx="88.3286"
@@ -194,6 +187,19 @@ const clientFormStates = {
       position: absolute;
       inset: 0;
       z-index: -1;
+      overflow: hidden;
+
+      &::before {
+        position: absolute;
+        content: '';
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+        background-clip: content-box;
+        width: 250%;
+        height: 250%;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='108' height='108' fill='none'%3E%3Cpath fill='%2345051C' d='M36 0H0v108h36V0Z'/%3E%3Cpath fill='%23600D2A' d='M.022 24.453v5.09h35.98v-5.09H.022Zm0 53.998v5.09h35.98v-5.088l-35.98-.002Z'/%3E%3Cpath fill='%23F67258' d='M0 0v6.365A6.36 6.36 0 0 0 4.5 4.5 6.36 6.36 0 0 0 6.348 0H0Zm29.634 0a6.36 6.36 0 0 0 3.93 5.88c.772.32 1.6.485 2.435.485V0h-6.365ZM18 47.633a6.36 6.36 0 0 0-4.5 1.865 6.36 6.36 0 0 0 2.064 10.38 6.36 6.36 0 0 0 6.936-1.38A6.362 6.362 0 0 0 18 47.633Zm-18 54V108h6.348a6.36 6.36 0 0 0-1.848-4.505 6.359 6.359 0 0 0-4.5-1.862Zm36 0A6.359 6.359 0 0 0 29.633 108H36v-6.367Z'/%3E%3Cpath fill='%2345051C' d='M72 0H36.003v108H72V0Z'/%3E%3Cpath fill='%23600D2A' d='M36.018 24.459v5.09h35.98v-5.09h-35.98Zm0 53.997v5.09h35.98v-5.088l-35.98-.002Z'/%3E%3Cpath fill='%23F67258' d='M36.002 0v6.365a6.36 6.36 0 0 0 4.5-1.865A6.36 6.36 0 0 0 42.349 0h-6.347Zm29.634 0a6.36 6.36 0 0 0 3.93 5.88c.771.32 1.599.485 2.435.485V0h-6.365ZM54.001 47.633a6.36 6.36 0 0 0-4.5 1.865 6.36 6.36 0 0 0 2.065 10.38 6.36 6.36 0 0 0 8.316-3.445 6.358 6.358 0 0 0-1.38-6.935 6.361 6.361 0 0 0-4.5-1.865Zm-18 54V108h6.349a6.36 6.36 0 0 0-1.848-4.505 6.358 6.358 0 0 0-4.5-1.862Zm36 0A6.359 6.359 0 0 0 65.636 108h6.365v-6.367Z'/%3E%3Cpath fill='%2345051C' d='M108 0H72v108h36V0Z'/%3E%3Cpath fill='%23600D2A' d='M72.019 24.46v5.09h35.979v-5.09h-35.98Zm0 53.997v5.09h35.979V78.46l-35.98-.002Z'/%3E%3Cpath fill='%23F67258' d='M72 0v6.365A6.36 6.36 0 0 0 76.5 4.5 6.36 6.36 0 0 0 78.35 0H72Zm29.635 0a6.362 6.362 0 0 0 3.929 5.88c.773.32 1.6.485 2.436.485V0h-6.365ZM90 47.633a6.359 6.359 0 0 0-4.5 1.865 6.36 6.36 0 0 0 2.065 10.38 6.36 6.36 0 0 0 6.935-1.38 6.36 6.36 0 0 0-2.064-10.38A6.36 6.36 0 0 0 90 47.632Zm-18 54V108h6.349a6.363 6.363 0 0 0-1.848-4.505 6.359 6.359 0 0 0-4.5-1.862Zm36 0a6.356 6.356 0 0 0-5.881 3.929 6.372 6.372 0 0 0-.484 2.438H108v-6.367Z'/%3E%3C/svg%3E");
+      }
 
       img {
         height: 100%;

@@ -15,13 +15,6 @@ export default defineField({
   icon,
   fields: [
     defineField({
-      name: 'background',
-      type: 'image',
-      title: 'Zdjęcie tła',
-      description: 'Zdjęcie będzie używane jako tło dla sekcji, zalecamy nie zmieniać bazowego zdjęcia',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
       name: 'heading',
       type: 'Heading',
       title: 'Nagłówek',
