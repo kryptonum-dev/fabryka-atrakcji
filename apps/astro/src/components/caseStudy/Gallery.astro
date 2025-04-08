@@ -8,11 +8,15 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {
+    openImage: 'Pokaż zdjęcie',
+    openVideo: 'Pokaż wideo',
     closePopup: 'Zamknij okno',
     closeVideo: 'Zamknij wideo',
   },
 
   en: {
+    openImage: 'Show image',
+    openVideo: 'Show video',
     closePopup: 'Close popup',
     closeVideo: 'Close video',
   },
@@ -39,7 +43,11 @@ const { mediaArray, galleryHeading } = Astro.props as Props
   <div class="grid" data-has-many-images={mediaArray.length > 5}>
     {
       mediaArray.map((media) => (
-        <button class="item" data-has-video={!!media.youtubeId}>
+        <button
+          class="item"
+          data-has-video={!!media.youtubeId}
+          aria-label={media.youtubeId ? t.openVideo : t.openImage}
+        >
           <Image
             {...media.image}
             sizes="(max-width: 28.0625rem) 100vw, (max-width: 56.1875rem) 50vw, (max-width: 85.375rem) 33vw, 450px"

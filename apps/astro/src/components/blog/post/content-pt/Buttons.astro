@@ -16,9 +16,9 @@ type Props = {
 const { node } = Astro.props
 ---
 
-<ul class="Buttons">
+<div class="Buttons">
   {node.buttons.map((button, index) => <Button shade={index === 0 ? 'dark' : 'light'} {...button} />)}
-</ul>
+</div>
 
 <style lang="scss">
   .Buttons {

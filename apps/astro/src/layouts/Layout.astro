@@ -18,6 +18,7 @@ const lang = (Astro.params.lang as Language) || 'pl'
   <head>
     <Head {...props} />
     <OrganizationSchema />
+    <slot name="head" />
   </head>
   <body>
     <Header />

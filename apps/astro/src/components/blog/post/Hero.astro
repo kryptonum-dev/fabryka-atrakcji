@@ -74,7 +74,11 @@ const { _createdAt, _updatedAt, title, image, description, readingTime } = Astro
       </span>
     </div>
   </div>
-  <Image {...image} sizes="(max-width: 599px) 94vw, (max-width: 899px) 83vw, (max-width: 1109px) 768px, 655px" />
+  <Image
+    {...image}
+    sizes="(max-width: 599px) 94vw, (max-width: 899px) 83vw, (max-width: 1109px) 768px, 655px"
+    priority
+  />
 </section>
 
 <style lang="scss">
