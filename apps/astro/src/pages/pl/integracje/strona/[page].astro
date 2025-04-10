@@ -1,0 +1,12 @@
+---
+import ActivitiesListing, { fetchData, staticPaths } from '@/src/templates/activities/CategoriesPage.astro'
+
+const page = Number(Astro.params.page) || 1
+const data = await fetchData('pl', page)
+
+if (!data) return Astro.rewrite('/404')
+
+export const getStaticPaths = () => staticPaths('pl')
+---
+
+<ActivitiesListing {...data} currentPage={page} />

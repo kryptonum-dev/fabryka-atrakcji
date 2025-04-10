@@ -1,0 +1,112 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import sanityFetch from '@/utils/sanity.fetch'
+import metadataFetch from '@/utils/metadata.fetch'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import { PortableTextQuery } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/Listing.astro'
+
+export const ITEMS_PER_PAGE = 8
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
+  currentPage: number
+}
+
+export async function fetchData(lang: Language, pageNumber: number) {
+  const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
+  const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
+  const page = await sanityFetch<
+    {
+      name: string
+      slug: string
+      components: ComponentsProps
+    } & ListingProps
+  >({
+    query: `
+      *[_type == "Activities_Page" && language == $language][0] {
+        name,
+        "slug": slug.current,
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+        ${Listing_Query}
+        ${Components_Query}
+      }
+    `,
+    params: {
+      language: lang,
+      PAGINATION_BEFORE: PAGINATION_BEFORE,
+      PAGINATION_AFTER: PAGINATION_AFTER,
+    },
+  })
+
+  if (!page || (pageNumber > 1 && !page.listing.length)) return null
+  const metadata = await metadataFetch(page.slug)
+  return { page, metadata }
+}
+
+export async function staticPaths(lang: Language) {
+  const pages = await sanityFetch<number>({
+    query: `count(*[_type == "Activities_Collection" && language == $language])`,
+    params: { language: lang },
+  })
+
+  const totalPages = Math.ceil(pages / ITEMS_PER_PAGE)
+
+  return Array.from({ length: totalPages - 1 }, (_, i) => ({
+    params: { page: (i + 1).toString() },
+  }))
+}
+
+const { page, metadata: _metadata, currentPage } = Astro.props
+const lang = getLangFromPath(Astro.url.pathname) as Language
+const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
+
+const translation = {
+  pl: {
+    pageUpper: 'Strona',
+    pageLower: 'strona',
+    prefix: '/pl/integracje/strona/',
+  },
+  en: {
+    pageUpper: 'Page',
+    pageLower: 'page',
+    prefix: '/en/activities/page/',
+  },
+} as const
+
+const t = translation[lang]
+
+const metadata = {
+  ..._metadata,
+  title: `${_metadata.title} | ${t.pageUpper} ${currentPage}`,
+  description: _metadata.description,
+  openGraphImage: _metadata.openGraphImage,
+  path: Astro.url.pathname,
+}
+const getPaginationUrl = (page: number) => {
+  return `${t.prefix}${page}`
+}
+
+const breadcrumbs = [
+  { name: page.name, path: page.slug },
+  ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
+]
+---
+
+<Layout {...metadata}>
+  <Fragment slot="Head">
+    {currentPage > 2 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
+    {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
+  </Fragment>
+  <Breadcrumbs data={breadcrumbs} firstItemType="ActivitiesCategoriesListing" />
+  <Listing
+    heading={page.heading}
+    paragraph={page.paragraph}
+    totalItems={page.totalItems}
+    listing={page.listing}
+    currentPage={currentPage}
+  />
+  <Components data={page.components} hasPreviousSections />
+</Layout>

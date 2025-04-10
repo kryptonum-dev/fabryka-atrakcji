@@ -278,80 +278,21 @@ export default defineType({
       group: 'details',
     }),
     defineField({
-      name: 'pricingType',
-      type: 'string',
-      title: 'Typ cennika',
-      description: 'Wybierz typ cennika dla integracji.',
-      options: {
-        list: [
-          { title: 'Cena stała', value: 'fixed' },
-          { title: 'Cena za osobę', value: 'perPerson' },
-          { title: 'Cena z góry do X osób + cena za każdą kolejną', value: 'ranged' },
-          { title: 'Wycena indywidualna', value: 'individual' },
-        ],
-        layout: 'radio',
-      },
-      validation: (Rule) => Rule.required(),
-      initialValue: 'ranged',
-      group: 'pricing',
-    }),
-    defineField({
-      name: 'fixedPrice',
-      type: 'number',
-      title: 'Cena stała (PLN)',
-      hidden: ({ document }) => document?.pricingType !== 'fixed',
-      validation: (Rule) =>
-        Rule.custom((value, context) => {
-          if (context.document?.pricingType === 'fixed' && !value) {
-            return 'Cena stała jest wymagana dla tego typu cennika'
-          }
-          if (value && value < 0) {
-            return 'Cena stała musi być większa niż 0'
-          }
-          return true
-        }),
-      group: 'pricing',
-    }),
-    defineField({
-      name: 'perPersonPrice',
-      type: 'number',
-      title: 'Cena za osobę (PLN / osoba)',
-      hidden: ({ document }) => document?.pricingType !== 'perPerson',
-      validation: (Rule) =>
-        Rule.custom((value, context) => {
-          if (context.document?.pricingType === 'perPerson' && !value) {
-            return 'Cena za osobę jest wymagana dla tego typu cennika'
-          }
-          if (value && value < 0) {
-            return 'Cena za osobę musi być większa niż 0'
-          }
-          return true
-        }),
-      group: 'pricing',
-    }),
-    defineField({
-      name: 'rangedPricing',
+      name: 'pricing',
       type: 'object',
-      title: 'Cena z przedziałem',
-      hidden: ({ document }) => document?.pricingType !== 'ranged',
-      validation: (Rule) =>
-        Rule.custom((value, context) => {
-          if (context.document?.pricingType === 'ranged' && !value) {
-            return 'Dane cenowe są wymagane dla tego typu cennika'
-          }
-          return true
-        }),
+      title: 'Cennik',
+      group: 'pricing',
       fields: [
         defineField({
           name: 'basePrice',
           type: 'number',
           title: 'Cena podstawowa (PLN)',
           validation: (Rule) =>
-            Rule.custom((value, context) => {
-              if (context.document?.pricingType === 'ranged' && !value) {
+            Rule.custom((value) => {
+              if (!value) {
                 return 'Cena podstawowa jest wymagana dla tego typu cennika'
               }
-              if (value && value < 0) {
+              if (value < 1) {
                 return 'Cena podstawowa musi być większa niż 0'
               }
               return true
@@ -362,11 +303,11 @@ export default defineType({
           type: 'number',
           title: 'Maksymalna liczba osób w cenie podstawowej',
           validation: (Rule) =>
-            Rule.custom((value, context) => {
-              if (context.document?.pricingType === 'ranged' && !value) {
+            Rule.custom((value) => {
+              if (!value) {
                 return 'Maksymalna liczba osób jest wymagana dla tego typu cennika'
               }
-              if (value && value < 1) {
+              if (value < 1) {
                 return 'Maksymalna liczba osób w cenie podstawowej musi być większa niż 0'
               }
               return true
@@ -377,18 +318,17 @@ export default defineType({
           type: 'number',
           title: 'Cena za każdą dodatkową osobę (PLN / osoba)',
           validation: (Rule) =>
-            Rule.custom((value, context) => {
-              if (context.document?.pricingType === 'ranged' && !value) {
+            Rule.custom((value) => {
+              if (!value) {
                 return 'Cena za dodatkową osobę jest wymagana dla tego typu cennika'
               }
-              if (value && value < 0) {
+              if (value < 1) {
                 return 'Cena za każdą dodatkową osobę musi być większa niż 0'
               }
               return true
             }),
         }),
       ],
-      group: 'pricing',
     }),
   ],
   preview: {

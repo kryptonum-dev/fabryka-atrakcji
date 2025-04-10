@@ -36,11 +36,13 @@ export default defineField({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'cta',
-      type: 'cta',
-      title: 'Przycisk CTA',
-      validation: (Rule) => Rule.required(),
+      name: 'ctas',
+      type: 'array',
+      title: 'Przycisk CTA (opcjonalny)',
+      of: [{ type: 'cta' }],
+      validation: (Rule) => Rule.max(1).error('Możesz dodać maksymalnie jeden przycisk CTA.'),
     }),
+
     defineField({
       name: 'activities',
       type: 'array',

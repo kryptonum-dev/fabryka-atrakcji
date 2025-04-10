@@ -10,11 +10,9 @@ type CarouselProps = {
     name: string
     image: GetImageResult
     description: string
-    details: {
-      participantsCount: {
-        min: number
-        max: number
-      }
+    participantsCount: {
+      min: number
+      max: number
     }
     slug: string
     isRecent?: boolean
@@ -49,7 +47,7 @@ export default function Carousel({ children, activities, index }: CarouselProps)
       <div className={styles.embla}>
         <div className={styles.embla__viewport} ref={emblaRef}>
           <ul className={styles.embla__container}>
-            {activities.map(({ image, name, details, description, slug, isRecent }, i) => (
+            {activities.map(({ image, name, participantsCount, description, slug, isRecent }, i) => (
               <li className={styles.embla__slide}>
                 <article>
                   <a href={slug || '/'}>
@@ -89,7 +87,7 @@ export default function Carousel({ children, activities, index }: CarouselProps)
                           />
                         </svg>
                         <span>
-                          {details.participantsCount.min} - {details.participantsCount.max} osób
+                          {participantsCount.min} - {participantsCount.max} osób
                         </span>
                       </div>
                     </div>

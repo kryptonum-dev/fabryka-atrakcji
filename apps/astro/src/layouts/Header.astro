@@ -1,6 +1,6 @@
 ---
 import CaseStudyCard from '../components/ui/CaseStudyCard.astro'
-import CategoryBlock from '../components/ui/CategoryBlock.astro'
+import CategoryBlock, { CategoryBlockQuery } from '../components/ui/CategoryBlock.astro'
 import { ImageDataQuery, type ImageDataProps } from '../components/ui/image'
 import { type Language } from '../global/languages'
 import sanityFetch from '../utils/sanity.fetch'
@@ -73,15 +73,9 @@ const data = await sanityFetch<{
         ${ImageDataQuery('secondaryImage')}
     },
     highlightedActivities[] -> {
-        "slug": slug.current,
-        name,
-        description{
-          short,
-        },
-        ${ImageDataQuery('image')}
-        "referenceCount": count(*[_type == "Activities_Collection" && references(^._id)])
-        },
+        ${CategoryBlockQuery}
     }
+  }
 `,
   params: { language },
 })
@@ -243,14 +237,15 @@ const data = await sanityFetch<{
             >
             <nav class="list">
               {
-                data.highlightedActivities.map(({ image, name, referenceCount, description, slug }) => (
+                data.highlightedActivities.map((activity) => (
                   <CategoryBlock
-                    image={image}
-                    title={name}
-                    count={referenceCount}
-                    description={description.short}
-                    imageSizes="(max-width: 41.1875rem) 76px, (max-width: 56.1875rem) 124px, (max-width: 79.3215rem) 23vw, 212px"
-                    slug={slug}
+                    {...activity}
+                    imageConfig={{
+                      sizes:
+                        '(max-width: 41.1875rem) 76px, (max-width: 56.1875rem) 124px, (max-width: 79.3215rem) 23vw, 212px',
+                      loading: 'lazy',
+                      fetchPriority: 'auto',
+                    }}
                   />
                 ))
               }

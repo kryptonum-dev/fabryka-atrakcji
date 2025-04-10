@@ -1,0 +1,9 @@
+---
+import ActivitiesListing, { fetchData } from '@/src/templates/activities/CategoriesPage.astro'
+
+const data = await fetchData('pl', 1)
+
+if (!data) return Astro.rewrite('/404')
+---
+
+<ActivitiesListing {...data} currentPage={1} />

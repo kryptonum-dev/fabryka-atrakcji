@@ -1,4 +1,5 @@
 export default async function imageToInlineSvg(url: string) {
+  if (!url) return null
   try {
     const response = await fetch(url)
     const contentType = response.headers.get('content-type')

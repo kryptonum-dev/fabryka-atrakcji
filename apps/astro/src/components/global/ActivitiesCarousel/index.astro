@@ -12,17 +12,15 @@ export const ActivitiesCarousel_Query = `
     "labelIcon": labelIcon.asset->url,
     ${PortableTextQuery('heading')}
     ${PortableTextQuery('paragraph')}
-    ${ButtonDataQuery('cta')}
+    ${ButtonDataQuery('ctas[]')}
     activities[]->{
       name,
-      ${ImageDataQuery('image')}
+      ${ImageDataQuery('imageList[0]')}
       description,
-      details{
         participantsCount{
           min,
           max,
         },
-      },
       "slug": slug.current,
       _createdAt,
     },
@@ -32,26 +30,24 @@ export const ActivitiesCarousel_Query = `
 type Props = {
   index: number
   sectionId?: string
-  labelIcon: string
+  labelIcon?: string
   heading: PortableTextValue
   paragraph: PortableTextValue
-  cta: ButtonDataProps
+  ctas?: ButtonDataProps[]
   activities: {
     name: string
-    image: ImageDataProps
+    imageList: ImageDataProps
     description: string
-    details: {
-      participantsCount: {
-        min: number
-        max: number
-      }
+    participantsCount: {
+      min: number
+      max: number
     }
     slug: string
     _createdAt: string
   }[]
 }
 
-const { index, sectionId, labelIcon, heading, paragraph, cta, activities } = Astro.props
+const { index, sectionId, labelIcon, heading, paragraph, ctas, activities } = Astro.props
 
 const fourteenDaysAgo = new Date()
 fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
@@ -60,25 +56,31 @@ const clientActivities = await Promise.all(
   activities.map(async (activity) => ({
     ...activity,
     image: await optimizeImage({
-      image: activity.image.asset.url,
-      width: activity.image.asset.metadata.dimensions.width,
-      height: activity.image.asset.metadata.dimensions.height,
+      image: activity.imageList.asset.url,
+      width: activity.imageList.asset.metadata.dimensions.width,
+      height: activity.imageList.asset.metadata.dimensions.height,
     }),
     isRecent: new Date(activity._createdAt) > fourteenDaysAgo,
   }))
 )
 
-const svgContent = await imageToInlineSvg(labelIcon)
+const svgContent = labelIcon ? await imageToInlineSvg(labelIcon) : null
 ---
 
 <section class="ActivitiesCarousel max-width" id={sectionId}>
   <header class="header">
-    <div class="icon"><Fragment set:html={svgContent} /></div>
+    {
+      svgContent && (
+        <div class="icon">
+          <Fragment set:html={svgContent} />
+        </div>
+      )
+    }
     <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
     <PortableText value={paragraph} class="paragraph" />
   </header>
   <Carousel client:load activities={clientActivities} index={index}>
-    <Button {...cta} />
+    {ctas && ctas.map((cta) => <Button {...cta} />)}
   </Carousel>
 </section>
 
