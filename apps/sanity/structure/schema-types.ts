@@ -10,6 +10,7 @@ import NotFound_Page from '../schema/singleTypes/NotFound_Page'
 import redirects from '../schema/singleTypes/redirects'
 import TermsAndConditions_Page from '../schema/singleTypes/legal/TermsAndConditions_Page'
 import PrivacyPolicy_Page from '../schema/singleTypes/legal/PrivacyPolicy_Page'
+
 const singleTypes = [
   global,
   redirects,
@@ -36,6 +37,7 @@ import Pages_Collection from '../schema/collectionTypes/Pages_Collection'
 import SocialMedia_Collection from '../schema/collectionTypes/SocialMedia_Collection'
 import Testimonial_Collection from '../schema/collectionTypes/Testimonial_Collection'
 import Author_Collection from '../schema/collectionTypes/Author_Collection'
+import ActivitiesType_Collection from '../schema/collectionTypes/ActivitiesType_Collection'
 
 const collectionTypes = [
   Faq_Collection,
@@ -49,6 +51,7 @@ const collectionTypes = [
   Testimonial_Collection,
   SocialMedia_Collection,
   Author_Collection,
+  ActivitiesType_Collection,
 ]
 
 // Components

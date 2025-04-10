@@ -8,7 +8,6 @@ import CaseStudyList from './components/CaseStudyList'
 import ContactForm from './components/ContactForm'
 import Faq from './components/Faq'
 import FloatingPointsList from './components/FloatingPointsList'
-import FullWidthPhoto from './components/FullWidthPhoto'
 import GradientBackgroundCta from './components/GradientBackgroundCta'
 import HighlightedBlogPosts from './components/HighlightedBlogPosts'
 import LargeImageWithGridList from './components/LargeImageWithGridList'
@@ -23,7 +22,6 @@ export default defineType({
   type: 'array',
   title: 'Components',
   of: [
-    FullWidthPhoto,
     CardSteps,
     GradientBackgroundCta,
     CaseStudyList,
@@ -47,7 +45,7 @@ export default defineType({
       filter: true,
       showIcons: true,
       views: [
-        { name: 'grid', previewImageUrl: (schemaTypeName) => `/static/${schemaTypeName}.webp` },
+        { name: 'grid', previewImageUrl: (schemaTypeName) => `/static/components/${schemaTypeName}.webp` },
         { name: 'list' },
       ],
     },

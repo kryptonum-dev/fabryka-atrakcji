@@ -1,6 +1,5 @@
 ---
 import type { ComponentProps } from 'astro/types'
-import FullWidthPhoto, { FullWidthPhoto_Query } from '@/components/global/FullWidthPhoto.astro'
 import CardSteps, { CardSteps_Query } from '@/components/global/CardSteps.astro'
 import GradientBackgroundCta, { GradientBackgroundCta_Query } from '@/components/global/GradientBackgroundCta.astro'
 import CaseStudyList, { CaseStudyList_Query } from '@/components/global/CaseStudyList.astro'
@@ -24,7 +23,6 @@ import TextBlocksGrid, { TextBlocksGrid_Query } from '@/components/global/TextBl
 import Testimonials, { Testimonials_Query } from '@/components/global/Testimonials.astro'
 
 const components = {
-  FullWidthPhoto,
   CardSteps,
   GradientBackgroundCta,
   CaseStudyList,
@@ -63,7 +61,6 @@ export const Components_Query = /* groq */ `
   components[] {
     _type,
     sectionId,
-    ${FullWidthPhoto_Query}
     ${CardSteps_Query}
     ${GradientBackgroundCta_Query}
     ${CaseStudyList_Query}

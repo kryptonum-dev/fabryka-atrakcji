@@ -33,32 +33,42 @@ export default defineType({
       },
     }),
     defineField({
-      name: 'image',
-      type: 'image',
-      title: 'Zdjęcie kategorii',
+      name: 'heading',
+      type: 'Heading',
+      title: 'Nagłówek',
+      description: 'Nagłówek wyświetlany na samej podstronie kategorii',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'description',
       type: 'object',
       title: 'Opis kategorii',
+      validation: (Rule) => Rule.required().error('Opis jest wymagany'),
       fields: [
-        defineField({
-          name: 'short',
-          type: 'text',
-          title: 'Krótki opis',
-          description:
-            'Krótki opis kategorii, wyświetlany podczas referowania kategorii i w listach kategorii (Maksymalnie 75 znaków)',
-          validation: (Rule) => Rule.required().max(75).error('Maksymalnie 75 znaków'),
-        }),
         defineField({
           name: 'long',
           type: 'text',
-          title: 'Długi opis',
-          description: 'Długi opis kategorii, wyświetlany na samej podstronie kategorii',
-          validation: (Rule) => Rule.required(),
+          title: 'Pełny opis',
+          description: 'Pełny opis kategorii, wyświetlany na samej podstronie kategorii',
+          rows: 8,
+          validation: (Rule) => Rule.required().error('Pełny opis jest wymagany'),
+        }),
+        defineField({
+          name: 'short',
+          type: 'text',
+          title: 'Krótki opis (opcjonalny)',
+          description:
+            'Krótki opis kategorii, wyświetlany podczas referowania kategorii i w listach kategorii (Maksymalnie 75 znaków). Jeśli nie zostanie wprowadzony, zastąpi go pełny opis, skrócony przez "..."',
+          rows: 3,
+          validation: (Rule) => Rule.max(75).error('Maksymalnie 75 znaków'),
         }),
       ],
+    }),
+    defineField({
+      name: 'image',
+      type: 'image',
+      title: 'Zdjęcie kategorii',
+      validation: (Rule) => Rule.required(),
     }),
   ],
   preview: {

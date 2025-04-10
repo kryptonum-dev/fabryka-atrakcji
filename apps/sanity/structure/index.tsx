@@ -32,6 +32,8 @@ export const structure: StructureResolver = (S) =>
               createSingleton({ S, name: 'Activities_Page' }),
               createCollection(S, 'Activities_Collection'),
               createCollection(S, 'ActivitiesCategory_Collection'),
+              S.divider(),
+              createCollection(S, 'ActivitiesType_Collection'),
             ])
         ),
       S.listItem()
