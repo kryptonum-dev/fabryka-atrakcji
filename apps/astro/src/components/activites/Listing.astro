@@ -41,8 +41,6 @@ export const Listing_Query = `
 `
 
 const { listing, currentPage, heading, paragraph, totalItems } = Astro.props
-
-console.log(listing)
 ---
 
 <section class="Listing max-width">
@@ -55,7 +53,12 @@ console.log(listing)
       listing.map((item, index) => (
         <CategoryBlock
           {...item}
-          imageConfig={{ sizes: '', loading: 'eager', fetchPriority: index === 0 ? 'high' : 'auto' }}
+          imageConfig={{
+            sizes:
+              '(max-width: 27.4375rem) 74px, (max-width: 37.4375rem) 45vw, (max-width: 52.4375rem) 38vw, (max-width: 68.0625rem) 29vw, (max-width: 85.375rem) 23vw, 312px',
+            loading: 'eager',
+            fetchPriority: index === 0 ? 'high' : 'auto',
+          }}
         />
       ))
     }

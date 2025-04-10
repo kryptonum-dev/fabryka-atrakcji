@@ -1,0 +1,160 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import sanityFetch from '@/utils/sanity.fetch'
+import metadataFetch from '@/utils/metadata.fetch'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/category/Listing.astro'
+
+export const ITEMS_PER_PAGE = 2
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
+  currentPage: number
+  currentCategory: string | null
+}
+
+export async function fetchData(lang: Language, category: string | null, pageNumber: number) {
+  const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
+  const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
+  const page = await sanityFetch<
+    {
+      name: string
+      slug: string
+      selectedCategory: {
+        name: string
+        slug: string
+        heading: PortableTextValue
+        description: {
+          long: string
+        }
+        components: ComponentsProps
+      }
+    } & ListingProps
+  >({
+    query: `
+      *[_type == "Activities_Page" && language == $language][0] {
+        name,
+        "slug": slug.current,
+        "selectedCategory": *[_type == "ActivitiesCategory_Collection" && slug.current match $category + "$"][0] {
+          name,
+          "slug": slug.current,
+          ${PortableTextQuery('heading')}
+          description{
+            long,
+          },
+          ${Components_Query}
+        },
+        ${Listing_Query}
+      }
+    `,
+    params: {
+      language: lang,
+      category: category,
+      PAGINATION_BEFORE: PAGINATION_BEFORE,
+      PAGINATION_AFTER: PAGINATION_AFTER,
+    },
+  })
+  if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
+  const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
+  return { page, metadata }
+}
+
+export async function staticPathsCategory(lang: Language) {
+  const categories = await sanityFetch<{ lang: Language; slug: string }[]>({
+    query: `
+      *[_type == "ActivitiesCategory_Collection" && language == $language][] {
+        "lang": language,
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+
+  return categories.map(({ slug }) => ({
+    params: {
+      category: slug.split('/').pop(),
+    },
+  }))
+}
+
+export async function staticPathsCategoryPage(lang: Language) {
+  const categories = await sanityFetch<{ lang: Language; slug: string; postCount: number }[]>({
+    query: `
+      *[_type == 'ActivitiesCategory_Collection' && language == $language][] {
+        "slug": slug.current,
+        "postCount": count(*[_type == "Activities_Collection" && references(^._id) && defined(category)]),
+      }
+    `,
+    params: { language: lang },
+  })
+
+  return categories.map(({ slug, postCount }) => {
+    const totalPages = Math.ceil(postCount / ITEMS_PER_PAGE)
+    return Array.from({ length: totalPages - 1 }, (_, i) => ({
+      params: {
+        category: slug.split('/').pop(),
+        page: (i + 2).toString(),
+      },
+    }))
+  })
+}
+
+const { page, metadata: _metadata, currentPage, currentCategory } = Astro.props
+const lang = getLangFromPath(Astro.url.pathname) as Language
+const totalPages = Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
+
+const translation = {
+  pl: {
+    pageUpper: 'Strona',
+    pageLower: 'strona',
+    categoryLower: 'kategoria',
+    prefix: '/pl/intergracje',
+  },
+  en: {
+    pageUpper: 'Page',
+    pageLower: 'page',
+    categoryLower: 'category',
+    prefix: '/en/activities',
+  },
+} as const
+
+const t = translation[lang]
+
+const metadata = {
+  ..._metadata,
+  title: `${_metadata.title} | ${t.pageUpper} ${currentPage}`,
+  description: _metadata.description,
+  openGraphImage: _metadata.openGraphImage,
+  path: Astro.url.pathname,
+}
+const getPaginationUrl = (page: number) => {
+  return currentCategory
+    ? `${t.prefix}/${t.categoryLower}/${currentCategory}/${t.pageLower}/${page}`
+    : `${t.prefix}/${t.pageLower}/${page}`
+}
+
+const breadcrumbs = [
+  { name: page.name, path: page.slug },
+  ...(page?.selectedCategory ? [{ name: page.selectedCategory.name, path: page.selectedCategory.slug }] : []),
+  ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
+]
+---
+
+<Layout {...metadata}>
+  <Fragment slot="Head">
+    {currentPage > 2 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
+    {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
+  </Fragment>
+  <Breadcrumbs data={breadcrumbs} firstItemType="ActivitiesListing" />
+  <Listing
+    heading={page.selectedCategory.heading}
+    description={page.selectedCategory.description.long}
+    totalActivitiesByCategory={page.totalActivitiesByCategory}
+    listing={page.listing}
+    currentPage={currentPage}
+    currentCategory={currentCategory}
+  />
+  <Components data={page.selectedCategory.components} hasPreviousSections />
+</Layout>

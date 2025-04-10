@@ -70,6 +70,16 @@ export default defineType({
       title: 'Zdjęcie kategorii',
       validation: (Rule) => Rule.required(),
     }),
+    defineField({
+      name: 'components',
+      type: 'components',
+      title: 'Komponenty podstrony',
+    }),
+    defineField({
+      name: 'seo',
+      type: 'seo',
+      title: 'SEO',
+    }),
   ],
   preview: {
     select: {

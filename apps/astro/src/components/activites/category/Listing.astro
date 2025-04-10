@@ -1,0 +1,211 @@
+---
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import { ITEMS_PER_PAGE } from '@/src/templates/activities/ActivitiesPage.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Pagination from '../../ui/Pagination.astro'
+import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
+import Image from '@/src/components/ui/image'
+
+type Props = {
+  heading: PortableTextValue
+  description: string
+  totalActivitiesByCategory: number
+  listing: ActivityCardProps[]
+  currentPage: number
+  currentCategory: string | null
+}
+export type ListingProps = Props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    pathPrefix: '/pl/integracje/kategoria',
+    found: 'Znaleziono',
+    foundActivitiesSingle: 'integrację',
+    foundActivitiesMultipleLow: 'integracje',
+    foundActivitiesMultipleHigh: 'integracji',
+  },
+  en: {
+    pathPrefix: '/en/activities/category',
+    found: 'Found',
+    foundActivitiesSingle: 'activity',
+    foundActivitiesMultipleLow: 'activities',
+    foundActivitiesMultipleHigh: 'activities',
+  },
+}
+
+const t = translations[lang]
+
+export const Listing_Query = `
+    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection'
+      && language == $language
+      && select(defined($category) => categories[] -> slug.current match $category + "$", true)
+    ]),
+    "listing": *[_type == 'Activities_Collection'
+      && language == $language
+      && select(defined($category) => categories[] -> slug.current match $category + "$", true)
+    ] | order(coalesce(publishedDate, _createdAt) desc) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
+      ${ActivityCardQuery}
+    },
+`
+
+const { listing, currentPage, currentCategory, heading, description, totalActivitiesByCategory } = Astro.props
+const slugBase = `${t.pathPrefix}/${currentCategory}`
+
+const getActivitiesCount = () => {
+  switch (totalActivitiesByCategory) {
+    case 1:
+      return t.foundActivitiesSingle
+    case 2:
+    case 3:
+    case 4:
+      return t.foundActivitiesMultipleLow
+    default:
+      return t.foundActivitiesMultipleHigh
+  }
+}
+---
+
+<section class="Listing max-width">
+  <header class="header">
+    <PortableText value={heading} class="heading" heading="h1" />
+    <p class="description">{description}</p>
+  </header>
+  <div class="configuration">
+    <p class="count">{t.found} <strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
+  </div>
+  <div class="list">
+    {
+      [
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+        ...listing,
+      ]
+        .slice(0, 16)
+        .map((item, index) => (
+          <ActivityCard {...item}>
+            {
+              <Image
+                {...item.imageList[0]}
+                sizes="(max-width: 27.4375rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 49.3125rem) 40vw, (max-width: 63.9375rem) 32vw, (max-width: 85.375rem) 24vw, 324px"
+                loading={index < 8 ? 'eager' : 'lazy'}
+                fetchpriority={index === 0 ? 'high' : 'auto'}
+              />
+            }
+          </ActivityCard>
+        ))
+    }
+  </div>
+  <Pagination
+    slugBase={slugBase}
+    totalItems={totalActivitiesByCategory}
+    itemsPerPage={ITEMS_PER_PAGE}
+    currentPage={currentPage}
+  />
+</section>
+
+<style lang="scss">
+  .Listing {
+    padding: clamp(3.5rem, calc(5vw / 0.48), 6rem) 0 clamp(4rem, calc(6vw / 0.48), 8rem);
+    .header {
+      margin-bottom: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      max-width: 40.9375rem;
+
+      .heading {
+        margin-bottom: 0.75rem;
+        font-size: var(--typography-heading-l, 2rem);
+      }
+
+      .description {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        max-width: 35.6875rem;
+      }
+    }
+
+    .configuration {
+      margin-bottom: 0.75rem;
+      .count {
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+
+        strong {
+          font-size: var(--typography-body-m, 0.875rem);
+          color: var(--primary-800, #45051c);
+        }
+      }
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(1rem, calc(1.5vw / 0.48), 1.5rem) 0.5rem;
+
+      :global(article) {
+        :global(a) {
+          :global(> div:first-child) {
+            border-radius: 0.25rem;
+          }
+
+          :global(> p) {
+            overflow: hidden;
+          }
+        }
+      }
+    }
+
+    :global(.Pagination) {
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 1023px) {
+      .list {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 789px) {
+      .header {
+        max-width: none;
+
+        .description {
+          max-width: none;
+        }
+      }
+      .list {
+        grid-template-columns: repeat(2, 1fr);
+        column-gap: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+    }
+    @media (max-width: 439px) {
+      .list {
+        grid-template-columns: repeat(1, 1fr);
+      }
+    }
+  }
+</style>

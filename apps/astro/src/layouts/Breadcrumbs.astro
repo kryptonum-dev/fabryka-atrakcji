@@ -1,6 +1,6 @@
 ---
 import BreadcrumbsSchema from '@/src/Schema/BreadcrumbsSchema.astro';
-import { translations, type Language } from '../global/languages';
+import { translations, type Language, getLangFromPath } from '../global/languages';
 
 
 type Props = {
@@ -13,14 +13,16 @@ type Props = {
 
 const { data = [], firstItemType } = Astro.props;
 
-const lang = Astro.params.lang as Language || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language || 'pl'
 const t = translations[lang]
 
 
 const breadcrumbsData = [
-  { name: t.breadcrumbsName, path: lang },
+  { name: t.breadcrumbsName, path: `/${lang}` },
   ...data,
 ];
+
+console.log(breadcrumbsData)
 
 ---
 
@@ -214,7 +216,7 @@ const breadcrumbsData = [
     padding: clamp(0.75rem, calc(2vw / 0.48), 2rem) var(--pageMargin) 0;
   }
 
-  &[data-first-item-type="ActivitiesCategoriesListing"] {
+  &[data-first-item-type="ActivitiesCategoriesListing"], &[data-first-item-type="ActivitiesListing"] {
     position: absolute;
     top: 0;
     left: 50%;
@@ -222,8 +224,10 @@ const breadcrumbsData = [
     padding-top: 0;
     max-width: 85.375rem;
     width: 100%;
-    padding: clamp(0.75rem, calc(1vw / 0.48), 2rem) var(--pageMargin) 0;
+    padding: clamp(0.75rem, calc(1vw / 0.48), 2.25rem) var(--pageMargin) 0;
   }
+
+
 }
 
   

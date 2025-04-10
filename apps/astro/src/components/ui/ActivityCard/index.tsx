@@ -4,13 +4,11 @@ import styles from './styles.module.scss'
 
 export const ActivityCardQuery = `
   name,
-  ${ImageDataQuery('image')}
+  ${ImageDataQuery('imageList[]')}
   description,
-  details{
     participantsCount{
       min,
       max,
-    },
   },
   "slug": slug.current,
   _createdAt,
@@ -18,13 +16,11 @@ export const ActivityCardQuery = `
 
 export type ActivityCardProps = {
   name: string
-  image: ImageDataProps
+  imageList: ImageDataProps[]
   description?: string
-  details: {
-    participantsCount: {
-      min: number
-      max: number
-    }
+  participantsCount: {
+    min: number
+    max: number
   }
   slug: string
   _createdAt: string
@@ -33,7 +29,7 @@ export type ActivityCardProps = {
 export default function ActivityCard({
   name,
   description,
-  details,
+  participantsCount,
   slug,
   _createdAt,
   clientImage,
@@ -81,7 +77,7 @@ export default function ActivityCard({
               />
             </svg>
             <span>
-              {details.participantsCount.min} - {details.participantsCount.max} osób
+              {participantsCount.min} - {participantsCount.max} osób
             </span>
           </div>
         </div>
