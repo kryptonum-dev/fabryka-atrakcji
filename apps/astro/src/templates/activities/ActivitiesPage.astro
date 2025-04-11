@@ -8,7 +8,7 @@ import Components, { Components_Query, type ComponentsProps } from '@/src/compon
 import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/category/Listing.astro'
 
-export const ITEMS_PER_PAGE = 2
+export const ITEMS_PER_PAGE = 16
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
@@ -54,16 +54,17 @@ export async function fetchData(
     ? parseInt(searchParams.get('maxParticipants')!)
     : undefined
 
-  if (
-    typeof rawMinParticipants === 'number' &&
-    typeof rawMaxParticipants === 'number' &&
-    !isNaN(rawMinParticipants) &&
-    !isNaN(rawMaxParticipants) &&
-    rawMinParticipants > 0 &&
-    rawMaxParticipants > rawMinParticipants
-  ) {
+  // Handle min participants
+  if (typeof rawMinParticipants === 'number' && !isNaN(rawMinParticipants) && rawMinParticipants > 0) {
     minParticipants = rawMinParticipants
-    maxParticipants = rawMaxParticipants
+  }
+
+  // Handle max participants
+  if (typeof rawMaxParticipants === 'number' && !isNaN(rawMaxParticipants) && rawMaxParticipants > 0) {
+    // Only set max if it's greater than min (when min exists)
+    if (!minParticipants || rawMaxParticipants > minParticipants) {
+      maxParticipants = rawMaxParticipants
+    }
   }
 
   let minPrice: number | undefined
@@ -230,6 +231,8 @@ const breadcrumbs = [
     listing={page.listing}
     currentPage={currentPage}
     currentCategory={currentCategory}
+    participantRangeCounts={page.participantRangeCounts}
+    activityTypes={page.activityTypes}
   />
   <Components data={page.selectedCategory.components} hasPreviousSections />
 </Layout>

@@ -1,0 +1,269 @@
+---
+interface DropdownItem {
+  name: string
+  count: number
+  isSelected: boolean
+  href: string
+}
+
+interface Props {
+  heading: string
+  items: DropdownItem[]
+}
+
+const { heading, items } = Astro.props
+---
+
+<details class="filter-dropdown">
+  <summary>
+    <span>{heading}</span>
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4">
+        </path>
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4">
+        </path>
+      </svg>
+    </div>
+  </summary>
+  <ul>
+    {
+      items.map((item) => (
+        <li>
+          <a data-selected={item.isSelected} href={item.href}>
+            <span class="value">{item.name}</span>
+            <span class="count">{item.count}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</details>
+
+<style lang="scss">
+  .filter-dropdown {
+    position: relative;
+    width: 100%;
+    font-size: var(--typography-body-m);
+    isolation: isolate;
+    z-index: 2;
+    color: var(--primary-800, #45051c);
+
+    summary {
+      padding: 0 0.625rem;
+      min-height: 2.75rem;
+      font-size: var(--typography-body-m);
+      background-color: var(--neutral-100);
+      border: 1px solid var(--neutral-500);
+      border-radius: 0.25rem;
+      cursor: pointer;
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      gap: 0.5rem;
+      transition: border-color 100ms;
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-800, #45051c);
+        border-radius: 0.25rem;
+      }
+
+      .icon {
+        position: relative;
+        overflow: hidden;
+
+        svg {
+          transition: transform 300ms var(--easing);
+          &:nth-of-type(1) {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: rotate(180deg) translate(50%, 150%);
+          }
+
+          &:nth-of-type(2) {
+            transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
+          }
+        }
+      }
+    }
+
+    ul {
+      position: absolute;
+      top: calc(100% - 1px);
+      left: 0;
+      background: var(--neutral-100);
+      border: 1px solid var(--neutral-500);
+      border-top: none;
+      border-radius: 0 0 0.25rem 0.25rem;
+      width: 100%;
+      transition:
+        border-color 150ms,
+        height 150ms var(--easing);
+      overflow: hidden;
+
+      li {
+        a {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+          padding: 0 0.625rem;
+          min-height: 2.75rem;
+          transition: background-color 150ms;
+
+          .count {
+            color: var(--primary-400, #74535e);
+          }
+
+          &:hover {
+            background-color: var(--neutral-200);
+          }
+
+          &:focus-visible {
+            outline-offset: -2px;
+            border-radius: 0.25rem;
+          }
+
+          &[data-selected='true'] {
+            background-color: var(--neutral-300);
+
+            .value {
+              display: flex;
+              align-items: center;
+              gap: 0.25rem;
+              &::after {
+                margin-top: 0.25rem;
+                content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none'%3E%3Cpath fill='%23F67258' fill-rule='evenodd' d='M12.83 7A5.833 5.833 0 1 1 1.165 7a5.833 5.833 0 0 1 11.667 0ZM9.349 5.232c.171.171.171.448 0 .62L6.432 8.767a.437.437 0 0 1-.619 0L4.646 7.6a.438.438 0 0 1 .62-.619l.856.858 1.304-1.304L8.73 5.232c.17-.17.448-.17.618 0Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+              }
+            }
+          }
+        }
+      }
+    }
+
+    &:has(summary:hover):not([data-expanded='true']) {
+      summary,
+      ul {
+        border-color: var(--primary-700, #600d2a);
+      }
+    }
+
+    &:has(summary:focus-visible) {
+      ul {
+        z-index: -1;
+      }
+    }
+
+    &[data-expanded='true'] {
+      summary {
+        border-radius: 0.25rem 0.25rem 0 0;
+        transition: border-color 100ms;
+        border-bottom: transparent;
+
+        .icon {
+          svg {
+            &:nth-of-type(1) {
+              transform: rotate(180deg) translate(50%, 50%);
+              transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
+            }
+
+            &:nth-of-type(2) {
+              transform: translateY(100%);
+            }
+          }
+        }
+      }
+      ul {
+        transition:
+          border-color 150ms,
+          height 200ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
+        box-shadow: 0px 8px 24px 0px rgba(255, 251, 251, 0.4);
+      }
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLDetailsElement>('.filter-dropdown').forEach((details) => {
+    const list = details.querySelector<HTMLUListElement>('ul')
+    const summary = details.querySelector<HTMLElement>('summary')
+    if (!list || !summary) return
+
+    let isAnimating = false
+
+    const closeDropdown = () => {
+      if (!details.open || isAnimating) return
+
+      isAnimating = true
+      details.setAttribute('data-expanded', 'false')
+      list.style.height = list.scrollHeight + 'px'
+      requestAnimationFrame(() => (list.style.height = '0px'))
+
+      list.addEventListener(
+        'transitionend',
+        () => {
+          details.open = false
+          list.style.height = ''
+          isAnimating = false
+        },
+        { once: true }
+      )
+    }
+
+    summary.addEventListener('click', (event) => {
+      event.preventDefault()
+
+      if (isAnimating) {
+        return
+      }
+
+      isAnimating = true
+
+      if (details.open) {
+        details.setAttribute('data-expanded', 'false')
+        list.style.height = list.scrollHeight + 'px'
+        requestAnimationFrame(() => (list.style.height = '0px'))
+
+        list.addEventListener(
+          'transitionend',
+          () => {
+            details.open = false
+            list.style.height = ''
+            isAnimating = false
+          },
+          { once: true }
+        )
+      } else {
+        details.open = true
+        details.setAttribute('data-expanded', 'true')
+        const startHeight = list.scrollHeight + 'px'
+        list.style.height = '0px'
+        requestAnimationFrame(() => (list.style.height = startHeight))
+
+        list.addEventListener(
+          'transitionend',
+          () => {
+            list.style.height = ''
+            isAnimating = false
+          },
+          { once: true }
+        )
+      }
+    })
+
+    document.addEventListener('click', (event) => {
+      if (!details.contains(event.target as Node)) {
+        closeDropdown()
+      }
+    })
+
+    // Set initial state
+    details.setAttribute('data-expanded', details.open ? 'true' : 'false')
+  })
+</script>

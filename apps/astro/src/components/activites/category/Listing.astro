@@ -5,6 +5,7 @@ import { getLangFromPath, type Language } from '@/global/languages'
 import Pagination from '../../ui/Pagination.astro'
 import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
 import Image from '@/src/components/ui/image'
+import Dropdown from '@/src/components/ui/Dropdown.astro'
 
 type Props = {
   heading: PortableTextValue
@@ -13,10 +14,48 @@ type Props = {
   listing: ActivityCardProps[]
   currentPage: number
   currentCategory: string | null
+  participantRangeCounts: {
+    range1_30: number
+    range31_80: number
+    range81_150: number
+    range150plus: number
+  }
+  activityTypes: {
+    name: string
+    slug: string
+    count: number
+  }[]
 }
 export type ListingProps = Props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const buildFilterUrl = (params: { minParticipants?: number; maxParticipants?: number; activityType?: string }) => {
+  const newParams = new URLSearchParams(Astro.url.searchParams)
+
+  // Only remove the parameters we're explicitly setting
+  if ('minParticipants' in params || 'maxParticipants' in params) {
+    newParams.delete('minParticipants')
+    newParams.delete('maxParticipants')
+  }
+  if ('activityType' in params) {
+    newParams.delete('activityType')
+  }
+
+  // Set new parameters if they exist
+  if (params.minParticipants) {
+    newParams.set('minParticipants', params.minParticipants.toString())
+  }
+  if (params.maxParticipants) {
+    newParams.set('maxParticipants', params.maxParticipants.toString())
+  }
+  if (params.activityType) {
+    newParams.set('activityType', params.activityType)
+  }
+
+  const queryString = newParams.toString()
+  return `${Astro.url.pathname}${queryString ? `?${queryString}` : ''}`
+}
 
 const translations = {
   pl: {
@@ -25,6 +64,8 @@ const translations = {
     foundActivitiesSingle: 'integrację',
     foundActivitiesMultipleLow: 'integracje',
     foundActivitiesMultipleHigh: 'integracji',
+    participantsLabel: 'Liczba osób',
+    activityTypeLabel: 'Rodzaj aktywności',
   },
   en: {
     pathPrefix: '/en/activities/category',
@@ -32,16 +73,16 @@ const translations = {
     foundActivitiesSingle: 'activity',
     foundActivitiesMultipleLow: 'activities',
     foundActivitiesMultipleHigh: 'activities',
+    participantsLabel: 'Number of participants',
+    activityTypeLabel: 'Activity type',
   },
 }
 
 const t = translations[lang]
 
 export const Listing_Query = (orderClause: string) => {
-  const baseFilter = `
-    && language == $language
-    && select(defined($category) => categories[] -> slug.current match $category + "$", true)
-    && (!defined($minParticipants) || (
+  const participantsFilter = `
+    (!defined($minParticipants) || (
       participantsCount.max >= $minParticipants && 
       participantsCount.min <= $minParticipants
     ))
@@ -49,22 +90,111 @@ export const Listing_Query = (orderClause: string) => {
       participantsCount.min <= $maxParticipants && 
       participantsCount.max >= $maxParticipants
     ))
-    && (!defined($minPrice) || pricing.additionalPersonPrice >= $minPrice)
+  `
+
+  const priceFilter = `
+    (!defined($minPrice) || pricing.additionalPersonPrice >= $minPrice)
     && (!defined($maxPrice) || pricing.additionalPersonPrice <= $maxPrice)
-    && (!defined($activityType) || $activityType in activityType[]->slug.current)
-    && (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration))
+  `
+
+  const activityTypeFilter = `
+    (!defined($activityType) || $activityType in activityType[]->slug.current)
+  `
+
+  const durationFilter = `
+    (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration))
+  `
+
+  const createBaseFilter = (
+    filters: {
+      participants?: boolean
+      price?: boolean
+      activityType?: boolean
+      duration?: boolean
+    } = {
+      participants: true,
+      price: true,
+      activityType: true,
+      duration: true,
+    }
+  ) => `
+    && language == $language
+    && select(defined($category) => categories[] -> slug.current match $category + "$", true)
+    ${filters.participants ? `&& ${participantsFilter}` : ''}
+    ${filters.price ? `&& ${priceFilter}` : ''}
+    ${filters.activityType ? `&& ${activityTypeFilter}` : ''}
+    ${filters.duration ? `&& ${durationFilter}` : ''}
   `
 
   return `
-    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${baseFilter}]),
-    "listing": *[_type == 'Activities_Collection' ${baseFilter}
+    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${createBaseFilter()}]),
+    "participantRangeCounts": {
+      "range1_30": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.max >= 30 && participantsCount.min <= 30]),
+      "range31_80": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.min < 30 && participantsCount.max <= 80]),
+      "range81_150": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.min < 81 && participantsCount.max >= 150]),
+      "range150plus": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.min <= 151 && participantsCount.max >= 151])
+    },
+    "activityTypes": *[_type == 'ActivitiesType_Collection' && language == $language] {
+      name,
+      "slug": slug.current,
+      "count": count(*[_type == 'Activities_Collection' ${createBaseFilter({ activityType: false })} && ^.slug.current in activityType[]->slug.current])
+    },
+    "listing": *[_type == 'Activities_Collection' ${createBaseFilter()}
     ] | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
       ${ActivityCardQuery}
     },
 `
 }
 
-const { listing, currentPage, currentCategory, heading, description, totalActivitiesByCategory } = Astro.props
+const {
+  listing,
+  currentPage,
+  currentCategory,
+  heading,
+  description,
+  totalActivitiesByCategory,
+  participantRangeCounts,
+  activityTypes,
+} = Astro.props
+
+const params = Astro.url.searchParams
+
+const dropdownItems = [
+  {
+    name: '1–30',
+    count: participantRangeCounts.range1_30,
+    isSelected: params.get('maxParticipants') === '30',
+    href: buildFilterUrl({ maxParticipants: 30 }),
+  },
+  {
+    name: '31–80',
+    count: participantRangeCounts.range31_80,
+    isSelected: params.get('minParticipants') === '31' && params.get('maxParticipants') === '80',
+    href: buildFilterUrl({ minParticipants: 31, maxParticipants: 80 }),
+  },
+  {
+    name: '81–150',
+    count: participantRangeCounts.range81_150,
+    isSelected: params.get('minParticipants') === '81' && params.get('maxParticipants') === '150',
+    href: buildFilterUrl({ minParticipants: 81, maxParticipants: 150 }),
+  },
+  {
+    name: '150+',
+    count: participantRangeCounts.range150plus,
+    isSelected: params.get('minParticipants') === '150',
+    href: buildFilterUrl({ minParticipants: 150 }),
+  },
+].filter((item) => item.count > 0)
+
+const activityTypeItems = activityTypes
+  .map((type) => ({
+    name: type.name,
+    count: type.count,
+    isSelected: params.get('activityType') === type.slug,
+    href: buildFilterUrl({ activityType: type.slug }),
+  }))
+  .filter((item) => item.count > 0)
+
 const slugBase = `${t.pathPrefix}/${currentCategory}`
 
 const getActivitiesCount = () => {
@@ -86,8 +216,10 @@ const getActivitiesCount = () => {
     <PortableText value={heading} class="heading" heading="h1" />
     <p class="description">{description}</p>
   </header>
-  <div class="configuration">
-    <p class="count">{t.found} <strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
+  <div class="filters">
+    <Dropdown heading={t.participantsLabel} items={dropdownItems} />
+    <Dropdown heading={t.activityTypeLabel} items={activityTypeItems} />
+    <p class="count">{t.found}&nbsp;<strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
   </div>
   <div class="list">
     {
@@ -133,15 +265,42 @@ const getActivitiesCount = () => {
       }
     }
 
-    .configuration {
+    .filters {
       margin-bottom: 0.75rem;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(4, 1fr);
+      justify-content: space-between;
+      gap: 0.75rem 0.5rem;
+      grid-template-rows: auto 1fr;
+
+      :global(.filter-dropdown) {
+        &:nth-of-type(1) {
+          grid-column: 1/2;
+          grid-row: 1/2;
+        }
+
+        &:nth-of-type(2) {
+          grid-column: 2/3;
+          grid-row: 1/2;
+        }
+      }
+
       .count {
         font-size: var(--typography-body-m, 0.875rem);
         line-height: 1.7;
+        grid-column: 1 / -1;
+        grid-row: 2/3;
+
+        //temp
+        display: flex;
+        align-items: center;
+        min-height: 3rem;
 
         strong {
           font-size: var(--typography-body-m, 0.875rem);
           color: var(--primary-800, #45051c);
+          display: inline-block;
         }
       }
     }
