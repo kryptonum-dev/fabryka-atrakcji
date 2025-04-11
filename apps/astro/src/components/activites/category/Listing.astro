@@ -37,18 +37,32 @@ const translations = {
 
 const t = translations[lang]
 
-export const Listing_Query = `
-    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection'
-      && language == $language
-      && select(defined($category) => categories[] -> slug.current match $category + "$", true)
-    ]),
-    "listing": *[_type == 'Activities_Collection'
-      && language == $language
-      && select(defined($category) => categories[] -> slug.current match $category + "$", true)
-    ] | order(coalesce(publishedDate, _createdAt) desc) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
+export const Listing_Query = (orderClause: string) => {
+  const baseFilter = `
+    && language == $language
+    && select(defined($category) => categories[] -> slug.current match $category + "$", true)
+    && (!defined($minParticipants) || (
+      participantsCount.max >= $minParticipants && 
+      participantsCount.min <= $minParticipants
+    ))
+    && (!defined($maxParticipants) || (
+      participantsCount.min <= $maxParticipants && 
+      participantsCount.max >= $maxParticipants
+    ))
+    && (!defined($minPrice) || pricing.additionalPersonPrice >= $minPrice)
+    && (!defined($maxPrice) || pricing.additionalPersonPrice <= $maxPrice)
+    && (!defined($activityType) || $activityType in activityType[]->slug.current)
+    && (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration))
+  `
+
+  return `
+    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${baseFilter}]),
+    "listing": *[_type == 'Activities_Collection' ${baseFilter}
+    ] | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
       ${ActivityCardQuery}
     },
 `
+}
 
 const { listing, currentPage, currentCategory, heading, description, totalActivitiesByCategory } = Astro.props
 const slugBase = `${t.pathPrefix}/${currentCategory}`
@@ -77,48 +91,18 @@ const getActivitiesCount = () => {
   </div>
   <div class="list">
     {
-      [
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-        ...listing,
-      ]
-        .slice(0, 16)
-        .map((item, index) => (
-          <ActivityCard {...item}>
-            {
-              <Image
-                {...item.imageList[0]}
-                sizes="(max-width: 27.4375rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 49.3125rem) 40vw, (max-width: 63.9375rem) 32vw, (max-width: 85.375rem) 24vw, 324px"
-                loading={index < 8 ? 'eager' : 'lazy'}
-                fetchpriority={index === 0 ? 'high' : 'auto'}
-              />
-            }
-          </ActivityCard>
-        ))
+      listing.map((item, index) => (
+        <ActivityCard {...item}>
+          {
+            <Image
+              {...item.imageList[0]}
+              sizes="(max-width: 27.4375rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 49.3125rem) 40vw, (max-width: 63.9375rem) 32vw, (max-width: 85.375rem) 24vw, 324px"
+              loading={index < 8 ? 'eager' : 'lazy'}
+              fetchpriority={index === 0 ? 'high' : 'auto'}
+            />
+          }
+        </ActivityCard>
+      ))
     }
   </div>
   <Pagination
@@ -126,6 +110,7 @@ const getActivitiesCount = () => {
     totalItems={totalActivitiesByCategory}
     itemsPerPage={ITEMS_PER_PAGE}
     currentPage={currentPage}
+    searchParams={Astro.url.searchParams}
   />
 </section>
 

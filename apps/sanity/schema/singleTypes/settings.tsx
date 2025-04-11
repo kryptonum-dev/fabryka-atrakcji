@@ -1,6 +1,6 @@
-import { defineField, defineType } from 'sanity'
-import { LANGUAGES } from '../../structure/languages'
-import { languageLabel } from '../../utils/language-label'
+import { defineField, defineType } from 'sanity';
+import { LANGUAGES } from '../../structure/languages';
+import { languageLabel } from '../../utils/language-label';
 
 export default defineType({
   name: 'settings',
@@ -114,13 +114,13 @@ export default defineType({
       language: 'language',
     },
     prepare: ({ language }) => {
-      const languageObj = LANGUAGES.find((lang) => lang.id === language)
-      const Flag = languageObj?.flag
+      const languageObj = LANGUAGES.find((lang) => lang.id === language);
+      const Flag = languageObj?.flag;
 
       return {
         title: languageLabel(language),
         media: Flag ? <Flag /> : null,
-      }
+      };
     },
   },
-})
+});

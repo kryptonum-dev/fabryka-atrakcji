@@ -15,9 +15,78 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentCategory: string | null
 }
 
-export async function fetchData(lang: Language, category: string | null, pageNumber: number) {
+type OrderType = 'popularity' | 'newest' | 'priceDesc' | 'priceAsc'
+
+export async function fetchData(
+  lang: Language,
+  category: string | null,
+  pageNumber: number,
+  searchParams?: URLSearchParams
+) {
   const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
   const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
+
+  const getOrderClause = (order: OrderType | null): string => {
+    switch (order) {
+      case 'newest':
+        return 'coalesce(publishedDate, _createdAt) desc'
+      case 'priceDesc':
+        return 'pricing.basePrice desc'
+      case 'priceAsc':
+        return 'pricing.basePrice asc'
+      case 'popularity':
+      default:
+        return 'popularityIndex desc'
+    }
+  }
+
+  // Parse and validate order parameter
+  const orderParam = searchParams?.get('order') as OrderType | null
+  const orderClause = getOrderClause(orderParam)
+
+  let minParticipants: number | undefined
+  let maxParticipants: number | undefined
+
+  const rawMinParticipants = searchParams?.get('minParticipants')
+    ? parseInt(searchParams.get('minParticipants')!)
+    : undefined
+  const rawMaxParticipants = searchParams?.get('maxParticipants')
+    ? parseInt(searchParams.get('maxParticipants')!)
+    : undefined
+
+  if (
+    typeof rawMinParticipants === 'number' &&
+    typeof rawMaxParticipants === 'number' &&
+    !isNaN(rawMinParticipants) &&
+    !isNaN(rawMaxParticipants) &&
+    rawMinParticipants > 0 &&
+    rawMaxParticipants > rawMinParticipants
+  ) {
+    minParticipants = rawMinParticipants
+    maxParticipants = rawMaxParticipants
+  }
+
+  let minPrice: number | undefined
+  let maxPrice: number | undefined
+
+  const rawMinPrice = searchParams?.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : undefined
+  const rawMaxPrice = searchParams?.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : undefined
+
+  if (
+    typeof rawMinPrice === 'number' &&
+    typeof rawMaxPrice === 'number' &&
+    !isNaN(rawMinPrice) &&
+    !isNaN(rawMaxPrice) &&
+    rawMinPrice > 0 &&
+    rawMaxPrice > rawMinPrice
+  ) {
+    minPrice = rawMinPrice
+    maxPrice = rawMaxPrice
+  }
+
+  const activityType = searchParams?.get('activityType') ? searchParams.get('activityType') : undefined
+  const duration = searchParams?.get('duration') ? parseInt(searchParams.get('duration')!) : undefined
+
   const page = await sanityFetch<
     {
       name: string
@@ -46,14 +115,20 @@ export async function fetchData(lang: Language, category: string | null, pageNum
           },
           ${Components_Query}
         },
-        ${Listing_Query}
+        ${Listing_Query(orderClause)}
       }
     `,
     params: {
       language: lang,
-      category: category,
-      PAGINATION_BEFORE: PAGINATION_BEFORE,
-      PAGINATION_AFTER: PAGINATION_AFTER,
+      category,
+      PAGINATION_BEFORE,
+      PAGINATION_AFTER,
+      minParticipants: minParticipants ?? null,
+      maxParticipants: maxParticipants ?? null,
+      minPrice: minPrice ?? null,
+      maxPrice: maxPrice ?? null,
+      activityType: activityType ?? null,
+      duration: duration ?? null,
     },
   })
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null

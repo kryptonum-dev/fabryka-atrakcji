@@ -46,8 +46,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
         <button
           class="item"
           data-has-video={!!media.youtubeId}
-          aria-label={media.youtubeId ? t.openVideo : t.openImage}
-        >
+          aria-label={media.youtubeId ? t.openVideo : t.openImage}>
           <Image
             {...media.image}
             sizes="(max-width: 28.0625rem) 100vw, (max-width: 56.1875rem) 50vw, (max-width: 85.375rem) 33vw, 450px"

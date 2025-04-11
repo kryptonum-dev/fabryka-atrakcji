@@ -3,7 +3,7 @@ import ActivitiesListing, { fetchData, staticPathsCategory } from '@/src/templat
 
 const page = 1
 const category = Astro.params.category as string
-const data = await fetchData('pl', category, page)
+const data = await fetchData('pl', category, page, Astro.url.searchParams)
 
 if (!data) return Astro.rewrite('/404')
 
