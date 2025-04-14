@@ -301,7 +301,7 @@ const dropdownItems = [
     isSelected: params.get('minParticipants') === '150',
     href: buildFilterUrl({ minParticipants: 150 }),
   },
-].filter((item) => item.count > 0)
+].filter((item) => item.isSelected || item.count > 0)
 
 const activityTypeItems = activityTypes
   .map((type) => ({
@@ -310,7 +310,7 @@ const activityTypeItems = activityTypes
     isSelected: params.get('activityType') === type.slug,
     href: buildFilterUrl({ activityType: type.slug }),
   }))
-  .filter((item) => item.count > 0)
+  .filter((item) => item.isSelected || item.count > 0)
 
 const processedHourly = durationCounts.hourly.reduce(
   (acc, curr) => {
@@ -329,14 +329,17 @@ const durationItems = [
   // Add hourly options first
   ...processedHourly
     .sort((a, b) => a.hours - b.hours)
-    .map((item) => ({
-      name: `${item.hours} ${getHourForm(item.hours, lang)}`,
-      count: item.count,
-      isSelected: params.get('duration') === item.hours.toString(),
-      href: buildFilterUrl({ duration: item.hours }),
-    })),
+    .map((item) => {
+      const isSelected = params.get('duration') === item.hours.toString()
+      return {
+        name: `${item.hours} ${getHourForm(item.hours, lang)}`,
+        count: item.count,
+        isSelected,
+        href: buildFilterUrl({ duration: item.hours }),
+      }
+    }),
   // Add full day option at the end if there are any full day activities
-  ...(durationCounts.fullDay > 0
+  ...(durationCounts.fullDay > 0 || params.get('duration') === '24'
     ? [
         {
           name: t.fullDay,
@@ -346,7 +349,7 @@ const durationItems = [
         },
       ]
     : []),
-].filter((item) => item.count > 0)
+].filter((item) => item.isSelected || item.count > 0)
 
 const slugBase = `${t.pathPrefix}/${currentCategory}`
 
@@ -370,8 +373,8 @@ const getActivitiesCount = () => {
     <p class="description">{description}</p>
   </header>
   <div class="filters">
-    <Dropdown heading={t.participantsLabel} items={dropdownItems} />
-    <Dropdown heading={t.activityTypeLabel} items={activityTypeItems} />
+    <Dropdown heading={t.participantsLabel} items={dropdownItems} params={['minParticipants', 'maxParticipants']} />
+    <Dropdown heading={t.activityTypeLabel} items={activityTypeItems} params={['activityType']} />
     <PriceRangeDropdown
       heading={t.priceLabel}
       minPrice={priceRange.min}
@@ -379,8 +382,9 @@ const getActivitiesCount = () => {
       currentMin={currentMinPrice}
       currentMax={currentMaxPrice}
       isDisabled={!priceRange.min || !priceRange.max}
+      params={['minPrice', 'maxPrice']}
     />
-    <Dropdown heading={t.durationLabel} items={durationItems} />
+    <Dropdown heading={t.durationLabel} items={durationItems} params={['duration']} />
 
     <p class="count">{t.found}&nbsp;<strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
   </div>
@@ -432,32 +436,10 @@ const getActivitiesCount = () => {
       margin-bottom: 0.75rem;
       display: grid;
       gap: 1rem;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       justify-content: space-between;
       gap: 0.75rem 0.5rem;
       grid-template-rows: auto 1fr;
-
-      :global(.filter-dropdown) {
-        &:nth-of-type(1) {
-          grid-column: 1/2;
-          grid-row: 1/2;
-        }
-
-        &:nth-of-type(2) {
-          grid-column: 2/3;
-          grid-row: 1/2;
-        }
-
-        &:nth-of-type(3) {
-          grid-column: 3/4;
-          grid-row: 1/2;
-        }
-
-        &:nth-of-type(4) {
-          grid-column: 4/5;
-          grid-row: 1/2;
-        }
-      }
 
       .count {
         font-size: var(--typography-body-m, 0.875rem);

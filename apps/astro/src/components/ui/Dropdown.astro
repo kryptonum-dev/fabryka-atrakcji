@@ -9,14 +9,45 @@ interface DropdownItem {
 interface Props {
   heading: string
   items: DropdownItem[]
+  params: string[]
 }
 
-const { heading, items } = Astro.props
+const { heading, items, params } = Astro.props
+const selectedItem = items.find((item) => item.isSelected)
+const hasSelection = !!selectedItem
+const availableItems = items.filter((item) => item.count > 0)
+const isDisabled = availableItems.length === 0
 ---
 
-<details class="filter-dropdown">
+<details class="filter-dropdown" data-has-selection={hasSelection} data-disabled={isDisabled}>
   <summary>
     <span>{heading}</span>
+    {
+      hasSelection && (
+        <a
+          href={(() => {
+            const url = new URL(Astro.url)
+            params.forEach((param) => {
+              url.searchParams.delete(param)
+            })
+            return url.toString()
+          })()}
+          class="selected-value"
+        >
+          {selectedItem.name}
+          <div class="clear-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e" />
+              <path
+                d="M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836"
+                stroke="#74535e"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+        </a>
+      )
+    }
     <div class="icon">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
         <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4">
@@ -28,18 +59,20 @@ const { heading, items } = Astro.props
       </svg>
     </div>
   </summary>
-  <ul>
-    {
-      items.map((item) => (
-        <li>
-          <a data-selected={item.isSelected} href={item.href}>
-            <span class="value">{item.name}</span>
-            <span class="count">{item.count}</span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
+  {
+    !isDisabled && (
+      <ul>
+        {availableItems.map((item) => (
+          <li>
+            <a data-selected={item.isSelected} href={item.href}>
+              <span class="value">{item.name}</span>
+              <span class="count">{item.count}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 </details>
 
 <style lang="scss">
@@ -52,6 +85,20 @@ const { heading, items } = Astro.props
     color: var(--primary-800, #45051c);
     z-index: 20;
     isolation: isolate;
+
+    &[data-disabled='true'] {
+      summary {
+        cursor: default;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+    }
+
+    &[data-has-selection='true'] {
+      summary {
+        background-color: var(--neutral-200);
+      }
+    }
 
     summary {
       padding: 0 0.625rem;
@@ -68,6 +115,55 @@ const { heading, items } = Astro.props
       user-select: none;
       gap: 0.5rem;
       transition: border-color 100ms;
+
+      .selected-value {
+        margin-right: auto;
+        font-size: var(--typography-body-s);
+        padding: 0.1875rem 0.25rem;
+        background-color: var(--neutral-300);
+        line-height: 1.6;
+        border-radius: 0.25rem;
+        border: 1px solid var(--neutral-500, #d2c1b0);
+        letter-spacing: -0.01em;
+        transition:
+          opacity 200ms var(--easing),
+          transform 250ms var(--easing);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-800);
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+
+        .clear-icon {
+          position: absolute;
+          inset: 0;
+          background-color: var(--neutral-300);
+          display: grid;
+          place-items: center;
+          opacity: 0;
+          transition: opacity 150ms;
+        }
+        svg {
+          transform: scale(0.6) rotate(180deg);
+          transition: transform 250ms var(--easing);
+        }
+
+        &:hover {
+          .clear-icon {
+            opacity: 1;
+
+            svg {
+              transform: scale(1) rotate(0deg);
+            }
+          }
+        }
+
+        .clear-icon {
+          transition: transform 300ms var(--easing);
+        }
+      }
 
       &:focus-visible {
         outline: none;
@@ -165,14 +261,18 @@ const { heading, items } = Astro.props
     &[data-expanded='true'] {
       summary {
         border-radius: 0.25rem 0.25rem 0 0;
-        transition: border-color 100ms;
         border-bottom: transparent;
+        background-color: var(--neutral-100);
+
+        .selected-value {
+          opacity: 0;
+          transform: translateY(0.5rem);
+        }
 
         .icon {
           svg {
             &:nth-of-type(1) {
               transform: rotate(180deg) translate(50%, 50%);
-              transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
             }
 
             &:nth-of-type(2) {
@@ -192,9 +292,19 @@ const { heading, items } = Astro.props
   document.querySelectorAll<HTMLDetailsElement>('.filter-dropdown').forEach((details) => {
     const list = details.querySelector<HTMLUListElement>('ul')
     const summary = details.querySelector<HTMLElement>('summary')
+    const selectedValue = details.querySelector<HTMLAnchorElement>('.selected-value')
     if (!list || !summary) return
 
     let isAnimating = false
+
+    // Prevent dropdown toggle when clicking the selected value
+    selectedValue?.addEventListener('click', (event) => {
+      event.stopPropagation()
+      const href = selectedValue.getAttribute('href')
+      if (href) {
+        window.location.href = href
+      }
+    })
 
     const closeDropdown = () => {
       if (!details.open || isAnimating) return
@@ -217,6 +327,9 @@ const { heading, items } = Astro.props
 
     summary.addEventListener('click', (event) => {
       event.preventDefault()
+
+      // Don't open if disabled
+      if (details.getAttribute('data-disabled') === 'true') return
 
       if (isAnimating) {
         return

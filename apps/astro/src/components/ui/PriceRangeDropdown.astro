@@ -8,9 +8,10 @@ type Props = {
   currentMin?: number
   currentMax?: number
   isDisabled?: boolean
+  params: string[]
 }
 
-const { heading, minPrice, maxPrice, currentMin, currentMax, isDisabled = false } = Astro.props
+const { heading, minPrice, maxPrice, currentMin, currentMax, isDisabled = false, params } = Astro.props
 
 const translations = {
   pl: {
@@ -40,19 +41,56 @@ const translations = {
 // Get language from URL
 const lang = getLangFromPath(Astro.url.pathname) as Language
 const t = translations[lang]
+
+// Check if price range selection is active
+const hasSelection =
+  currentMin !== undefined && currentMax !== undefined && (currentMin !== minPrice || currentMax !== maxPrice)
+
+// Check if there are any available prices
+const hasAvailablePrices = minPrice !== undefined && maxPrice !== undefined && !isDisabled
+
+// Component is disabled if there are no available prices or if explicitly disabled
+const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
 ---
 
 <details
-  class="dropdown"
+  class="filter-dropdown price-range"
   data-min={minPrice}
   data-max={maxPrice}
-  data-disabled={isDisabled}
+  data-disabled={isEffectivelyDisabled}
+  data-has-selection={hasSelection}
   data-error-range={t.error.range}
   data-error-bounds={t.error.bounds}
   data-error-invalid={t.error.invalid}
 >
   <summary>
     <span>{heading}</span>
+    {
+      hasSelection && (
+        <a
+          href={(() => {
+            const url = new URL(Astro.url)
+            params.forEach((param) => {
+              url.searchParams.delete(param)
+            })
+            return url.toString()
+          })()}
+          class="selected-value"
+        >
+          {currentMin} - {currentMax} {t.currency}
+          <div class="clear-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e" />
+              <path
+                d="M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836"
+                stroke="#74535e"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+        </a>
+      )
+    }
     <div class="icon">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
         <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
@@ -64,74 +102,77 @@ const t = translations[lang]
       </svg>
     </div>
   </summary>
-  <div class="content">
-    <div class="wrapper">
-      <div class="range-container" aria-disabled={isDisabled}>
-        <div class="slider-track"></div>
-        <div class="slider-range"></div>
-        <input
-          type="range"
-          class="price-range"
-          min={minPrice}
-          max={maxPrice}
-          step="10"
-          value={currentMin || minPrice}
-          disabled={isDisabled}
-        />
-        <input
-          type="range"
-          class="price-range"
-          min={minPrice}
-          max={maxPrice}
-          step="10"
-          value={currentMax || maxPrice}
-          disabled={isDisabled}
-        />
-      </div>
-      <div class="inputs-container">
-        <div class="input-group" aria-disabled={isDisabled}>
-          <label>{t.min}</label>
-          <div class="input-wrapper">
-            <div class="gradient"></div>
+  {
+    !isEffectivelyDisabled && (
+      <div class="content">
+        <div class="wrapper">
+          <div class="range-container" aria-disabled={isDisabled}>
+            <div class="slider-track" />
+            <div class="slider-range" />
             <input
-              type="number"
-              class="price-input min-price"
+              type="range"
+              class="price-range"
               min={minPrice}
               max={maxPrice}
+              step="10"
               value={currentMin || minPrice}
               disabled={isDisabled}
             />
-            <span class="currency">{t.currency}</span>
-          </div>
-        </div>
-        <span class="separator">-</span>
-        <div class="input-group" aria-disabled={isDisabled}>
-          <label>{t.max}</label>
-          <div class="input-wrapper">
-            <div class="gradient"></div>
             <input
-              type="number"
-              class="price-input max-price"
+              type="range"
+              class="price-range"
               min={minPrice}
               max={maxPrice}
+              step="10"
               value={currentMax || maxPrice}
               disabled={isDisabled}
             />
-            <span class="currency">{t.currency}</span>
           </div>
+          <div class="inputs-container">
+            <div class="input-group" aria-disabled={isDisabled}>
+              <label>{t.min}</label>
+              <div class="input-wrapper">
+                <div class="gradient" />
+                <input
+                  type="number"
+                  class="price-input min-price"
+                  min={minPrice}
+                  max={maxPrice}
+                  value={currentMin || minPrice}
+                  disabled={isDisabled}
+                />
+                <span class="currency">{t.currency}</span>
+              </div>
+            </div>
+            <span class="separator">-</span>
+            <div class="input-group" aria-disabled={isDisabled}>
+              <label>{t.max}</label>
+              <div class="input-wrapper">
+                <div class="gradient" />
+                <input
+                  type="number"
+                  class="price-input max-price"
+                  min={minPrice}
+                  max={maxPrice}
+                  value={currentMax || maxPrice}
+                  disabled={isDisabled}
+                />
+                <span class="currency">{t.currency}</span>
+              </div>
+            </div>
+          </div>
+          <div class="error-message" aria-live="polite" />
+          <Button theme="primary" shade="dark" className="apply-button" disabled={isDisabled}>
+            {t.apply}
+          </Button>
         </div>
       </div>
-      <div class="error-message" aria-live="polite"></div>
-      <!-- <button class="apply-button" disabled={isDisabled}>{t.apply}</button> -->
-      <Button theme="primary" shade="dark" className="apply-button" disabled={isDisabled}>
-        {t.apply}
-      </Button>
-    </div>
-  </div>
+    )
+  }
 </details>
 
 <style lang="scss">
-  .dropdown {
+  .filter-dropdown {
     isolation: isolate;
     position: relative;
     width: 100%;
@@ -141,15 +182,16 @@ const t = translations[lang]
     color: var(--primary-800, #45051c);
 
     &[data-disabled='true'] {
-      .range-container,
-      .input-group,
-      .apply-button {
-        opacity: 0.7;
-        cursor: not-allowed;
-      }
-
-      .content {
+      summary {
         cursor: default;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+    }
+
+    &[data-has-selection='true'] {
+      summary {
+        background-color: var(--neutral-200);
       }
     }
 
@@ -168,6 +210,55 @@ const t = translations[lang]
       user-select: none;
       gap: 0.5rem;
       transition: border-color 100ms;
+
+      .selected-value {
+        margin-right: auto;
+        font-size: var(--typography-body-s);
+        padding: 0.1875rem 0.25rem;
+        background-color: var(--neutral-300);
+        line-height: 1.6;
+        border-radius: 0.25rem;
+        border: 1px solid var(--neutral-500, #d2c1b0);
+        letter-spacing: -0.01em;
+        transition:
+          opacity 200ms var(--easing),
+          transform 250ms var(--easing);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-800);
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+
+        .clear-icon {
+          position: absolute;
+          inset: 0;
+          background-color: var(--neutral-300);
+          display: grid;
+          place-items: center;
+          opacity: 0;
+          transition: opacity 150ms;
+        }
+        svg {
+          transform: scale(0.6) rotate(180deg);
+          transition: transform 250ms var(--easing);
+        }
+
+        &:hover {
+          .clear-icon {
+            opacity: 1;
+
+            svg {
+              transform: scale(1) rotate(0deg);
+            }
+          }
+        }
+
+        .clear-icon {
+          transition: transform 300ms var(--easing);
+        }
+      }
 
       &:focus-visible {
         outline: none;
@@ -206,7 +297,7 @@ const t = translations[lang]
       display: flex;
       flex-direction: column;
       gap: 1rem;
-      transition: max-height 250ms var(--easing);
+      transition: max-height 200ms var(--easing);
       overflow: hidden;
       max-height: 0;
       border-top: none;
@@ -497,9 +588,22 @@ const t = translations[lang]
       }
     }
 
+    &:has(summary:hover):not([data-expanded='true']) {
+      summary {
+        border-color: var(--primary-700, #600d2a);
+      }
+    }
+
     &[data-expanded='true'] {
       summary {
         border-radius: 0.25rem 0.25rem 0 0;
+        border-bottom: transparent;
+        background-color: var(--neutral-100);
+
+        .selected-value {
+          opacity: 0;
+          transform: translateY(0.5rem);
+        }
 
         .icon {
           svg {
@@ -513,16 +617,16 @@ const t = translations[lang]
           }
         }
       }
-
       .content {
         box-shadow: 0px 8px 24px 0px rgba(255, 251, 251, 0.4);
+        transition: max-height 260ms var(--easing);
       }
     }
   }
 </style>
 
 <script>
-  const dropdowns = document.querySelectorAll<HTMLDetailsElement>('.dropdown')
+  const dropdowns = document.querySelectorAll<HTMLDetailsElement>('.filter-dropdown.price-range')
 
   dropdowns.forEach((details) => {
     const summary = details.querySelector<HTMLElement>('summary')!
@@ -675,13 +779,12 @@ const t = translations[lang]
     })
 
     // Dropdown animation handlers
-    function closeDropdown(): void {
+    const closeDropdown = () => {
       if (!details.open || isAnimating) return
 
       isAnimating = true
       details.setAttribute('data-expanded', 'false')
-      const height = content.scrollHeight
-      content.style.maxHeight = `${height}px`
+      content.style.maxHeight = content.scrollHeight + 'px'
 
       // Force reflow
       void content.offsetHeight
@@ -700,30 +803,45 @@ const t = translations[lang]
 
     summary.addEventListener('click', (event) => {
       event.preventDefault()
-      if (details.open) {
-        closeDropdown()
+
+      // Don't open if disabled
+      if (details.getAttribute('data-disabled') === 'true') return
+
+      if (isAnimating) {
         return
       }
 
       isAnimating = true
-      details.open = true
-      details.setAttribute('data-expanded', 'true')
 
-      const height = content.scrollHeight
-      content.style.maxHeight = '0'
+      if (details.open) {
+        details.setAttribute('data-expanded', 'false')
+        content.style.maxHeight = content.scrollHeight + 'px'
+        requestAnimationFrame(() => (content.style.maxHeight = '0px'))
 
-      // Force reflow
-      void content.offsetHeight
+        content.addEventListener(
+          'transitionend',
+          () => {
+            details.open = false
+            content.style.maxHeight = ''
+            isAnimating = false
+          },
+          { once: true }
+        )
+      } else {
+        details.open = true
+        details.setAttribute('data-expanded', 'true')
+        const startHeight = content.scrollHeight + 'px'
+        content.style.maxHeight = '0px'
+        requestAnimationFrame(() => (content.style.maxHeight = startHeight))
 
-      content.style.maxHeight = `${height + 48}px`
-
-      content.addEventListener(
-        'transitionend',
-        () => {
-          isAnimating = false
-        },
-        { once: true }
-      )
+        content.addEventListener(
+          'transitionend',
+          () => {
+            isAnimating = false
+          },
+          { once: true }
+        )
+      }
     })
 
     // Close dropdown when clicking outside
@@ -735,6 +853,57 @@ const t = translations[lang]
 
     // Initialize range indicator
     updateRangeIndicator()
+
+    // Set initial state
+    details.setAttribute('data-expanded', 'false')
+    isAnimating = false
+  })
+
+  document.querySelectorAll<HTMLDetailsElement>('.price-range').forEach((details) => {
+    const content = details.querySelector<HTMLDivElement>('.content')
+    const summary = details.querySelector<HTMLElement>('summary')
+    const selectedValue = details.querySelector<HTMLAnchorElement>('.selected-value')
+    if (!content || !summary) return
+
+    let isAnimating = false
+
+    // Prevent dropdown toggle when clicking the selected value
+    selectedValue?.addEventListener('click', (event) => {
+      event.stopPropagation()
+      const href = selectedValue.getAttribute('href')
+      if (href) {
+        window.location.href = href
+      }
+    })
+
+    const closeDropdown = () => {
+      if (!details.open || isAnimating) return
+
+      isAnimating = true
+      details.setAttribute('data-expanded', 'false')
+      content.style.maxHeight = content.scrollHeight + 'px'
+
+      // Force reflow
+      void content.offsetHeight
+
+      content.style.maxHeight = '0'
+
+      content.addEventListener(
+        'transitionend',
+        () => {
+          details.open = false
+          isAnimating = false
+        },
+        { once: true }
+      )
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (event) => {
+      if (!details.contains(event.target as Node)) {
+        closeDropdown()
+      }
+    })
 
     // Set initial state
     details.setAttribute('data-expanded', 'false')
