@@ -6,6 +6,7 @@ import Pagination from '../../ui/Pagination.astro'
 import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
 import Image from '@/src/components/ui/image'
 import Dropdown from '@/src/components/ui/Dropdown.astro'
+import PriceRangeDropdown from '@/src/components/ui/PriceRangeDropdown.astro'
 
 type Props = {
   heading: PortableTextValue
@@ -31,6 +32,10 @@ type Props = {
       hours: number
       count: number
     }[]
+  }
+  priceRange: {
+    min: number
+    max: number
   }
 }
 export type ListingProps = Props
@@ -91,6 +96,7 @@ const translations = {
       plural2to4: 'godziny',
       plural: 'godzin',
     },
+    priceLabel: 'Cena za osobę',
   },
   en: {
     pathPrefix: '/en/activities/category',
@@ -107,6 +113,7 @@ const translations = {
       plural2to4: 'hours',
       plural: 'hours',
     },
+    priceLabel: 'Price per person',
   },
 }
 
@@ -171,29 +178,29 @@ export const Listing_Query = (orderClause: string) => {
   `
 
   return `
-    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${createBaseFilter({
-      participants: true,
-      activityType: true,
-      duration: true,
-    })}]),
+    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${createBaseFilter()}]),
     "participantRangeCounts": {
       "range1_30": count(*[_type == 'Activities_Collection' ${createBaseFilter({
         participants: false,
+        price: true,
         activityType: true,
         duration: true,
       })} && participantsCount.max >= 30 && participantsCount.min <= 30]),
       "range31_80": count(*[_type == 'Activities_Collection' ${createBaseFilter({
         participants: false,
+        price: true,
         activityType: true,
         duration: true,
       })} && participantsCount.min < 30 && participantsCount.max <= 80]),
       "range81_150": count(*[_type == 'Activities_Collection' ${createBaseFilter({
         participants: false,
+        price: true,
         activityType: true,
         duration: true,
       })} && participantsCount.min < 81 && participantsCount.max >= 150]),
       "range150plus": count(*[_type == 'Activities_Collection' ${createBaseFilter({
         participants: false,
+        price: true,
         activityType: true,
         duration: true,
       })} && participantsCount.min <= 151 && participantsCount.max >= 151])
@@ -203,6 +210,7 @@ export const Listing_Query = (orderClause: string) => {
       "slug": slug.current,
       "count": count(*[_type == 'Activities_Collection' ${createBaseFilter({
         participants: true,
+        price: true,
         activityType: false,
         duration: true,
       })} && ^.slug.current in activityType[]->slug.current])
@@ -210,11 +218,13 @@ export const Listing_Query = (orderClause: string) => {
     "durationCounts": {
       "fullDay": count(*[_type == 'Activities_Collection' ${createBaseFilter({
         participants: true,
+        price: true,
         activityType: true,
         duration: false,
       })} && duration.isFullDay == true]),
       "hourly": *[_type == 'Activities_Collection' ${createBaseFilter({
         participants: true,
+        price: true,
         activityType: true,
         duration: false,
       })} && (duration.isFullDay == false || !defined(duration.isFullDay))] {
@@ -222,8 +232,23 @@ export const Listing_Query = (orderClause: string) => {
         "count": 1
       } | order(hours asc)
     },
+    "priceRange": {
+      "min": *[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: true,
+        price: false,
+      })}] | order(pricing.additionalPersonPrice asc)[0].pricing.additionalPersonPrice,
+      "max": *[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: true,
+        price: false,
+      })}] | order(pricing.additionalPersonPrice desc)[0].pricing.additionalPersonPrice
+    },
     "listing": *[_type == 'Activities_Collection' ${createBaseFilter({
       participants: true,
+      price: true,
       activityType: true,
       duration: true,
     })}] | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
@@ -242,9 +267,14 @@ const {
   participantRangeCounts,
   activityTypes,
   durationCounts,
+  priceRange,
 } = Astro.props
 
 const params = Astro.url.searchParams
+const currentMinPrice = params.get('minPrice') ? parseInt(params.get('minPrice')!) : undefined
+const currentMaxPrice = params.get('maxPrice') ? parseInt(params.get('maxPrice')!) : undefined
+
+console.log(priceRange)
 
 const dropdownItems = [
   {
@@ -281,8 +311,6 @@ const activityTypeItems = activityTypes
     href: buildFilterUrl({ activityType: type.slug }),
   }))
   .filter((item) => item.count > 0)
-
-console.log(listing)
 
 const processedHourly = durationCounts.hourly.reduce(
   (acc, curr) => {
@@ -344,7 +372,16 @@ const getActivitiesCount = () => {
   <div class="filters">
     <Dropdown heading={t.participantsLabel} items={dropdownItems} />
     <Dropdown heading={t.activityTypeLabel} items={activityTypeItems} />
+    <PriceRangeDropdown
+      heading={t.priceLabel}
+      minPrice={priceRange.min}
+      maxPrice={priceRange.max}
+      currentMin={currentMinPrice}
+      currentMax={currentMaxPrice}
+      isDisabled={!priceRange.min || !priceRange.max}
+    />
     <Dropdown heading={t.durationLabel} items={durationItems} />
+
     <p class="count">{t.found}&nbsp;<strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
   </div>
   <div class="list">
@@ -395,7 +432,7 @@ const getActivitiesCount = () => {
       margin-bottom: 0.75rem;
       display: grid;
       gap: 1rem;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       justify-content: space-between;
       gap: 0.75rem 0.5rem;
       grid-template-rows: auto 1fr;
@@ -412,6 +449,11 @@ const getActivitiesCount = () => {
         }
 
         &:nth-of-type(3) {
+          grid-column: 3/4;
+          grid-row: 1/2;
+        }
+
+        &:nth-of-type(4) {
           grid-column: 4/5;
           grid-row: 1/2;
         }

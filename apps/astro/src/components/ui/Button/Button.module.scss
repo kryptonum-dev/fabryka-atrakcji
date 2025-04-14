@@ -21,6 +21,11 @@ $gradient-conic: conic-gradient(
     user-select: none;
   }
 
+  &:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+
   &[data-theme='primary'] {
     min-height: 3rem;
     padding: 0 0.875rem 0 0.125rem;
@@ -124,43 +129,45 @@ $gradient-conic: conic-gradient(
       }
     }
 
-    &:hover {
-      .box {
-        &::after {
-          opacity: 1;
-          animation: Button-rotate 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-        }
-        .icon {
-          & > svg:first-of-type {
-            transform: translateX(175%) rotate(90deg);
+    &:not([disabled]) {
+      &:hover {
+        .box {
+          &::after {
+            opacity: 1;
+            animation: Button-rotate 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
           }
-          & > svg:last-of-type {
-            transform: translate(-50%, -50%) rotate(0deg);
+          .icon {
+            & > svg:first-of-type {
+              transform: translateX(175%) rotate(90deg);
+            }
+            & > svg:last-of-type {
+              transform: translate(-50%, -50%) rotate(0deg);
+            }
           }
         }
-      }
-      span {
-        transform: translateX(0.1875rem);
-      }
-    }
-
-    &:focus:not(:focus-visible) {
-      .box {
-        &::after {
-          animation-play-state: paused;
+        span {
+          transform: translateX(0.1875rem);
         }
       }
-      span {
-        transform: translateX(0);
+
+      &:focus:not(:focus-visible) {
+        .box {
+          &::after {
+            animation-play-state: paused;
+          }
+        }
+        span {
+          transform: translateX(0);
+        }
       }
-    }
 
-    &:focus-visible {
-      outline: 2px solid var(--primary-800, #45051c);
-      outline-offset: 4px;
+      &:focus-visible {
+        outline: 2px solid var(--primary-800, #45051c);
+        outline-offset: 4px;
 
-      &[data-shade='light '] {
-        outline-offset: 7.5px;
+        &[data-shade='light '] {
+          outline-offset: 7.5px;
+        }
       }
     }
   }
@@ -238,30 +245,32 @@ $gradient-conic: conic-gradient(
       }
     }
 
-    &:hover {
-      span {
-        color: var(--neutral-100, #faf7f7);
-      }
-      .wrapper {
-        &::after {
-          transform: translateY(0);
+    &:not([disabled]) {
+      &:hover {
+        span {
+          color: var(--neutral-100, #faf7f7);
+        }
+        .wrapper {
+          &::after {
+            transform: translateY(0);
+          }
         }
       }
-    }
 
-    &:focus:not(:focus-visible) {
-      span {
-        color: var(--neutral-100, #faf7f7);
-      }
-      .wrapper {
-        &::before {
-          transform: translateY(0);
+      &:focus:not(:focus-visible) {
+        span {
+          color: var(--neutral-100, #faf7f7);
+        }
+        .wrapper {
+          &::before {
+            transform: translateY(0);
+          }
         }
       }
-    }
 
-    &:focus-visible {
-      outline-offset: 6px;
+      &:focus-visible {
+        outline-offset: 6px;
+      }
     }
   }
 }

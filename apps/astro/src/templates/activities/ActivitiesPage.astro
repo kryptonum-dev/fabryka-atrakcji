@@ -79,7 +79,7 @@ export async function fetchData(
     !isNaN(rawMinPrice) &&
     !isNaN(rawMaxPrice) &&
     rawMinPrice > 0 &&
-    rawMaxPrice > rawMinPrice
+    rawMaxPrice >= rawMinPrice
   ) {
     minPrice = rawMinPrice
     maxPrice = rawMaxPrice
@@ -234,6 +234,7 @@ const breadcrumbs = [
     participantRangeCounts={page.participantRangeCounts}
     activityTypes={page.activityTypes}
     durationCounts={page.durationCounts}
+    priceRange={page.priceRange}
   />
   <Components data={page.selectedCategory.components} hasPreviousSections />
 </Layout>

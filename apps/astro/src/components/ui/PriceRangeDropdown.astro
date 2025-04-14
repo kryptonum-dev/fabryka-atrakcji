@@ -1,0 +1,743 @@
+---
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import Button from '@/src/components/ui/Button'
+type Props = {
+  heading: string
+  minPrice: number
+  maxPrice: number
+  currentMin?: number
+  currentMax?: number
+  isDisabled?: boolean
+}
+
+const { heading, minPrice, maxPrice, currentMin, currentMax, isDisabled = false } = Astro.props
+
+const translations = {
+  pl: {
+    min: 'od',
+    max: 'do',
+    apply: 'Zastosuj',
+    currency: 'zł',
+    error: {
+      range: 'Wartość minimalna nie może być większa od maksymalnej',
+      bounds: 'Wartości muszą być w zakresie od {min} do {max} PLN',
+      invalid: 'Proszę wprowadzić prawidłową liczbę całkowitą',
+    },
+  },
+  en: {
+    min: 'from',
+    max: 'to',
+    apply: 'Apply',
+    currency: 'PLN',
+    error: {
+      range: 'Minimum value cannot be greater than maximum',
+      bounds: 'Values must be between {min} and {max} PLN',
+      invalid: 'Please enter a valid integer number',
+    },
+  },
+}
+
+// Get language from URL
+const lang = getLangFromPath(Astro.url.pathname) as Language
+const t = translations[lang]
+---
+
+<details
+  class="dropdown"
+  data-min={minPrice}
+  data-max={maxPrice}
+  data-disabled={isDisabled}
+  data-error-range={t.error.range}
+  data-error-bounds={t.error.bounds}
+  data-error-invalid={t.error.invalid}
+>
+  <summary>
+    <span>{heading}</span>
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
+        ></path>
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
+        ></path>
+      </svg>
+    </div>
+  </summary>
+  <div class="content">
+    <div class="wrapper">
+      <div class="range-container" aria-disabled={isDisabled}>
+        <div class="slider-track"></div>
+        <div class="slider-range"></div>
+        <input
+          type="range"
+          class="price-range"
+          min={minPrice}
+          max={maxPrice}
+          step="10"
+          value={currentMin || minPrice}
+          disabled={isDisabled}
+        />
+        <input
+          type="range"
+          class="price-range"
+          min={minPrice}
+          max={maxPrice}
+          step="10"
+          value={currentMax || maxPrice}
+          disabled={isDisabled}
+        />
+      </div>
+      <div class="inputs-container">
+        <div class="input-group" aria-disabled={isDisabled}>
+          <label>{t.min}</label>
+          <div class="input-wrapper">
+            <div class="gradient"></div>
+            <input
+              type="number"
+              class="price-input min-price"
+              min={minPrice}
+              max={maxPrice}
+              value={currentMin || minPrice}
+              disabled={isDisabled}
+            />
+            <span class="currency">{t.currency}</span>
+          </div>
+        </div>
+        <span class="separator">-</span>
+        <div class="input-group" aria-disabled={isDisabled}>
+          <label>{t.max}</label>
+          <div class="input-wrapper">
+            <div class="gradient"></div>
+            <input
+              type="number"
+              class="price-input max-price"
+              min={minPrice}
+              max={maxPrice}
+              value={currentMax || maxPrice}
+              disabled={isDisabled}
+            />
+            <span class="currency">{t.currency}</span>
+          </div>
+        </div>
+      </div>
+      <div class="error-message" aria-live="polite"></div>
+      <!-- <button class="apply-button" disabled={isDisabled}>{t.apply}</button> -->
+      <Button theme="primary" shade="dark" className="apply-button" disabled={isDisabled}>
+        {t.apply}
+      </Button>
+    </div>
+  </div>
+</details>
+
+<style lang="scss">
+  .dropdown {
+    isolation: isolate;
+    position: relative;
+    width: 100%;
+    font-size: var(--typography-body-m);
+    isolation: isolate;
+    z-index: 30;
+    color: var(--primary-800, #45051c);
+
+    &[data-disabled='true'] {
+      .range-container,
+      .input-group,
+      .apply-button {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .content {
+        cursor: default;
+      }
+    }
+
+    summary {
+      padding: 0 0.625rem;
+      min-height: 2.75rem;
+      font-size: var(--typography-body-m);
+      background-color: var(--neutral-100);
+      border: 1px solid var(--neutral-500);
+      border-radius: 0.25rem;
+      cursor: pointer;
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      gap: 0.5rem;
+      transition: border-color 100ms;
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-800, #45051c);
+        border-radius: 0.25rem;
+      }
+
+      .icon {
+        position: relative;
+        overflow: hidden;
+
+        svg {
+          transition: transform 300ms var(--easing);
+          &:nth-of-type(1) {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: rotate(180deg) translate(50%, 150%);
+          }
+
+          &:nth-of-type(2) {
+            transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
+          }
+        }
+      }
+    }
+
+    .content {
+      position: absolute;
+      top: calc(100% - 1px);
+      left: 0;
+      background: var(--neutral-100);
+      border: 1px solid var(--neutral-500);
+      border-radius: 0 0 0.25rem 0.25rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: max-height 250ms var(--easing);
+      overflow: hidden;
+      max-height: 0;
+      border-top: none;
+      z-index: -1;
+
+      .wrapper {
+        padding: 0.75rem 1rem;
+      }
+
+      .range-container {
+        position: relative;
+        height: 2.75rem;
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.125rem;
+
+        .slider-track {
+          position: absolute;
+          width: 100%;
+          height: 0.125rem;
+          background: var(--neutral-300);
+          border-radius: 0.125rem;
+          z-index: 1;
+        }
+
+        .slider-range {
+          position: absolute;
+          height: 0.125rem;
+          background: var(--primary-500);
+          border-radius: 0.125rem;
+          z-index: 2;
+        }
+
+        input[type='range'] {
+          position: absolute;
+          width: 100%;
+          pointer-events: none;
+          appearance: none;
+          height: 0.125rem;
+          background: none;
+          z-index: 3;
+
+          &::-webkit-slider-runnable-track {
+            background: none;
+          }
+
+          &::-moz-range-track {
+            background: none;
+          }
+
+          &::-webkit-slider-thumb {
+            pointer-events: auto;
+            appearance: none;
+            width: 1rem;
+            height: 1rem;
+            background-color: var(--primary-500, #f67258);
+            border-radius: 50%;
+            cursor: pointer;
+            transition:
+              background-color 150ms,
+              transform 200ms var(--easing);
+
+            &:hover {
+              transform: scale(1.1);
+              background-color: var(--primary-700);
+            }
+          }
+
+          &::-moz-range-thumb {
+            pointer-events: auto;
+            appearance: none;
+            width: 1rem;
+            height: 1rem;
+            background-color: var(--primary-500, #f67258);
+            border-radius: 50%;
+            cursor: pointer;
+            transition:
+              background-color 150ms,
+              transform 200ms var(--easing);
+
+            &:hover {
+              transform: scale(1.1);
+              background-color: var(--primary-700);
+            }
+          }
+
+          &:focus-visible {
+            outline: none;
+            &::-webkit-slider-thumb {
+              outline-offset: 3px;
+              outline: 3px solid var(--primary-800);
+            }
+          }
+        }
+      }
+
+      .inputs-container {
+        display: flex;
+        gap: 0.375rem;
+        justify-content: space-between;
+
+        .separator {
+          align-self: flex-end;
+          margin-bottom: 0.55rem;
+        }
+
+        .input-group {
+          flex: 1;
+
+          label {
+            font-size: var(--typography-body-s);
+            color: var(--primary-800, #45051c);
+            line-height: 1.6;
+            letter-spacing: -0.01em;
+            margin-bottom: 0.125rem;
+          }
+
+          .input-wrapper {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            isolation: isolate;
+            background-color: var(--neutral-100, #faf7f7);
+            border-radius: 0.25rem;
+            min-height: 2.5rem;
+            font-size: var(--typography-body-m);
+
+            &::before,
+            &::after {
+              position: absolute;
+              z-index: -3;
+              inset: 0;
+              content: '';
+              background-color: var(--neutral-500, #d2c1b0);
+              border-radius: 0.25rem;
+              transition: background-color 275ms;
+            }
+
+            &::after {
+              z-index: -1;
+              inset: 0.125rem;
+              background: linear-gradient(var(--neutral-100, #faf7f7), var(--neutral-100, #faf7f7)) padding-box;
+              border-radius: 0.125rem;
+            }
+
+            .gradient {
+              position: absolute;
+              z-index: -2;
+              inset: 0;
+              overflow: hidden;
+              border-radius: 0.25rem;
+
+              &::before {
+                position: absolute;
+                inset: -0.0625rem;
+                content: '';
+                background: conic-gradient(
+                  from 135deg at 50% 50%,
+                  #798ddc 0deg,
+                  #e7c78f 90deg,
+                  #fa7468 266.40000343322754deg,
+                  #798ddc 360deg
+                );
+                opacity: 0;
+                transform: scaleX(0);
+                transition:
+                  opacity 125ms,
+                  transform 475ms var(--easing);
+              }
+            }
+
+            &:has(input:focus-visible) {
+              .gradient::before {
+                opacity: 1;
+                transform: scaleX(1);
+              }
+            }
+
+            &:has(input:hover) {
+              &::before {
+                background-color: var(--primary-400, #74535e);
+              }
+            }
+
+            input {
+              width: 100%;
+              padding: 0 0.625rem;
+              color: var(--primary-800, #45051c);
+              background: none;
+              border: none;
+
+              &:focus {
+                outline: none;
+              }
+
+              /* Style spinner buttons for Webkit browsers */
+              &::-webkit-outer-spin-button,
+              &::-webkit-inner-spin-button {
+                position: relative;
+                transform: translateX(2rem);
+              }
+
+              /* Style spinner buttons for Firefox */
+              &[type='number'] {
+                &::-moz-number-spin-box {
+                  background: var(--neutral-100);
+                  border-left: 1px solid var(--neutral-500);
+                  cursor: pointer;
+                  height: 100%;
+                  width: 1.25rem;
+                }
+
+                &::-moz-number-spin-up,
+                &::-moz-number-spin-down {
+                  border: none;
+                  background: var(--neutral-100);
+                  height: 50%;
+                  position: relative;
+
+                  &:hover {
+                    background: var(--neutral-200);
+                  }
+
+                  &:active {
+                    background: var(--neutral-300);
+                  }
+                }
+              }
+            }
+
+            .currency {
+              pointer-events: none;
+              color: var(--primary-400, #74535e);
+              letter-spacing: -0.01em;
+              width: 2.5rem;
+              height: 2.25rem;
+              display: grid;
+              place-content: center;
+              border-left: 1px solid var(--neutral-500, #d2c1b0);
+              background: none;
+            }
+          }
+        }
+      }
+
+      .error-message {
+        color: var(--error-500);
+        text-align: center;
+        font-size: var(--typography-body-s);
+        min-height: 1.5rem;
+        display: none;
+        margin-top: 0.25rem;
+
+        &:not(:empty) {
+          display: block;
+        }
+      }
+
+      :global(button) {
+        max-width: 100%;
+        width: 100%;
+        margin-top: 0.75rem;
+
+        :global(span) {
+          margin: 0 auto;
+          padding-right: 1.75rem;
+        }
+
+        // width: 100%;
+        // padding: 0.5rem;
+        // background: var(--primary-800);
+        // color: white;
+        // border: none;
+        // border-radius: 0.25rem;
+        // cursor: pointer;
+        // font-size: var(--typography-body-m);
+        // transition: background-color 150ms;
+
+        // &:hover:not(:disabled) {
+        //   background: var(--primary-900);
+        // }
+
+        // &:disabled {
+        //   background: var(--neutral-400);
+        //   cursor: not-allowed;
+        // }
+      }
+    }
+
+    &[data-expanded='true'] {
+      summary {
+        border-radius: 0.25rem 0.25rem 0 0;
+
+        .icon {
+          svg {
+            &:nth-of-type(1) {
+              transform: rotate(180deg) translate(50%, 50%);
+            }
+
+            &:nth-of-type(2) {
+              transform: translateY(100%);
+            }
+          }
+        }
+      }
+
+      .content {
+        box-shadow: 0px 8px 24px 0px rgba(255, 251, 251, 0.4);
+      }
+    }
+  }
+</style>
+
+<script>
+  const dropdowns = document.querySelectorAll<HTMLDetailsElement>('.dropdown')
+
+  dropdowns.forEach((details) => {
+    const summary = details.querySelector<HTMLElement>('summary')!
+    const content = details.querySelector<HTMLElement>('.content')!
+    const ranges = details.querySelectorAll<HTMLInputElement>('input[type="range"]')
+    const minInput = details.querySelector<HTMLInputElement>('.min-price')!
+    const maxInput = details.querySelector<HTMLInputElement>('.max-price')!
+    const errorMessage = details.querySelector<HTMLElement>('.error-message')!
+    const applyButton = details.querySelector<HTMLButtonElement>('.apply-button')!
+    const sliderRange = details.querySelector<HTMLElement>('.slider-range')!
+
+    const minRange = ranges[0]
+    const maxRange = ranges[1]
+    const minAllowed = parseInt(details.dataset.min || '0')
+    const maxAllowed = parseInt(details.dataset.max || '0')
+
+    let isAnimating = false
+
+    // Validation function
+    function validateInputs(): boolean {
+      if (!minInput || !maxInput || !errorMessage || !applyButton) return false
+
+      // Type guard check
+      if (!(minInput instanceof HTMLInputElement) || !(maxInput instanceof HTMLInputElement)) return false
+
+      // Check if inputs are valid numbers
+      const minValue = minInput.value.trim()
+      const maxValue = maxInput.value.trim()
+
+      // Helper function to validate if a string represents a valid integer (including .0)
+      const isValidInteger = (value: string) => {
+        if (!value || isNaN(Number(value))) return false
+        const parsed = parseFloat(value)
+        return parsed === Math.floor(parsed)
+      }
+
+      if (!isValidInteger(minValue) || !isValidInteger(maxValue)) {
+        errorMessage.textContent = details.dataset.errorInvalid || ''
+        applyButton.disabled = true
+        return false
+      }
+
+      const min = parseInt(minValue)
+      const max = parseInt(maxValue)
+
+      if (min > max) {
+        errorMessage.textContent = details.dataset.errorRange || ''
+        applyButton.disabled = true
+        return false
+      }
+
+      if (min < minAllowed || max > maxAllowed) {
+        errorMessage.textContent = (details.dataset.errorBounds || '')
+          .replace('{min}', minAllowed.toString())
+          .replace('{max}', maxAllowed.toString())
+        applyButton.disabled = true
+        return false
+      }
+
+      errorMessage.textContent = ''
+      applyButton.disabled = false
+      return true
+    }
+
+    // Sync number inputs with range inputs
+    function updateNumberInputs() {
+      const minValue = parseInt(minRange.value)
+      const maxValue = parseInt(maxRange.value)
+
+      minInput!.value = minValue.toString()
+      maxInput!.value = maxValue.toString()
+      validateInputs()
+    }
+
+    // Function to update the range indicator
+    function updateRangeIndicator() {
+      const minVal = parseInt(minRange.value)
+      const maxVal = parseInt(maxRange.value)
+      const totalRange = maxAllowed - minAllowed
+
+      // Calculate percentages for positioning
+      const minPercent = ((minVal - minAllowed) / totalRange) * 100
+      const maxPercent = ((maxVal - minAllowed) / totalRange) * 100
+
+      // Update the range indicator position and width
+      if (sliderRange) {
+        sliderRange.style.left = minPercent + '%'
+        sliderRange.style.width = maxPercent - minPercent + '%'
+      }
+    }
+
+    // Event listeners for range inputs
+    minRange.addEventListener('input', () => {
+      const min = parseInt(minRange.value)
+      const max = parseInt(maxRange.value)
+
+      if (min > max) {
+        minRange.value = maxRange.value
+      }
+      updateNumberInputs()
+      updateRangeIndicator()
+    })
+
+    maxRange.addEventListener('input', () => {
+      const min = parseInt(minRange.value)
+      const max = parseInt(maxRange.value)
+
+      if (max < min) {
+        maxRange.value = minRange.value
+      }
+      updateNumberInputs()
+      updateRangeIndicator()
+    })
+
+    // Event listeners for number inputs
+    minInput.addEventListener('input', (e) => {
+      const input = e.target as HTMLInputElement
+      const value = parseInt(input.value)
+      const maxValue = parseInt(maxInput.value)
+
+      // Only update range if the value is valid and doesn't exceed max
+      if (!isNaN(value) && value >= minAllowed && value <= maxAllowed && value <= maxValue) {
+        minRange.value = value.toString()
+        updateRangeIndicator()
+      }
+      validateInputs()
+    })
+
+    maxInput.addEventListener('input', (e) => {
+      const input = e.target as HTMLInputElement
+      const value = parseInt(input.value)
+      const minValue = parseInt(minInput.value)
+
+      // Only update range if the value is valid and doesn't exceed min
+      if (!isNaN(value) && value >= minAllowed && value <= maxAllowed && value >= minValue) {
+        maxRange.value = value.toString()
+        updateRangeIndicator()
+      }
+      validateInputs()
+    })
+
+    // Apply button handler
+    applyButton.addEventListener('click', () => {
+      if (!validateInputs()) return
+
+      const url = new URL(window.location.href)
+      url.searchParams.set('minPrice', Math.floor(parseFloat(minInput.value)).toString())
+      url.searchParams.set('maxPrice', Math.floor(parseFloat(maxInput.value)).toString())
+      window.location.href = url.toString()
+    })
+
+    // Dropdown animation handlers
+    function closeDropdown(): void {
+      if (!details.open || isAnimating) return
+
+      isAnimating = true
+      details.setAttribute('data-expanded', 'false')
+      const height = content.scrollHeight
+      content.style.maxHeight = `${height}px`
+
+      // Force reflow
+      void content.offsetHeight
+
+      content.style.maxHeight = '0'
+
+      content.addEventListener(
+        'transitionend',
+        () => {
+          details.open = false
+          isAnimating = false
+        },
+        { once: true }
+      )
+    }
+
+    summary.addEventListener('click', (event) => {
+      event.preventDefault()
+      if (details.open) {
+        closeDropdown()
+        return
+      }
+
+      isAnimating = true
+      details.open = true
+      details.setAttribute('data-expanded', 'true')
+
+      const height = content.scrollHeight
+      content.style.maxHeight = '0'
+
+      // Force reflow
+      void content.offsetHeight
+
+      content.style.maxHeight = `${height + 48}px`
+
+      content.addEventListener(
+        'transitionend',
+        () => {
+          isAnimating = false
+        },
+        { once: true }
+      )
+    })
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (event) => {
+      if (!details.contains(event.target as Node)) {
+        closeDropdown()
+      }
+    })
+
+    // Initialize range indicator
+    updateRangeIndicator()
+
+    // Set initial state
+    details.setAttribute('data-expanded', 'false')
+    isAnimating = false
+  })
+</script>
