@@ -1,6 +1,6 @@
 ---
 import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
-import { ITEMS_PER_PAGE } from '@/src/templates/activities/ActivitiesPage.astro'
+import { ITEMS_PER_PAGE, type OrderType } from '@/src/templates/activities/ActivitiesPage.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
 import Pagination from '../../ui/Pagination.astro'
 import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
@@ -47,6 +47,7 @@ const buildFilterUrl = (params: {
   maxParticipants?: number
   activityType?: string
   duration?: number
+  order?: OrderType
 }) => {
   const newParams = new URLSearchParams(Astro.url.searchParams)
 
@@ -61,6 +62,9 @@ const buildFilterUrl = (params: {
   if ('duration' in params) {
     newParams.delete('duration')
   }
+  if ('order' in params) {
+    newParams.delete('order')
+  }
 
   // Set new parameters if they exist
   if (params.minParticipants) {
@@ -74,6 +78,9 @@ const buildFilterUrl = (params: {
   }
   if (typeof params.duration === 'number') {
     newParams.set('duration', params.duration.toString())
+  }
+  if (params.order) {
+    newParams.set('order', params.order)
   }
 
   const queryString = newParams.toString()
@@ -97,6 +104,13 @@ const translations = {
       plural: 'godzin',
     },
     priceLabel: 'Cena za osobę',
+    sortLabel: 'Sortowanie',
+    sort: {
+      popularity: 'Najpopularniejsze',
+      priceAsc: 'Cena: od najniższej',
+      priceDesc: 'Cena: od najwyższej',
+      newest: 'Od najnowszych',
+    },
   },
   en: {
     pathPrefix: '/en/activities/category',
@@ -114,6 +128,13 @@ const translations = {
       plural: 'hours',
     },
     priceLabel: 'Price per person',
+    sortLabel: 'Sort by',
+    sort: {
+      popularity: 'Most popular',
+      priceAsc: 'Price: from lowest',
+      priceDesc: 'Price: from highest',
+      newest: 'From newest',
+    },
   },
 }
 
@@ -351,6 +372,33 @@ const durationItems = [
     : []),
 ].filter((item) => item.isSelected || item.count > 0)
 
+const sortingItems = [
+  {
+    name: t.sort.popularity,
+    count: totalActivitiesByCategory,
+    isSelected: !params.get('order') || params.get('order') === 'popularity',
+    href: buildFilterUrl({ order: 'popularity' }),
+  },
+  {
+    name: t.sort.newest,
+    count: totalActivitiesByCategory,
+    isSelected: params.get('order') === 'newest',
+    href: buildFilterUrl({ order: 'newest' }),
+  },
+  {
+    name: t.sort.priceDesc,
+    count: totalActivitiesByCategory,
+    isSelected: params.get('order') === 'priceDesc',
+    href: buildFilterUrl({ order: 'priceDesc' }),
+  },
+  {
+    name: t.sort.priceAsc,
+    count: totalActivitiesByCategory,
+    isSelected: params.get('order') === 'priceAsc',
+    href: buildFilterUrl({ order: 'priceAsc' }),
+  },
+]
+
 const slugBase = `${t.pathPrefix}/${currentCategory}`
 
 const getActivitiesCount = () => {
@@ -385,6 +433,7 @@ const getActivitiesCount = () => {
       params={['minPrice', 'maxPrice']}
     />
     <Dropdown heading={t.durationLabel} items={durationItems} params={['duration']} />
+    <Dropdown heading={t.sortLabel} items={sortingItems} params={['order']} isSortingDropdown />
 
     <p class="count">{t.found}&nbsp;<strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
   </div>
@@ -439,12 +488,12 @@ const getActivitiesCount = () => {
       grid-template-columns: repeat(4, 1fr);
       justify-content: space-between;
       gap: 0.75rem 0.5rem;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto auto;
 
       .count {
         font-size: var(--typography-body-m, 0.875rem);
         line-height: 1.7;
-        grid-column: 1 / -1;
+        grid-column: 1 / 2;
         grid-row: 2/3;
 
         //temp
@@ -457,6 +506,12 @@ const getActivitiesCount = () => {
           color: var(--primary-800, #45051c);
           display: inline-block;
         }
+      }
+      :global(details):nth-of-type(5) {
+        grid-column: 4 / 5;
+        grid-row: 2/3;
+        z-index: 10;
+        align-self: start;
       }
     }
 

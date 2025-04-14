@@ -63,7 +63,7 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
   data-error-bounds={t.error.bounds}
   data-error-invalid={t.error.invalid}
 >
-  <summary>
+  <summary tabindex={isDisabled ? -1 : 0}>
     <span>{heading}</span>
     {
       hasSelection && (
@@ -76,8 +76,11 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
             return url.toString()
           })()}
           class="selected-value"
+          tabindex={isDisabled ? -1 : 0}
         >
-          {currentMin} - {currentMax} {t.currency}
+          <span>
+            {currentMin} - {currentMax} {t.currency}
+          </span>
           <div class="clear-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e" />
@@ -211,6 +214,10 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
       gap: 0.5rem;
       transition: border-color 100ms;
 
+      > span {
+        flex-shrink: 0;
+      }
+
       .selected-value {
         margin-right: auto;
         font-size: var(--typography-body-s);
@@ -230,6 +237,13 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
         text-decoration: none;
         position: relative;
         overflow: hidden;
+        white-space: nowrap;
+        max-width: 12.5rem;
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
         .clear-icon {
           position: absolute;
@@ -637,6 +651,7 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
     const errorMessage = details.querySelector<HTMLElement>('.error-message')!
     const applyButton = details.querySelector<HTMLButtonElement>('.apply-button')!
     const sliderRange = details.querySelector<HTMLElement>('.slider-range')!
+    const selectedValue = details.querySelector<HTMLAnchorElement>('.selected-value')
 
     const minRange = ranges[0]
     const maxRange = ranges[1]
@@ -818,6 +833,11 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
         content.style.maxHeight = content.scrollHeight + 'px'
         requestAnimationFrame(() => (content.style.maxHeight = '0px'))
 
+        // Update tabindex when closing
+        if (selectedValue && details.getAttribute('data-disabled') !== 'true') {
+          selectedValue.setAttribute('tabindex', '0')
+        }
+
         content.addEventListener(
           'transitionend',
           () => {
@@ -833,6 +853,11 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
         const startHeight = content.scrollHeight + 'px'
         content.style.maxHeight = '0px'
         requestAnimationFrame(() => (content.style.maxHeight = startHeight))
+
+        // Update tabindex when opening
+        if (selectedValue) {
+          selectedValue.setAttribute('tabindex', '-1')
+        }
 
         content.addEventListener(
           'transitionend',
