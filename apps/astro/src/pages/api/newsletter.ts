@@ -18,6 +18,11 @@ export const POST: APIRoute = async ({ request }) => {
     if (!REGEX.email.test(email) || !group_id || !legal) {
       return new Response(JSON.stringify({ message: 'Missing required fields', success: false }), { status: 400 })
     }
+
+    if (!MAILERLITE_API_KEY) {
+      return new Response(JSON.stringify({ message: 'API key is not configured', success: false }), { status: 500 })
+    }
+
     const res = await fetch(`https://api.mailerlite.com/api/v2/groups/${group_id}/subscribers`, {
       method: 'POST',
       headers: {
@@ -32,6 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (res.status !== 200) {
       return new Response(JSON.stringify({ message: 'Something went wrong', success: false }), { status: 400 })
     }
+    const data = await res.json()
     return new Response(JSON.stringify({ message: 'Successfully subscribed', success: true }), { status: 200 })
   } catch {
     return new Response(

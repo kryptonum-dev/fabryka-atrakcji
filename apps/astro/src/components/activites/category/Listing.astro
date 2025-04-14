@@ -25,12 +25,24 @@ type Props = {
     slug: string
     count: number
   }[]
+  durationCounts: {
+    fullDay: number
+    hourly: {
+      hours: number
+      count: number
+    }[]
+  }
 }
 export type ListingProps = Props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 
-const buildFilterUrl = (params: { minParticipants?: number; maxParticipants?: number; activityType?: string }) => {
+const buildFilterUrl = (params: {
+  minParticipants?: number
+  maxParticipants?: number
+  activityType?: string
+  duration?: number
+}) => {
   const newParams = new URLSearchParams(Astro.url.searchParams)
 
   // Only remove the parameters we're explicitly setting
@@ -40,6 +52,9 @@ const buildFilterUrl = (params: { minParticipants?: number; maxParticipants?: nu
   }
   if ('activityType' in params) {
     newParams.delete('activityType')
+  }
+  if ('duration' in params) {
+    newParams.delete('duration')
   }
 
   // Set new parameters if they exist
@@ -51,6 +66,9 @@ const buildFilterUrl = (params: { minParticipants?: number; maxParticipants?: nu
   }
   if (params.activityType) {
     newParams.set('activityType', params.activityType)
+  }
+  if (typeof params.duration === 'number') {
+    newParams.set('duration', params.duration.toString())
   }
 
   const queryString = newParams.toString()
@@ -66,6 +84,13 @@ const translations = {
     foundActivitiesMultipleHigh: 'integracji',
     participantsLabel: 'Liczba osób',
     activityTypeLabel: 'Rodzaj aktywności',
+    durationLabel: 'Czas trwania',
+    fullDay: 'Cały dzień',
+    hour: {
+      singular: 'godzina',
+      plural2to4: 'godziny',
+      plural: 'godzin',
+    },
   },
   en: {
     pathPrefix: '/en/activities/category',
@@ -75,10 +100,29 @@ const translations = {
     foundActivitiesMultipleHigh: 'activities',
     participantsLabel: 'Number of participants',
     activityTypeLabel: 'Activity type',
+    durationLabel: 'Duration',
+    fullDay: 'Full day',
+    hour: {
+      singular: 'hour',
+      plural2to4: 'hours',
+      plural: 'hours',
+    },
   },
 }
 
 const t = translations[lang]
+
+// Helper function to get the correct hour form in Polish and English
+const getHourForm = (hours: number, lang: Language) => {
+  // Handle singular form for both languages
+  if (hours === 1) return t.hour.singular
+
+  if (lang !== 'pl') return t.hour.plural
+
+  // Polish grammar rules for plural forms
+  if (hours % 10 >= 2 && hours % 10 <= 4 && (hours % 100 < 10 || hours % 100 >= 20)) return t.hour.plural2to4
+  return t.hour.plural
+}
 
 export const Listing_Query = (orderClause: string) => {
   const participantsFilter = `
@@ -102,11 +146,11 @@ export const Listing_Query = (orderClause: string) => {
   `
 
   const durationFilter = `
-    (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration))
+    (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration && (duration.isFullDay == false || !defined(duration.isFullDay))))
   `
 
   const createBaseFilter = (
-    filters: {
+    includeFilters: {
       participants?: boolean
       price?: boolean
       activityType?: boolean
@@ -120,30 +164,72 @@ export const Listing_Query = (orderClause: string) => {
   ) => `
     && language == $language
     && select(defined($category) => categories[] -> slug.current match $category + "$", true)
-    ${filters.participants ? `&& ${participantsFilter}` : ''}
-    ${filters.price ? `&& ${priceFilter}` : ''}
-    ${filters.activityType ? `&& ${activityTypeFilter}` : ''}
-    ${filters.duration ? `&& ${durationFilter}` : ''}
+    ${includeFilters.participants ? `&& ${participantsFilter}` : ''}
+    ${includeFilters.price ? `&& ${priceFilter}` : ''}
+    ${includeFilters.activityType ? `&& ${activityTypeFilter}` : ''}
+    ${includeFilters.duration ? `&& ${durationFilter}` : ''}
   `
 
   return `
-    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${createBaseFilter()}]),
+    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+      participants: true,
+      activityType: true,
+      duration: true,
+    })}]),
     "participantRangeCounts": {
-      "range1_30": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.max >= 30 && participantsCount.min <= 30]),
-      "range31_80": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.min < 30 && participantsCount.max <= 80]),
-      "range81_150": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.min < 81 && participantsCount.max >= 150]),
-      "range150plus": count(*[_type == 'Activities_Collection' ${createBaseFilter({ participants: false })} && participantsCount.min <= 151 && participantsCount.max >= 151])
+      "range1_30": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.max >= 30 && participantsCount.min <= 30]),
+      "range31_80": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.min < 30 && participantsCount.max <= 80]),
+      "range81_150": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.min < 81 && participantsCount.max >= 150]),
+      "range150plus": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.min <= 151 && participantsCount.max >= 151])
     },
     "activityTypes": *[_type == 'ActivitiesType_Collection' && language == $language] {
       name,
       "slug": slug.current,
-      "count": count(*[_type == 'Activities_Collection' ${createBaseFilter({ activityType: false })} && ^.slug.current in activityType[]->slug.current])
+      "count": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        activityType: false,
+        duration: true,
+      })} && ^.slug.current in activityType[]->slug.current])
     },
-    "listing": *[_type == 'Activities_Collection' ${createBaseFilter()}
-    ] | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
+    "durationCounts": {
+      "fullDay": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: false,
+      })} && duration.isFullDay == true]),
+      "hourly": *[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: false,
+      })} && (duration.isFullDay == false || !defined(duration.isFullDay))] {
+        "hours": duration.hours,
+        "count": 1
+      } | order(hours asc)
+    },
+    "listing": *[_type == 'Activities_Collection' ${createBaseFilter({
+      participants: true,
+      activityType: true,
+      duration: true,
+    })}] | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
       ${ActivityCardQuery}
     },
-`
+  `
 }
 
 const {
@@ -155,6 +241,7 @@ const {
   totalActivitiesByCategory,
   participantRangeCounts,
   activityTypes,
+  durationCounts,
 } = Astro.props
 
 const params = Astro.url.searchParams
@@ -195,6 +282,44 @@ const activityTypeItems = activityTypes
   }))
   .filter((item) => item.count > 0)
 
+console.log(listing)
+
+const processedHourly = durationCounts.hourly.reduce(
+  (acc, curr) => {
+    const existing = acc.find((item) => item.hours === curr.hours)
+    if (existing) {
+      existing.count++
+    } else {
+      acc.push({ hours: curr.hours, count: 1 })
+    }
+    return acc
+  },
+  [] as { hours: number; count: number }[]
+)
+
+const durationItems = [
+  // Add hourly options first
+  ...processedHourly
+    .sort((a, b) => a.hours - b.hours)
+    .map((item) => ({
+      name: `${item.hours} ${getHourForm(item.hours, lang)}`,
+      count: item.count,
+      isSelected: params.get('duration') === item.hours.toString(),
+      href: buildFilterUrl({ duration: item.hours }),
+    })),
+  // Add full day option at the end if there are any full day activities
+  ...(durationCounts.fullDay > 0
+    ? [
+        {
+          name: t.fullDay,
+          count: durationCounts.fullDay,
+          isSelected: params.get('duration') === '24',
+          href: buildFilterUrl({ duration: 24 }),
+        },
+      ]
+    : []),
+].filter((item) => item.count > 0)
+
 const slugBase = `${t.pathPrefix}/${currentCategory}`
 
 const getActivitiesCount = () => {
@@ -219,6 +344,7 @@ const getActivitiesCount = () => {
   <div class="filters">
     <Dropdown heading={t.participantsLabel} items={dropdownItems} />
     <Dropdown heading={t.activityTypeLabel} items={activityTypeItems} />
+    <Dropdown heading={t.durationLabel} items={durationItems} />
     <p class="count">{t.found}&nbsp;<strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
   </div>
   <div class="list">
@@ -282,6 +408,11 @@ const getActivitiesCount = () => {
 
         &:nth-of-type(2) {
           grid-column: 2/3;
+          grid-row: 1/2;
+        }
+
+        &:nth-of-type(3) {
+          grid-column: 4/5;
           grid-row: 1/2;
         }
       }

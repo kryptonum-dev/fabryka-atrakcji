@@ -11,8 +11,6 @@ interface Props {
 
 const { slugBase, totalItems, itemsPerPage, currentPage, searchParams } = Astro.props
 
-console.log(searchParams)
-
 const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const LABELS = {

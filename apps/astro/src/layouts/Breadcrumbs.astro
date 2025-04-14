@@ -17,6 +17,7 @@ const lang = getLangFromPath(Astro.url.pathname) as Language || 'pl'
 const t = translations[lang]
 
 
+
 const breadcrumbsData = [
   { name: t.breadcrumbsName, path: `/${lang}` },
   ...data,

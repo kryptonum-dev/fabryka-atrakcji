@@ -3,7 +3,7 @@ import DefaultPage, { fetchData } from '@/src/templates/DefaultPage.astro'
 
 const data = await fetchData(Astro.params.slug || '', 'pl')
 
-if (!data) return Astro.rewrite('/404')
+if (!data) return Astro.rewrite('/pl/404')
 ---
 
 <DefaultPage {...data} />
