@@ -7,6 +7,7 @@ import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/p
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/category/Listing.astro'
+import { NoSearchResults_Query } from '@/src/components/activites/NoSearchResults.astro'
 
 export const ITEMS_PER_PAGE = 16
 
@@ -107,6 +108,7 @@ export async function fetchData(
       *[_type == "Activities_Page" && language == $language][0] {
         name,
         "slug": slug.current,
+        ${NoSearchResults_Query}
         "selectedCategory": *[_type == "ActivitiesCategory_Collection" && slug.current match $category + "$"][0] {
           name,
           "slug": slug.current,
@@ -235,6 +237,7 @@ const breadcrumbs = [
     activityTypes={page.activityTypes}
     durationCounts={page.durationCounts}
     priceRange={page.priceRange}
+    noResults={page.noResults}
   />
   <Components data={page.selectedCategory.components} hasPreviousSections />
 </Layout>

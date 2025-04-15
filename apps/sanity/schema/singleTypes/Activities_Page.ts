@@ -44,6 +44,50 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'noResults',
+      type: 'object',
+      title: 'Brak wyników wyszukiwania',
+      group: 'content',
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'buttonText',
+          type: 'string',
+          title: 'Tekst przycisku',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'highlightedCategories',
+          type: 'array',
+          title: 'Wyróżnione kategorie integracji',
+          validation: (Rule) => Rule.required().length(4).error('Musisz wybrać dokładnie 4 kategorie integracji'),
+          of: [
+            {
+              type: 'reference',
+              to: [{ type: 'ActivitiesCategory_Collection' }],
+              options: {
+                disableNew: true,
+                filter: ({ parent, document }) => {
+                  const language = (document as { language?: string })?.language
+                  const selectedIds =
+                    (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
+                  return {
+                    filter: '!(_id in path("drafts.**")) && language == $lang',
+                    params: { selectedIds, lang: language },
+                  }
+                },
+              },
+            },
+          ],
+        }),
+      ],
+    }),
+    defineField({
       name: 'components',
       type: 'components',
       title: 'Komponenty podstrony',

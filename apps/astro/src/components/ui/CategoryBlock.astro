@@ -14,7 +14,7 @@ export const CategoryBlockQuery = `
 
 export type CategoryBlockProps = {
   image: ImageDataProps
-  imageConfig: {
+  imageConfig?: {
     sizes: string
     loading: 'eager' | 'lazy'
     fetchPriority: 'high' | 'auto'
@@ -28,7 +28,14 @@ export type CategoryBlockProps = {
   slug: string
 }
 
-const { name, description, image, referenceCount, imageConfig, slug } = Astro.props as CategoryBlockProps
+const {
+  name,
+  description,
+  image,
+  referenceCount,
+  imageConfig = { sizes: '', loading: 'lazy', fetchPriority: 'auto' },
+  slug,
+} = Astro.props as CategoryBlockProps
 ---
 
 <a class="CategoryBlock" href={slug}>

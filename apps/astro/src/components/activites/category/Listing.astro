@@ -7,6 +7,7 @@ import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../u
 import Image from '@/src/components/ui/image'
 import Dropdown from '@/src/components/ui/Dropdown.astro'
 import PriceRangeDropdown from '@/src/components/ui/PriceRangeDropdown.astro'
+import NoSearchResults, { type NoSearchResultsProps } from '../NoSearchResults.astro'
 
 type Props = {
   heading: PortableTextValue
@@ -37,7 +38,7 @@ type Props = {
     min: number
     max: number
   }
-}
+} & NoSearchResultsProps
 export type ListingProps = Props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
@@ -111,6 +112,14 @@ const translations = {
       priceDesc: 'Cena: od najwyższej',
       newest: 'Od najnowszych',
     },
+    noResults: {
+      heading: '<span>Nie znaleziono wyników dla</span> <strong>podanych filtrów</strong>',
+      list: [
+        'Sprawdź poprawność wprowadzonych danych',
+        'Zmień kryteria wyszukiwania',
+        'Lub znajdź interesujące Cię integracje za pomocą kategorii',
+      ],
+    },
   },
   en: {
     pathPrefix: '/en/activities/category',
@@ -134,6 +143,14 @@ const translations = {
       priceAsc: 'Price: from lowest',
       priceDesc: 'Price: from highest',
       newest: 'From newest',
+    },
+    noResults: {
+      heading: '<span>No results found for</span> <strong>the given filters</strong>',
+      list: [
+        'Check the correctness of the entered data',
+        'Change the search criteria',
+        'Or find interesting activities using categories',
+      ],
     },
   },
 }
@@ -289,6 +306,7 @@ const {
   activityTypes,
   durationCounts,
   priceRange,
+  noResults,
 } = Astro.props
 
 const params = Astro.url.searchParams
@@ -434,13 +452,19 @@ const getActivitiesCount = () => {
     />
     <Dropdown heading={t.durationLabel} items={durationItems} params={['duration']} />
     <Dropdown heading={t.sortLabel} items={sortingItems} params={['order']} isSortingDropdown />
-
-    <p class="count">{t.found}&nbsp;<strong>{totalActivitiesByCategory}{' '}{getActivitiesCount()}</strong></p>
+    <p class="count">
+      {t.found}&nbsp;
+      <strong>
+        {totalActivitiesByCategory}
+        {getActivitiesCount()}
+      </strong>
+    </p>
   </div>
-  <div class="list">
-    {
-      listing.map((item, index) => (
-        <ActivityCard {...item}>
+  {totalActivitiesByCategory > 0 ? (
+    <div class="list">
+      {
+        listing.map((item, index) => (
+          <ActivityCard {...item}>
           {
             <Image
               {...item.imageList[0]}
@@ -460,6 +484,15 @@ const getActivitiesCount = () => {
     currentPage={currentPage}
     searchParams={Astro.url.searchParams}
   />
+
+  ) : (
+    <NoSearchResults
+      headingText={t.noResults.heading}
+      headingList={t.noResults.list}
+      isFirstIndex={false}
+      noResults={noResults}
+    />
+  )}
 </section>
 
 <style lang="scss">
