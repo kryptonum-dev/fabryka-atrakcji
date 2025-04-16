@@ -324,8 +324,6 @@ const params = Astro.url.searchParams
 const currentMinPrice = params.get('minPrice') ? parseInt(params.get('minPrice')!) : undefined
 const currentMaxPrice = params.get('maxPrice') ? parseInt(params.get('maxPrice')!) : undefined
 
-console.log(priceRange)
-
 // Create filter items for participants dropdown
 const dropdownItems = [
   {
@@ -614,9 +612,7 @@ const getActivitiesCount = () => {
         paramName="price"
       />
     </div>
-    <div class="sidebar-footer">
-      <Button theme="primary" shade="dark" className="apply-filters">{t.apply}</Button>
-    </div>
+    <Button theme="primary" shade="dark" className="apply-filters">{t.apply}</Button>
   </div>
   <div class="overlay"></div>
 </section>
@@ -747,7 +743,7 @@ const getActivitiesCount = () => {
       left: 0;
       z-index: 150;
       width: 100%;
-      max-width: clamp(19.5rem, calc(33.3125vw / 0.48), 33.3125rem);
+      max-width: clamp(22.5rem, calc(33.3125vw / 0.48), 33.3125rem);
       height: 100vh;
       background: var(--neutral-200);
       transform: translateX(-50%);
@@ -828,18 +824,18 @@ const getActivitiesCount = () => {
 
       .sidebar-content {
         flex: 1;
-        padding: 1rem;
         overflow-y: auto;
+        padding-right: 0.75rem;
       }
 
-      .sidebar-footer {
-        padding: 1rem;
-        border-top: 1px solid var(--neutral-300);
-        display: flex;
-        gap: 0.75rem;
+      :global(> button) {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 1.5rem;
 
-        :global(.apply-filters) {
-          width: 100%;
+        :global(span) {
+          margin: 0 auto;
+          padding-right: 1.75rem;
         }
       }
     }
@@ -947,7 +943,8 @@ const getActivitiesCount = () => {
       }
 
       .filter-sidebar {
-        max-width: 100%;
+        max-width: 86vw;
+        padding: 1.5rem 1rem;
       }
     }
 
@@ -987,6 +984,14 @@ const getActivitiesCount = () => {
     duration: string | null
   }
 
+  // Create a map to store filter display values
+  type FilterLabels = {
+    [key: string]: string
+  }
+
+  // Store the human-readable labels for each selected filter
+  let filterLabels: FilterLabels = {}
+
   // Initialize filter state object to store temporary filter selections
   let filterState: FilterState = {
     participants: null,
@@ -1004,13 +1009,13 @@ const getActivitiesCount = () => {
       const min = params.get('minParticipants')
       const max = params.get('maxParticipants')
 
-      if (min === '150') {
+      if (min === '150' && !max) {
         filterState.participants = '150-'
       } else if (min === '81' && max === '150') {
         filterState.participants = '81-150'
       } else if (min === '31' && max === '80') {
         filterState.participants = '31-80'
-      } else if (max === '30') {
+      } else if (max === '30' && !min) {
         filterState.participants = '1-30'
       }
     }
@@ -1023,14 +1028,12 @@ const getActivitiesCount = () => {
       }
     }
 
-    // Price range
+    // Price range - don't set values here, we handle this in the price range initialization
+    // to ensure we respect the min/max bounds from Sanity
+    // We store the URL parameters in filterState only for URL generation purposes
     if (params.has('minPrice') || params.has('maxPrice')) {
-      const minPrice = params.get('minPrice')
-      const maxPrice = params.get('maxPrice')
-      filterState.price = {
-        min: minPrice ? parseInt(minPrice) : null,
-        max: maxPrice ? parseInt(maxPrice) : null,
-      }
+      // We'll load these values properly when initializing the price range filter
+      // by checking against the allowed min/max values
     }
 
     // Duration
@@ -1041,8 +1044,73 @@ const getActivitiesCount = () => {
       }
     }
 
+    // Initialize filter display labels by reading the DOM
+    initializeFilterLabels()
+
+    // Verify the values against available options
+    verifyFilterValues()
+
     // Update UI to reflect current state
     updateFilterUI()
+  }
+
+  // Verify filter values against available options
+  function verifyFilterValues() {
+    // For each filter type, check if the value exists in available options
+    for (const paramName of Object.keys(filterState)) {
+      if (paramName === 'price') {
+        // Price is handled separately
+        // We want to preserve the price values for URL params
+        // even when the price filter is disabled
+        continue
+      }
+
+      const value = (filterState as any)[paramName]
+      if (!value) continue
+
+      const filterGroup = document.querySelector<HTMLDetailsElement>(`.filter-group[data-param-name="${paramName}"]`)
+      if (!filterGroup) continue
+
+      // Check if this value exists in the filter options
+      const validOption = filterGroup.querySelector<HTMLInputElement>(`input[value="${value}"]`)
+      if (!validOption) {
+        // Value doesn't exist in options, reset it
+        ;(filterState as any)[paramName] = null
+        delete filterLabels[paramName]
+      } else {
+        // Check if this option has a count of 0 and is not selected (via URL)
+        const countElement = validOption.closest('label')?.querySelector('.count')
+        if (countElement && countElement.textContent === '(0)' && !validOption.checked) {
+          // Hide options with zero count by marking their parent label
+          const label = validOption.closest('label')
+          if (label) {
+            label.classList.add('zero-count')
+          }
+        }
+      }
+    }
+  }
+
+  // Get display labels for all selected filters
+  function initializeFilterLabels() {
+    // For each filter type, find the selected option and get its label
+    for (const paramName of Object.keys(filterState)) {
+      if (paramName === 'price') continue // Price is handled separately
+
+      const value = (filterState as any)[paramName]
+      if (!value) continue
+
+      const input = document.querySelector<HTMLInputElement>(
+        `.filter-group[data-param-name="${paramName}"] input[value="${value}"]`
+      )
+
+      if (input) {
+        const labelElement = input.parentElement?.querySelector('.value')
+        if (labelElement) {
+          filterLabels[paramName] = labelElement.textContent || ''
+        }
+      }
+    }
   }
 
   // Toggle filter sidebar
@@ -1073,250 +1141,323 @@ const getActivitiesCount = () => {
     // document.body.style.overflow = ''
   })
 
-  // Handle filter selections
-  const filterGroups = document.querySelectorAll<HTMLDivElement>('.filter-group')
-  filterGroups.forEach((group) => {
-    const paramName = group.dataset.filterParam
-    const inputs = group.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+  // Listen for filter changes from FilterGroup components
+  window.addEventListener('filterChange', ((event: CustomEvent) => {
+    const { paramName, value, label } = event.detail
 
-    inputs.forEach((input) => {
-      input.addEventListener('change', () => {
-        if (input.checked && paramName) {
-          // Use type assertion to handle the dynamic property access
-          ;(filterState as any)[paramName] = input.value
-        }
-      })
-    })
-  })
+    if (paramName && value) {
+      // Update the filterState
+      ;(filterState as any)[paramName] = value
+
+      // Store the label for this filter value
+      if (label) {
+        filterLabels[paramName] = label
+      }
+
+      // Update the UI to reflect new filter state
+      updateFilterUI()
+    }
+  }) as EventListener)
+
+  // Listen for filter clear events from FilterGroup components
+  window.addEventListener('filterClear', ((event: CustomEvent) => {
+    const { paramName } = event.detail
+
+    if (paramName) {
+      // Clear the filter value
+      ;(filterState as any)[paramName] = null
+
+      // Remove the label
+      delete filterLabels[paramName]
+
+      // Update the UI to reflect new filter state
+      updateFilterUI()
+    }
+  }) as EventListener)
 
   // Handle price range changes
-  const priceRangeFilter = document.querySelector<HTMLDivElement>('.price-range-filter')
+  const priceRangeFilter = document.querySelector<HTMLDetailsElement>('.price-range-filter')
   if (priceRangeFilter) {
-    const minRange = priceRangeFilter.querySelector<HTMLInputElement>('.price-min-range')
-    const maxRange = priceRangeFilter.querySelector<HTMLInputElement>('.price-max-range')
-    const minInput = priceRangeFilter.querySelector<HTMLInputElement>('.price-min')
-    const maxInput = priceRangeFilter.querySelector<HTMLInputElement>('.price-max')
-    const sliderRange = priceRangeFilter.querySelector<HTMLDivElement>('.slider-range')
-    const errorMessage = priceRangeFilter.querySelector<HTMLDivElement>('.error-message')
+    // Check if the price filter is disabled
+    const isDisabled = priceRangeFilter.dataset.disabled === 'true'
 
-    // Use type assertion for dataset to avoid null checks
-    const dataMin = priceRangeFilter.dataset.min || '0'
-    const dataMax = priceRangeFilter.dataset.max || '0'
-    const minAllowed = parseInt(dataMin)
-    const maxAllowed = parseInt(dataMax)
-    const errorInvalid = priceRangeFilter.dataset.errorInvalid || ''
-    const errorRange = priceRangeFilter.dataset.errorRange || ''
-    const errorBounds = priceRangeFilter.dataset.errorBounds || ''
+    // Only set up event listeners if not disabled
+    if (!isDisabled) {
+      const minRange = priceRangeFilter.querySelector<HTMLInputElement>('.price-min-range')
+      const maxRange = priceRangeFilter.querySelector<HTMLInputElement>('.price-max-range')
+      const minInput = priceRangeFilter.querySelector<HTMLInputElement>('.price-min')
+      const maxInput = priceRangeFilter.querySelector<HTMLInputElement>('.price-max')
+      const sliderRange = priceRangeFilter.querySelector<HTMLDivElement>('.slider-range')
+      const errorMessage = priceRangeFilter.querySelector<HTMLDivElement>('.error-message')
 
-    // Function to update range indicator
-    function updateRangeIndicator() {
-      if (!minRange || !maxRange || !sliderRange) return
+      // Use type assertion for dataset to avoid null checks
+      const dataMin = priceRangeFilter.dataset.min || '0'
+      const dataMax = priceRangeFilter.dataset.max || '0'
+      const minAllowed = parseInt(dataMin)
+      const maxAllowed = parseInt(dataMax)
+      const errorInvalid = priceRangeFilter.dataset.errorInvalid || ''
+      const errorRange = priceRangeFilter.dataset.errorRange || ''
+      const errorBounds = priceRangeFilter.dataset.errorBounds || ''
 
-      const minVal = parseInt(minRange.value)
-      const maxVal = parseInt(maxRange.value)
-      const totalRange = maxAllowed - minAllowed
+      // Set the initial values from URL params if they exist
+      const urlParams = new URLSearchParams(window.location.search)
+      const urlMinPrice = urlParams.get('minPrice') ? parseInt(urlParams.get('minPrice')!) : null
+      const urlMaxPrice = urlParams.get('maxPrice') ? parseInt(urlParams.get('maxPrice')!) : null
 
-      // Calculate percentages for positioning
-      const minPercent = ((minVal - minAllowed) / totalRange) * 100
-      const maxPercent = ((maxVal - minAllowed) / totalRange) * 100
-
-      sliderRange.style.left = minPercent + '%'
-      sliderRange.style.width = maxPercent - minPercent + '%'
-    }
-
-    // Function to validate price inputs
-    function validatePriceInputs() {
-      if (!minInput || !maxInput || !errorMessage) return false
-
-      const min = parseInt(minInput.value)
-      const max = parseInt(maxInput.value)
-
-      if (isNaN(min) || isNaN(max)) {
-        errorMessage.textContent = errorInvalid
-        return false
+      // Store the initial URL values in filterState
+      if (urlMinPrice !== null && urlMinPrice >= minAllowed && urlMinPrice <= maxAllowed) {
+        filterState.price.min = urlMinPrice
+      } else {
+        filterState.price.min = minAllowed
       }
 
-      if (min > max) {
-        errorMessage.textContent = errorRange
-        return false
+      if (urlMaxPrice !== null && urlMaxPrice >= minAllowed && urlMaxPrice <= maxAllowed) {
+        filterState.price.max = urlMaxPrice
+      } else {
+        filterState.price.max = maxAllowed
       }
 
-      if (min < minAllowed || max > maxAllowed) {
-        errorMessage.textContent = errorBounds
-        return false
+      // Function to update range indicator
+      function updateRangeIndicator() {
+        if (!minRange || !maxRange || !sliderRange) return
+
+        const minVal = parseInt(minRange.value)
+        const maxVal = parseInt(maxRange.value)
+        const totalRange = maxAllowed - minAllowed
+
+        // Calculate percentages for positioning
+        const minPercent = ((minVal - minAllowed) / totalRange) * 100
+        const maxPercent = ((maxVal - minAllowed) / totalRange) * 100
+
+        sliderRange.style.left = minPercent + '%'
+        sliderRange.style.width = maxPercent - minPercent + '%'
       }
 
-      errorMessage.textContent = ''
-      return true
-    }
+      // Function to validate price inputs
+      function validatePriceInputs() {
+        if (!minInput || !maxInput || !errorMessage) return false
 
-    // Set up event listeners for range sliders
-    if (minRange && maxRange) {
-      // Initialize range indicator
-      updateRangeIndicator()
+        const min = parseInt(minInput.value)
+        const max = parseInt(maxInput.value)
 
-      minRange.addEventListener('input', () => {
-        const min = parseInt(minRange.value)
-        const max = parseInt(maxRange.value)
+        if (isNaN(min) || isNaN(max)) {
+          errorMessage.textContent = errorInvalid
+          return false
+        }
 
         if (min > max) {
-          minRange.value = maxRange.value
+          errorMessage.textContent = errorRange
+          return false
         }
 
-        if (minInput) minInput.value = minRange.value
+        if (min < minAllowed || max > maxAllowed) {
+          errorMessage.textContent = errorBounds
+          return false
+        }
+
+        errorMessage.textContent = ''
+        return true
+      }
+
+      // Initialize range sliders and inputs with filterState values
+      if (minRange && maxRange && minInput && maxInput) {
+        // Set the range and input values based on filterState
+        // This ensures the sliders cover the full possible range from Sanity
+        minRange.min = minAllowed.toString()
+        minRange.max = maxAllowed.toString()
+        maxRange.min = minAllowed.toString()
+        maxRange.max = maxAllowed.toString()
+
+        minInput.min = minAllowed.toString()
+        minInput.max = maxAllowed.toString()
+        maxInput.min = minAllowed.toString()
+        maxInput.max = maxAllowed.toString()
+
+        // Set the values of the range sliders and inputs
+        if (filterState.price.min !== null) {
+          minRange.value = filterState.price.min.toString()
+          minInput.value = filterState.price.min.toString()
+        } else {
+          minRange.value = minAllowed.toString()
+          minInput.value = minAllowed.toString()
+        }
+
+        if (filterState.price.max !== null) {
+          maxRange.value = filterState.price.max.toString()
+          maxInput.value = filterState.price.max.toString()
+        } else {
+          maxRange.value = maxAllowed.toString()
+          maxInput.value = maxAllowed.toString()
+        }
+
+        // Initialize range indicator with current values
         updateRangeIndicator()
-        validatePriceInputs()
+      }
 
-        // Update temporary state
-        filterState.price.min = parseInt(minRange.value)
-      })
+      // Set up event listeners for range sliders
+      if (minRange && maxRange) {
+        minRange.addEventListener('input', () => {
+          const min = parseInt(minRange.value)
+          const max = parseInt(maxRange.value)
 
-      maxRange.addEventListener('input', () => {
-        const min = parseInt(minRange.value)
-        const max = parseInt(maxRange.value)
+          if (min > max) {
+            minRange.value = maxRange.value
+          }
 
-        if (max < min) {
-          maxRange.value = minRange.value
-        }
-
-        if (maxInput) maxInput.value = maxRange.value
-        updateRangeIndicator()
-        validatePriceInputs()
-
-        // Update temporary state
-        filterState.price.max = parseInt(maxRange.value)
-      })
-    }
-
-    // Set up event listeners for number inputs
-    if (minInput && maxInput) {
-      minInput.addEventListener('input', () => {
-        const value = parseInt(minInput.value)
-
-        if (!isNaN(value) && value >= minAllowed && value <= maxAllowed) {
-          if (minRange) minRange.value = value.toString()
+          if (minInput) minInput.value = minRange.value
           updateRangeIndicator()
-        }
+          validatePriceInputs()
 
-        validatePriceInputs()
+          // Update temporary state
+          filterState.price.min = parseInt(minRange.value)
+        })
 
-        // Update temporary state
-        filterState.price.min = isNaN(value) ? null : value
-      })
+        maxRange.addEventListener('input', () => {
+          const min = parseInt(minRange.value)
+          const max = parseInt(maxRange.value)
 
-      maxInput.addEventListener('input', () => {
-        const value = parseInt(maxInput.value)
+          if (max < min) {
+            maxRange.value = minRange.value
+          }
 
-        if (!isNaN(value) && value >= minAllowed && value <= maxAllowed) {
-          if (maxRange) maxRange.value = value.toString()
+          if (maxInput) maxInput.value = maxRange.value
           updateRangeIndicator()
-        }
+          validatePriceInputs()
 
-        validatePriceInputs()
+          // Update temporary state
+          filterState.price.max = parseInt(maxRange.value)
+        })
+      }
 
-        // Update temporary state
-        filterState.price.max = isNaN(value) ? null : value
-      })
+      // Set up event listeners for number inputs
+      if (minInput && maxInput) {
+        minInput.addEventListener('input', () => {
+          const value = parseInt(minInput.value)
+
+          if (!isNaN(value) && value >= minAllowed && value <= maxAllowed) {
+            if (minRange) minRange.value = value.toString()
+            updateRangeIndicator()
+          }
+
+          validatePriceInputs()
+
+          // Update temporary state
+          filterState.price.min = isNaN(value) ? null : value
+        })
+
+        maxInput.addEventListener('input', () => {
+          const value = parseInt(maxInput.value)
+
+          if (!isNaN(value) && value >= minAllowed && value <= maxAllowed) {
+            if (maxRange) maxRange.value = value.toString()
+            updateRangeIndicator()
+          }
+
+          validatePriceInputs()
+
+          // Update temporary state
+          filterState.price.max = isNaN(value) ? null : value
+        })
+      }
     }
   }
 
   // Apply button - construct URL with all filters and redirect
-  const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')
-  if (applyButton) {
-    applyButton.addEventListener('click', () => {
-      const url = new URL(window.location.href)
-      const params = url.searchParams
+  const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
 
-      // Clear existing filter params
-      ;['minParticipants', 'maxParticipants', 'activityType', 'minPrice', 'maxPrice', 'duration'].forEach((param) => {
-        params.delete(param)
-      })
+  applyButton.addEventListener('click', () => {
+    const url = new URL(window.location.href)
+    const params = url.searchParams
 
-      // Add participants filter
-      if (filterState.participants) {
-        if (filterState.participants === '1-30') {
-          params.set('maxParticipants', '30')
-        } else if (filterState.participants === '31-80') {
-          params.set('minParticipants', '31')
-          params.set('maxParticipants', '80')
-        } else if (filterState.participants === '81-150') {
-          params.set('minParticipants', '81')
-          params.set('maxParticipants', '150')
-        } else if (filterState.participants === '150-') {
-          params.set('minParticipants', '150')
-        }
+    // Store the current price values before clearing
+    const currentMinPrice = params.get('minPrice')
+    const currentMaxPrice = params.get('maxPrice')
+    const currentDuration = params.get('duration')
+
+    // Clear existing filter params
+    ;['minParticipants', 'maxParticipants', 'activityType', 'duration'].forEach((param) => {
+      params.delete(param)
+    })
+
+    // Add participants filter
+    if (filterState.participants) {
+      if (filterState.participants === '1-30') {
+        params.set('maxParticipants', '30')
+      } else if (filterState.participants === '31-80') {
+        params.set('minParticipants', '31')
+        params.set('maxParticipants', '80')
+      } else if (filterState.participants === '81-150') {
+        params.set('minParticipants', '81')
+        params.set('maxParticipants', '150')
+      } else if (filterState.participants === '150-') {
+        params.set('minParticipants', '150')
       }
+    }
 
-      // Add activity type filter
-      if (filterState.activityType) {
-        params.set('activityType', filterState.activityType)
-      }
+    // Add activity type filter
+    if (filterState.activityType) {
+      params.set('activityType', filterState.activityType)
+    }
 
-      // Add price range filter
+    // Handle price range filter
+    const priceRangeFilter = document.querySelector<HTMLDetailsElement>('.price-range-filter')
+    const isPriceFilterDisabled = priceRangeFilter && priceRangeFilter.dataset.disabled === 'true'
+
+    // Clear price params
+    params.delete('minPrice')
+    params.delete('maxPrice')
+
+    if (!isPriceFilterDisabled) {
+      // If price filter is enabled, use the new values from filterState
       if (filterState.price.min !== null) {
         params.set('minPrice', filterState.price.min.toString())
       }
       if (filterState.price.max !== null) {
         params.set('maxPrice', filterState.price.max.toString())
       }
-
-      // Add duration filter
-      if (filterState.duration) {
-        params.set('duration', filterState.duration)
+    } else {
+      // If price filter is disabled, retain the original URL values if they existed
+      if (currentMinPrice) {
+        params.set('minPrice', currentMinPrice)
       }
-
-      // Redirect to filtered URL
-      window.location.href = url.toString()
-    })
-  }
-
-  // Clear all filters
-  const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')
-  if (clearButton) {
-    clearButton.addEventListener('click', () => {
-      // Reset filter state
-      filterState = {
-        participants: null,
-        activityType: null,
-        price: { min: null, max: null },
-        duration: null,
+      if (currentMaxPrice) {
+        params.set('maxPrice', currentMaxPrice)
       }
+    }
 
-      // Reset UI
-      document.querySelectorAll<HTMLInputElement>('.filter-group input[type="radio"]').forEach((input) => {
-        input.checked = false
-      })
+    // Add duration filter
+    if (filterState.duration) {
+      params.set('duration', filterState.duration)
+    } else {
+      // Handle case where duration filter is disabled but has a selected value
+      const durationFilter = document.querySelector<HTMLDetailsElement>(`.filter-group[data-param-name="duration"]`)
+      const isDurationFilterDisabled = durationFilter && durationFilter.dataset.disabled === 'true'
+      const hasDurationSelection = durationFilter && durationFilter.dataset.hasSelection === 'true'
 
-      const minInput = document.querySelector<HTMLInputElement>('.price-min')
-      const maxInput = document.querySelector<HTMLInputElement>('.price-max')
-      const minRange = document.querySelector<HTMLInputElement>('.price-min-range')
-      const maxRange = document.querySelector<HTMLInputElement>('.price-max-range')
-      const priceRangeFilter = document.querySelector<HTMLDivElement>('.price-range-filter')
-
-      if (minInput && maxInput && minRange && maxRange && priceRangeFilter) {
-        const minAllowed = parseInt(priceRangeFilter.dataset.min || '0')
-        const maxAllowed = parseInt(priceRangeFilter.dataset.max || '0')
-
-        minInput.value = minAllowed.toString()
-        maxInput.value = maxAllowed.toString()
-        minRange.value = minAllowed.toString()
-        maxRange.value = maxAllowed.toString()
-
-        const sliderRange = priceRangeFilter.querySelector<HTMLDivElement>('.slider-range')
-        if (sliderRange) {
-          sliderRange.style.left = '0%'
-          sliderRange.style.width = '100%'
-        }
+      if (isDurationFilterDisabled && hasDurationSelection && currentDuration) {
+        params.set('duration', currentDuration)
       }
-    })
-  }
+    }
+
+    // Redirect to filtered URL
+    window.location.href = url.toString()
+  })
 
   // Update filter UI based on current state
   function updateFilterUI() {
+    // Update FilterGroup components to show the selected values
+    updateFilterGroups()
+
+    // Check for disabled but selected filters
+    document.querySelectorAll('.filter-group[data-disabled="true"][data-has-selection="true"]').forEach((details) => {
+      ;(details as HTMLDetailsElement).open = true
+      details.setAttribute('data-expanded', 'true')
+    })
+
     // Update radio buttons for participants
     if (filterState.participants) {
       const input = document.querySelector<HTMLInputElement>(
-        `.filter-group[data-filter-param="participants"] input[value="${filterState.participants}"]`
+        `.filter-group[data-param-name="participants"] input[value="${filterState.participants}"]`
       )
       if (input) input.checked = true
     }
@@ -1324,7 +1465,7 @@ const getActivitiesCount = () => {
     // Update radio buttons for activity type
     if (filterState.activityType) {
       const input = document.querySelector<HTMLInputElement>(
-        `.filter-group[data-filter-param="activityType"] input[value="${filterState.activityType}"]`
+        `.filter-group[data-param-name="activityType"] input[value="${filterState.activityType}"]`
       )
       if (input) input.checked = true
     }
@@ -1332,50 +1473,81 @@ const getActivitiesCount = () => {
     // Update radio buttons for duration
     if (filterState.duration) {
       const input = document.querySelector<HTMLInputElement>(
-        `.filter-group[data-filter-param="duration"] input[value="${filterState.duration}"]`
+        `.filter-group[data-param-name="duration"] input[value="${filterState.duration}"]`
       )
       if (input) input.checked = true
     }
 
-    // Update price inputs and ranges
-    const minInput = document.querySelector<HTMLInputElement>('.price-min')
-    const maxInput = document.querySelector<HTMLInputElement>('.price-max')
-    const minRange = document.querySelector<HTMLInputElement>('.price-min-range')
-    const maxRange = document.querySelector<HTMLInputElement>('.price-max-range')
-
-    if (minInput && maxInput && minRange && maxRange) {
-      if (filterState.price.min !== null) {
-        minInput.value = filterState.price.min.toString()
-        minRange.value = filterState.price.min.toString()
-      }
-
-      if (filterState.price.max !== null) {
-        maxInput.value = filterState.price.max.toString()
-        maxRange.value = filterState.price.max.toString()
-      }
-
-      // Update range indicator
-      const priceRangeFilter = document.querySelector<HTMLDivElement>('.price-range-filter')
-      if (priceRangeFilter) {
-        const sliderRange = priceRangeFilter.querySelector<HTMLDivElement>('.slider-range')
-        if (sliderRange) {
-          const dataMin = priceRangeFilter.dataset.min || '0'
-          const dataMax = priceRangeFilter.dataset.max || '0'
-          const minAllowed = parseInt(dataMin)
-          const maxAllowed = parseInt(dataMax)
-          const totalRange = maxAllowed - minAllowed
-
-          const minVal = filterState.price.min !== null ? filterState.price.min : minAllowed
-          const maxVal = filterState.price.max !== null ? filterState.price.max : maxAllowed
-
-          const minPercent = ((minVal - minAllowed) / totalRange) * 100
-          const maxPercent = ((maxVal - minAllowed) / totalRange) * 100
-
-          sliderRange.style.left = minPercent + '%'
-          sliderRange.style.width = maxPercent - minPercent + '%'
-        }
-      }
+    // Handle price range filter
+    const priceRangeFilter = document.querySelector<HTMLDetailsElement>('.price-range-filter')
+    if (
+      priceRangeFilter &&
+      priceRangeFilter.dataset.hasValues === 'true' &&
+      priceRangeFilter.dataset.disabled === 'true'
+    ) {
+      // If the price filter is disabled but has values, make sure it's open
+      priceRangeFilter.open = true
+      priceRangeFilter.setAttribute('data-expanded', 'true')
     }
+  }
+
+  // Update FilterGroup components based on current filter state
+  function updateFilterGroups() {
+    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((details) => {
+      const paramName = details.dataset.paramName || ''
+      if (!paramName) return
+
+      const selectedValueBox = details.querySelector<HTMLButtonElement>('.selected-value')
+      if (!selectedValueBox) return
+
+      const selectedValueText = selectedValueBox.querySelector<HTMLSpanElement>('span')
+      if (!selectedValueText) return
+
+      const value = (filterState as any)[paramName]
+      const label = filterLabels[paramName]
+
+      // Check if selection state is changing
+      const hadSelection = details.getAttribute('data-has-selection') === 'true'
+      const hasSelection = value && label
+
+      if (hasSelection) {
+        // We have a valid selection - show the selection button
+        details.setAttribute('data-has-selection', 'true')
+
+        // If it wasn't previously displayed, set initial animation state
+        if (!hadSelection || selectedValueBox.style.display === 'none') {
+          selectedValueBox.style.opacity = '0'
+          selectedValueBox.style.transform = 'translateX(-0.5rem)'
+          selectedValueBox.style.display = 'flex'
+
+          // Trigger animation with a slight delay for the browser to recognize the display change
+          setTimeout(() => {
+            selectedValueBox.style.opacity = '1'
+            selectedValueBox.style.transform = 'translateX(0)'
+          }, 10)
+        } else {
+          selectedValueBox.style.display = 'flex'
+        }
+
+        selectedValueText.textContent = label
+
+        // Set checked on the right input
+        const selectedInput = details.querySelector<HTMLInputElement>(`input[value="${value}"]`)
+        if (selectedInput) {
+          selectedInput.checked = true
+        }
+      } else {
+        // No selection - hide the selection button (without animation since CSS handles it)
+        details.setAttribute('data-has-selection', 'false')
+        selectedValueBox.style.display = 'none'
+
+        // Uncheck all inputs in this group
+        const inputs = details.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+        inputs.forEach((input) => {
+          input.checked = false
+        })
+      }
+    })
   }
 
   // Initialize on page load
@@ -1391,14 +1563,13 @@ const getActivitiesCount = () => {
 
       if (!isMobile && listingSection) {
         const sidebar = document.querySelector<HTMLDivElement>('.filter-sidebar')
-        const overlay = document.querySelector<HTMLDivElement>('.overlay')
+        const overlay = document.querySelector<HTMLDivElement>('.Listing .overlay')
 
         // Close sidebar if user resizes to desktop while sidebar is open
         if (sidebar && overlay && sidebar.getAttribute('aria-hidden') === 'false') {
           listingSection.setAttribute('data-mobile-open', 'false')
           sidebar.setAttribute('aria-hidden', 'true')
-          overlay.classList.remove('active')
-          document.body.style.overflow = ''
+          overlay.setAttribute('aria-hidden', 'true')
         }
       }
     }
