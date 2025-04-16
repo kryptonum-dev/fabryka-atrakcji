@@ -1,0 +1,68 @@
+---
+interface FilterItem {
+  name: string
+  count: number
+  value: string
+  isSelected: boolean
+}
+
+interface Props {
+  heading: string
+  items: FilterItem[]
+  paramName: string
+}
+
+const { heading, items, paramName } = Astro.props
+---
+
+<div class="filter-group" data-filter-param={paramName}>
+  <span>{heading}</span>
+  <div class="filter-options">
+    {
+      items.map((item) => (
+        <label class="filter-option">
+          <input type="radio" name={paramName} value={item.value} checked={item.isSelected} data-count={item.count} />
+          <span>
+            {item.name} <small>({item.count})</small>
+          </span>
+        </label>
+      ))
+    }
+  </div>
+</div>
+
+<style lang="scss">
+  .filter-group {
+    margin-bottom: 1.5rem;
+
+    h3 {
+      font-size: var(--typography-body-l);
+      margin-bottom: 0.75rem;
+      color: var(--primary-800);
+    }
+
+    .filter-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: var(--typography-body-m);
+
+      input {
+        width: 1.125rem;
+        height: 1.125rem;
+        accent-color: var(--primary-500);
+      }
+
+      small {
+        color: var(--primary-400);
+      }
+    }
+  }
+</style>

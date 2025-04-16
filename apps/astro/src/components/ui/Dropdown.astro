@@ -118,6 +118,18 @@ const isDisabled = availableItems.length === 0
       }
     }
 
+    &[data-is-sorting='true'] {
+      summary {
+        > span {
+          flex-shrink: 1;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+          min-width: 0;
+        }
+      }
+    }
+
     summary {
       padding: 0 0.625rem;
       min-height: 2.75rem;
@@ -203,6 +215,7 @@ const isDisabled = availableItems.length === 0
       .icon {
         position: relative;
         overflow: hidden;
+        flex-shrink: 0;
 
         svg {
           transition: transform 300ms var(--easing);
