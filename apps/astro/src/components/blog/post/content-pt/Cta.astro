@@ -85,7 +85,7 @@ const highlightLenght = node.highlightType === 'activities' ? node.activities?.l
         node.activities?.map((item) => (
           <ActivityCard {...item} description="">
             <Image
-              {...item.image}
+              {...item.imageList[0]}
               sizes={
                 highlightLenght === 1
                   ? '(max-width: 499px) 90vw, (max-width: 899px) 40vw, (max-width: 1099px) 348px, 292px'
