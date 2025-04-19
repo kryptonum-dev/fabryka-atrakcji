@@ -4,7 +4,7 @@
     url('/fonts/neue-haas-unica-regular.woff2') format('woff2'),
     url('/fonts/neue-haas-unica-regular.woff') format('woff');
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
   font-style: normal;
 }
 
@@ -14,7 +14,7 @@
     url('/fonts/neue-haas-unica-bold.woff2') format('woff2'),
     url('/fonts/neue-haas-unica-bold.woff') format('woff');
   font-weight: 700;
-  font-display: swap;
+  font-display: optional;
   font-style: normal;
 }
 
@@ -43,7 +43,7 @@
     url('/fonts/pf-grand-gothic.woff2') format('woff2'),
     url('/fonts/pf-grand-gothic.woff') format('woff');
   font-weight: 760;
-  font-display: swap;
+  font-display: optional;
   font-style: normal;
   font-stretch: 150%;
 }
