@@ -18,48 +18,6 @@ const lang = (Astro.params.lang as Language) || 'pl'
   <head>
     <Head {...props} />
     <OrganizationSchema />
-    <style is:inline>
-      @font-face {
-        font-family: 'Neue Haas Unica';
-        src:
-          url('/fonts/neue-haas-unica-regular.woff2') format('woff2'),
-          url('/fonts/neue-haas-unica-regular.woff') format('woff');
-        font-weight: 400;
-        font-display: swap;
-        font-style: normal;
-      }
-
-      @font-face {
-        font-family: 'Neue Haas Unica';
-        src:
-          url('/fonts/neue-haas-unica-bold.woff2') format('woff2'),
-          url('/fonts/neue-haas-unica-bold.woff') format('woff');
-        font-weight: 700;
-        font-display: swap;
-        font-style: normal;
-      }
-
-      @font-face {
-        font-family: 'Neue Haas Unica';
-        src:
-          url('/fonts/neue-haas-unica-medium.woff2') format('woff2'),
-          url('/fonts/neue-haas-unica-medium.woff') format('woff');
-        font-weight: 500;
-        font-display: swap;
-        font-style: normal;
-      }
-
-      @font-face {
-        font-family: 'PF Grand Gothik';
-        src:
-          url('/fonts/pf-grand-gothic.woff2') format('woff2'),
-          url('/fonts/pf-grand-gothic.woff') format('woff');
-        font-weight: 760;
-        font-display: swap;
-        font-style: normal;
-        font-stretch: 150%;
-      }
-    </style>
     <slot name="head" />
   </head>
   <body>
