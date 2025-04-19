@@ -13,8 +13,8 @@ import FilterGroup from './FilterGroup.astro'
 import PriceRangeFilter from './PriceRangeFilter.astro'
 
 type Props = {
-  heading: PortableTextValue
-  description: string
+  heading?: PortableTextValue
+  description?: string
   totalActivitiesByCategory: number
   listing: ActivityCardProps[]
   currentPage: number
@@ -84,16 +84,20 @@ const buildFilterUrl = (params: {
     newParams.set('duration', params.duration.toString())
   }
   if (params.order) {
-    newParams.set('order', params.order)
+    newParams.set('order', params.order.toString())
   }
 
   const queryString = newParams.toString()
-  return `${Astro.url.pathname}${queryString ? `?${queryString}` : ''}`
+  return `${Astro.url.pathname
+    .split('/')
+    .slice(0, Astro.params.category ? 5 : 3)
+    .join('/')}${queryString ? `?${queryString}` : ''}`
 }
 
 const translations = {
   pl: {
     pathPrefix: '/pl/integracje/kategoria',
+    pathPrefixDefault: '/pl/integracje',
     found: 'Znaleziono',
     foundActivitiesSingle: 'integrację',
     foundActivitiesMultipleLow: 'integracje',
@@ -110,9 +114,10 @@ const translations = {
     priceLabel: 'Cena za osobę',
     sortLabel: 'Sortowanie',
     sort: {
+      relevance: 'Trafność: od najwyższej',
       popularity: 'Najpopularniejsze',
-      priceAsc: 'Cena: od najniższej',
       priceDesc: 'Cena: od najwyższej',
+      priceAsc: 'Cena: od najniższej',
       newest: 'Od najnowszych',
     },
     noResults: {
@@ -130,6 +135,7 @@ const translations = {
   },
   en: {
     pathPrefix: '/en/activities/category',
+    pathPrefixDefault: '/en/activities',
     found: 'Found',
     foundActivitiesSingle: 'activity',
     foundActivitiesMultipleLow: 'activities',
@@ -146,10 +152,11 @@ const translations = {
     priceLabel: 'Price per person',
     sortLabel: 'Sort by',
     sort: {
+      relevance: 'Relevance: from highest',
       popularity: 'Most popular',
-      priceAsc: 'Price: from lowest',
-      priceDesc: 'Price: from highest',
-      newest: 'From newest',
+      priceDesc: 'Price: highest first',
+      priceAsc: 'Price: lowest first',
+      newest: 'Newest first',
     },
     noResults: {
       heading: '<span>No results found for</span> <strong>the given filters</strong>',
@@ -205,6 +212,11 @@ export const Listing_Query = (orderClause: string) => {
     (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration && (duration.isFullDay == false || !defined(duration.isFullDay))))
   `
 
+  // Add embeddings filter
+  const embeddingsFilter = `
+    (!defined($embeddingResults) || _id in $embeddingResults[].value.documentId)
+  `
+
   const createBaseFilter = (
     includeFilters: {
       participants?: boolean
@@ -224,6 +236,7 @@ export const Listing_Query = (orderClause: string) => {
     ${includeFilters.price ? `&& ${priceFilter}` : ''}
     ${includeFilters.activityType ? `&& ${activityTypeFilter}` : ''}
     ${includeFilters.duration ? `&& ${durationFilter}` : ''}
+    && ${embeddingsFilter}
   `
 
   return `
@@ -300,9 +313,10 @@ export const Listing_Query = (orderClause: string) => {
       price: true,
       activityType: true,
       duration: true,
-    })}] | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
+    })}] {
       ${ActivityCardQuery}
-    },
+      "_score": $embeddingResults[value.documentId == ^._id][0].score
+    } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
   `
 }
 
@@ -468,11 +482,22 @@ const sidebarDurationItems = [
 ].filter((item) => item.isSelected || item.count > 0)
 
 // Create items for sorting dropdown
+const isSearchMode = Astro.url.searchParams.has('search')
 const sortingItems = [
+  ...(isSearchMode
+    ? [
+        {
+          name: t.sort.relevance,
+          count: totalActivitiesByCategory,
+          isSelected: !params.get('order') || params.get('order') === 'searchMatching',
+          href: buildFilterUrl({ order: 'searchMatching' }),
+        },
+      ]
+    : []),
   {
     name: t.sort.popularity,
     count: totalActivitiesByCategory,
-    isSelected: !params.get('order') || params.get('order') === 'popularity',
+    isSelected: (!isSearchMode && !params.get('order')) || params.get('order') === 'popularity',
     href: buildFilterUrl({ order: 'popularity' }),
   },
   {
@@ -495,7 +520,7 @@ const sortingItems = [
   },
 ]
 
-const slugBase = `${t.pathPrefix}/${currentCategory}`
+const slugBase = Astro.params.category ? `${t.pathPrefix}/${currentCategory}` : `${t.pathPrefixDefault}`
 
 const getActivitiesCount = () => {
   switch (totalActivitiesByCategory) {
@@ -512,10 +537,14 @@ const getActivitiesCount = () => {
 ---
 
 <section class="Listing max-width" data-mobile-open="false">
-  <header class="header">
-    <PortableText value={heading} class="heading" heading="h1" />
-    <p class="description">{description}</p>
-  </header>
+  {
+    (heading || description) && (
+      <header class="header">
+        {heading && <PortableText value={heading} class="heading" heading="h1" />}
+        {description && <p class="description">{description}</p>}
+      </header>
+    )
+  }
 
   <div class="filters">
     <div class="desktop-filters">
@@ -862,13 +891,13 @@ const getActivitiesCount = () => {
       }
     }
 
-    @media (max-width: 1023px) {
+    @media (max-width: 63.9375rem) {
       .list {
         grid-template-columns: repeat(3, 1fr);
       }
     }
 
-    @media (max-width: 939px) {
+    @media (max-width: 58.6875rem) {
       .filters {
         gap: 0.75rem;
         min-height: 3rem;
@@ -900,7 +929,7 @@ const getActivitiesCount = () => {
       }
     }
 
-    @media (max-width: 789px) {
+    @media (max-width: 49.3125rem) {
       .header {
         max-width: none;
 
@@ -914,7 +943,7 @@ const getActivitiesCount = () => {
       }
     }
 
-    @media (max-width: 729px) {
+    @media (max-width: 45.5625rem) {
       .filters {
         grid-template-columns: auto 1fr;
         justify-content: start;
@@ -937,7 +966,7 @@ const getActivitiesCount = () => {
       }
     }
 
-    @media (max-width: 439px) {
+    @media (max-width: 27.4375rem) {
       .list {
         grid-template-columns: repeat(1, 1fr);
       }
@@ -948,7 +977,7 @@ const getActivitiesCount = () => {
       }
     }
 
-    @media (max-width: 349px) {
+    @media (max-width: 23.0625rem) {
       .filters {
         grid-template-columns: 1fr;
         grid-template-rows: repeat(3, auto);
@@ -1366,7 +1395,7 @@ const getActivitiesCount = () => {
   const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
 
   applyButton.addEventListener('click', () => {
-    const url = new URL(window.location.href)
+    const url = new URL(window.location.href.split('/').slice(0, 7).join('/'))
     const params = url.searchParams
 
     // Store the current price values before clearing

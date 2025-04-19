@@ -1,7 +1,6 @@
 import { Handshake } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
-import { toPlainText } from '../../utils/to-plain-text'
 import { DocumentsIcon, InfoOutlineIcon, CreditCardIcon } from '@sanity/icons'
 
 const title = 'Integracje'

@@ -787,7 +787,7 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
     applyButton.addEventListener('click', () => {
       if (!validateInputs()) return
 
-      const url = new URL(window.location.href)
+      const url = new URL(window.location.href.split('/').slice(0, 7).join('/'))
       url.searchParams.set('minPrice', Math.floor(parseFloat(minInput.value)).toString())
       url.searchParams.set('maxPrice', Math.floor(parseFloat(maxInput.value)).toString())
       window.location.href = url.toString()

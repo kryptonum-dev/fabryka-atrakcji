@@ -77,3 +77,11 @@ export const DATASET: string = 'production'
  * @type {string}
  */
 export const API_VERSION: string = '2024-10-15'
+
+/**
+ * Global declaration of the activities index name for Sanity Embeddings.
+ * This constant is used for searching activities using embeddings.
+ * @constant
+ * @type {string}
+ */
+export const ACTIVITIES_INDEX_NAME: string = 'activities-index'

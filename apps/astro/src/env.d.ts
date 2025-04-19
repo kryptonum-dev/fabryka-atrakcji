@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly SANITY_STUDIO_PREVIEW_DOMAIN: string
   readonly RESEND_API_KEY: string
   readonly MAILERLITE_API_KEY: string
+  readonly EMBEDDINGS_INDEX_BEARER_TOKEN: string
 }
 
 interface ImportMeta {

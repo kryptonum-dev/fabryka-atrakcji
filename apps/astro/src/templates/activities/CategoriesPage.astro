@@ -3,41 +3,105 @@ import Layout from '@/src/layouts/Layout.astro'
 import sanityFetch from '@/utils/sanity.fetch'
 import metadataFetch from '@/utils/metadata.fetch'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
-import { PortableTextQuery } from '@/src/components/ui/portable-text'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
+import ActivitiesListing, {
+  Listing_Query as ActivitiesListing_Query,
+  type ListingProps as ActivitiesListingProps,
+} from '@/src/components/activites/category/Listing.astro'
+import { ITEMS_PER_PAGE as ACTIVITIES_PER_PAGE } from './ActivitiesPage.astro'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/Listing.astro'
+import SearchBar from '@/src/components/ui/SearchBar.astro'
+import { NoSearchResults_Query, type NoSearchResultsProps } from '@/src/components/activites/NoSearchResults.astro'
+import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
 
 export const ITEMS_PER_PAGE = 8
+
+type BasePageProps = {
+  name: string
+  slug: string
+  heading: PortableTextValue
+  components: ComponentsProps
+}
+
+type SearchPageProps = BasePageProps & ActivitiesListingProps & NoSearchResultsProps
+type RegularPageProps = BasePageProps &
+  ListingProps & {
+    paragraph: PortableTextValue
+  }
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
 }
 
-export async function fetchData(lang: Language, pageNumber: number) {
-  const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
-  const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
-  const page = await sanityFetch<
-    {
-      name: string
-      slug: string
-      components: ComponentsProps
-    } & ListingProps
-  >({
+const translation = {
+  pl: {
+    pageUpper: 'Strona',
+    pageLower: 'strona',
+    prefix: '/pl/integracje/strona/',
+    sort: {
+      relevance: 'Trafność',
+      popularity: 'Najpopularniejsze',
+      priceDesc: 'Cena: od najwyższej',
+      priceAsc: 'Cena: od najniższej',
+      newest: 'Od najnowszych',
+    },
+  },
+  en: {
+    pageUpper: 'Page',
+    pageLower: 'page',
+    prefix: '/en/activities/page/',
+    sort: {
+      relevance: 'Relevance',
+      popularity: 'Most popular',
+      priceDesc: 'Price: highest first',
+      priceAsc: 'Price: lowest first',
+      newest: 'Newest first',
+    },
+  },
+} as const
+
+export async function fetchData(lang: Language, pageNumber: number, searchParams?: URLSearchParams) {
+  const searchQuery = searchParams?.get('search')
+  const PAGINATION_BEFORE = (searchQuery ? ACTIVITIES_PER_PAGE : ITEMS_PER_PAGE) * (pageNumber - 1)
+  const PAGINATION_AFTER = PAGINATION_BEFORE + (searchQuery ? ACTIVITIES_PER_PAGE : ITEMS_PER_PAGE)
+
+  const filters = parseFilters(searchParams || new URLSearchParams())
+
+  // In search mode, if no order specified, default to searchMatching
+  if (searchQuery && !filters.order) {
+    filters.order = 'searchMatching'
+  }
+
+  const orderClause = getOrderClause(filters.order, !!searchQuery)
+
+  const data = searchQuery ? await fetchEmbeddings(searchQuery) : null
+
+  const page = await sanityFetch<SearchPageProps | RegularPageProps>({
     query: `
       *[_type == "Activities_Page" && language == $language][0] {
         name,
         "slug": slug.current,
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
-        ${Listing_Query}
+        ${NoSearchResults_Query}
+        ${searchQuery ? ActivitiesListing_Query(orderClause) : Listing_Query}
         ${Components_Query}
       }
     `,
     params: {
       language: lang,
-      PAGINATION_BEFORE: PAGINATION_BEFORE,
-      PAGINATION_AFTER: PAGINATION_AFTER,
+      PAGINATION_BEFORE,
+      PAGINATION_AFTER,
+      minParticipants: filters.minParticipants,
+      maxParticipants: filters.maxParticipants,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      category: null,
+      activityType: filters.activityType,
+      duration: filters.duration,
+      embeddingResults: data ?? null,
     },
   })
 
@@ -61,20 +125,8 @@ export async function staticPaths(lang: Language) {
 
 const { page, metadata: _metadata, currentPage } = Astro.props
 const lang = getLangFromPath(Astro.url.pathname) as Language
-const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
-
-const translation = {
-  pl: {
-    pageUpper: 'Strona',
-    pageLower: 'strona',
-    prefix: '/pl/integracje/strona/',
-  },
-  en: {
-    pageUpper: 'Page',
-    pageLower: 'page',
-    prefix: '/en/activities/page/',
-  },
-} as const
+const isSearchMode = Astro.url.searchParams.has('search')
+const searchQuery = Astro.url.searchParams.get('search') || ''
 
 const t = translation[lang]
 
@@ -85,6 +137,7 @@ const metadata = {
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,
 }
+
 const getPaginationUrl = (page: number) => {
   return `${t.prefix}${page}`
 }
@@ -93,6 +146,21 @@ const breadcrumbs = [
   { name: page.name, path: page.slug },
   ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
+
+// Type guard to check if we're in search mode
+const isSearchPage = (page: SearchPageProps | RegularPageProps): page is SearchPageProps => {
+  return 'totalActivitiesByCategory' in page
+}
+
+// Type guard to check if we're in regular mode
+const isRegularPage = (page: SearchPageProps | RegularPageProps): page is RegularPageProps => {
+  return 'totalItems' in page
+}
+
+// Get the total pages based on the page type
+const totalPages = isSearchPage(page)
+  ? Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
+  : Math.ceil(page.totalItems / ITEMS_PER_PAGE)
 ---
 
 <Layout {...metadata}>
@@ -100,13 +168,38 @@ const breadcrumbs = [
     {currentPage > 2 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
     {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
   </Fragment>
-  <Breadcrumbs data={breadcrumbs} firstItemType="ActivitiesCategoriesListing" />
-  <Listing
-    heading={page.heading}
-    paragraph={page.paragraph}
-    totalItems={page.totalItems}
-    listing={page.listing}
-    currentPage={currentPage}
-  />
-  <Components data={page.components} hasPreviousSections />
+
+  {
+    isSearchMode
+      ? isSearchPage(page) && (
+          <>
+            <SearchBar value={searchQuery} hasWrapper />
+            <ActivitiesListing
+              totalActivitiesByCategory={page.totalActivitiesByCategory}
+              listing={page.listing}
+              currentCategory={null}
+              currentPage={currentPage}
+              participantRangeCounts={page.participantRangeCounts}
+              activityTypes={page.activityTypes}
+              durationCounts={page.durationCounts}
+              priceRange={page.priceRange}
+              noResults={page.noResults}
+            />
+            <Components data={page.components} hasPreviousSections />
+          </>
+        )
+      : isRegularPage(page) && (
+          <>
+            <Breadcrumbs data={breadcrumbs} firstItemType="ActivitiesCategoriesListing" />
+            <Listing
+              heading={page.heading}
+              paragraph={page.paragraph}
+              totalItems={page.totalItems}
+              listing={page.listing}
+              currentPage={currentPage}
+            />
+            <Components data={page.components} hasPreviousSections />
+          </>
+        )
+  }
 </Layout>

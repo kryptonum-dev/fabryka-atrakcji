@@ -8,15 +8,16 @@ import Components, { Components_Query, type ComponentsProps } from '@/src/compon
 import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/category/Listing.astro'
 import { NoSearchResults_Query } from '@/src/components/activites/NoSearchResults.astro'
+import { parseFilters, getOrderClause } from '@/utils/filters'
 
-export const ITEMS_PER_PAGE = 16
+export const ITEMS_PER_PAGE = 3
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
   currentCategory: string | null
 }
 
-export type OrderType = 'popularity' | 'newest' | 'priceDesc' | 'priceAsc'
+export type OrderType = 'popularity' | 'newest' | 'priceDesc' | 'priceAsc' | 'searchMatching'
 
 export async function fetchData(
   lang: Language,
@@ -27,67 +28,8 @@ export async function fetchData(
   const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
   const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
 
-  const getOrderClause = (order: OrderType | null): string => {
-    switch (order) {
-      case 'newest':
-        return 'coalesce(publishedDate, _createdAt) desc'
-      case 'priceDesc':
-        return 'pricing.basePrice desc'
-      case 'priceAsc':
-        return 'pricing.basePrice asc'
-      case 'popularity':
-      default:
-        return 'popularityIndex desc'
-    }
-  }
-
-  // Parse and validate order parameter
-  const orderParam = searchParams?.get('order') as OrderType | null
-  const orderClause = getOrderClause(orderParam)
-
-  let minParticipants: number | undefined
-  let maxParticipants: number | undefined
-
-  const rawMinParticipants = searchParams?.get('minParticipants')
-    ? parseInt(searchParams.get('minParticipants')!)
-    : undefined
-  const rawMaxParticipants = searchParams?.get('maxParticipants')
-    ? parseInt(searchParams.get('maxParticipants')!)
-    : undefined
-
-  // Handle min participants
-  if (typeof rawMinParticipants === 'number' && !isNaN(rawMinParticipants) && rawMinParticipants > 0) {
-    minParticipants = rawMinParticipants
-  }
-
-  // Handle max participants
-  if (typeof rawMaxParticipants === 'number' && !isNaN(rawMaxParticipants) && rawMaxParticipants > 0) {
-    // Only set max if it's greater than min (when min exists)
-    if (!minParticipants || rawMaxParticipants > minParticipants) {
-      maxParticipants = rawMaxParticipants
-    }
-  }
-
-  let minPrice: number | undefined
-  let maxPrice: number | undefined
-
-  const rawMinPrice = searchParams?.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : undefined
-  const rawMaxPrice = searchParams?.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : undefined
-
-  if (
-    typeof rawMinPrice === 'number' &&
-    typeof rawMaxPrice === 'number' &&
-    !isNaN(rawMinPrice) &&
-    !isNaN(rawMaxPrice) &&
-    rawMinPrice > 0 &&
-    rawMaxPrice >= rawMinPrice
-  ) {
-    minPrice = rawMinPrice
-    maxPrice = rawMaxPrice
-  }
-
-  const activityType = searchParams?.get('activityType') ? searchParams.get('activityType') : undefined
-  const duration = searchParams?.get('duration') ? parseInt(searchParams.get('duration')!) : undefined
+  const filters = parseFilters(searchParams || new URLSearchParams())
+  const orderClause = getOrderClause(filters.order)
 
   const page = await sanityFetch<
     {
@@ -126,14 +68,16 @@ export async function fetchData(
       category,
       PAGINATION_BEFORE,
       PAGINATION_AFTER,
-      minParticipants: minParticipants ?? null,
-      maxParticipants: maxParticipants ?? null,
-      minPrice: minPrice ?? null,
-      maxPrice: maxPrice ?? null,
-      activityType: activityType ?? null,
-      duration: duration ?? null,
+      minParticipants: filters.minParticipants,
+      maxParticipants: filters.maxParticipants,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      activityType: filters.activityType,
+      duration: filters.duration,
+      embeddingResults: null,
     },
   })
+
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
   const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
   return { page, metadata }

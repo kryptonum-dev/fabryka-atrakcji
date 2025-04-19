@@ -4,6 +4,7 @@ import styles from './styles.module.scss'
 
 export const ActivityCardQuery = `
   name,
+  _id,
   ${ImageDataQuery('imageList[]')}
   description,
     participantsCount{
@@ -12,6 +13,9 @@ export const ActivityCardQuery = `
   },
   "slug": slug.current,
   _createdAt,
+  publishedDate,
+  pricing,
+  popularityIndex,
 `
 
 export type ActivityCardProps = {
