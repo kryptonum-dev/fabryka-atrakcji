@@ -1,49 +1,10 @@
 @font-face {
-  font-family: 'Neue Haas Unica';
-  src:
-    url('/fonts/neue-haas-unica-regular.woff2') format('woff2'),
-    url('/fonts/neue-haas-unica-regular.woff') format('woff');
-  font-weight: 400;
-  font-display: swap;
-  font-style: normal;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Neue Haas Unica';
-  src:
-    url('/fonts/neue-haas-unica-bold.woff2') format('woff2'),
-    url('/fonts/neue-haas-unica-bold.woff') format('woff');
-  font-weight: 700;
-}
-
-@font-face {
-  font-family: 'Neue Haas Unica';
-  src:
-    url('/fonts/neue-haas-unica-medium.woff2') format('woff2'),
-    url('/fonts/neue-haas-unica-medium.woff') format('woff');
-  font-weight: 500;
-}
-
-@font-face {
   font-family: 'Neue Haas Unica Fallback';
   src: local('Arial');
   ascent-override: 108.97%;
   descent-override: 27.42%;
   line-gap-override: 0%;
   size-adjust: 100.3%;
-}
-
-@font-face {
-  font-family: 'PF Grand Gothik';
-  src:
-    url('/fonts/pf-grand-gothic.woff2') format('woff2'),
-    url('/fonts/pf-grand-gothsic.woff') format('woff');
-  font-weight: 760;
-  font-display: swap;
-  font-style: normal;
-  font-stretch: 150%;
 }
 
 @font-face {
@@ -355,7 +316,7 @@ h2,
   gap: 0.5rem;
   li {
     &::before {
-      content: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMyIgZmlsbD0iIzBGOTI4OCI+PHBhdGggZD0iTTUgLjgwMmMtLjM2NSAwLS42NDcuMTUyLS45MDQuMzg1LS4yMzUuMjE0LS40NzcuNTIzLS43NjIuODg2bC0uMDIuMDI1Yy0uNTgzLjc0My0xLjI0OCAxLjY2My0xLjc2OSAyLjU4NC0uNTEyLjkwNy0uOTIgMS44NzMtLjkyIDIuNjkzIDAgMi41NTggMS45MzMgNC42OCA0LjM3NSA0LjY4czQuMzc1LTIuMTIyIDQuMzc1LTQuNjhjMC0uODItLjQwOC0xLjc4Ni0uOTItMi42OTMtLjUyMS0uOTIxLTEuMTg2LTEuODQtMS43Ny0yLjU4NGwtLjAxOS0uMDI1Yy0uMjg1LS4zNjMtLjUyNy0uNjcyLS43NjItLjg4NkM1LjY0Ny45NTQgNS4zNjQuODAyIDUgLjgwMloiLz48L3N2Zz4=');
+      content: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMyIgZmlsbD0iIzBGOTI4OCI+PHBhdGggZD0iTTUgLjgwMmMtLjM2NSAwLS42NDcuMTUyLS45MDQuMzg1LS4yMzUuMjE0LS40NzcuNTIzLS43NjIuODg2bC0uMDIuMDI1Yy0uNTgzLjc0My0xLjI0OCAxLjY2My0xLjc2OSAyLjU4NC0uNTEyLjkwNy0uOTIgMS44NzMtLjkyIDIuNjkzIDAgMi41NTggMS45MzMgNC42OCA0LjM3NSA0LjY4czQuMzc1LTIuMTIyIDQuMzc1LTQuNjhjMC0uODItLjQwOC0xLjc4Ni0uOTItMi42OTMtLjUyMS0uOTIxLTEuMTg2LTEuODQtMS43Ny0yLjU4NGwtLjAxOS0uMDI1Yy0uMjg5LS4zNjMtLjUyNy0uNjcyLS43NjItLjg4NkM1LjY0Ny45NTQgNS4zNjQuODAyIDUgLjgwMloiLz48L3N2Zz4=');
     }
   }
 }

@@ -10,7 +10,7 @@ import Listing, { Listing_Query, type ListingProps } from '@/src/components/acti
 import { NoSearchResults_Query } from '@/src/components/activites/NoSearchResults.astro'
 import { parseFilters, getOrderClause } from '@/utils/filters'
 
-export const ITEMS_PER_PAGE = 3
+export const ITEMS_PER_PAGE = 16
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
