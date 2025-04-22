@@ -21,6 +21,10 @@ export async function fetchData(slug: string, lang: Language) {
   }
 
   const page = await sanityFetch<{
+    caseStudyPage: {
+      name: string
+      slug: string
+    }
     slug: string
     name: string
     title: PortableTextValue
@@ -49,6 +53,10 @@ export async function fetchData(slug: string, lang: Language) {
   }>({
     query: `
     *[_type == 'CaseStudy_Collection' && language == $language && slug.current == $slug][0] {
+      "caseStudyPage": *[_type == "CaseStudy_Page" && language == $language][0] {
+        name,
+        "slug": slug.current
+      },
       "slug": slug.current,
       name,
       ${PortableTextQuery('title')}
@@ -109,7 +117,13 @@ const { page, metadata } = Astro.props
 ---
 
 <Layout {...metadata}>
-  <Breadcrumbs data={[{ name: page.name, path: page.slug }]} firstItemType="CaseStudyHero" />
+  <Breadcrumbs
+    data={[
+      { name: page.caseStudyPage.name, path: page.caseStudyPage.slug },
+      { name: page.name, path: page.slug },
+    ]}
+    firstItemType="CaseStudyHero"
+  />
   <Hero {...page} />
   <Gallery mediaArray={page.mediaArray} galleryHeading={page.galleryHeading} />
   <ChallengeSolution {...page} />

@@ -32,6 +32,11 @@ export default defineType({
         en: '/en/blog/category/',
       },
     }),
+    defineField({
+      name: 'seo',
+      type: 'seo',
+      title: 'SEO',
+    }),
   ],
   preview: {
     select: {

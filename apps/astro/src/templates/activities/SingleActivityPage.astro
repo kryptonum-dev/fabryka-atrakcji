@@ -1,0 +1,150 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import type { Language } from '@/global/languages'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import metadataFetch from '@/src/utils/metadata.fetch'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import Hero from '@/src/components/offer/Hero.astro'
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
+
+export type SingleActivityProps = {
+  activitiesPage: {
+    name: string
+    slug: string
+  }
+  _type: 'Activities_Collection'
+  name: string
+  slug: string
+  title: PortableTextValue
+  description: string
+  imageList: ImageDataProps[]
+  categories: Array<{
+    name: string
+    slug: string
+  }>
+  activityType: Array<{
+    name: string
+    slug: string
+  }>
+  participantsCount: {
+    min: number
+    max: number
+  }
+  duration: {
+    isFullDay: boolean
+    hours?: number
+  }
+  location: {
+    isNationwide: boolean
+    customLocation?: string
+    googleMapsLink?: string
+    isIndoor: 'indoor' | 'outdoor'
+  }
+  languages: string[]
+  popularityIndex: number
+  pricing: {
+    basePrice: number
+    maxParticipants: number
+    additionalPersonPrice: number
+  }
+  components: ComponentsProps
+}
+
+export async function fetchData(slug: string, lang: Language) {
+  const prefixes = {
+    pl: '/pl/integracje/',
+    en: '/en/activites/',
+  }
+
+  const page = await sanityFetch<SingleActivityProps>({
+    query: `
+    *[_type == 'Activities_Collection' && language == $language && slug.current == $slug][0] {
+      "activitiesPage": *[_type == "Activities_Page" && language == $language][0] {
+        name,
+        "slug": slug.current
+      },
+      _type,
+      name,
+      "slug": slug.current,
+      ${PortableTextQuery('title')}
+      description,
+      ${ImageDataQuery('imageList[]')}
+      categories[]->{
+        name,
+        "slug": slug.current,
+      },
+      activityType[]->{
+        name,
+        "slug": slug.current,
+      },
+      participantsCount{
+        min,
+        max
+      },
+      duration{
+        isFullDay,
+        hours
+      },
+      location{
+        isNationwide,
+        customLocation,
+        googleMapsLink,
+        isIndoor
+      },
+      languages[],
+      popularityIndex,
+      pricing{
+        basePrice,
+        maxParticipants,
+        additionalPersonPrice
+      },
+      ${Components_Query}
+    }
+  `,
+    params: { language: lang, slug: `${prefixes[lang]}${slug}` },
+  })
+
+  if (!page) return null
+
+  const metadata = await metadataFetch(page.slug)
+
+  if (!metadata) return null
+
+  return {
+    page,
+    metadata,
+  }
+}
+
+export async function staticPaths(lang: Language) {
+  const pages = await sanityFetch<{ slug: string }[]>({
+    query: `
+      *[_type == 'ActivitiesCategory_Collection' && language == $language][] {
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+  return pages?.map(({ slug }) => ({
+    params: { slug: slug.split('/').pop() },
+  }))
+}
+
+const { page, metadata } = Astro.props
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs
+    data={[
+      { name: page.activitiesPage.name, path: page.activitiesPage.slug },
+      { name: page.name, path: page.slug },
+    ]}
+    firstItemType="OfferHero"
+  />
+  <Hero {...page} _type="Activities_Collection" />
+  <Components data={page.components} hasPreviousSections />
+</Layout>

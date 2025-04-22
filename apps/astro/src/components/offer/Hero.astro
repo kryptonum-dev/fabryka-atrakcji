@@ -1,0 +1,740 @@
+---
+import type { SingleActivityProps } from '@/src/templates/activities/SingleActivityPage.astro'
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import Button from '@/src/components/ui/Button'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import type { ImageDataProps } from '../ui/image'
+import Image from '@/src/components/ui/image/index.astro'
+import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
+import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
+
+type SingleHotelProps = {
+  _type: 'Hotels_Collection'
+  name: string
+  slug: string
+  title: PortableTextValue
+  description: string
+  imageList: ImageDataProps[]
+}
+
+type HeroProps = SingleActivityProps | SingleHotelProps
+
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const translations = {
+  pl: {
+    activities: {
+      readMore: 'Przeczytaj więcej o integracji',
+      getPrice: 'Wybierz do kompleksowej wyceny',
+      viewAll: 'Wszystkie zdjęcia',
+      outdoor: 'Na zewnątrz',
+      indoor: 'Wewnątrz',
+      participants: 'osób',
+      location: {
+        wholeCountry: 'W całej Polsce',
+      },
+      duration: {
+        hoursSingle: 'godzina',
+        hoursFew: 'godziny',
+        hoursPlural: 'godzin',
+        fullDay: 'Cały dzień',
+      },
+      popup: {
+        title: 'Wszystkie zdjęcia',
+      },
+    },
+    hotels: {
+      title: 'Hotele',
+      description: 'Hotele',
+      imageList: 'Hotele',
+    },
+  },
+  en: {
+    activities: {
+      readMore: 'Read more about the activity',
+      getPrice: 'Get a comprehensive price estimate',
+      viewAll: 'All photos',
+      outdoor: 'Outdoor',
+      indoor: 'Indoor',
+      participants: 'people',
+      location: {
+        wholeCountry: 'the whole of Poland',
+      },
+      duration: {
+        hoursSingle: 'hour',
+        hoursFew: 'hours',
+        hoursPlural: 'hours',
+        fullDay: 'Full day',
+      },
+      popup: {
+        title: 'All photos',
+      },
+    },
+    hotels: {
+      title: 'Hotels',
+      description: 'Hotels',
+      imageList: 'Hotels',
+    },
+  },
+}
+
+const t = translations[lang]
+
+const imageSizes = {
+  activities: {
+    2: [
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 32vw, 438px',
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 64vw, 875px',
+    ],
+    3: [
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 19vw, 262px',
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 38vw, 522px',
+      '(max-width: 1089px) 0px, (max-width: 1366px) 38vw, 522px',
+    ],
+    4: [
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 23vw, 312px',
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 49vw, 662px',
+      '(max-width: 1089px) 0px, (max-width: 1366px) 24vw, 332px',
+    ],
+  },
+
+  blog: {
+    1: {},
+    2: {},
+    3: {},
+    4: {},
+  },
+}
+
+function getHoursText(hours: number, lang: Language) {
+  if (lang === 'pl') {
+    if (hours === 1) return t.activities.duration.hoursSingle
+    if (hours % 10 >= 2 && hours % 10 <= 4 && (hours % 100 < 10 || hours % 100 >= 20)) {
+      return t.activities.duration.hoursFew
+    }
+    return t.activities.duration.hoursPlural
+  }
+  return hours === 1 ? t.activities.duration.hoursSingle : t.activities.duration.hoursPlural
+}
+
+const props = Astro.props as HeroProps
+const { title, description, imageList, _type } = props
+---
+
+<section class="Hero max-width">
+  <PortableText value={title} heading="h1" class="heading" />
+  <p class="description">{description}</p>
+  <div class="buttons">
+    <Button theme="primary" shade="dark">{t.activities.readMore}</Button>
+    <Button theme="primary" shade="light">{t.activities.getPrice}</Button>
+  </div>
+
+  <ul class="details">
+    {
+      _type === 'Activities_Collection' && (
+        <>
+          <li>{props.categories[0].name}</li>
+          <li class="separator" />
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+              <path
+                fill="#F67258"
+                d="M8 15.167c3.682 0 6.667-1.343 6.667-3 0-.845-.775-1.607-2.023-2.153-.761 1.398-1.922 2.602-3.397 3.232-.793.339-1.7.339-2.493 0-1.474-.63-2.636-1.834-3.397-3.232-1.248.546-2.023 1.309-2.023 2.153 0 1.657 2.985 3 6.667 3Z"
+              />
+              <path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M3.334 6.176c0-2.398 2.09-4.343 4.667-4.343s4.666 1.945 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.666 1.333 1.333 0 0 0 0 2.666Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span>
+              {props.location.isNationwide ? t.activities.location.wholeCountry : props.location.customLocation}
+            </span>
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            {props.location.isIndoor === 'indoor' ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" fill="none">
+                  <path
+                    fill="#F67258"
+                    fill-rule="evenodd"
+                    d="M7.738 14.167H6.263c-2.297 0-3.446 0-4.23-.675-.783-.674-.946-1.804-1.27-4.062L.577 8.14C.324 6.38.197 5.502.557 4.749.918 4 1.686 3.543 3.22 2.629l.923-.55C5.535 1.248 6.232.833 7 .833c.77 0 1.466.415 2.858 1.245l.924.55c1.534.914 2.3 1.37 2.66 2.122.361.752.235 1.63-.018 3.389l-.186 1.291c-.325 2.258-.488 3.388-1.271 4.062-.783.675-1.932.675-4.23.675ZM4.599 9.869a.5.5 0 0 1 .7-.104c.485.36 1.071.568 1.702.568.63 0 1.216-.208 1.702-.568a.5.5 0 1 1 .595.803 3.844 3.844 0 0 1-2.297.765c-.857 0-1.65-.284-2.298-.765a.5.5 0 0 1-.104-.7Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>{t.activities.indoor}</span>
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                  <path fill="#F67258" d="M11.334 8.5a3.333 3.333 0 1 1-6.667 0 3.333 3.333 0 0 1 6.667 0Z" />
+                  <path
+                    fill="#F67258"
+                    fill-rule="evenodd"
+                    d="M8 1.333a.5.5 0 0 1 .5.5v1.334a.5.5 0 0 1-1 0V1.833a.5.5 0 0 1 .5-.5ZM2.447 2.977a.5.5 0 0 1 .707-.031L4.634 4.3a.5.5 0 1 1-.675.738L2.478 3.684a.5.5 0 0 1-.032-.707Zm11.109 0a.5.5 0 0 1-.032.707l-1.481 1.354a.5.5 0 0 1-.675-.738l1.481-1.354a.5.5 0 0 1 .707.031ZM.834 8.5a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.334a.5.5 0 0 1-.5-.5Zm12 0a.5.5 0 0 1 .5-.5h1.333a.5.5 0 1 1 0 1h-1.333a.5.5 0 0 1-.5-.5Zm-1.483 3.35a.5.5 0 0 1 .707 0l1.481 1.482a.5.5 0 1 1-.707.707l-1.481-1.482a.5.5 0 0 1 0-.707Zm-6.7 0a.5.5 0 0 1 0 .707L3.168 14.04a.5.5 0 1 1-.707-.707l1.481-1.482a.5.5 0 0 1 .707 0ZM8 13.333a.5.5 0 0 1 .5.5v1.334a.5.5 0 1 1-1 0v-1.334a.5.5 0 0 1 .5-.5Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>{t.activities.outdoor}</span>
+              </>
+            )}
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+              <path
+                d="M10.3327 5.50002C10.3327 6.78868 9.28801 7.83335 7.99935 7.83335C6.71068 7.83335 5.66602 6.78868 5.66602 5.50002C5.66602 4.21136 6.71068 3.16669 7.99935 3.16669C9.28801 3.16669 10.3327 4.21136 10.3327 5.50002Z"
+                fill="#F67258"
+              />
+              <path
+                d="M12 11.5C12 12.7887 10.2091 13.8334 8 13.8334C5.79086 13.8334 4 12.7887 4 11.5C4 10.2114 5.79086 9.16669 8 9.16669C10.2091 9.16669 12 10.2114 12 11.5Z"
+                fill="#F67258"
+              />
+              <path
+                d="M4.74868 3.83331C4.86699 3.83331 4.98249 3.84492 5.09402 3.86702C4.82231 4.34962 4.66732 4.9067 4.66732 5.49998C4.66732 6.07882 4.81486 6.62319 5.07438 7.09755C4.96895 7.1172 4.86006 7.12749 4.74868 7.12749C3.80574 7.12749 3.04133 6.39006 3.04133 5.4804C3.04133 4.57074 3.80574 3.83331 4.74868 3.83331Z"
+                fill="#F67258"
+              />
+              <path
+                d="M3.63221 13.1573C3.2536 12.7047 3.00065 12.1493 3.00065 11.5C3.00065 10.8705 3.23837 10.3293 3.59784 9.88447C2.32805 9.98296 1.33398 10.6775 1.33398 11.5196C1.33398 12.3696 2.34552 13.0692 3.63221 13.1573Z"
+                fill="#F67258"
+              />
+              <path
+                d="M11.333 5.49998C11.333 6.07882 11.1854 6.62319 10.9259 7.09755C11.0313 7.1172 11.1402 7.12749 11.2516 7.12749C12.1945 7.12749 12.9589 6.39006 12.9589 5.4804C12.9589 4.57074 12.1945 3.83331 11.2516 3.83331C11.1333 3.83331 11.0178 3.84492 10.9062 3.86702C11.178 4.34962 11.333 4.9067 11.333 5.49998Z"
+                fill="#F67258"
+              />
+              <path
+                d="M12.3681 13.1573C13.6548 13.0692 14.6663 12.3696 14.6663 11.5196C14.6663 10.6775 13.6722 9.98296 12.4024 9.88447C12.7619 10.3293 12.9996 10.8705 12.9996 11.5C12.9996 12.1493 12.7467 12.7047 12.3681 13.1573Z"
+                fill="#F67258"
+              />
+            </svg>
+            <span>
+              {props.participantsCount.min} - {props.participantsCount.max} {t.activities.participants}
+            </span>
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+              <path fill="#F67258" d="M14.667 8.5a6.667 6.667 0 1 1-13.333 0 6.667 6.667 0 0 1 13.333 0Z" />
+              <path
+                fill="#FAF7F7"
+                fill-rule="evenodd"
+                d="M8 5.333a.5.5 0 0 1 .5.5v2.46l1.52 1.52a.5.5 0 0 1-.706.707L7.647 8.854a.5.5 0 0 1-.146-.354V5.833a.5.5 0 0 1 .5-.5Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span>
+              {props.duration.isFullDay
+                ? t.activities.duration.fullDay
+                : `${props.duration.hours} ${getHoursText(props.duration.hours || 0, lang)}`}
+            </span>
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            {props.languages.includes('pl') && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <g clip-path="url(#a)">
+                  <path fill="#F0F0F0" d="M8 16.5a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" />
+                  <path fill="#D80027" d="M16 8.5a8 8 0 1 1-16 0" />
+                </g>
+                <defs>
+                  <clipPath id="a">
+                    <path fill="#fff" d="M0 .5h16v16H0z" />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
+            {props.languages.includes('en') && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <g clip-path="url(#a)">
+                  <path fill="#F0F0F0" d="M8 16.5a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" />
+                  <path
+                    fill="#0052B4"
+                    d="M1.654 3.63A7.97 7.97 0 0 0 .275 6.412h4.162L1.654 3.63ZM15.724 6.413a7.97 7.97 0 0 0-1.378-2.784l-2.784 2.784h4.162ZM.275 10.587a7.972 7.972 0 0 0 1.379 2.784l2.783-2.784H.275ZM12.87 2.154A7.971 7.971 0 0 0 10.086.776v4.161l2.784-2.783ZM3.129 14.846a7.973 7.973 0 0 0 2.784 1.378v-4.161l-2.784 2.783ZM5.912.776A7.971 7.971 0 0 0 3.13 2.154l2.783 2.783V.776ZM10.086 16.224a7.972 7.972 0 0 0 2.784-1.378l-2.784-2.783v4.161ZM11.563 10.587l2.783 2.784a7.97 7.97 0 0 0 1.378-2.784h-4.162Z"
+                  />
+                  <path
+                    fill="#D80027"
+                    d="M15.932 7.457H9.044V.567a8.08 8.08 0 0 0-2.087 0v6.89H.067a8.08 8.08 0 0 0 0 2.086h6.89v6.89a8.074 8.074 0 0 0 2.086 0v-6.89h6.89a8.074 8.074 0 0 0 0-2.086Z"
+                  />
+                  <path
+                    fill="#D80027"
+                    d="m10.088 10.587 3.57 3.57c.164-.164.32-.336.47-.514l-3.056-3.056h-.984ZM5.914 10.587l-3.57 3.57c.164.164.335.32.513.47l3.057-3.056v-.984ZM5.913 6.413l-3.57-3.57c-.164.164-.32.336-.47.514L4.93 6.413h.984ZM10.088 6.413l3.57-3.57a8 8 0 0 0-.514-.47l-3.056 3.056v.984Z"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="a">
+                    <path fill="#fff" d="M0 .5h16v16H0z" />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
+            <span>{props.languages.map((lang) => lang.toLocaleUpperCase()).join('/')}</span>
+          </li>
+        </>
+      )
+    }
+  </ul>
+  <div class="gallery" data-image-count={imageList.length > 4 ? 4 : imageList.length} data-type={_type}>
+    {
+      imageList.slice(0, 4).map((image, index) => {
+        const count = imageList.length > 4 ? 4 : imageList.length
+        const imageIndex = index > 2 ? 2 : index
+        const sizes =
+          props._type === 'Activities_Collection'
+            ? imageSizes.activities[count as keyof typeof imageSizes.activities][imageIndex]
+            : ''
+        return <Image {...image} sizes={sizes} />
+      })
+    }
+    <PopupWindow>
+      <Button slot="open" theme="secondary" shade="light">
+        <span>{t.activities.viewAll} <strong>({imageList.length})</strong></span>
+        <span>1/{imageList.length}</span>
+      </Button>
+      <div slot="content" class="masonry-grid">
+        <h2>
+          {t.activities.popup.title}
+          <strong>({imageList.length})</strong>
+        </h2>
+        <CloseButton />
+        <div class="images-wrapper">
+          <div class="images">
+            {
+              imageList.map((image) => (
+                <Image
+                  {...image}
+                  sizes="(max-width: 549px) 79vw, (max-width: 1089px) 36vw, (max-width: 1144px) 29vw, 332px"
+                />
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </PopupWindow>
+  </div>
+</section>
+
+<style lang="scss">
+  .Hero {
+    padding: clamp(3.5rem, calc(4.5vw / 0.48), 5rem) 0 clamp(1.5rem, calc(2.25vw / 0.48), 2.25rem);
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-columns:
+      clamp(25rem, calc(24vw / 0.48), 40.9375rem)
+      auto;
+    justify-content: space-between;
+    column-gap: 0.75rem;
+
+    .heading {
+      margin-bottom: 1rem;
+      grid-column: 1 / 3;
+      grid-row: 1 / 2;
+      max-width: 40.9375rem;
+    }
+
+    .description {
+      margin-bottom: clamp(1.25rem, calc(2vw / 0.48), 2rem);
+      font-size: var(--typography-body-l, 1rem);
+      grid-column: 1 / 2;
+      grid-row: 2 / 3;
+    }
+
+    .buttons {
+      grid-column: 1 / 2;
+      grid-row: 3 / 4;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .details {
+      grid-column: 2 / 3;
+      grid-row: 2 / 4;
+      align-self: end;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.25rem;
+      max-width: 27.0625rem;
+      justify-content: flex-end;
+      align-items: center;
+      justify-self: end;
+
+      li:not(.separator) {
+        background-color: var(--neutral-200, #f5f1ec);
+        border-radius: 999rem;
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0 0.75rem 0 0.625rem;
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+
+        svg {
+          margin-top: 1px;
+        }
+      }
+
+      .separator {
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 50%;
+        background-color: var(--neutral-400,);
+      }
+    }
+    .gallery {
+      margin-top: clamp(1rem, calc(2vw / 0.48), 3rem);
+      min-height: 15rem;
+      grid-column: 1 / 3;
+      grid-row: 4 / 5;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      min-height: 26rem;
+      gap: clamp(0.25rem, calc(0.25vw / 0.48), 0.375rem);
+      position: relative;
+
+      &[data-type='Activities_Collection'] {
+        grid-template-columns: 19.5fr 41.4fr 20.75fr;
+
+        img {
+          height: 100%;
+          border-radius: 0.5rem;
+
+          &:first-child {
+            grid-column: 1 / 2;
+            grid-row: 1 / 3;
+          }
+
+          &:nth-child(2) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 3;
+          }
+
+          &:nth-child(3) {
+            grid-column: 3 / 4;
+            grid-row: 1 / 2;
+          }
+
+          &:nth-child(4) {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
+          }
+        }
+
+        &[data-image-count='2'] {
+          grid-template-columns: 1fr 2fr;
+          grid-template-rows: 1fr;
+
+          img {
+            &:first-child {
+              grid-column: 1 / 2;
+              grid-row: 1 / 2;
+            }
+
+            &:nth-child(2) {
+              grid-column: 2 / 3;
+              grid-row: 1 / 2;
+            }
+          }
+        }
+
+        &[data-image-count='3'] {
+          grid-template-columns: 1fr 2fr 2fr;
+          grid-template-rows: 1fr;
+
+          img {
+            &:first-child {
+              grid-column: 1 / 2;
+              grid-row: 1 / 2;
+            }
+
+            &:nth-child(2) {
+              grid-column: 2 / 3;
+              grid-row: 1 / 2;
+            }
+
+            &:nth-child(3) {
+              grid-column: 3 / 4;
+              grid-row: 1 / 2;
+            }
+          }
+        }
+      }
+
+      :global(.Wrapper) {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+
+        :global(> button > span) {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 1px;
+
+          strong {
+            color: var(--primary-400, #74535e);
+          }
+
+          > span {
+            margin-top: 1px;
+          }
+
+          > span:last-child {
+            display: none;
+          }
+
+          &::after {
+            margin-top: 6px;
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none'%3E%3Cpath fill='%23F67258' d='M14.166 7.5a1.667 1.667 0 1 1-3.333 0 1.667 1.667 0 0 1 3.333 0Z'/%3E%3Cpath fill='%23F67258' fill-rule='evenodd' d='M10 1.041a8.958 8.958 0 1 0 0 17.917A8.958 8.958 0 0 0 10 1.04Zm-.682 11.76L5.743 9.226a1.917 1.917 0 0 0-2.617-.087l-.834.746a7.708 7.708 0 1 1 14.048 4.499l-1.527-1.386a2.5 2.5 0 0 0-3.11-.187l-.248.175a1.667 1.667 0 0 1-2.137-.185Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+          }
+        }
+
+        .masonry-grid {
+          padding: 2.5rem 2.5rem 0;
+          max-width: 68.5rem;
+          overflow: hidden;
+          grid-template-columns: 1fr auto;
+          grid-template-rows: auto 1fr;
+          max-height: 42.4rem;
+          display: grid;
+          row-gap: clamp(1rem, calc(2vw / 0.48), 2rem);
+          height: calc(100dvh - 6rem);
+
+          h2 {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            margin-top: 4px;
+            line-height: 1.1;
+          }
+
+          :global(.CloseButton) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+          }
+
+          .images-wrapper {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            margin-right: -0.5rem;
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+
+            .images {
+              columns: 3;
+              overflow-y: auto;
+              gap: 0.5rem;
+
+              padding-right: 0.5rem;
+
+              &::-webkit-scrollbar {
+                width: 0.25rem;
+              }
+
+              &::-webkit-scrollbar-track {
+                background: var(--neutral-300, #ede6de);
+                border-radius: 16px;
+              }
+
+              &::-webkit-scrollbar-thumb {
+                background: var(--primary-400, #74535e);
+                border-radius: 16px;
+              }
+
+              &::-webkit-scrollbar-thumb:hover {
+                background: var(--primary-700, #600d2a);
+              }
+
+              img {
+                width: 100%;
+                height: auto;
+                border-radius: 0.5rem;
+                margin-bottom: 0.5rem;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    @media (max-width: 1089px) {
+      grid-template-columns: 1fr;
+      max-width: 48rem;
+
+      .heading {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        margin-bottom: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      }
+
+      .description {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+      }
+
+      .buttons {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        :global(button) {
+          width: 100%;
+          flex: 1;
+          max-width: 100%;
+
+          &[data-theme='secondary'] {
+            display: flex;
+            justify-content: center;
+          }
+
+          &[data-theme='primary'] {
+            :global(span) {
+              margin: 0 auto;
+            }
+          }
+        }
+      }
+
+      .details {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+        overflow-x: auto;
+        justify-self: stretch;
+        justify-content: flex-start;
+        max-width: 100%;
+        flex-wrap: nowrap;
+
+        li {
+          flex-shrink: 0;
+        }
+      }
+
+      .gallery {
+        grid-column: 1 / 2;
+        grid-row: 5 / 6;
+        margin-left: calc(-1 * var(--pageMargin));
+        margin-right: calc(-1 * var(--pageMargin));
+
+        &[data-type='Activities_Collection'] {
+          &[data-image-count='2'],
+          &[data-image-count='3'],
+          &[data-image-count='4'] {
+            grid-template-columns: 15.9375fr 31.75fr;
+            grid-template-rows: 1fr;
+            > img {
+              &:first-child {
+                grid-column: 1 / 2;
+                grid-row: 1 / 2;
+              }
+
+              &:nth-child(2) {
+                grid-column: 2 / 3;
+                grid-row: 1 / 2;
+              }
+
+              &:nth-of-type(3),
+              &:nth-of-type(4) {
+                display: none;
+              }
+            }
+          }
+        }
+
+        :global(.Wrapper) {
+          bottom: 0.75rem;
+          right: 0.75rem;
+        }
+      }
+    }
+
+    @media (max-width: 899px) {
+      .gallery > :global(.Wrapper) {
+        .masonry-grid {
+          .images-wrapper {
+            .images {
+              columns: 2;
+            }
+          }
+        }
+      }
+    }
+
+    @media (max-width: 759px) {
+      .buttons {
+        grid-template-columns: 1fr;
+        max-width: 30rem;
+      }
+
+      .gallery > :global(.Wrapper) .masonry-grid {
+        :global(.CloseButton) {
+          margin-top: -6px;
+          margin-right: -14px;
+        }
+      }
+    }
+
+    @media (max-width: 549px) {
+      .details {
+        grid-row: 3 / 4;
+      }
+      .description {
+        grid-row: 4 / 5;
+      }
+      .gallery {
+        grid-row: 2/3;
+        margin-top: 0;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0.75rem;
+        display: block;
+
+        img:nth-child(2) {
+          display: none;
+        }
+
+        :global(.Wrapper) {
+          bottom: 0.5rem;
+          right: 0.5rem;
+
+          :global(> button > span) {
+            > span {
+              &:first-child {
+                display: none;
+              }
+
+              &:last-child {
+                display: inline;
+              }
+            }
+          }
+
+          .masonry-grid {
+            .images-wrapper {
+              .images {
+                columns: 1;
+              }
+            }
+          }
+        }
+      }
+
+      .buttons {
+        grid-row: 5 / 6;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 499px) {
+      .gallery > :global(.Wrapper) {
+        .masonry-grid {
+          padding: 1.5rem var(--pageMargin) 0;
+        }
+      }
+    }
+  }
+</style>

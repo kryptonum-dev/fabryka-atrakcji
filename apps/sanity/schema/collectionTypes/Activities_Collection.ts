@@ -1,8 +1,16 @@
 import { Handshake } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
-import { DocumentsIcon, InfoOutlineIcon, CreditCardIcon } from '@sanity/icons'
-
+import { DocumentsIcon, InfoOutlineIcon, CreditCardIcon, SearchIcon, DocumentTextIcon } from '@sanity/icons'
+import createPortableText from '../ui/PortableText/content/index'
+import Image from '../ui/PortableText/content/shared/Image'
+import Checklist from '../ui/PortableText/content/shared/Checklist'
+import Testimonials from '../ui/PortableText/content/offer/Testimonials'
+import Faq from '../ui/PortableText/content/offer/Faq'
+import BlocksWithImage from '../ui/PortableText/content/offer/BlocksWithImage'
+import RowsWithIcons from '../ui/PortableText/content/offer/RowsWithIcons'
+import Timeline from '../ui/PortableText/content/offer/Timeline'
+import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 const title = 'Integracje'
 const icon = Handshake
 
@@ -26,6 +34,16 @@ export default defineType({
       name: 'pricing',
       title: 'Cennik',
       icon: CreditCardIcon,
+    },
+    {
+      name: 'content',
+      title: 'Treść',
+      icon: DocumentTextIcon,
+    },
+    {
+      name: 'seo',
+      title: 'SEO',
+      icon: SearchIcon,
     },
   ],
   fields: [
@@ -73,7 +91,8 @@ export default defineType({
       type: 'array',
       title: 'Lista zdjęć',
       description: 'Lista zdjęć wyświetlanych w sekcji hero konkretnej integracji oraz przy jej refererowaniu',
-      validation: (Rule) => Rule.required().error('Lista zdjęć jest wymagana'),
+      validation: (Rule) =>
+        Rule.required().error('Lista zdjęć jest wymagana').min(2).error('Przynajmniej 2 zdjęcia są wymagane'),
       of: [
         {
           type: 'image',
@@ -328,6 +347,16 @@ export default defineType({
             }),
         }),
       ],
+    }),
+    createPortableText({
+      title: 'Treść integracji',
+      additionalComponents: [Image, Checklist, Timeline, Testimonials, Faq, BlocksWithImage, RowsWithIcons, NextSteps],
+    }),
+    defineField({
+      name: 'seo',
+      type: 'seo',
+      title: 'SEO',
+      group: 'seo',
     }),
   ],
   preview: {
