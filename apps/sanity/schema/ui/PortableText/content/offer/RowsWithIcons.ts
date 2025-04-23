@@ -4,7 +4,7 @@ const title = 'Wiersze z ikonami'
 const icon = ThListIcon
 
 export default defineField({
-  name: 'rowsWithIcons',
+  name: 'RowsWithIcons',
   type: 'object',
   title,
   icon,

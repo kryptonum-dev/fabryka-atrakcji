@@ -59,28 +59,9 @@ export default defineField({
     }),
     defineField({
       name: 'formPopup',
-      type: 'object',
+      type: 'formPopup',
       title: 'Okienko formularza',
-      description: 'Okienko formularza wyświetla się po kliknięciu w przycisk informujący o zadaniu pytania.',
       validation: (Rule) => Rule.required(),
-      fields: [
-        defineField({
-          name: 'heading',
-          type: 'Heading',
-          title: 'Nagłówek',
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'paragraph',
-          type: 'PortableText',
-          title: 'Paragraf',
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'formState',
-          type: 'formState',
-        }),
-      ],
     }),
     ...sectionId,
   ],

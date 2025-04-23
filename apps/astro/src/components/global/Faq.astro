@@ -1,0 +1,309 @@
+---
+import sanityFetch from '@/src/utils/sanity.fetch'
+import Accordion from '../ui/Accordion.astro'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
+import type { Language } from '@/src/global/languages'
+import type { FormStateTypes } from '@/src/global/types'
+import FaqForm from '../ui/FaqForm/index.astro'
+import FaqSchema from '@/src/Schema/FaqSchema.astro'
+
+const language = (Astro.params.lang as Language) || 'pl'
+
+export const Faq_Query = `
+  _type == "Faq" => {
+    ${PortableTextQuery('heading')}
+    questions[] -> {
+      ${PortableTextQuery('question')}
+      ${PortableTextQuery('answer')}
+    },
+    ${PortableTextQuery('subheading')}
+    ${PortableTextQuery('paragraph')}
+    formPopup {
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+      formState {
+        success{
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+          highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
+      },
+    },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  heading: PortableTextValue
+  questions: {
+    question: PortableTextValue
+    answer: PortableTextValue
+  }[]
+  paragraph: PortableTextValue
+  subheading: PortableTextValue
+  formPopup: {
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+    formState: FormStateTypes
+  }
+}
+
+const phone = await sanityFetch<{
+  tel?: string
+}>({
+  query: `*[_type == "global" && language == $language][0].tel`,
+  params: {
+    language,
+  },
+})
+
+const { index, sectionId, heading, questions, paragraph, subheading, formPopup } = Astro.props
+---
+
+<FaqSchema questions={questions} slot="head" />
+<section class="Faq" id={sectionId}>
+  <div class="container">
+    <header class="header">
+      <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+    </header>
+    <div class="questions">
+      {questions.map(({ question, answer }) => <Accordion question={question} answer={answer} open={false} />)}
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="wrapper">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1206" height="154" fill="none"
+        ><path
+          d="M1.258 152.5c10.51-6.38 28.22-.43 39.13-6.4 10.78-5.9 15.29-24.02 26.44-29.53 11.02-5.45 28.17 1.97 39.53-3.08 11.24-5 17.18-22.71 28.71-27.33 11.53-4.62 28.92 3.75 41.12-.62 12.2-4.37 19.81-21.71 32.15-25.64 12.34-3.93 28.6 5.82 41.06 2.32 12.46-3.5 21.26-20.29 33.82-23.39 12.56-3.1 28.94 7.52 41.98 4.75 13.04-2.77 23.32-19.03 36.44-21.39 13.12-2.36 28.42 9.33 41.6 7.38 13.18-1.95 24.45-17.56 37.68-19.12 13.23-1.56 28.25 10.98 41.72 9.8 13.43-1.17 25.89-16.12 39.38-16.9 13.49-.78 27.57 12.62 41.07 12.23 13.5-.39 26.79-14.58 40.3-14.58 13.51 0 26.81 14.19 40.3 14.58 13.49.39 27.61-13.01 41.07-12.23 13.46.78 25.95 15.72 39.38 16.9 13.43 1.18 28.34-11.37 41.72-9.8 13.23 1.55 24.56 17.18 37.68 19.12 13.12 1.94 28.56-9.72 41.6-7.38 13.04 2.34 23.48 18.64 36.44 21.39 12.96 2.75 29.13-7.92 41.98-4.75 12.85 3.17 21.47 19.91 33.82 23.39 12.35 3.48 28.83-6.21 41.06-2.32 12.342 3.93 20.072 21.31 32.152 25.64 12.2 4.37 29.22-4.15 41.12.62 11.9 4.77 17.48 22.33 28.71 27.33 11.36 5.06 28.5-2.36 39.53 3.08 11.15 5.51 15.66 23.63 26.44 29.53 10.91 5.97 28.62.02 39.12 6.4"
+          stroke="url(#paint0_linear_5978_44852)"
+          stroke-width="1.5"
+          stroke-miterlimit="10"></path><defs
+          ><linearGradient
+            id="paint0_linear_5978_44852"
+            x1="1205.51"
+            y1="0.999878"
+            x2="1.25781"
+            y2="0.999878"
+            gradientUnits="userSpaceOnUse"
+            ><stop stop-color="#798DDC"></stop><stop offset="0.25" stop-color="#E7C78F"></stop><stop
+              offset="0.74"
+              stop-color="#FA7468"></stop><stop offset="1" stop-color="#798DDC"></stop></linearGradient
+          ></defs
+        ></svg
+      >
+    </div>
+    <div class="background"></div>
+    <PortableText value={subheading} class="subheading" heading={index === 0 ? 'h2' : 'h3'} />
+    <PortableText value={paragraph} class="paragraph" />
+    <FaqForm language={language} formPopup={formPopup} />
+    {
+      phone && (
+        <a href={`tel:${phone}`} class="phone">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+            <path
+              d="m13.8 10.755-.38.377s-.902.897-3.365-1.552c-2.462-2.448-1.56-3.345-1.56-3.345l.239-.238c.589-.585.644-1.525.13-2.211l-1.05-1.404c-.636-.85-1.865-.962-2.594-.237l-1.308 1.3c-.36.36-.603.826-.574 1.342.075 1.322.674 4.166 4.01 7.484 3.54 3.52 6.86 3.66 8.218 3.533.43-.04.803-.26 1.104-.558l1.184-1.178c.8-.794.574-2.156-.449-2.712l-1.592-.865c-.671-.365-1.489-.258-2.014.264Z"
+              fill="#F67258"
+            />
+          </svg>
+          <span>{phone}</span>
+        </a>
+      )
+    }
+  </div>
+</section>
+
+<style lang="scss">
+  .Faq {
+    padding: clamp(4rem, calc(6vw / 0.48), 8rem) var(--pageMargin) 0;
+    background: var(--neutral-200, #f5f1ec);
+    .container {
+      position: relative;
+      margin: 0 auto;
+      max-width: 41.1875rem;
+      .header {
+        margin-bottom: clamp(1.25rem, calc(3vw / 0.48), 3rem);
+      }
+      .questions {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(0.25rem, calc(0.25vw / 0.48), 0.25rem);
+      }
+    }
+    .form-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: clamp(16.25rem, calc(260vw / 7.68), 24.1875rem) auto auto;
+      grid-template-rows: auto 1fr;
+      justify-content: center;
+      max-width: 75.375rem;
+      margin: clamp(2rem, calc(4vw / 0.48), 5rem) auto 0;
+      padding: clamp(0.75rem, calc(56vw / 7.68), 3.5rem) 0 1.75rem;
+      column-gap: 1rem;
+      .wrapper {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        > svg {
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          min-width: max-content;
+        }
+      }
+      .background {
+        position: absolute;
+        bottom: 50%;
+        left: 50%;
+        width: 82.9375rem;
+        height: 148%;
+        transform: translate(-50%, 50%);
+        background-color: var(--neutral-100);
+        clip-path: ellipse(48% 122% at 50% 133%);
+      }
+      .subheading {
+        grid-column: 1/2;
+        grid-row: 1/2;
+        z-index: 1;
+        color: var(--primary-800, #45051c);
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .paragraph {
+        grid-column: 1/2;
+        grid-row: 2/3;
+        z-index: 1;
+        align-self: start;
+      }
+      :global(.Wrapper) {
+        grid-column: 2/3;
+        grid-row: 1/3;
+        align-self: center;
+      }
+      .phone {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        grid-column: 3/4;
+        grid-row: 1/3;
+        align-self: center;
+        gap: clamp(0.375rem, calc(6vw / 7.68), 0.375rem);
+        color: var(--primary-800, #45051c);
+        span {
+          position: relative;
+          &::before {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            height: 4%;
+            content: '';
+            transform: scaleX(0);
+            transform-origin: left;
+            background: var(--primary-400, #74535e);
+            transition: transform 300ms var(--easing);
+          }
+        }
+        svg {
+          margin-top: 0.25rem;
+        }
+        &:hover {
+          svg {
+            animation: Faq-ring-low 700ms var(--easing) infinite alternate;
+          }
+          span::before {
+            transform: scaleX(1);
+            transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          }
+        }
+        &:focus:not(:focus-visible) {
+          svg {
+            animation: Faq-ring-high 500ms var(--easing) infinite alternate;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 799px) {
+      .form-row {
+        margin-top: 6rem;
+      }
+    }
+
+    @media (max-width: 649px) {
+      .form-row {
+        grid-template-columns: repeat(2, 1fr);
+        .subheading {
+          grid-column: 1/3;
+          grid-row: 1/2;
+          justify-self: center;
+        }
+        .paragraph {
+          grid-column: 1/3;
+          grid-row: 2/3;
+          margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+          justify-self: center;
+        }
+        :global(.Wrapper) {
+          grid-column: 1/2;
+          grid-row: 3/4;
+          justify-self: end;
+        }
+        .phone {
+          grid-column: 2/3;
+          grid-row: 3/4;
+        }
+        .wrapper {
+          > svg {
+            transform: translate(-50%, -10.5vw) scale(0.8);
+          }
+        }
+      }
+    }
+  }
+  @keyframes Faq-ring-low {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(6deg);
+    }
+    50% {
+      transform: rotate(-6deg);
+    }
+    75% {
+      transform: rotate(6deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+  @keyframes Faq-ring-high {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(12deg);
+    }
+    50% {
+      transform: rotate(-12deg);
+    }
+    75% {
+      transform: rotate(12deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+</style>

@@ -32,8 +32,7 @@ export default defineField({
     defineField({
       name: 'paragraph',
       type: 'PortableText',
-      title: 'Paragraf',
-      validation: (Rule) => Rule.required(),
+      title: 'Paragraf (opcjonalny)',
     }),
     defineField({
       name: 'ctas',

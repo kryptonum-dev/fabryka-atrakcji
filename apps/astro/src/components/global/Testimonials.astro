@@ -8,6 +8,7 @@ import TestimonialsPopup from '@/components/ui/TestimonialsPopup/index.astro'
 import type { Language } from '@/src/global/languages'
 import PopupWindow from '@/components/ui/PopupWindow/index.astro'
 import TestimonialSchema from '@/src/Schema/TestimonialSchema.astro'
+import { translateDate } from '@/src/utils/translate-date'
 
 const language = (Astro.params.lang as Language) || 'pl'
 
@@ -91,15 +92,6 @@ type Props = {
 
 const { index, sectionId, heading, paragraph, testimonials, googleData, allTestimonials } = Astro.props
 
-const translateDates = testimonials.map((testimonial) => {
-  const date = new Date(testimonial.date)
-  return new Intl.DateTimeFormat('pl-PL', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(date))
-})
-
 const logoSvgs = await Promise.all(testimonials.map(async ({ logo }) => (logo ? await imageToInlineSvg(logo) : null)))
 
 const testimonialsSchema = testimonials.map((testimonial) => {
@@ -119,7 +111,7 @@ const testimonialsSchema = testimonials.map((testimonial) => {
   <div class="container">
     <ul class="testimonials">
       {
-        testimonials.map(({ name, position, company, image, logo, review }, testimonialIndex) => (
+        testimonials.map(({ name, position, company, image, logo, review, date }, testimonialIndex) => (
           <li class="testimonial">
             <PortableText value={review} class="review" />
             <span class="name">{name}</span>
@@ -135,7 +127,7 @@ const testimonialsSchema = testimonials.map((testimonial) => {
                 )}
               </div>
             )}
-            <span class="date">{translateDates[testimonialIndex]}</span>
+            <span class="date">{translateDate(date)}</span>
           </li>
         ))
       }

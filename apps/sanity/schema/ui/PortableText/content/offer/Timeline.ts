@@ -5,7 +5,7 @@ import { toPlainText } from '../../../../../utils/to-plain-text'
 const title = 'Oś czasu'
 const icon = ClockIcon
 export default defineField({
-  name: 'timeline',
+  name: 'Timeline',
   type: 'object',
   title,
   icon,

@@ -14,10 +14,16 @@ export default defineField({
   ...sectionPreview({ imgUrl: `/static/BlogPost_Collection/${name}.webp`, icon }),
   fields: [
     defineField({
+      name: 'heading',
+      type: 'Heading',
+      title: 'Nagłówek',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: 'questions',
       type: 'array',
       title: 'Pytania i odpowiedzi',
-      validation: (Rule) => Rule.required().min(2).max(10).error('Musisz wybrać między 2 a 10 pytaniami'),
+      validation: (Rule) => Rule.required().min(2).error('Musisz wybrać minimum 2 pytania'),
       of: [
         {
           type: 'reference',
@@ -86,13 +92,23 @@ export default defineField({
             },
           ],
         }),
+        defineField({
+          name: 'formPopup',
+          type: 'formPopup',
+          title: 'Okienko formularza',
+          validation: (Rule) => Rule.required(),
+        }),
       ],
     }),
   ],
   preview: {
-    prepare() {
+    select: {
+      heading: 'heading',
+    },
+    prepare({ heading }) {
       return {
         title,
+        subtitle: toPlainText(heading),
         icon,
       }
     },

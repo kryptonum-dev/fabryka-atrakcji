@@ -1,0 +1,52 @@
+---
+import { PortableText } from 'astro-portabletext'
+import type { PortableTextProps } from 'astro-portabletext/types'
+import Mark from '../portable-text/Mark.astro'
+import Block from './shared/Block.astro'
+import Normal from './shared/Normal.astro'
+import BulletList from './shared/BulletList.astro'
+import NumberedList from './shared/NumberedList.astro'
+
+// Base query for common elements
+export const ContentPT_Query = (additionalQueries: string[] = []) => `
+  content[] {
+    ...,
+    "markDefs": coalesce(markDefs[] {
+      ...,
+      _type == "link" => {
+        _type,
+        _key,
+        linkType,
+        "href": select(linkType == "internal" => internal -> slug.current, linkType == "external" => external, "#"),
+      },
+    }, []),
+    ${additionalQueries.join('\n    ')}
+  },
+`
+
+export type Props = {
+  value: PortableTextProps['value']
+  additionalComponents?: Record<string, any>[]
+}
+
+const { value, additionalComponents = {} as Record<string, any> } = Astro.props
+
+const components = {
+  mark: {
+    type: Mark,
+  },
+  block: {
+    normal: Normal,
+    h2: Block,
+    h3: Block,
+    h4: Block,
+  },
+  listItem: {
+    bullet: BulletList,
+    number: NumberedList,
+  },
+  type: additionalComponents,
+}
+---
+
+<PortableText value={value} components={components} />

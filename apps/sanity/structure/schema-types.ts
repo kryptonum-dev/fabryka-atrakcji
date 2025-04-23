@@ -65,8 +65,9 @@ import formState from '../schema/ui/formState'
 import PortableText from '../schema/ui/PortableText'
 import Heading from '../schema/ui/PortableText/Heading'
 import seo from '../schema/ui/seo'
+import formPopup from '../schema/ui/formPopup'
 
-const ui = [cta, seo, PortableText, Heading, formState]
+const ui = [cta, seo, PortableText, Heading, formState, formPopup]
 
 export const schemaTypes = [...singleTypes, ...collectionTypes, ...components, ...ui]
 

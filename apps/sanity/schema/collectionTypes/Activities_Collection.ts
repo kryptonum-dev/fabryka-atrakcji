@@ -11,6 +11,7 @@ import BlocksWithImage from '../ui/PortableText/content/offer/BlocksWithImage'
 import RowsWithIcons from '../ui/PortableText/content/offer/RowsWithIcons'
 import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
+import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
 const title = 'Integracje'
 const icon = Handshake
 
@@ -350,7 +351,23 @@ export default defineType({
     }),
     createPortableText({
       title: 'Treść integracji',
-      additionalComponents: [Image, Checklist, Timeline, Testimonials, Faq, BlocksWithImage, RowsWithIcons, NextSteps],
+      additionalComponents: [
+        Image,
+        ImageWithHeadingAndText,
+        Checklist,
+        Timeline,
+        Testimonials,
+        Faq,
+        BlocksWithImage,
+        RowsWithIcons,
+        NextSteps,
+      ],
+    }),
+    defineField({
+      name: 'components',
+      type: 'components',
+      title: 'Komponenty podstrony (opcjonalne)',
+      group: 'content',
     }),
     defineField({
       name: 'seo',

@@ -4,7 +4,7 @@ const title = 'Opinie klientów'
 const icon = UsersIcon
 
 export default defineField({
-  name: 'testimonials',
+  name: 'Testimonials',
   type: 'object',
   title,
   icon,

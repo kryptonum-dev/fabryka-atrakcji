@@ -6,8 +6,8 @@ import { translations, type Language } from '@/src/global/languages'
 import type { ClientFormStateTypes, FormStatusTypes } from '@/src/global/types'
 import { useState } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
-import FormState from '../../ui/FormState'
-import Loader from '../../ui/Loader'
+import FormState from '../FormState'
+import Loader from '../Loader'
 
 export default function Form({ lang = 'pl', formState }: { lang?: Language; formState: ClientFormStateTypes }) {
   const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })

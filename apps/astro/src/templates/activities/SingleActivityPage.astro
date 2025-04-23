@@ -8,7 +8,18 @@ import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import Hero from '@/src/components/offer/Hero.astro'
-
+import ContentPT, { type Props as ContentPTProps, ContentPT_Query } from '@/src/components/ui/content-pt/index.astro'
+import RowsWithIcons, { RowsWithIcons_Query } from '@/src/components/ui/content-pt/offer/RowsWithIcons.astro'
+import Faq, { Faq_Query } from '@/src/components/ui/content-pt/offer/Faq.astro'
+import Testimonials, { Testimonials_Query } from '@/src/components/ui/content-pt/offer/Testimonials.astro'
+import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer/NextSteps.astro'
+import BlocksWithImage, { BlocksWithImage_Query } from '@/src/components/ui/content-pt/offer/BlocksWithImage.astro'
+import Timeline, { Timeline_Query } from '@/src/components/ui/content-pt/offer/Timeline.astro'
+import Checklist, { Checklist_Query } from '@/src/components/ui/content-pt/shared/Checklist.astro'
+import Image, { Image_Query } from '@/src/components/ui/content-pt/shared/Image.astro'
+import ImageWithHeadingAndText, {
+  ImageWithHeadingAndText_Query,
+} from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export type SingleActivityProps = {
@@ -52,6 +63,7 @@ export type SingleActivityProps = {
     additionalPersonPrice: number
   }
   components: ComponentsProps
+  content: ContentPTProps['value']
 }
 
 export async function fetchData(slug: string, lang: Language) {
@@ -102,6 +114,17 @@ export async function fetchData(slug: string, lang: Language) {
         maxParticipants,
         additionalPersonPrice
       },
+      ${ContentPT_Query([
+        RowsWithIcons_Query,
+        Faq_Query,
+        Testimonials_Query,
+        NextSteps_Query,
+        BlocksWithImage_Query,
+        Timeline_Query,
+        Checklist_Query,
+        Image_Query,
+        ImageWithHeadingAndText_Query,
+      ])}
       ${Components_Query}
     }
   `,
@@ -146,5 +169,114 @@ const { page, metadata } = Astro.props
     firstItemType="OfferHero"
   />
   <Hero {...page} _type="Activities_Collection" />
+
+  <article class="wrapper max-width">
+    <div class="content">
+      <ContentPT
+        value={page.content}
+        additionalComponents={{
+          RowsWithIcons,
+          Faq,
+          Testimonials,
+          NextSteps,
+          BlocksWithImage,
+          Timeline,
+          Checklist,
+          Image,
+          ImageWithHeadingAndText,
+        }}
+      />
+    </div>
+    <div class="pricing"></div>
+  </article>
   <Components data={page.components} hasPreviousSections />
 </Layout>
+
+<style lang="scss">
+  .wrapper {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-top: clamp(3rem, calc(3.5vw / 0.48), 3.5rem);
+
+    .content {
+      max-width: clamp(20rem, calc(25vw / 0.48), 40.9375rem);
+      justify-self: start;
+
+      :global(> :first-child) {
+        margin-top: 0;
+      }
+
+      :global(> :last-child) {
+        margin-bottom: 0;
+      }
+
+      :global(strong:not(h1 strong, h2 strong)) {
+        font-weight: 700;
+        color: var(--primary-800, #45051c);
+      }
+
+      :global(> p),
+      :global(> ul),
+      :global(> ol),
+      :global(> ul li),
+      :global(> ol li),
+      :global(> ul p),
+      :global(> ol p) {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      :global(> h2) {
+        margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
+        font-size: var(--typography-heading-l);
+      }
+
+      :global(> h3) {
+        color: var(--primary-700, #600d2a);
+        font-size: var(--typography-body-2xl, 1.5rem);
+        line-height: 1.25;
+        margin: 1.5rem 0 1rem;
+        letter-spacing: -0.04em;
+        font-variant-numeric: lining-nums proportional-nums;
+
+        font-weight: 700;
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+      }
+
+      :global(li:last-child) {
+        margin-bottom: 0;
+      }
+    }
+
+    .pricing {
+      background: var(--neutral-200, #f5f1ec);
+      border-radius: 0.75rem;
+      max-width: 27.0625rem;
+      width: 100%;
+      padding: 1.5rem;
+      height: 15.625rem;
+      justify-self: end;
+      position: sticky;
+      top: 89px;
+      max-height: calc(100vh - 89px);
+    }
+
+    @media (max-width: 1089px) {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      max-width: 48rem;
+      .pricing {
+        grid-row: 1/2;
+        position: static;
+        max-width: 100%;
+      }
+      .content {
+        grid-row: 2/3;
+        max-width: 100%;
+      }
+    }
+  }
+</style>

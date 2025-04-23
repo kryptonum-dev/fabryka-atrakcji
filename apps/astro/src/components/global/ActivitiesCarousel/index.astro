@@ -32,7 +32,7 @@ type Props = {
   sectionId?: string
   labelIcon?: string
   heading: PortableTextValue
-  paragraph: PortableTextValue
+  paragraph?: PortableTextValue
   ctas?: ButtonDataProps[]
   activities: {
     name: string
@@ -77,7 +77,7 @@ const svgContent = labelIcon ? await imageToInlineSvg(labelIcon) : null
       )
     }
     <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
-    <PortableText value={paragraph} class="paragraph" />
+    {paragraph && <PortableText value={paragraph} class="paragraph" />}
   </header>
   <Carousel client:load activities={clientActivities} index={index}>
     {ctas && ctas.map((cta) => <Button {...cta} />)}

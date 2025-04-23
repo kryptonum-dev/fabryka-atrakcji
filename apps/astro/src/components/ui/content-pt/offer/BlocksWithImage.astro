@@ -1,0 +1,81 @@
+---
+import Image, { ImageDataQuery, type ImageDataProps } from '../../image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../portable-text'
+
+export const BlocksWithImage_Query = `
+  _type == "BlocksWithImage" => {
+    blocks[] {
+      ${ImageDataQuery('image')}
+      ${PortableTextQuery('text')}
+    },
+  },
+`
+
+type Props = {
+  node: {
+    blocks: {
+      image: ImageDataProps
+      text: PortableTextValue
+    }[]
+  }
+}
+
+const { node } = Astro.props
+
+console.log(node)
+---
+
+<ul class="BlocksWithImage">
+  {
+    node.blocks.map((block) => (
+      <li>
+        <Image {...block.image} sizes="128px" />
+        <PortableText value={block.text} class="text" />
+      </li>
+    ))
+  }
+</ul>
+
+<style lang="scss">
+  .BlocksWithImage {
+    margin-bottom: 1.5rem !important;
+
+    li {
+      display: grid;
+      grid-template-columns: 8rem 1fr;
+      gap: 0.75rem 1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      background-color: var(--neutral-200, #f5f1ec);
+
+      &:not(:last-child) {
+        margin-bottom: 0.5rem;
+      }
+
+      &:first-child {
+        margin-top: 0 !important;
+      }
+
+      :global(img) {
+        border-radius: 0.25rem;
+        max-width: 8rem;
+      }
+
+      .text {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+
+        :global(strong) {
+          font-weight: 700;
+          color: var(--primary-800, #45051c);
+        }
+      }
+    }
+
+    @media (max-width: 34.3125rem) {
+      li {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+</style>

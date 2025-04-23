@@ -303,6 +303,7 @@ h2,
   }
 
   &:hover {
+    // text-decoration-color: var(--primary-500);
     &::before {
       transform: scaleX(1);
       animation: linkColorLoop 3s linear infinite;

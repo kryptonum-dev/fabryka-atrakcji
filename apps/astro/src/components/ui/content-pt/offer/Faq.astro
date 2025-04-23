@@ -1,0 +1,251 @@
+---
+import Accordion from '../../Accordion.astro'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../portable-text'
+import FaqForm from '../../FaqForm/index.astro'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import type { FormStateTypes } from '@/src/global/types'
+import sanityFetch from '@/src/utils/sanity.fetch'
+
+export const Faq_Query = `
+  _type == "Faq" => {
+    ${PortableTextQuery('heading')}
+    questions[] -> {
+      ${PortableTextQuery('question')}
+      ${PortableTextQuery('answer')}
+    },
+    contactBlock {
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+      formPopup {
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+      formState {
+        success{
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+          highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
+      },
+    },
+  },
+`
+
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const phone = await sanityFetch<{
+  tel?: string
+}>({
+  query: `*[_type == "global" && language == $language][0].tel`,
+  params: {
+    language: lang,
+  },
+})
+
+type Props = {
+  node: {
+    heading: PortableTextValue
+    questions: {
+      question: PortableTextValue
+      answer: PortableTextValue
+    }[]
+    contactBlock: {
+      heading: PortableTextValue
+      paragraph: PortableTextValue
+      formPopup: {
+        heading: PortableTextValue
+        paragraph: PortableTextValue
+        formState: FormStateTypes
+      }
+    }
+  }
+}
+
+const { node } = Astro.props as Props
+const language = (Astro.params.lang as Language) || 'pl'
+---
+
+<section class="Faq">
+  <div class="max-width container">
+    <header class="header">
+      <PortableText value={node.heading} heading="h2" />
+    </header>
+    <div class="questions">
+      {
+        node.questions.map(({ question, answer }: { question: PortableTextValue; answer: PortableTextValue }) => (
+          <Accordion question={question} answer={answer} open={false} />
+        ))
+      }
+    </div>
+    <div class="contact-form">
+      <PortableText value={node.contactBlock.heading} class="subheading" heading="h3" />
+      <PortableText value={node.contactBlock.paragraph} class="paragraph" />
+      <FaqForm language={language} formPopup={node.contactBlock.formPopup} />
+      {
+        phone && (
+          <a href={`tel:${phone}`} class="phone">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+              <path
+                d="m13.8 10.755-.38.377s-.902.897-3.365-1.552c-2.462-2.448-1.56-3.345-1.56-3.345l.239-.238c.589-.585.644-1.525.13-2.211l-1.05-1.404c-.636-.85-1.865-.962-2.594-.237l-1.308 1.3c-.36.36-.603.826-.574 1.342.075 1.322.674 4.166 4.01 7.484 3.54 3.52 6.86 3.66 8.218 3.533.43-.04.803-.26 1.104-.558l1.184-1.178c.8-.794.574-2.156-.449-2.712l-1.592-.865c-.671-.365-1.489-.258-2.014.264Z"
+                fill="#F67258"
+              />
+            </svg>
+            <span>{phone}</span>
+          </a>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .Faq {
+    display: flex;
+    padding: clamp(3rem, calc(3.5vw / 0.48), 3.5rem) 0;
+    background-color: var(--neutral-200, #f5f1ec);
+    width: 100vw;
+    margin: clamp(3rem, calc(3.5vw / 0.48), 3.5rem) calc(-1 * (50vw - 85.375rem / 2 + var(--pageMargin)));
+    .container {
+      display: grid;
+      grid-template-columns: 41.1875rem;
+    }
+
+    .header {
+      margin-bottom: clamp(1.5rem, calc(2vw / 0.48), 2rem);
+    }
+
+    .questions {
+      margin-bottom: clamp(1.5rem, calc(3.5vw / 0.48), 3.5rem);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(0.25rem, calc(0.25vw / 0.48), 0.25rem);
+    }
+
+    .contact-form {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      grid-template-rows: auto 1fr;
+      justify-content: center;
+      column-gap: 1rem;
+      .subheading {
+        grid-column: 1/2;
+        grid-row: 1/2;
+        z-index: 1;
+        color: var(--primary-800, #45051c);
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .paragraph {
+        grid-column: 1/2;
+        grid-row: 2/3;
+        z-index: 1;
+        align-self: start;
+      }
+      :global(.Wrapper) {
+        grid-column: 2/3;
+        grid-row: 1/3;
+        align-self: center;
+      }
+      .phone {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        grid-column: 3/4;
+        grid-row: 1/3;
+        align-self: center;
+        gap: clamp(0.375rem, calc(6vw / 7.68), 0.375rem);
+        color: var(--primary-800, #45051c);
+        span {
+          position: relative;
+          &::before {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            height: 4%;
+            content: '';
+            transform: scaleX(0);
+            transform-origin: left;
+            background: var(--primary-400, #74535e);
+            transition: transform 300ms var(--easing);
+          }
+        }
+        svg {
+          margin-top: 0.25rem;
+        }
+        &:hover {
+          svg {
+            animation: Faq-ring-low 700ms var(--easing) infinite alternate;
+          }
+          span::before {
+            transform: scaleX(1);
+            transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          }
+        }
+        &:focus:not(:focus-visible) {
+          svg {
+            animation: Faq-ring-high 500ms var(--easing) infinite alternate;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 85.375rem) {
+      margin: clamp(3rem, calc(3.5vw / 0.48), 3.5rem) calc(-1 * var(--pageMargin));
+    }
+
+    @media (max-width: 68.0625rem) {
+      margin: clamp(3rem, calc(3.5vw / 0.48), 3.5rem) calc(-1 * (50vw - 48rem / 2));
+
+      .container {
+        margin: 0 auto;
+        max-width: 48rem;
+        display: block;
+
+        .contact-form {
+        }
+      }
+    }
+
+    @media (max-width: 56.1875rem) {
+      margin: clamp(3rem, calc(3.5vw / 0.48), 3.5rem) calc(-1 * var(--pageMargin));
+    }
+
+    @media (max-width: 28.6875rem) {
+      .container .contact-form {
+        grid-template-columns: repeat(2, auto);
+        grid-template-rows: auto auto 1fr;
+        justify-content: start;
+
+        .subheading {
+          grid-column: 1/3;
+          grid-row: 1/2;
+        }
+        .paragraph {
+          grid-column: 1/3;
+          grid-row: 2/3;
+          margin-bottom: 1rem;
+        }
+        :global(.Wrapper) {
+          grid-column: 1/2;
+          grid-row: 3/4;
+        }
+        .phone {
+          grid-column: 2/3;
+          grid-row: 3/4;
+        }
+      }
+    }
+  }
+</style>

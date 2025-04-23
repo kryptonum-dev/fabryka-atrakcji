@@ -6,7 +6,7 @@ const title = 'Lista bloków ze zdjęciem'
 const icon = ListIcon
 
 export default defineField({
-  name: 'blocksWithImage',
+  name: 'BlocksWithImage',
   type: 'object',
   title,
   icon,
