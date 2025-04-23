@@ -7,7 +7,10 @@
   align-items: flex-start;
   padding: 2.25rem;
   background: var(--neutral-200, #f5f1ec);
-  animation: fadeInState 200ms;
+
+  &[data-animate='true'] {
+    animation: fadeInState 200ms forwards;
+  }
 
   @keyframes fadeInState {
     from {

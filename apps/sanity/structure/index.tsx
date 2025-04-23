@@ -1,4 +1,4 @@
-import { BookOpen, FileArchive, Handshake, Settings2 } from 'lucide-react'
+import { BookOpen, FileArchive, Handshake, Hotel, House, HouseIcon, Settings2 } from 'lucide-react'
 import type { StructureResolver } from 'sanity/structure'
 import { createCollection } from '../utils/create-collection'
 import { createSingleton } from '../utils/create-singleton'
@@ -34,6 +34,20 @@ export const structure: StructureResolver = (S) =>
               createCollection(S, 'ActivitiesCategory_Collection'),
               S.divider(),
               createCollection(S, 'ActivitiesType_Collection'),
+            ])
+        ),
+      S.listItem()
+        .title('Hotele')
+        .icon(Hotel)
+        .child(
+          S.list()
+            .title('Hotele')
+            .items([
+              createSingleton({ S, name: 'Hotels_Page' }),
+              createCollection(S, 'Hotels_Collection'),
+              S.divider(),
+              createCollection(S, 'Locations_Collection'),
+              createCollection(S, 'Amenities_Collection'),
             ])
         ),
       S.listItem()

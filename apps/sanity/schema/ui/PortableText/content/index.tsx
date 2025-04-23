@@ -127,7 +127,7 @@ export const createPortableText = ({
       }),
       ...additionalComponents,
     ],
-    validation: (Rule) => Rule.required(),
+    validation: (Rule) => Rule.required().error('Treść jest wymagana'),
   })
 }
 

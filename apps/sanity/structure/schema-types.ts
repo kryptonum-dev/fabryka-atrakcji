@@ -10,7 +10,7 @@ import NotFound_Page from '../schema/singleTypes/NotFound_Page'
 import redirects from '../schema/singleTypes/redirects'
 import TermsAndConditions_Page from '../schema/singleTypes/legal/TermsAndConditions_Page'
 import PrivacyPolicy_Page from '../schema/singleTypes/legal/PrivacyPolicy_Page'
-
+import Hotels_Page from '../schema/singleTypes/Hotels_Page'
 const singleTypes = [
   global,
   redirects,
@@ -23,11 +23,13 @@ const singleTypes = [
   footer,
   TermsAndConditions_Page,
   PrivacyPolicy_Page,
+  Hotels_Page,
 ]
 
 // Collections Types
 import Activities_Collection from '../schema/collectionTypes/Activities_Collection'
 import ActivitiesCategory_Collection from '../schema/collectionTypes/ActivitiesCategory_Collection'
+import Amenities_Collection from '../schema/collectionTypes/Amenities_Collection'
 import BlogCategory_Collection from '../schema/collectionTypes/BlogCategory_Collection'
 import BlogPost_Collection from '../schema/collectionTypes/BlogPost_Collection'
 import CaseStudy_Collection from '../schema/collectionTypes/CaseStudy_Collection'
@@ -38,6 +40,8 @@ import SocialMedia_Collection from '../schema/collectionTypes/SocialMedia_Collec
 import Testimonial_Collection from '../schema/collectionTypes/Testimonial_Collection'
 import Author_Collection from '../schema/collectionTypes/Author_Collection'
 import ActivitiesType_Collection from '../schema/collectionTypes/ActivitiesType_Collection'
+import Hotels_Collection from '../schema/collectionTypes/Hotels_Collection'
+import Locations_Collection from '../schema/collectionTypes/Locations_Collection'
 
 const collectionTypes = [
   Faq_Collection,
@@ -52,6 +56,9 @@ const collectionTypes = [
   SocialMedia_Collection,
   Author_Collection,
   ActivitiesType_Collection,
+  Hotels_Collection,
+  Locations_Collection,
+  Amenities_Collection,
 ]
 
 // Components

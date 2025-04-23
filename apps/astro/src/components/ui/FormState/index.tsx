@@ -8,6 +8,7 @@ type Props = ClientFormStateTypes & {
   isSuccess: boolean | undefined
   handleRestart: (e: React.MouseEvent) => void
   lang: Language
+  animate?: boolean
 }
 
 export const FormState_Query = (name: string) => `
@@ -37,12 +38,12 @@ const translations = {
   },
 }
 
-export default function FormState({ success, error, isSuccess, handleRestart, lang }: Props) {
+export default function FormState({ success, error, isSuccess, handleRestart, lang, animate = true }: Props) {
   if (isSuccess === undefined) return null
   const t = translations[lang]
 
   return (
-    <div className={styles.FormState} data-form-state data-is-success={!!isSuccess}>
+    <div className={styles.FormState} data-form-state data-is-success={!!isSuccess} data-animate={animate}>
       {isSuccess ? (
         <div className={styles.icon}>
           <SuccessIcon />

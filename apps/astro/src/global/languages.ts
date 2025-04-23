@@ -59,6 +59,7 @@ export const langPrefixes = {
 }
 
 export function getLangFromPath(pathname: string) {
+  if (pathname.split('/').length === 2) return 'pl'
   const [, lang] = pathname.split('/')
   return lang
 }

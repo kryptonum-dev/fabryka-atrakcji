@@ -4,7 +4,7 @@ import Input from '@/src/components/ui/input'
 import { REGEX } from '@/src/global/constants'
 import { translations, type Language } from '@/src/global/languages'
 import type { ClientFormStateTypes, FormStatusTypes } from '@/src/global/types'
-import { useState } from 'preact/hooks'
+import { useState, useEffect } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
@@ -19,6 +19,7 @@ export default function Form({
   groupId: string
 }) {
   const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })
+  const [shouldAnimate, setShouldAnimate] = useState(false)
 
   const {
     register,
@@ -29,8 +30,15 @@ export default function Form({
 
   const t = translations[lang]
 
+  const updateStatus = (newStatus: FormStatusTypes) => {
+    if (newStatus.success !== status.success) {
+      setShouldAnimate(true)
+    }
+    setStatus(newStatus)
+  }
+
   const onSubmit = async (data: FieldValues) => {
-    setStatus({ sending: true, success: undefined })
+    updateStatus({ sending: true, success: undefined })
     data.group_id = groupId
     try {
       const response = await fetch('/api/newsletter', {
@@ -40,20 +48,30 @@ export default function Form({
       })
       const responseData = await response.json()
       if (response.ok && responseData.success) {
-        setStatus({ sending: false, success: true })
+        updateStatus({ sending: false, success: true })
         reset()
       } else {
-        setStatus({ sending: false, success: false })
+        updateStatus({ sending: false, success: false })
       }
     } catch {
-      setStatus({ sending: false, success: false })
+      updateStatus({ sending: false, success: false })
     }
   }
 
   const handleRestart = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setStatus({ sending: false, success: undefined })
+    updateStatus({ sending: false, success: undefined })
+    setShouldAnimate(false)
   }
+
+  useEffect(() => {
+    if (shouldAnimate) {
+      const timer = setTimeout(() => {
+        setShouldAnimate(false)
+      }, 200)
+      return () => clearTimeout(timer)
+    }
+  }, [shouldAnimate])
 
   const isFilled = status.sending || status.success !== undefined
 
@@ -104,6 +122,7 @@ export default function Form({
         isSuccess={status.success}
         handleRestart={handleRestart}
         lang={lang}
+        animate={shouldAnimate}
       />
     </form>
   )
