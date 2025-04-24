@@ -1,4 +1,7 @@
 ---
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import { buildFilterUrl } from '@/src/utils/filters'
+
 interface DropdownItem {
   name: string
   count: number
@@ -6,17 +9,83 @@ interface DropdownItem {
   href: string
 }
 
-interface Props {
-  heading: string
-  items: DropdownItem[]
-  params: string[]
-  isSortingDropdown?: boolean
+type Props = { items: DropdownItem[]; params: string[]; heading: string } | { isSortingDropdown: true }
+
+const translations = {
+  pl: {
+    label: 'Sortowanie',
+    relevance: 'Trafność: od najwyższej',
+    popularity: 'Najpopularniejsze',
+    priceDesc: 'Cena: od najwyższej',
+    priceAsc: 'Cena: od najniższej',
+    newest: 'Od najnowszych',
+  },
+  en: {
+    label: 'Sorting',
+    relevance: 'Relevance: from highest',
+    popularity: 'Popularity',
+    priceDesc: 'Price: from highest',
+    priceAsc: 'Price: from lowest',
+    newest: 'Newest',
+  },
 }
 
-const { heading, items, params, isSortingDropdown = false } = Astro.props
-const selectedItem = items.find((item) => item.isSelected)
+const t = translations[(getLangFromPath(Astro.url.pathname) as Language) || 'pl']
+
+const isSearchMode = Astro.url.searchParams.has('search')
+
+const sortingItems = [
+  ...(isSearchMode
+    ? [
+        {
+          name: t.relevance,
+          count: 1,
+          isSelected: !Astro.url.searchParams.get('order') || Astro.url.searchParams.get('order') === 'searchMatching',
+          href: buildFilterUrl({
+            order: 'searchMatching',
+            searchParams: Astro.url.searchParams,
+            currentPath: Astro.url.pathname,
+          }),
+        },
+      ]
+    : []),
+  {
+    name: t.popularity,
+    count: 1,
+    isSelected:
+      (!isSearchMode && !Astro.url.searchParams.get('order')) || Astro.url.searchParams.get('order') === 'popularity',
+    href: buildFilterUrl({
+      order: 'popularity',
+      searchParams: Astro.url.searchParams,
+      currentPath: Astro.url.pathname,
+    }),
+  },
+  {
+    name: t.newest,
+    count: 1,
+    isSelected: Astro.url.searchParams.get('order') === 'newest',
+    href: buildFilterUrl({ order: 'newest', searchParams: Astro.url.searchParams, currentPath: Astro.url.pathname }),
+  },
+  {
+    name: t.priceDesc,
+    count: 1,
+    isSelected: Astro.url.searchParams.get('order') === 'priceDesc',
+    href: buildFilterUrl({ order: 'priceDesc', searchParams: Astro.url.searchParams, currentPath: Astro.url.pathname }),
+  },
+  {
+    name: t.priceAsc,
+    count: 1,
+    isSelected: Astro.url.searchParams.get('order') === 'priceAsc',
+    href: buildFilterUrl({ order: 'priceAsc', searchParams: Astro.url.searchParams, currentPath: Astro.url.pathname }),
+  },
+]
+
+const props = Astro.props
+const isSortingDropdown = 'isSortingDropdown' in props
+const selectedItems = isSortingDropdown ? sortingItems : props.items
+const selectedItem = selectedItems.find((item) => item.isSelected)
 const hasSelection = !!selectedItem
-const availableItems = items.filter((item) => item.count > 0)
+const availableItems = selectedItems.filter((item) => item.count > 0)
 const isDisabled = availableItems.length === 0
 ---
 
@@ -28,7 +97,7 @@ const isDisabled = availableItems.length === 0
 >
   <summary tabindex={isDisabled ? -1 : 0}>
     <span
-      >{heading}{
+      >{isSortingDropdown ? t.label : props.heading}{
         isSortingDropdown && selectedItem ? (
           <>
             {': '}
@@ -44,7 +113,7 @@ const isDisabled = availableItems.length === 0
         <a
           href={(() => {
             const url = new URL(Astro.url)
-            params.forEach((param) => {
+            props.params.forEach((param) => {
               url.searchParams.delete(param)
             })
             return url.toString()

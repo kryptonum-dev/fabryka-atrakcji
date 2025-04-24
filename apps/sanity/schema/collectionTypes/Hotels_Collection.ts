@@ -289,79 +289,47 @@ export default defineType({
       type: 'object',
       title: 'Cennik',
       group: 'pricing',
-      description: 'Wybierz typ cennika hotelu, cena za pojedynczą osobę lub cena za grupę osób + dodatkowe osoby',
+      description: 'Ustaw cenę za osobę oraz opcjonalnie cenę za grupę',
       fields: [
         defineField({
-          name: 'pricingType',
-          type: 'string',
-          title: 'Typ cennika',
-          initialValue: 'fixed',
-          options: {
-            list: [
-              { title: 'Cena za osobę', value: 'perPerson' },
-              { title: 'Cena za grupę', value: 'fixed' },
-            ],
-            layout: 'radio',
-            direction: 'horizontal',
-          },
-          validation: (Rule) => Rule.required().error('Typ cennika jest wymagany'),
+          name: 'hasFixedGroupPrice',
+          type: 'boolean',
+          title: 'Dodaj cenę za grupę',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'groupPrice',
+          type: 'number',
+          title: 'Cena za grupę (PLN)',
+          hidden: ({ parent }) => !parent?.hasFixedGroupPrice,
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as { hasFixedGroupPrice?: boolean }
+              if (!parent?.hasFixedGroupPrice) return true
+              if (!value) return 'Cena za grupę jest wymagana'
+              if (value < 1) return 'Cena musi być większa niż 0'
+              return true
+            }),
+        }),
+        defineField({
+          name: 'groupPeopleCount',
+          type: 'number',
+          title: 'Liczba osób w cenie grupowej',
+          hidden: ({ parent }) => !parent?.hasFixedGroupPrice,
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as { hasFixedGroupPrice?: boolean }
+              if (!parent?.hasFixedGroupPrice) return true
+              if (!value) return 'Liczba osób jest wymagana'
+              if (value < 2) return 'Liczba osób musi być większa niż 1'
+              return true
+            }),
         }),
         defineField({
           name: 'pricePerPerson',
           type: 'number',
           title: 'Cena za osobę (PLN)',
-          hidden: ({ parent }) => parent?.pricingType !== 'perPerson',
-          validation: (Rule) =>
-            Rule.custom((value, context) => {
-              const parent = context.parent as { pricingType?: string }
-              if (parent?.pricingType !== 'perPerson') return true
-              if (!value) return 'Cena za osobę jest wymagana'
-              if (value < 1) return 'Cena musi być większa niż 0'
-              return true
-            }),
-        }),
-
-        defineField({
-          name: 'basePrice',
-          type: 'number',
-          title: 'Cena podstawowa (PLN)',
-          hidden: ({ parent }) => parent?.pricingType !== 'fixed',
-          validation: (Rule) =>
-            Rule.custom((value, context) => {
-              const grandParent = context.parent as { pricingType?: string }
-              if (grandParent?.pricingType !== 'fixed') return true
-              if (!value) return 'Cena podstawowa jest wymagana'
-              if (value < 1) return 'Cena musi być większa niż 0'
-              return true
-            }),
-        }),
-        defineField({
-          name: 'maxPeople',
-          type: 'number',
-          title: 'Maksymalna liczba osób w cenie podstawowej',
-          hidden: ({ parent }) => parent?.pricingType !== 'fixed',
-          validation: (Rule) =>
-            Rule.custom((value, context) => {
-              const grandParent = context.parent as { pricingType?: string }
-              if (grandParent?.pricingType !== 'fixed') return true
-              if (!value) return 'Maksymalna liczba osób jest wymagana'
-              if (value < 1) return 'Liczba osób musi być większa niż 0'
-              return true
-            }),
-        }),
-        defineField({
-          name: 'additionalPersonPrice',
-          type: 'number',
-          title: 'Cena za dodatkową osobę (PLN)',
-          hidden: ({ parent }) => parent?.pricingType !== 'fixed',
-          validation: (Rule) =>
-            Rule.custom((value, context) => {
-              const grandParent = context.parent as { pricingType?: string }
-              if (grandParent?.pricingType !== 'fixed') return true
-              if (!value) return 'Cena za dodatkową osobę jest wymagana'
-              if (value < 1) return 'Cena musi być większa niż 0'
-              return true
-            }),
+          validation: (Rule) => Rule.required().min(1).error('Cena za osobę jest wymagana i musi być większa niż 0'),
         }),
       ],
     }),

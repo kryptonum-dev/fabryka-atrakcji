@@ -1,0 +1,466 @@
+---
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import { getLangFromPath, type Language } from '@/global/languages'
+import SearchBar from '../ui/SearchBar.astro'
+import Dropdown from '../ui/Dropdown.astro'
+
+type LocationOption = {
+  _id: string
+  name: string
+  count: number
+}
+
+type AmenityOption = {
+  _id: string
+  name: string
+  count: number
+}
+
+type HotelItem = {
+  _id: string
+  name: string
+  slug: string
+  description: string
+  stars: number
+  imageUrl: string
+  location: {
+    _id: string
+    name: string
+  }
+  numberOfRooms: number
+  maxPeopleOvernight: number
+  pricing: {
+    pricingType: 'perPerson' | 'fixed'
+    pricePerPerson?: number
+    basePrice?: number
+    maxPeople?: number
+    additionalPersonPrice?: number
+  }
+  amenitiesList: string[]
+}
+
+type Props = {
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  totalItems: number
+  listing: HotelItem[]
+  currentPage: number
+  locations: LocationOption[]
+  amenities: AmenityOption[]
+  roomsRange: { min: number; max: number }
+  priceRange: { min: number; max: number }
+  checklist: string[]
+}
+
+export type ListingProps = Props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    pathPrefix: '/pl/hotele',
+    hotels: 'Hotele',
+    placeholder: 'Wyszukaj hotel',
+    search: 'Wyszukaj hotel',
+    filters: {
+      location: 'Lokalizacja',
+      stars: 'Gwiazdki',
+      rooms: 'Liczba pokoi',
+      amenities: 'Udogodnienia',
+      price: 'Cena za osobę',
+    },
+    sort: {
+      popularity: 'Najpopularniejsze',
+      priceDesc: 'Cena: od najwyższej',
+      priceAsc: 'Cena: od najniższej',
+      newest: 'Od najnowszych',
+    },
+    noResults: {
+      heading: '<span>Nie znaleziono wyników dla</span> <strong>podanych filtrów</strong>',
+      list: [
+        'Sprawdź poprawność wprowadzonych danych',
+        'Zmień kryteria wyszukiwania',
+        'Lub znajdź interesujące Cię hotele w widoku wszystkich hoteli',
+      ],
+      button: 'Wróć do wszystkich hoteli',
+    },
+    foundPrefix: 'Znaleziono',
+    foundHotelsSingle: 'hotel',
+    foundHotelsMultipleLow: 'hotele',
+    foundHotelsMultipleHigh: 'hoteli',
+  },
+  en: {
+    pathPrefix: '/en/hotels',
+    hotels: 'Hotels',
+    placeholder: 'Search for hotels',
+    search: 'Search for hotels',
+    filters: {
+      location: 'Location',
+      stars: 'Stars',
+      rooms: 'Number of rooms',
+      amenities: 'Amenities',
+      price: 'Price per person',
+    },
+    sort: {
+      popularity: 'Most popular',
+      priceDesc: 'Price: highest first',
+      priceAsc: 'Price: lowest first',
+      newest: 'Newest first',
+    },
+    noResults: {
+      heading: '<span>No results found for</span> <strong>the given filters</strong>',
+      list: [
+        'Check the correctness of the data entered',
+        'Change the search criteria',
+        'Or find interesting hotels in the view of all hotels',
+      ],
+      button: 'Back to all hotels',
+    },
+    foundPrefix: 'Found',
+    foundHotelsSingle: 'hotel',
+    foundHotelsMultipleLow: 'hotels',
+    foundHotelsMultipleHigh: 'hotels',
+  },
+}
+
+const t = translations[lang]
+
+export const Listing_Query = (orderClause: string) => {
+  console.log(orderClause)
+
+  // Define individual filters
+  const locationFilter = `
+    (!defined($location) || location->slug.current == $location)
+  `
+
+  const amenitiesFilter = `
+    (!defined($amenities) || count(select(
+      defined(amenities) => amenities[]->slug.current,
+      []
+    )[@ in $amenities]) == count($amenities))
+  `
+
+  const starsFilter = `
+    (!defined($stars) || stars == $stars)
+  `
+
+  const roomsFilter = `
+    (!defined($minRooms) || numberOfRooms >= $minRooms)
+    && (!defined($maxRooms) || numberOfRooms <= $maxRooms)
+  `
+
+  const priceFilter = `
+    (!defined($minPrice) || pricing.pricePerPerson >= $minPrice)
+    && (!defined($maxPrice) || pricing.pricePerPerson <= $maxPrice)
+  `
+
+  // Add embeddings filter
+  const embeddingsFilter = `
+    (!defined($embeddingResults) || _id in $embeddingResults[].value.documentId)
+  `
+
+  // Create base filter function
+  const createBaseFilter = (
+    includeFilters: {
+      location?: boolean
+      amenities?: boolean
+      stars?: boolean
+      rooms?: boolean
+      price?: boolean
+    } = {
+      location: true,
+      amenities: true,
+      stars: true,
+      rooms: true,
+      price: true,
+    }
+  ) => `
+    && language == $language
+    ${includeFilters.location ? `&& ${locationFilter}` : ''}
+    ${includeFilters.amenities ? `&& ${amenitiesFilter}` : ''}
+    ${includeFilters.stars ? `&& ${starsFilter}` : ''}
+    ${includeFilters.rooms ? `&& ${roomsFilter}` : ''}
+    ${includeFilters.price ? `&& ${priceFilter}` : ''}
+    && ${embeddingsFilter}
+  `
+  const getStarFilter = (stars: number) => `
+    {
+        "stars": ${stars},
+        "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+          location: true,
+          amenities: true,
+          stars: false,
+          rooms: true,
+          price: true,
+        })} && stars == ${stars}])
+    },
+  `
+
+  return `
+    "totalItems": count(*[_type == 'Hotels_Collection' ${createBaseFilter()}]),
+    "locations": *[_type == 'Locations_Collection' && language == $language] {
+      _id,
+      name,
+      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: false,
+        amenities: true,
+        stars: true,
+        rooms: true,
+        price: true,
+      })} && references(^._id)])
+    },
+    "amenities": *[_type == 'Amenities_Collection' && language == $language] {
+      _id,
+      name,
+      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: false,
+        stars: true,
+        rooms: true,
+        price: true,
+      })} && references(^._id)])
+    },
+    "roomsRange": {
+      "min": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })}] | order(numberOfRooms asc)[0].numberOfRooms,
+      "max": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })}] | order(numberOfRooms desc)[0].numberOfRooms
+    },
+    "stars": [
+      ${getStarFilter(1)}
+      ${getStarFilter(2)}
+      ${getStarFilter(3)}
+      ${getStarFilter(4)}
+      ${getStarFilter(5)}
+    ],
+    "priceRange": {
+      "min": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: true,
+        price: false,
+      })}] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson,
+      "max": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: true,
+        price: false,
+      })}] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson
+    },
+    "listing": *[_type == 'Hotels_Collection' ${createBaseFilter()}] {
+      _id,
+      name,
+      "slug": slug.current,
+      description,
+      stars,
+      "imageUrl": imageList[0].asset->url,
+      location->{
+        _id,
+        name,
+        "slug": slug.current
+      },
+      numberOfRooms,
+      "maxPeopleOvernight": maxPeople.overnight,
+      pricing,
+      "amenitiesList": amenities[]-> slug.current,
+      "_score": $embeddingResults[value.documentId == ^._id][0].score
+    } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
+  `
+}
+
+const { heading, paragraph, checklist, totalItems } = Astro.props
+
+const getHotelsCount = () => {
+  if (totalItems % 10 >= 2 && totalItems % 10 <= 4 && (totalItems % 100 < 12 || totalItems % 100 > 14)) {
+    return t.foundHotelsMultipleLow
+  }
+
+  if (totalItems === 1) {
+    return t.foundHotelsSingle
+  }
+
+  return t.foundHotelsMultipleHigh
+}
+---
+
+<section class="Listing">
+  <header class="header">
+    <PortableText value={heading} heading="h1" class="heading" />
+    <PortableText value={paragraph} class="paragraph" />
+    <ul class="checklist">
+      {
+        checklist.map((item) => (
+          <li class="checklist-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none">
+              <path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M7.993 3.167c-.203.173-.304.26-.413.332a2.26 2.26 0 0 1-.82.34c-.129.025-.261.036-.527.057-.668.053-1.002.08-1.28.178a2.26 2.26 0 0 0-1.38 1.38c-.098.278-.124.612-.178 1.28a4.772 4.772 0 0 1-.057.526 2.26 2.26 0 0 1-.34.82c-.072.11-.159.21-.332.414-.434.51-.652.765-.779 1.031a2.26 2.26 0 0 0 0 1.95c.127.267.345.521.78 1.031.172.203.259.305.331.413.167.249.282.527.34.82.026.129.036.262.057.528.054.667.08 1.001.179 1.28a2.26 2.26 0 0 0 1.378 1.379c.279.098.613.125 1.28.178.267.021.4.032.527.057.294.058.573.174.821.34.109.073.21.16.413.332.51.435.765.652 1.031.78a2.26 2.26 0 0 0 1.95 0c.267-.128.522-.345 1.032-.78.203-.173.304-.26.412-.332a2.26 2.26 0 0 1 .821-.34c.128-.025.261-.036.527-.057.668-.053 1.002-.08 1.28-.178a2.26 2.26 0 0 0 1.379-1.38c.098-.278.125-.612.178-1.28.021-.265.032-.398.057-.526a2.26 2.26 0 0 1 .34-.82c.073-.11.16-.21.332-.414.435-.51.652-.764.78-1.031a2.26 2.26 0 0 0 0-1.95c-.128-.266-.345-.521-.78-1.031-.172-.203-.259-.305-.332-.413a2.26 2.26 0 0 1-.34-.82 4.761 4.761 0 0 1-.057-.528c-.053-.667-.08-1.001-.178-1.28a2.26 2.26 0 0 0-1.379-1.379c-.278-.098-.612-.125-1.28-.178-.266-.021-.399-.032-.527-.057a2.26 2.26 0 0 1-.82-.34 4.762 4.762 0 0 1-.413-.332c-.51-.435-.765-.652-1.032-.78a2.26 2.26 0 0 0-1.95 0c-.266.128-.521.345-1.031.78Zm5.65 5.552a.678.678 0 1 0-.958-.959l-4.042 4.042-1.33-1.329a.678.678 0 0 0-.958.96l1.808 1.808a.678.678 0 0 0 .96 0l4.52-4.522Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="checklist-item-text">{item}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </header>
+  <div class="wrapper max-width">
+    <div class="filters"></div>
+    <div class="box">
+      <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
+      <Dropdown isSortingDropdown />
+      <p class="count">
+        {t.foundPrefix}
+        <strong>
+          {totalItems}
+          {getHotelsCount()}
+        </strong>
+      </p>
+      <div class="listing"></div>
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .Listing {
+    background-color: var(--neutral-200, #f5f1ec);
+
+    .header {
+      max-width: 85.375rem;
+      margin: 0 auto;
+      background: var(--neutral-100, #faf7f7);
+      border-radius: 0rem 0rem 2.5rem 2.5rem;
+      padding: clamp(4rem, calc(5.25vw / 0.48), 5.25rem) var(--pageMargin) 2rem;
+      display: grid;
+      grid-template-columns: minmax(auto, 40.9375rem);
+      justify-content: center;
+      text-align: center;
+
+      .heading {
+        margin-bottom: 0.75rem;
+      }
+      .paragraph {
+        margin-bottom: clamp(0.75rem, calc(1.75vw / 0.48), 1.75rem);
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+      }
+      .checklist {
+        display: flex;
+        gap: 0.375rem 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+
+        li {
+          display: flex;
+          align-items: start;
+          gap: 0.5rem;
+          font-size: var(--typography-body-xl, 1.125rem);
+          line-height: 1.5;
+
+          svg {
+            margin-top: 3px;
+          }
+        }
+      }
+    }
+
+    .wrapper {
+      padding: 3rem 0;
+      min-height: 50rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2rem;
+
+      .filters {
+        width: 20.4375rem;
+        background: var(--neutral-100, #faf7f7);
+        border-radius: 0.5rem;
+        min-height: 50rem;
+      }
+
+      .box {
+        justify-self: end;
+        max-width: 54.75rem;
+        display: grid;
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+        justify-content: space-between;
+
+        :global(.SearchBar) {
+          grid-column: 1/2;
+          grid-row: 1/2;
+          width: 100%;
+          max-width: 20.3125rem;
+          align-self: center;
+          margin: 0;
+        }
+
+        :global(.filter-dropdown) {
+          grid-column: 2/3;
+          grid-row: 1/2;
+          width: 100%;
+          max-width: 20.3125rem;
+          justify-self: end;
+          align-self: center;
+        }
+
+        .count {
+          grid-column: 1/2;
+          grid-row: 2/3;
+          margin: 0.875rem 0 0.375rem;
+          font-size: var(--typography-body-m, 0.875rem);
+          letter-spacing: -0.01em;
+          line-height: 1.7;
+
+          :global(strong) {
+            font-size: var(--typography-body-m, 0.875rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--primary-800, #45051c);
+          }
+        }
+
+        .listing {
+          grid-column: 1/3;
+          grid-row: 3/4;
+          background: var(--neutral-100, #faf7f7);
+          border-radius: 0.5rem;
+          min-height: 50rem;
+        }
+      }
+    }
+
+    @media (max-width: 489px) {
+      .header {
+        display: block;
+        text-align: start;
+
+        .paragraph {
+          margin-bottom: 0.75rem;
+        }
+
+        .checklist {
+          flex-direction: column;
+          background: var(--neutral-200, #f5f1ec);
+          border-radius: 0.5rem;
+          align-items: flex-start;
+          padding: 0.625rem 0.625rem 0.75rem 0.625rem;
+        }
+      }
+    }
+  }
+</style>

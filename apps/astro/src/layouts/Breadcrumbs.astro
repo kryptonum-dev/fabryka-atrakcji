@@ -235,6 +235,17 @@ const breadcrumbsData = [
     padding: clamp(0.75rem, calc(1.25vw / 0.48), 1.5rem) var(--pageMargin) 0;
   }
 
+  &[data-first-item-type="HotelsListing"] {    
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-top: 0;
+    max-width: 85.375rem;
+    width: 100%;
+    padding: clamp(0.75rem, calc(1vw / 0.48), 1.5rem) var(--pageMargin) 0;
+  }
+
 
 }
 

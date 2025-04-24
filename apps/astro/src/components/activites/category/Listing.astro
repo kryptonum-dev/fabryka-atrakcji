@@ -1,6 +1,6 @@
 ---
 import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
-import { ITEMS_PER_PAGE, type OrderType } from '@/src/templates/activities/ActivitiesPage.astro'
+import { ITEMS_PER_PAGE } from '@/src/templates/activities/ActivitiesPage.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
 import Pagination from '../../ui/Pagination.astro'
 import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
@@ -11,6 +11,7 @@ import NoSearchResults, { type NoSearchResultsProps } from '../NoSearchResults.a
 import Button from '@/src/components/ui/Button'
 import FilterGroup from './FilterGroup.astro'
 import PriceRangeFilter from './PriceRangeFilter.astro'
+import { buildFilterUrl } from '@/utils/filters'
 
 type Props = {
   heading?: PortableTextValue
@@ -46,54 +47,6 @@ export type ListingProps = Props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 
-const buildFilterUrl = (params: {
-  minParticipants?: number
-  maxParticipants?: number
-  activityType?: string
-  duration?: number
-  order?: OrderType
-}) => {
-  const newParams = new URLSearchParams(Astro.url.searchParams)
-
-  // Only remove the parameters we're explicitly setting
-  if ('minParticipants' in params || 'maxParticipants' in params) {
-    newParams.delete('minParticipants')
-    newParams.delete('maxParticipants')
-  }
-  if ('activityType' in params) {
-    newParams.delete('activityType')
-  }
-  if ('duration' in params) {
-    newParams.delete('duration')
-  }
-  if ('order' in params) {
-    newParams.delete('order')
-  }
-
-  // Set new parameters if they exist
-  if (params.minParticipants) {
-    newParams.set('minParticipants', params.minParticipants.toString())
-  }
-  if (params.maxParticipants) {
-    newParams.set('maxParticipants', params.maxParticipants.toString())
-  }
-  if (params.activityType) {
-    newParams.set('activityType', params.activityType)
-  }
-  if (typeof params.duration === 'number') {
-    newParams.set('duration', params.duration.toString())
-  }
-  if (params.order) {
-    newParams.set('order', params.order.toString())
-  }
-
-  const queryString = newParams.toString()
-  return `${Astro.url.pathname
-    .split('/')
-    .slice(0, Astro.params.category ? 5 : 3)
-    .join('/')}${queryString ? `?${queryString}` : ''}`
-}
-
 const translations = {
   pl: {
     pathPrefix: '/pl/integracje/kategoria',
@@ -112,14 +65,6 @@ const translations = {
       plural: 'godzin',
     },
     priceLabel: 'Cena za osobę',
-    sortLabel: 'Sortowanie',
-    sort: {
-      relevance: 'Trafność: od najwyższej',
-      popularity: 'Najpopularniejsze',
-      priceDesc: 'Cena: od najwyższej',
-      priceAsc: 'Cena: od najniższej',
-      newest: 'Od najnowszych',
-    },
     noResults: {
       heading: '<span>Nie znaleziono wyników dla</span> <strong>podanych filtrów</strong>',
       list: [
@@ -150,14 +95,6 @@ const translations = {
       plural: 'hours',
     },
     priceLabel: 'Price per person',
-    sortLabel: 'Sort by',
-    sort: {
-      relevance: 'Relevance: from highest',
-      popularity: 'Most popular',
-      priceDesc: 'Price: highest first',
-      priceAsc: 'Price: lowest first',
-      newest: 'Newest first',
-    },
     noResults: {
       heading: '<span>No results found for</span> <strong>the given filters</strong>',
       list: [
@@ -344,25 +281,35 @@ const dropdownItems = [
     name: '1–30',
     count: participantRangeCounts.range1_30,
     isSelected: params.get('maxParticipants') === '30',
-    href: buildFilterUrl({ maxParticipants: 30 }),
+    href: buildFilterUrl({ maxParticipants: 30, searchParams: params, currentPath: Astro.url.pathname }),
   },
   {
     name: '31–80',
     count: participantRangeCounts.range31_80,
     isSelected: params.get('minParticipants') === '31' && params.get('maxParticipants') === '80',
-    href: buildFilterUrl({ minParticipants: 31, maxParticipants: 80 }),
+    href: buildFilterUrl({
+      minParticipants: 31,
+      maxParticipants: 80,
+      searchParams: params,
+      currentPath: Astro.url.pathname,
+    }),
   },
   {
     name: '81–150',
     count: participantRangeCounts.range81_150,
     isSelected: params.get('minParticipants') === '81' && params.get('maxParticipants') === '150',
-    href: buildFilterUrl({ minParticipants: 81, maxParticipants: 150 }),
+    href: buildFilterUrl({
+      minParticipants: 81,
+      maxParticipants: 150,
+      searchParams: params,
+      currentPath: Astro.url.pathname,
+    }),
   },
   {
     name: '150+',
     count: participantRangeCounts.range150plus,
     isSelected: params.get('minParticipants') === '150',
-    href: buildFilterUrl({ minParticipants: 150 }),
+    href: buildFilterUrl({ minParticipants: 150, searchParams: params, currentPath: Astro.url.pathname }),
   },
 ].filter((item) => item.isSelected || item.count > 0)
 
@@ -400,7 +347,7 @@ const activityTypeItems = activityTypes
     name: type.name,
     count: type.count,
     isSelected: params.get('activityType') === type.slug,
-    href: buildFilterUrl({ activityType: type.slug }),
+    href: buildFilterUrl({ activityType: type.slug, searchParams: params, currentPath: Astro.url.pathname }),
   }))
   .filter((item) => item.isSelected || item.count > 0)
 
@@ -438,7 +385,7 @@ const durationItems = [
         name: `${item.hours} ${getHourForm(item.hours, lang)}`,
         count: item.count,
         isSelected,
-        href: buildFilterUrl({ duration: item.hours }),
+        href: buildFilterUrl({ duration: item.hours, searchParams: params, currentPath: Astro.url.pathname }),
       }
     }),
   // Add full day option at the end if there are any full day activities
@@ -448,7 +395,7 @@ const durationItems = [
           name: t.fullDay,
           count: durationCounts.fullDay,
           isSelected: params.get('duration') === '24',
-          href: buildFilterUrl({ duration: 24 }),
+          href: buildFilterUrl({ duration: 24, searchParams: params, currentPath: Astro.url.pathname }),
         },
       ]
     : []),
@@ -480,45 +427,6 @@ const sidebarDurationItems = [
       ]
     : []),
 ].filter((item) => item.isSelected || item.count > 0)
-
-// Create items for sorting dropdown
-const isSearchMode = Astro.url.searchParams.has('search')
-const sortingItems = [
-  ...(isSearchMode
-    ? [
-        {
-          name: t.sort.relevance,
-          count: totalActivitiesByCategory,
-          isSelected: !params.get('order') || params.get('order') === 'searchMatching',
-          href: buildFilterUrl({ order: 'searchMatching' }),
-        },
-      ]
-    : []),
-  {
-    name: t.sort.popularity,
-    count: totalActivitiesByCategory,
-    isSelected: (!isSearchMode && !params.get('order')) || params.get('order') === 'popularity',
-    href: buildFilterUrl({ order: 'popularity' }),
-  },
-  {
-    name: t.sort.newest,
-    count: totalActivitiesByCategory,
-    isSelected: params.get('order') === 'newest',
-    href: buildFilterUrl({ order: 'newest' }),
-  },
-  {
-    name: t.sort.priceDesc,
-    count: totalActivitiesByCategory,
-    isSelected: params.get('order') === 'priceDesc',
-    href: buildFilterUrl({ order: 'priceDesc' }),
-  },
-  {
-    name: t.sort.priceAsc,
-    count: totalActivitiesByCategory,
-    isSelected: params.get('order') === 'priceAsc',
-    href: buildFilterUrl({ order: 'priceAsc' }),
-  },
-]
 
 const slugBase = Astro.params.category ? `${t.pathPrefix}/${currentCategory}` : `${t.pathPrefixDefault}`
 
@@ -571,7 +479,7 @@ const getActivitiesCount = () => {
         </path>
       </svg>
     </button>
-    <Dropdown heading={t.sortLabel} items={sortingItems} params={['order']} isSortingDropdown />
+    <Dropdown isSortingDropdown />
     <p class="count">
       {t.found}&nbsp;
       <strong>

@@ -76,7 +76,7 @@ export async function fetchData(lang: Language, pageNumber: number, searchParams
 
   const orderClause = getOrderClause(filters.order, !!searchQuery)
 
-  const data = searchQuery ? await fetchEmbeddings(searchQuery) : null
+  const data = searchQuery ? await fetchEmbeddings(searchQuery, 'activities') : null
 
   const page = await sanityFetch<SearchPageProps | RegularPageProps>({
     query: `

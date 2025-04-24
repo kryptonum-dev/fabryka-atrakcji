@@ -85,3 +85,11 @@ export const API_VERSION: string = '2024-10-15'
  * @type {string}
  */
 export const ACTIVITIES_INDEX_NAME: string = 'activities-index'
+
+/**
+ * Global declaration of the hotels index name for Sanity Embeddings.
+ * This constant is used for searching hotels using embeddings.
+ * @constant
+ * @type {string}
+ */
+export const HOTELS_INDEX_NAME: string = 'hotels-index'

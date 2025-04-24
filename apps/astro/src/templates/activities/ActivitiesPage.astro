@@ -17,8 +17,6 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentCategory: string | null
 }
 
-export type OrderType = 'popularity' | 'newest' | 'priceDesc' | 'priceAsc' | 'searchMatching'
-
 export async function fetchData(
   lang: Language,
   category: string | null,

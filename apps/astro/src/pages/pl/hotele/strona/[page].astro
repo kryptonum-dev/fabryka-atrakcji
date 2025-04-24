@@ -1,0 +1,12 @@
+---
+import HotelsListing, { fetchData, staticPaths } from '@/src/templates/hotels/HotelsPage.astro'
+
+const page = parseInt(Astro.params.page || '1')
+const data = await fetchData('pl', page, Astro.url.searchParams)
+
+if (!data) return Astro.rewrite('/pl/404')
+
+export const getStaticPaths = () => staticPaths('pl')
+---
+
+<HotelsListing {...data} currentPage={page} />

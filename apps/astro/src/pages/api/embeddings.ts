@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { ACTIVITIES_INDEX_NAME, DATASET } from '@/global/constants'
+import { ACTIVITIES_INDEX_NAME, HOTELS_INDEX_NAME, DATASET } from '@/global/constants'
 
 type EmbeddingResults = {
   score: number
@@ -11,12 +11,21 @@ type EmbeddingResults = {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { searchQuery } = await request.json()
+    const { searchQuery, type } = await request.json()
 
     if (!searchQuery) {
       return new Response(
         JSON.stringify({
           error: 'Search query is required',
+        }),
+        { status: 400 }
+      )
+    }
+
+    if (!type || !['activities', 'hotels'].includes(type)) {
+      return new Response(
+        JSON.stringify({
+          error: 'Valid type (activities or hotels) is required',
         }),
         { status: 400 }
       )
@@ -34,8 +43,11 @@ export const POST: APIRoute = async ({ request }) => {
       )
     }
 
+    const indexName = type === 'activities' ? ACTIVITIES_INDEX_NAME : HOTELS_INDEX_NAME
+    const collectionType = type === 'activities' ? 'Activities_Collection' : 'Hotels_Collection'
+
     const response = await fetch(
-      `https://${projectId}.api.sanity.io/vX/embeddings-index/query/${DATASET}/${ACTIVITIES_INDEX_NAME}`,
+      `https://${projectId}.api.sanity.io/vX/embeddings-index/query/${DATASET}/${indexName}`,
       {
         method: 'POST',
         headers: {
@@ -46,7 +58,7 @@ export const POST: APIRoute = async ({ request }) => {
         body: JSON.stringify({
           query: searchQuery,
           filter: {
-            _type: ['Activities_Collection'],
+            _type: [collectionType],
           },
         }),
       }
