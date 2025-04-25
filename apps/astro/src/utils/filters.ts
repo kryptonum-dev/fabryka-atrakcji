@@ -113,14 +113,18 @@ export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
   }
 }
 
-export const getOrderClause = (order: OrderType | null, isSearchMode = false): string => {
+export const getOrderClause = (
+  order: OrderType | null,
+  isSearchMode = false,
+  type: 'activities' | 'hotels' = 'activities'
+): string => {
   switch (order) {
     case 'newest':
       return 'coalesce(publishedDate, _createdAt) desc'
     case 'priceDesc':
-      return 'pricing.basePrice desc'
+      return `${type === 'hotels' ? 'pricing.pricePerPerson' : 'pricing.basePrice'} desc`
     case 'priceAsc':
-      return 'pricing.basePrice asc'
+      return `${type === 'hotels' ? 'pricing.pricePerPerson' : 'pricing.basePrice'} asc`
     case 'popularity':
       return 'popularityIndex desc'
     case 'searchMatching':

@@ -9,7 +9,7 @@ import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/hotels/Listing.astro'
 import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
 
-export const ITEMS_PER_PAGE = 12
+export const ITEMS_PER_PAGE = 16
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
@@ -27,7 +27,7 @@ export async function fetchData(lang: Language, pageNumber: number, searchParams
     filters.order = 'searchMatching'
   }
 
-  const orderClause = getOrderClause(filters.order, !!searchQuery)
+  const orderClause = getOrderClause(filters.order, !!searchQuery, 'hotels')
   const data = searchQuery ? await fetchEmbeddings(searchQuery, 'hotels') : null
 
   // Get all hotel filters
@@ -122,8 +122,6 @@ const breadcrumbs = [
   { name: page.name, path: page.slug },
   ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
-
-console.log(page.listing)
 ---
 
 <Layout {...metadata}>
