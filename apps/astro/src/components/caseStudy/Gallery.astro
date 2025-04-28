@@ -46,7 +46,8 @@ const { mediaArray, galleryHeading } = Astro.props as Props
         <button
           class="item"
           data-has-video={!!media.youtubeId}
-          aria-label={media.youtubeId ? t.openVideo : t.openImage}>
+          aria-label={media.youtubeId ? t.openVideo : t.openImage}
+        >
           <Image
             {...media.image}
             sizes="(max-width: 28.0625rem) 100vw, (max-width: 56.1875rem) 50vw, (max-width: 85.375rem) 33vw, 450px"
@@ -113,9 +114,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
       }
     }
     .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: repeat(12, 1fr);
+      columns: 3;
       gap: clamp(0.25rem, calc(0.5vw / 0.48), 0.5rem);
 
       &[data-has-many-images='true'] {
@@ -130,90 +129,21 @@ const { mediaArray, galleryHeading } = Astro.props as Props
         position: relative;
         display: block;
         cursor: pointer;
+        margin-bottom: clamp(0.25rem, calc(0.5vw / 0.48), 0.5rem);
+
+        img {
+          transition: transform 250ms var(--easing);
+        }
 
         &:hover {
           img {
-            transform: translate(-50%, -50%) scale(1.1) rotate(3deg);
+            transform: scale(1.1) rotate(3deg);
           }
         }
         &:focus:not(:focus-visible) {
           img {
-            transform: translate(-50%, -50%) scale(1.25) rotate(0deg);
+            transform: scale(1.25) rotate(0deg);
           }
-        }
-
-        img {
-          position: absolute;
-          min-height: 100%;
-          width: 100%;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-          object-fit: cover;
-          transition: transform 250ms var(--easing);
-        }
-
-        &:nth-child(1),
-        &:nth-child(2) {
-          min-height: clamp(389px, calc(448vw / 7.68), 516px);
-        }
-
-        &:nth-child(3),
-        &:nth-child(4),
-        &:nth-child(5) {
-          min-height: clamp(258px, calc(296vw / 7.68), 341px);
-        }
-
-        &:nth-child(6),
-        &:nth-child(7),
-        &:nth-child(8),
-        &:nth-child(9) {
-          min-height: clamp(197px, calc(197vw / 7.68), 227px);
-        }
-
-        &:nth-child(1) {
-          grid-column: 1/2;
-          grid-row: 1/7;
-        }
-
-        &:nth-child(2) {
-          grid-column: 1/2;
-          grid-row: 7/13;
-        }
-
-        &:nth-child(3) {
-          grid-column: 2/3;
-          grid-row: 1/5;
-        }
-
-        &:nth-child(4) {
-          grid-column: 2/3;
-          grid-row: 5/9;
-        }
-
-        &:nth-child(5) {
-          grid-column: 2/3;
-          grid-row: 9/13;
-        }
-
-        &:nth-child(6) {
-          grid-column: 3/4;
-          grid-row: 1/4;
-        }
-
-        &:nth-child(7) {
-          grid-column: 3/4;
-          grid-row: 4/7;
-        }
-
-        &:nth-child(8) {
-          grid-column: 3/4;
-          grid-row: 7/10;
-        }
-
-        &:nth-child(9) {
-          grid-column: 3/4;
-          grid-row: 10/13;
         }
       }
     }
@@ -384,59 +314,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
         text-align: left;
       }
       .grid {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(8, auto);
-
-        &[data-has-many-images='true'] {
-          grid-template-columns: repeat(2, 1fr);
-        }
-
-        .item {
-          &:nth-child(1) {
-            grid-column: 1/2;
-            grid-row: 1/4;
-          }
-
-          &:nth-child(2) {
-            grid-column: 1/2;
-            grid-row: 4/8;
-          }
-
-          &:nth-child(3) {
-            grid-column: 2/3;
-            grid-row: 1/3;
-          }
-
-          &:nth-child(4) {
-            grid-column: 2/3;
-            grid-row: 3/5;
-          }
-
-          &:nth-child(5) {
-            grid-column: 2/3;
-            grid-row: 5/8;
-          }
-
-          &:nth-child(6) {
-            grid-column: 1/2;
-            grid-row: 8/9;
-          }
-
-          &:nth-child(7) {
-            grid-column: 2/3;
-            grid-row: 8/9;
-          }
-
-          &:nth-child(8) {
-            grid-column: 1/2;
-            grid-row: 9/10;
-          }
-
-          &:nth-child(9) {
-            grid-column: 2/3;
-            grid-row: 9/10;
-          }
-        }
+        columns: 2;
       }
 
       .popup {
@@ -451,38 +329,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
 
     @media (max-width: 28.0625rem) {
       .grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(12, auto);
-
-        &[data-has-many-images='true'] {
-          grid-template-columns: 1fr;
-        }
-
-        .item {
-          grid-column: 1/2 !important;
-          grid-row: span 1 !important;
-
-          &:nth-child(1),
-          &:nth-child(2) {
-            min-height: clamp(389px, calc(448vw / 7.68), 516px);
-            aspect-ratio: 328/389;
-          }
-
-          &:nth-child(3),
-          &:nth-child(4),
-          &:nth-child(5) {
-            min-height: clamp(258px, calc(296vw / 7.68), 341px);
-            aspect-ratio: 328/258;
-          }
-
-          &:nth-child(6),
-          &:nth-child(7),
-          &:nth-child(8),
-          &:nth-child(9) {
-            min-height: clamp(197px, calc(197vw / 7.68), 227px);
-            aspect-ratio: 328/197;
-          }
-        }
+        columns: 1;
       }
     }
 
