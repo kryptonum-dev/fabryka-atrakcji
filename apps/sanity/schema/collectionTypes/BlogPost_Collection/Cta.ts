@@ -35,6 +35,7 @@ export default defineField({
         list: [
           { title: 'Integracje', value: 'activities' },
           { title: 'Realizacje', value: 'caseStudies' },
+          { title: 'Hotele', value: 'hotels' },
         ],
         layout: 'radio',
         direction: 'horizontal',
@@ -116,6 +117,43 @@ export default defineField({
           return true
         }),
     }),
+    defineField({
+      name: 'hotels',
+      type: 'array',
+      title: 'Wyróżnione hotele',
+      hidden: ({ parent }) => parent?.highlightType !== 'hotels',
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'Hotels_Collection' }],
+          options: {
+            disableNew: true,
+            filter: ({ parent, document }) => {
+              const language = (document as { language?: string })?.language
+              const selectedIds =
+                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
+              return {
+                filter: '!(_id in $selectedIds) && !(_id in path("drafts.**")) && language == $lang',
+                params: { selectedIds, lang: language },
+              }
+            },
+          },
+        },
+      ],
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          const parent = context.parent as { highlightType?: string }
+          if (parent?.highlightType === 'hotels') {
+            if (!value || value.length === 0) {
+              return 'Musisz wybrać co najmniej 1 hotel'
+            }
+            if (value.length > 2) {
+              return 'Możesz wybrać maksymalnie 2 hotele'
+            }
+          }
+          return true
+        }),
+    }),
   ],
   preview: {
     select: {
@@ -123,7 +161,8 @@ export default defineField({
       highlightType: 'highlightType',
     },
     prepare({ heading, highlightType }) {
-      const typeLabel = highlightType === 'activities' ? 'Integracje' : 'Realizacje'
+      const typeLabel =
+        highlightType === 'activities' ? 'Integracje' : highlightType === 'caseStudies' ? 'Realizacje' : 'Hotele'
       return {
         title: `${title} [${typeLabel}]`,
         subtitle: toPlainText(heading),

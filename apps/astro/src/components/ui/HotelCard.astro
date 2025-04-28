@@ -58,7 +58,7 @@ const translations = {
     },
     maxPeople: {
       max: 'Maks.',
-      people: 'Osób',
+      people: 'osób',
     },
     button: 'Sprawdź hotel',
   },
@@ -188,7 +188,7 @@ const getVoivodeship = (voivodeship: string) => {
 
 <style lang="scss">
   .HotelCard {
-    $card-breakpoint: 69.3125rem;
+    $background-color: red;
     border-radius: 0.75rem;
     overflow: hidden;
     padding: 1px;
@@ -381,7 +381,7 @@ const getVoivodeship = (voivodeship: string) => {
       }
     }
 
-    @media (max-width: $card-breakpoint) {
+    @media (max-width: 69.3125rem) {
       .wrapper {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;

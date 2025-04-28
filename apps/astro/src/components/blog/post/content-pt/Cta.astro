@@ -5,6 +5,7 @@ import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '@/src/c
 import Image from '@/src/components/ui/image'
 import Button from '@/src/components/ui/Button'
 import type { Language } from '@/src/global/languages'
+import HotelCard, { HotelCardQuery, type HotelCardProps } from '@/src/components/ui/HotelCard.astro'
 
 const lang = (Astro.params.lang as Language) || 'pl'
 
@@ -39,6 +40,9 @@ export const Cta_Query = `
     },
     activities[]->{
       ${ActivityCardQuery}
+    },
+    hotels[]->{
+      ${HotelCardQuery}
     }
   },
 `
@@ -47,15 +51,21 @@ type Props = {
   node: {
     heading: PortableTextValue
     paragraph: PortableTextValue
-    highlightType: 'caseStudies' | 'activities'
+    highlightType: 'caseStudies' | 'activities' | 'hotels'
     caseStudies?: CaseStudyCardProps[]
     activities?: ActivityCardProps[]
+    hotels?: HotelCardProps[]
   }
 }
 
 const { node } = Astro.props
 
-const highlightLenght = node.highlightType === 'activities' ? node.activities?.length : node.caseStudies?.length
+const highlightLenght =
+  node.highlightType === 'activities'
+    ? node.activities?.length
+    : node.highlightType === 'hotels'
+      ? node.hotels?.length
+      : node.caseStudies?.length
 ---
 
 <div class="Cta" data-highlight-length={highlightLenght} data-highlight-type={node.highlightType}>
@@ -95,6 +105,7 @@ const highlightLenght = node.highlightType === 'activities' ? node.activities?.l
           </ActivityCard>
         ))
     }
+    {node.highlightType === 'hotels' && node.hotels?.map((item) => <HotelCard {...item} />)}
   </div>
   <Button
     theme="secondary"
@@ -104,7 +115,15 @@ const highlightLenght = node.highlightType === 'activities' ? node.activities?.l
         ? t.activitiesUrl
         : t.hotelsUrl}
   >
-    {t[node.highlightType === 'caseStudies' ? 'allCaseStudies' : 'allActivities']}
+    {
+      t[
+        node.highlightType === 'caseStudies'
+          ? 'allCaseStudies'
+          : node.highlightType === 'activities'
+            ? 'allActivities'
+            : 'allHotels'
+      ]
+    }
   </Button>
   {
     node.highlightType === 'activities' && highlightLenght === 1 && (
@@ -376,6 +395,86 @@ const highlightLenght = node.highlightType === 'activities' ? node.activities?.l
       }
     }
 
+    &[data-highlight-type='hotels'] {
+      .list {
+        :global(.HotelCard) {
+          :global(.wrapper) {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr;
+            padding: 0;
+            gap: 0;
+            align-items: start;
+            &::before {
+              display: none;
+            }
+
+            :global(.img-box) {
+              position: relative;
+              grid-column: 1/2;
+              grid-row: 1/2;
+              margin: 1px 1px 0;
+              overflow: hidden;
+              border-radius: 0.62rem 0.62rem 0 0;
+              img {
+                width: 100%;
+                height: auto;
+                transition: transform 400ms var(--easing);
+              }
+              .stars-mobile {
+                display: flex;
+              }
+            }
+
+            :global(.content) {
+              padding: 1rem;
+              grid-column: 1/2;
+              grid-row: 2/3;
+              height: 100%;
+
+              :global(.upper-row) {
+                margin-bottom: 1rem;
+
+                :global(.stars) {
+                  :global(svg) {
+                    width: 1.125rem;
+                    height: 1.125rem;
+                  }
+                }
+              }
+              :global(.details) {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+                margin-bottom: 1rem;
+              }
+
+              :global(a) {
+                max-width: 100%;
+                margin-top: auto;
+                width: 100%;
+
+                :global(span) {
+                  margin: 0 auto;
+                  padding-right: 1.75rem;
+                }
+              }
+            }
+          }
+          &:has(.wrapper .background:hover),
+          &:has(.wrapper .content > a:hover) {
+            & .wrapper::before {
+              opacity: 1;
+              transform: scaleY(1);
+              transition: transform 400ms var(--easing);
+            }
+            .img-box img {
+              transform: scale(1.15) rotate(3deg);
+            }
+          }
+        }
+      }
+    }
+
     > svg {
       position: absolute;
       z-index: -1;
@@ -414,6 +513,29 @@ const highlightLenght = node.highlightType === 'activities' ? node.activities?.l
       }
     }
 
+    @media (max-width: 519px) {
+      &[data-highlight-type='hotels'][data-highlight-length='1'] {
+        grid-template-columns: 1fr;
+        .header {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+          :global(.paragraph) {
+            margin-bottom: 0;
+          }
+        }
+
+        .list {
+          grid-column: 1 / 2;
+          grid-row: 3 / 4;
+        }
+
+        :global(a) {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+        }
+      }
+    }
+
     @media (max-width: 499px) {
       &[data-highlight-type='activities'][data-highlight-length='1'] {
         grid-template-columns: 1fr;
@@ -440,6 +562,12 @@ const highlightLenght = node.highlightType === 'activities' ? node.activities?.l
           grid-template-columns: 1fr;
           width: 100%;
         }
+      }
+    }
+
+    @media (max-width: 479px) {
+      &[data-highlight-type='hotels'][data-highlight-length='2'] .list {
+        grid-template-columns: 1fr;
       }
     }
 
