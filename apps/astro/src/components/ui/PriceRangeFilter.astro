@@ -1,0 +1,435 @@
+---
+import { getLangFromPath, type Language } from '@/global/languages'
+
+type Props = {
+  heading: string
+  minPrice: number
+  maxPrice: number
+  currentMin?: number
+  currentMax?: number
+}
+
+const { heading, minPrice, maxPrice, currentMin, currentMax } = Astro.props
+
+// Check if price filter should be disabled (no min/max price or they are equal)
+const isDisabled = !minPrice || !maxPrice || minPrice === maxPrice
+
+// Ensure values are properly bounded by the min/max from Sanity
+let safeCurrentMin = currentMin ?? minPrice
+let safeCurrentMax = currentMax ?? maxPrice
+
+// Check if we have custom values set from URL parameters (different from defaults)
+const hasCustomValues = (currentMin && currentMin !== minPrice) || (currentMax && currentMax !== maxPrice)
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+const translations = {
+  pl: {
+    min: 'od',
+    max: 'do',
+    currency: 'zł',
+    error: {
+      range: 'Wartość minimalna nie może być większa od maksymalnej',
+      bounds: 'Wartości muszą być w zakresie od {min} do {max} PLN',
+      invalid: 'Proszę wprowadzić prawidłową liczbę całkowitą',
+    },
+  },
+  en: {
+    min: 'from',
+    max: 'to',
+    currency: 'PLN',
+    error: {
+      range: 'Minimum value cannot be greater than maximum',
+      bounds: 'Values must be between {min} and {max} PLN',
+      invalid: 'Please enter a valid integer number',
+    },
+  },
+}
+
+const t = translations[lang]
+---
+
+<details
+  class="filter-group price-range-filter"
+  data-min={minPrice}
+  data-max={maxPrice}
+  data-param-name-min="minPrice"
+  data-param-name-max="maxPrice"
+  data-has-selection={hasCustomValues ? hasCustomValues.toString() : 'false'}
+  data-disabled={isDisabled.toString()}
+  data-error-range={t.error.range}
+  data-error-bounds={t.error.bounds
+    .replace('{min}', minPrice?.toString() ?? '')
+    .replace('{max}', maxPrice?.toString() ?? '')}
+  data-error-invalid={t.error.invalid}
+  open
+>
+  <summary>
+    <span>{heading}</span>
+    {
+      hasCustomValues && (
+        <button class="selected-value" type="button">
+          <span>
+            {safeCurrentMin} - {safeCurrentMax} {t.currency}
+          </span>
+          <div class="clear-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e" />
+              <path
+                d="M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836"
+                stroke="#74535e"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+        </button>
+      )
+    }
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
+        ></path>
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
+        ></path>
+      </svg>
+    </div>
+  </summary>
+
+  <div class="filter-content">
+    <div class="wrapper">
+      <div class="range-container">
+        <div class="slider-track"></div>
+        <div class="slider-range"></div>
+        <input
+          type="range"
+          class="price-range min-range"
+          min={minPrice}
+          max={maxPrice}
+          step="10"
+          value={safeCurrentMin}
+        />
+        <input
+          type="range"
+          class="price-range max-range"
+          min={minPrice}
+          max={maxPrice}
+          step="10"
+          value={safeCurrentMax}
+        />
+      </div>
+
+      <div class="inputs-container">
+        <div class="input-group">
+          <label>{t.min}</label>
+          <div class="input-wrapper">
+            <input type="number" class="price-input min-price" min={minPrice} max={maxPrice} value={safeCurrentMin} />
+            <span class="currency">{t.currency}</span>
+          </div>
+        </div>
+
+        <span class="separator">-</span>
+
+        <div class="input-group">
+          <label>{t.max}</label>
+          <div class="input-wrapper">
+            <input type="number" class="price-input max-price" min={minPrice} max={maxPrice} value={safeCurrentMax} />
+            <span class="currency">{t.currency}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-message" aria-live="polite"></div>
+    </div>
+  </div>
+</details>
+
+<style lang="scss">
+  .filter-group.price-range-filter {
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--neutral-500);
+    border-radius: 0.25rem;
+    overflow: hidden;
+    background-color: var(--neutral-100);
+    color: var(--primary-800);
+    transition: border-color 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+
+    &[data-disabled='true'] {
+      summary {
+        cursor: default;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .selected-value {
+        opacity: 0.7;
+        pointer-events: none;
+        cursor: default;
+      }
+    }
+
+    &[data-has-selection='true'] {
+      border-color: var(--neutral-300);
+
+      summary {
+        background-color: var(--neutral-200);
+      }
+    }
+
+    summary {
+      padding: 0 0.625rem;
+      min-height: 2.5rem;
+      font-size: var(--typography-body-m);
+      cursor: pointer;
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      gap: 0.5rem;
+      transition: background-color 250ms var(--easing);
+
+      > span {
+        flex-shrink: 0;
+      }
+
+      .selected-value {
+        margin-right: auto;
+        font-size: var(--typography-body-s);
+        padding: 0.1875rem 0.25rem;
+        background-color: var(--neutral-300);
+        border-radius: 0.25rem;
+        border: 1px solid var(--neutral-500);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-800);
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        max-width: 12.5rem;
+        cursor: pointer;
+        transition:
+          opacity 300ms var(--easing),
+          transform 300ms var(--easing);
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .clear-icon {
+          position: absolute;
+          inset: 0;
+          background-color: var(--neutral-300);
+          display: grid;
+          place-items: center;
+          opacity: 0;
+          transition: opacity 150ms;
+        }
+
+        svg {
+          transform: scale(0.6) rotate(180deg);
+          transition: transform 250ms var(--easing);
+        }
+
+        &:hover {
+          .clear-icon {
+            opacity: 1;
+
+            svg {
+              transform: scale(1) rotate(0deg);
+            }
+          }
+        }
+      }
+
+      .icon {
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+
+        svg {
+          transition: transform 300ms var(--easing);
+          &:nth-of-type(1) {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: rotate(180deg) translate(50%, 150%);
+          }
+
+          &:nth-of-type(2) {
+            transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
+          }
+        }
+      }
+    }
+
+    .wrapper {
+      padding: 0.75rem 0.625rem 1rem;
+    }
+
+    .range-container {
+      position: relative;
+      height: 2.75rem;
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+
+      .slider-track {
+        position: absolute;
+        width: 100%;
+        height: 0.125rem;
+        background: var(--neutral-300);
+        border-radius: 0.125rem;
+        z-index: 1;
+      }
+
+      .slider-range {
+        position: absolute;
+        height: 0.125rem;
+        background: var(--primary-500);
+        border-radius: 0.125rem;
+        z-index: 2;
+      }
+
+      input[type='range'] {
+        position: absolute;
+        width: 100%;
+        pointer-events: none;
+        appearance: none;
+        height: 0.125rem;
+        background: none;
+        z-index: 3;
+
+        &::-webkit-slider-thumb {
+          pointer-events: auto;
+          appearance: none;
+          width: 1rem;
+          height: 1rem;
+          background-color: var(--primary-500);
+          border-radius: 50%;
+          cursor: pointer;
+          transition:
+            background-color 150ms,
+            transform 200ms var(--easing);
+
+          &:hover {
+            transform: scale(1.1);
+            background-color: var(--primary-700);
+          }
+        }
+
+        &::-moz-range-thumb {
+          pointer-events: auto;
+          appearance: none;
+          width: 1rem;
+          height: 1rem;
+          background-color: var(--primary-500);
+          border-radius: 50%;
+          cursor: pointer;
+          transition:
+            background-color 150ms,
+            transform 200ms var(--easing);
+
+          &:hover {
+            transform: scale(1.1);
+            background-color: var(--primary-700);
+          }
+        }
+      }
+    }
+
+    .inputs-container {
+      display: flex;
+      gap: 0.375rem;
+      justify-content: space-between;
+      align-items: center;
+
+      .separator {
+        align-self: flex-end;
+        margin-bottom: 0.55rem;
+      }
+
+      .input-group {
+        flex: 1;
+
+        label {
+          font-size: var(--typography-body-s);
+          line-height: 1.6;
+          letter-spacing: -0.01em;
+          margin-bottom: 0.125rem;
+          display: block;
+        }
+
+        .input-wrapper {
+          position: relative;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: center;
+          background-color: var(--neutral-100);
+          border: 1px solid var(--neutral-500);
+          border-radius: 0.25rem;
+          min-height: 2.5rem;
+
+          input {
+            width: 100%;
+            padding: 0 0.625rem;
+            color: var(--primary-800);
+            background: none;
+            border: none;
+
+            &:focus {
+              outline: none;
+            }
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+              position: relative;
+              transform: translateX(2rem);
+            }
+          }
+
+          .currency {
+            pointer-events: none;
+            color: var(--primary-400);
+            letter-spacing: -0.01em;
+            width: 2.5rem;
+            height: 2.25rem;
+            display: grid;
+            place-content: center;
+            border-left: 1px solid var(--neutral-500);
+          }
+        }
+      }
+    }
+
+    .error-message {
+      color: var(--error-500);
+      text-align: center;
+      font-size: var(--typography-body-s);
+      min-height: 1.5rem;
+      display: none;
+      margin-top: 0.5rem;
+
+      &:not(:empty) {
+        display: block;
+      }
+    }
+
+    &[data-expanded='true'] {
+      summary {
+        .icon {
+          svg {
+            &:nth-of-type(1) {
+              transform: rotate(180deg) translate(50%, 50%);
+            }
+            &:nth-of-type(2) {
+              transform: translateY(100%);
+            }
+          }
+        }
+      }
+    }
+  }
+</style>

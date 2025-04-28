@@ -7,17 +7,20 @@ import HotelCard, { HotelCardQuery } from '../ui/HotelCard.astro'
 import Pagination from '../ui/Pagination.astro'
 import { ITEMS_PER_PAGE } from '@/src/templates/hotels/HotelsPage.astro'
 import Button from '../ui/Button'
+import SelectFilter from '../ui/SelectFilter.astro'
 
 type LocationOption = {
   _id: string
   name: string
   count: number
+  slug: string
 }
 
 type AmenityOption = {
   _id: string
   name: string
   count: number
+  slug: string
 }
 
 type HotelItem = {
@@ -54,6 +57,13 @@ type Props = {
   roomsRange: { min: number; max: number }
   priceRange: { min: number; max: number }
   checklist: string[]
+  stars: { stars: number; count: number }[]
+  roomRangeCounts: {
+    range1_50: number
+    range51_80: number
+    range81_150: number
+    range150plus: number
+  }
 }
 
 export type ListingProps = Props
@@ -92,6 +102,9 @@ const translations = {
     foundHotelsSingle: 'hotel',
     foundHotelsMultipleLow: 'hotele',
     foundHotelsMultipleHigh: 'hoteli',
+    filtersHeading: 'Filtry',
+    apply: 'Zastosuj filtry',
+    clear: 'Wyczyść filtry',
   },
   en: {
     pathPrefix: '/en/hotels',
@@ -124,10 +137,24 @@ const translations = {
     foundHotelsSingle: 'hotel',
     foundHotelsMultipleLow: 'hotels',
     foundHotelsMultipleHigh: 'hotels',
+    filtersHeading: 'Filters',
+    apply: 'Apply filters',
+    clear: 'Clear filters',
   },
 }
 
 const t = translations[lang]
+
+// Define Star SVG template at the top level
+const starSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <mask id="path-1-inside-1_6107_29788" fill="white">
+            <path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/>
+          </mask>
+          <g clip-path="url(#paint0_angular_6107_29788_clip_path)" data-figma-skip-parse="true"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}"/>
+          <g clip-path="url(#paint1_angular_6107_29788_clip_path)" data-figma-skip-parse="true" mask="url(#path-1-inside-1_6107_29788)"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}" mask="url(#path-1-inside-1_6107_29788)"/>
+          <defs>
+            <clipPath id="paint0_angular_6107_29788_clip_path"><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/></clipPath><clipPath id="paint1_angular_6107_29788_clip_path"><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" mask="url(#path-1-inside-1_6107_29788)"/></clipPath></defs>
+            </svg>`
 
 export const Listing_Query = (orderClause: string) => {
   console.log(orderClause)
@@ -205,6 +232,7 @@ export const Listing_Query = (orderClause: string) => {
     "locations": *[_type == 'Locations_Collection' && language == $language] {
       _id,
       name,
+      "slug": slug.current,
       "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
         location: false,
         amenities: true,
@@ -216,6 +244,7 @@ export const Listing_Query = (orderClause: string) => {
     "amenities": *[_type == 'Amenities_Collection' && language == $language] {
       _id,
       name,
+      "slug": slug.current,
       "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
         location: true,
         amenities: false,
@@ -223,6 +252,36 @@ export const Listing_Query = (orderClause: string) => {
         rooms: true,
         price: true,
       })} && references(^._id)])
+    },
+    "roomRangeCounts": {
+      "range1_50": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms <= 50]),
+      "range51_80": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms >= 51 && numberOfRooms <= 80]),
+      "range81_150": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms >= 81 && numberOfRooms <= 150]),
+      "range150plus": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms >= 150])
     },
     "roomsRange": {
       "min": *[_type == 'Hotels_Collection' ${createBaseFilter({
@@ -270,7 +329,90 @@ export const Listing_Query = (orderClause: string) => {
   `
 }
 
-const { heading, paragraph, checklist, totalItems, listing, currentPage } = Astro.props
+const {
+  heading,
+  paragraph,
+  checklist,
+  totalItems,
+  listing,
+  currentPage,
+  locations,
+  amenities,
+  stars,
+  roomRangeCounts,
+} = Astro.props
+
+const params = Astro.url.searchParams
+
+const roomsRangeItems = [
+  {
+    name: '1–50',
+    count: roomRangeCounts.range1_50,
+    isSelected: params.get('maxRooms') === '50' && !params.get('minRooms'),
+    value: '1-50',
+  },
+  {
+    name: '51–80',
+    count: roomRangeCounts.range51_80,
+    isSelected: params.get('minRooms') === '51' && params.get('maxRooms') === '80',
+    value: '51-80',
+  },
+  {
+    name: '81–150',
+    count: roomRangeCounts.range81_150,
+    isSelected: params.get('minRooms') === '81' && params.get('maxRooms') === '150',
+    value: '81-150',
+  },
+  {
+    name: '150+',
+    count: roomRangeCounts.range150plus,
+    isSelected: params.get('minRooms') === '150' && !params.get('maxRooms'),
+    value: '150-',
+  },
+].filter((item) => item.isSelected || item.count > 0)
+
+const locationItems = locations.map((location) => ({
+  name: location.name,
+  count: location.count,
+  isSelected: location.slug === params.get('location'),
+  value: location.slug,
+}))
+
+// Process amenities to handle both comma-separated values and multiple parameters
+const amenitiesParam = params.get('amenities')
+let amenitiesValues: string[] = []
+
+if (amenitiesParam) {
+  // If it's a single comma-separated value
+  amenitiesValues = amenitiesParam.split(',')
+} else {
+  // If there are multiple parameters with the same name
+  amenitiesValues = params.getAll('amenities')
+}
+
+const amenitiesItems = amenities
+  .map((amenity) => ({
+    name: amenity.name,
+    count: amenity.count,
+    isSelected: amenitiesValues.includes(amenity.slug),
+    value: amenity.slug,
+  }))
+  .sort((a, b) => {
+    // First sort by selection status (selected items first)
+    if (a.isSelected && !b.isSelected) return -1
+    if (!a.isSelected && b.isSelected) return 1
+    // Then sort by count (higher count first)
+    return b.count - a.count
+  })
+
+const starsItems = stars
+  .map((starData) => ({
+    name: `<span class="stars-row">${Array(starData.stars).fill(starSVG).join('')}</span>`,
+    count: starData.count,
+    value: starData.stars.toString(),
+    isSelected: params.get('stars') === starData.stars.toString(),
+  }))
+  .sort((a, b) => parseInt(b.value) - parseInt(a.value)) // Sort by descending star count
 
 const getHotelsCount = () => {
   if (totalItems % 10 >= 2 && totalItems % 10 <= 4 && (totalItems % 100 < 12 || totalItems % 100 > 14)) {
@@ -283,6 +425,22 @@ const getHotelsCount = () => {
 
   return t.foundHotelsMultipleHigh
 }
+
+// Get current filters from URL
+const currentFilters = {
+  location: Astro.url.searchParams.get('location'),
+  stars: Astro.url.searchParams.get('stars'),
+  minRooms: Astro.url.searchParams.has('minRooms') ? parseInt(Astro.url.searchParams.get('minRooms') || '') : undefined,
+  maxRooms: Astro.url.searchParams.has('maxRooms') ? parseInt(Astro.url.searchParams.get('maxRooms') || '') : undefined,
+  amenities: Astro.url.searchParams.getAll('amenities'),
+  minPrice: Astro.url.searchParams.has('minPrice') ? parseInt(Astro.url.searchParams.get('minPrice') || '') : undefined,
+  maxPrice: Astro.url.searchParams.has('maxPrice') ? parseInt(Astro.url.searchParams.get('maxPrice') || '') : undefined,
+}
+
+// Check if we have any active filters
+const hasActiveFilters = Object.values(currentFilters).some(
+  (value) => value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : true)
+)
 ---
 
 <section class="Listing">
@@ -308,7 +466,28 @@ const getHotelsCount = () => {
     </ul>
   </header>
   <div class="wrapper max-width">
-    <div class="filters"></div>
+    <div class="filters">
+      <header>
+        <strong>{t.filtersHeading}</strong>
+      </header>
+      <div class="filters-content">
+        <SelectFilter heading={t.filters.location} items={locationItems} paramName="location" />
+        <SelectFilter heading={t.filters.stars} items={starsItems} paramName="stars" allowHtmlName />
+        <SelectFilter heading={t.filters.rooms} items={roomsRangeItems} paramName="rooms" />
+        <SelectFilter heading={t.filters.amenities} items={amenitiesItems} paramName="amenities" isMulti />
+      </div>
+
+      <div class="filter-actions">
+        <button class="apply-filters" type="button" disabled>{t.apply || 'Zastosuj filtry'}</button>
+        {
+          hasActiveFilters && (
+            <button class="clear-filters" type="button">
+              {t.clear || 'Wyczyść filtry'}
+            </button>
+          )
+        }
+      </div>
+    </div>
     <div class="box">
       <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
       <Dropdown isSortingDropdown />
@@ -409,14 +588,86 @@ const getHotelsCount = () => {
     .wrapper {
       padding: 3rem 0;
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: 20.4375rem 1fr;
       gap: 2rem;
 
       .filters {
-        width: 20.4375rem;
-        background: var(--neutral-100, #faf7f7);
+        width: 100%;
+        background: var(--neutral-100);
         border-radius: 0.5rem;
-        min-height: 50rem;
+        display: flex;
+        flex-direction: column;
+
+        header {
+          padding: 1rem;
+          border-bottom: 2px solid var(--neutral-200, #f5f1ec);
+          color: var(--primary-800, #45051c);
+          font-weight: 700;
+          letter-spacing: -0.03em;
+        }
+
+        .filters-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+
+          :global(.stars-row) {
+            display: flex;
+            align-items: center;
+            gap: 0.125rem;
+
+            svg {
+              width: 0.875rem;
+              height: 0.875rem;
+            }
+          }
+        }
+
+        .filter-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+
+          .apply-filters {
+            background: var(--primary-800);
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            font-size: var(--typography-body-m);
+            cursor: pointer;
+            transition: background-color 250ms var(--easing);
+            display: none;
+
+            &:hover:not(:disabled) {
+              background: var(--primary-900);
+            }
+
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
+
+            &.visible {
+              display: block;
+            }
+          }
+
+          .clear-filters {
+            background: transparent;
+            color: var(--primary-800);
+            border: 1px solid var(--neutral-500);
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            font-size: var(--typography-body-m);
+            cursor: pointer;
+            transition: background-color 250ms var(--easing);
+
+            &:hover {
+              background: var(--neutral-200);
+            }
+          }
+        }
       }
 
       .box {
@@ -618,3 +869,292 @@ const getHotelsCount = () => {
     }
   }
 </style>
+
+<script>
+  // Track filter changes
+  type FilterValue = string | string[] | null
+  const initialFilters: Record<string, FilterValue> = {}
+  const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')
+  const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')
+
+  // Store the initial URL state
+  const initialUrlState = {
+    location: new URLSearchParams(window.location.search).get('location'),
+    stars: new URLSearchParams(window.location.search).get('stars'),
+    rooms: (() => {
+      const params = new URLSearchParams(window.location.search)
+      const minRooms = params.get('minRooms')
+      const maxRooms = params.get('maxRooms')
+
+      if (minRooms === '1' && maxRooms === '50') return '1-50'
+      if (minRooms === '51' && maxRooms === '80') return '51-80'
+      if (minRooms === '81' && maxRooms === '150') return '81-150'
+      if (minRooms === '150' && !maxRooms) return '150-'
+      return null
+    })(),
+    amenities: new URLSearchParams(window.location.search).get('amenities')?.split(',') || [],
+  }
+
+  // Custom event types
+  interface FilterChangeEvent extends CustomEvent {
+    detail: {
+      paramName: string
+      value: string
+      checked?: boolean
+    }
+  }
+
+  interface FilterClearEvent extends CustomEvent {
+    detail: {
+      paramName: string
+      secondaryParamName?: string
+    }
+  }
+
+  // Compare current state with initial state to detect changes
+  function checkFiltersChanged() {
+    let changed = false
+
+    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+      const paramName = filterGroup.dataset.paramName
+      if (!paramName) return
+
+      const isMulti = filterGroup.dataset.multi === 'true'
+
+      // Check select filters (both single and multi)
+      if (isMulti) {
+        const selectedValues = new URLSearchParams(window.location.search).get(paramName)?.split(',') || []
+
+        // Compare arrays
+        const initialValues = (initialFilters[paramName] as string[]) || []
+        if (initialValues.length !== selectedValues.length) {
+          changed = true
+        } else {
+          for (const value of selectedValues) {
+            if (!initialValues.includes(value)) {
+              changed = true
+              break
+            }
+          }
+        }
+      } else if (paramName === 'rooms') {
+        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+        const currentValue = selectedInput ? selectedInput.value : null
+
+        // Compare with initial URL state instead of current filter state
+        if (currentValue !== initialUrlState.rooms) {
+          changed = true
+        }
+      } else {
+        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+        const currentValue = selectedInput ? selectedInput.value : null
+
+        // Compare with initial URL state
+        if (currentValue !== initialUrlState[paramName as keyof typeof initialUrlState]) {
+          changed = true
+        }
+      }
+    })
+
+    // Update apply button visibility
+    if (changed && applyButton) {
+      applyButton.classList.add('visible')
+      applyButton.style.display = 'block'
+      applyButton.disabled = false
+    } else if (applyButton) {
+      applyButton.classList.remove('visible')
+      applyButton.style.display = 'none'
+    }
+
+    return changed
+  }
+
+  // Set up filter listeners
+  function setupFilterListeners() {
+    // Listen for filterChange events from SelectFilter component
+    window.addEventListener('filterChange', ((e: FilterChangeEvent) => {
+      // Update our tracking of the changed filter
+      const { paramName, value, checked } = e.detail
+      console.log(paramName, value, checked)
+
+      if (paramName === 'amenities') {
+        // For multi-select filters, handle array management
+        if (!initialFilters[paramName]) {
+          initialFilters[paramName] = []
+        }
+
+        if (Array.isArray(initialFilters[paramName])) {
+          // For multi-select filters, we need to either add or remove the value
+          if (checked === false) {
+            // Remove value if it exists in the array
+            initialFilters[paramName] = (initialFilters[paramName] as string[]).filter((item) => item !== value)
+          } else {
+            // Add if not already present
+            if (!(initialFilters[paramName] as string[]).includes(value)) {
+              ;(initialFilters[paramName] as string[]).push(value)
+            }
+          }
+        }
+      }
+
+      checkFiltersChanged()
+    }) as EventListener)
+
+    // Listen for filterClear events from SelectFilter component
+    window.addEventListener('filterClear', ((e: FilterClearEvent) => {
+      const { paramName } = e.detail
+
+      if (paramName === 'rooms') {
+        // Special handling for room ranges
+        initialFilters[paramName] = null
+      } else if (paramName === 'amenities') {
+        // For multi-select, set to empty array
+        initialFilters[paramName] = []
+      } else {
+        // For single-select, set to null
+        initialFilters[paramName] = null
+      }
+
+      checkFiltersChanged()
+    }) as EventListener)
+
+    // Apply button
+    applyButton?.addEventListener('click', applyFilters)
+
+    // Clear all button
+    clearButton?.addEventListener('click', () => {
+      window.location.href = window.location.pathname
+    })
+  }
+
+  // Apply all filters
+  function applyFilters() {
+    const url = new URL(window.location.href)
+    const params = new URLSearchParams()
+
+    // Collect all filter values
+    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+      const paramName = filterGroup.dataset.paramName
+      if (!paramName) return
+
+      const isMulti = filterGroup.dataset.multi === 'true'
+
+      if (paramName === 'rooms') {
+        // Handle room ranges
+        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+        const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
+        if (selectedInput && wasSelected) {
+          const value = selectedInput.value
+
+          // Parse the room range value (e.g., "1-50", "51-80", "81-150", "150-")
+          const [min, max] = value.split('-')
+
+          // For 1-50 range, only use maxRooms
+          if (min === '1' && max === '50') {
+            params.append('maxRooms', max)
+          } else {
+            // For other ranges, use both min and max
+            if (min) {
+              params.append('minRooms', min)
+            }
+
+            if (max && max !== '') {
+              params.append('maxRooms', max)
+            }
+          }
+        }
+      } else if (isMulti) {
+        // Handle multi-select filters
+        const selectedValues = (initialFilters[paramName] as string[]) || []
+
+        if (selectedValues.length > 0) {
+          // Join values with commas for URL-friendly format
+          params.append(paramName, selectedValues.join(','))
+        }
+      } else {
+        // Handle single-select filters
+        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+        const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
+        if (selectedInput && wasSelected) {
+          params.append(paramName, selectedInput.value)
+        }
+      }
+    })
+
+    // Preserve search parameter if it exists
+    const searchParam = new URLSearchParams(window.location.search).get('search')
+    if (searchParam) {
+      params.append('search', searchParam)
+    }
+
+    // Preserve sort order if it exists
+    const orderParam = new URLSearchParams(window.location.search).get('order')
+    if (orderParam) {
+      params.append('order', orderParam)
+    }
+
+    // Update URL and redirect
+    url.search = params.toString()
+    window.location.href = url.toString()
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // Initialize filters from URL parameters
+    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+      const paramName = filterGroup.dataset.paramName
+      if (!paramName) return
+
+      const isMulti = filterGroup.dataset.multi === 'true'
+
+      if (isMulti) {
+        // Handle multi-select filters (like amenities)
+        const values = initialUrlState.amenities
+        initialFilters[paramName] = values
+
+        // Check each checkbox that matches a value in our array
+        if (values.length > 0) {
+          filterGroup.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
+            input.checked = values.includes(input.value)
+            const label = input.parentElement
+            if (label) {
+              label.setAttribute('data-selected', input.checked.toString())
+            }
+          })
+        }
+      } else if (paramName === 'rooms') {
+        // Handle room ranges
+        const roomValue = initialUrlState.rooms
+        initialFilters[paramName] = roomValue
+
+        if (roomValue) {
+          filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+            const isMatch = input.value === roomValue
+            input.checked = isMatch
+            const label = input.parentElement
+            if (label) {
+              label.setAttribute('data-selected', isMatch.toString())
+            }
+          })
+        }
+      } else {
+        // Handle single-select filters (location and stars)
+        const value = initialUrlState[paramName as keyof typeof initialUrlState]
+        initialFilters[paramName] = value
+
+        if (value) {
+          filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+            const isMatch = input.value === value
+            input.checked = isMatch
+            const label = input.parentElement
+            if (label) {
+              label.setAttribute('data-selected', isMatch.toString())
+            }
+          })
+        }
+      }
+    })
+
+    // Then setup all the listeners
+    setupFilterListeners()
+  })
+</script>
