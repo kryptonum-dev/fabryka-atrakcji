@@ -8,6 +8,7 @@ import Pagination from '../ui/Pagination.astro'
 import { ITEMS_PER_PAGE } from '@/src/templates/hotels/HotelsPage.astro'
 import Button from '../ui/Button'
 import SelectFilter from '../ui/SelectFilter.astro'
+import PriceRangeFilter from '../ui/PriceRangeFilter.astro'
 
 type LocationOption = {
   _id: string
@@ -55,7 +56,7 @@ type Props = {
   locations: LocationOption[]
   amenities: AmenityOption[]
   roomsRange: { min: number; max: number }
-  priceRange: { min: number; max: number }
+  priceRange: { min: number; max: number; minAbs: number; maxAbs: number }
   checklist: string[]
   stars: { stars: number; count: number }[]
   roomRangeCounts: {
@@ -81,7 +82,10 @@ const translations = {
       stars: 'Gwiazdki',
       rooms: 'Liczba pokoi',
       amenities: 'Udogodnienia',
-      price: 'Cena za osobę',
+      price: {
+        heading: 'Budżet na 1 osobę/noc',
+        description: 'Niższa cena przy zakwaterowaniu w pokojach dwuosobowych',
+      },
     },
     sort: {
       popularity: 'Najpopularniejsze',
@@ -105,6 +109,7 @@ const translations = {
     filtersHeading: 'Filtry',
     apply: 'Zastosuj filtry',
     clear: 'Wyczyść filtry',
+    filterButton: 'Filtruj',
   },
   en: {
     pathPrefix: '/en/hotels',
@@ -116,7 +121,10 @@ const translations = {
       stars: 'Stars',
       rooms: 'Number of rooms',
       amenities: 'Amenities',
-      price: 'Price per person',
+      price: {
+        heading: 'Budget per person/night',
+        description: 'Lower price when staying in double rooms',
+      },
     },
     sort: {
       popularity: 'Most popular',
@@ -140,6 +148,7 @@ const translations = {
     filtersHeading: 'Filters',
     apply: 'Apply filters',
     clear: 'Clear filters',
+    filterButton: 'Filter',
   },
 }
 
@@ -157,8 +166,6 @@ const starSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
             </svg>`
 
 export const Listing_Query = (orderClause: string) => {
-  console.log(orderClause)
-
   // Define individual filters
   const locationFilter = `
     (!defined($location) || location->slug.current == $location)
@@ -245,13 +252,7 @@ export const Listing_Query = (orderClause: string) => {
       _id,
       name,
       "slug": slug.current,
-      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: false,
-        stars: true,
-        rooms: true,
-        price: true,
-      })} && references(^._id)])
+      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter()} && references(^._id)])
     },
     "roomRangeCounts": {
       "range1_50": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
@@ -320,7 +321,9 @@ export const Listing_Query = (orderClause: string) => {
         stars: true,
         rooms: true,
         price: false,
-      })}] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson
+      })}] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
+      "maxAbs": *[_type == 'Hotels_Collection'] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
+      "minAbs": *[_type == 'Hotels_Collection'] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson
     },
     "listing": *[_type == 'Hotels_Collection' ${createBaseFilter()}] {
       ${HotelCardQuery}
@@ -340,6 +343,7 @@ const {
   amenities,
   stars,
   roomRangeCounts,
+  priceRange,
 } = Astro.props
 
 const params = Astro.url.searchParams
@@ -407,7 +411,7 @@ const amenitiesItems = amenities
 
 const starsItems = stars
   .map((starData) => ({
-    name: `<span class="stars-row">${Array(starData.stars).fill(starSVG).join('')}</span>`,
+    name: `<span class="stars-row" style="visibility: visible;">${Array(starData.stars).fill(starSVG).join('')}</span>`,
     count: starData.count,
     value: starData.stars.toString(),
     isSelected: params.get('stars') === starData.stars.toString(),
@@ -441,9 +445,12 @@ const currentFilters = {
 const hasActiveFilters = Object.values(currentFilters).some(
   (value) => value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : true)
 )
+
+// Add this near where you handle the filters data
+const shouldDisableFilters = totalItems === 0
 ---
 
-<section class="Listing">
+<section class="Listing" data-price-min={priceRange.minAbs} data-price-max={priceRange.maxAbs} data-mobile-open="false">
   <header class="header">
     <PortableText value={heading} heading="h1" class="heading" />
     <PortableText value={paragraph} class="paragraph" />
@@ -467,29 +474,77 @@ const hasActiveFilters = Object.values(currentFilters).some(
   </header>
   <div class="wrapper max-width">
     <div class="filters">
-      <header>
-        <strong>{t.filtersHeading}</strong>
-      </header>
+      <div class="sidebar-header">
+        <span>{t.filtersHeading}</span>
+        <button class="close-sidebar" aria-label="Close filters">
+          <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
+            <circle cx={12} cy={12} r={10} stroke="#F67258" stroke-width={1.5}></circle>
+            <path
+              d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+              stroke="#F67258"
+              stroke-width={1.5}
+              stroke-linecap="round"></path>
+          </svg>
+        </button>
+      </div>
       <div class="filters-content">
-        <SelectFilter heading={t.filters.location} items={locationItems} paramName="location" />
-        <SelectFilter heading={t.filters.stars} items={starsItems} paramName="stars" allowHtmlName />
-        <SelectFilter heading={t.filters.rooms} items={roomsRangeItems} paramName="rooms" />
-        <SelectFilter heading={t.filters.amenities} items={amenitiesItems} paramName="amenities" isMulti />
+        <SelectFilter
+          heading={t.filters.location}
+          items={locationItems}
+          paramName="location"
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={t.filters.stars}
+          items={starsItems}
+          paramName="stars"
+          allowHtmlName
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={t.filters.rooms}
+          items={roomsRangeItems}
+          paramName="rooms"
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={t.filters.amenities}
+          items={amenitiesItems}
+          paramName="amenities"
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <PriceRangeFilter
+          heading={t.filters.price.heading}
+          description={t.filters.price.description}
+          minPrice={priceRange.min}
+          maxPrice={priceRange.max}
+          currentMin={currentFilters.minPrice}
+          currentMax={currentFilters.maxPrice}
+          forceDisabled={shouldDisableFilters}
+        />
       </div>
 
-      <div class="filter-actions">
-        <button class="apply-filters" type="button" disabled>{t.apply || 'Zastosuj filtry'}</button>
-        {
-          hasActiveFilters && (
-            <button class="clear-filters" type="button">
-              {t.clear || 'Wyczyść filtry'}
-            </button>
-          )
-        }
-      </div>
+      <Button className="apply-filters" type="button" theme="primary" shade="dark" disabled>{t.apply}</Button>
+      {
+        hasActiveFilters && (
+          <Button className="clear-filters" type="button" theme="secondary">
+            {t.clear}
+          </Button>
+        )
+      }
     </div>
     <div class="box">
       <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
+      <button class="mobile-filter-button">
+        <span>{t.filterButton}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+          <path
+            fill="#F67258"
+            d="M6.168 9.583a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM9.501 2.916a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM5.835 4.388a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1 0-1h4.667ZM9.835 11.055a.5.5 0 0 0 0 1H14.5a.5.5 0 1 0 0-1H9.835ZM.668 11.555a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1-.5-.5ZM14.501 4.388a.5.5 0 0 1 0 1h-1.333a.5.5 0 1 1 0-1h1.333Z"
+          ></path>
+        </svg>
+      </button>
       <Dropdown isSortingDropdown />
       <p class="count">
         {t.foundPrefix}
@@ -539,622 +594,934 @@ const hasActiveFilters = Object.values(currentFilters).some(
       }
     </div>
   </div>
-</section>
+  <div class="overlay" aria-hidden="true"></div>
 
-<style lang="scss">
-  .Listing {
-    background-color: var(--neutral-200, #f5f1ec);
+  <style lang="scss">
+    .Listing {
+      background-color: var(--neutral-200, #f5f1ec);
 
-    .header {
-      max-width: 85.375rem;
-      margin: 0 auto;
-      background: var(--neutral-100, #faf7f7);
-      border-radius: 0rem 0rem 2.5rem 2.5rem;
-      padding: clamp(4rem, calc(5.25vw / 0.48), 5.25rem) var(--pageMargin) 2rem;
-      display: grid;
-      grid-template-columns: minmax(auto, 40.9375rem);
-      justify-content: center;
-      text-align: center;
-
-      .heading {
-        margin-bottom: 0.75rem;
-      }
-      .paragraph {
-        margin-bottom: clamp(0.75rem, calc(1.75vw / 0.48), 1.75rem);
-        font-size: var(--typography-body-xl, 1.125rem);
-        line-height: 1.5;
-      }
-      .checklist {
-        display: flex;
-        gap: 0.375rem 1.5rem;
-        flex-wrap: wrap;
+      .header {
+        max-width: 85.375rem;
+        margin: 0 auto;
+        background: var(--neutral-100, #faf7f7);
+        border-radius: 0rem 0rem 2.5rem 2.5rem;
+        padding: clamp(4rem, calc(5.25vw / 0.48), 5.25rem) var(--pageMargin) 2rem;
+        display: grid;
+        grid-template-columns: minmax(auto, 40.9375rem);
         justify-content: center;
-        align-items: center;
+        text-align: center;
 
-        li {
-          display: flex;
-          align-items: start;
-          gap: 0.5rem;
+        .heading {
+          margin-bottom: 0.75rem;
+        }
+        .paragraph {
+          margin-bottom: clamp(0.75rem, calc(1.75vw / 0.48), 1.75rem);
           font-size: var(--typography-body-xl, 1.125rem);
           line-height: 1.5;
-
-          svg {
-            margin-top: 3px;
-          }
         }
-      }
-    }
-
-    .wrapper {
-      padding: 3rem 0;
-      display: grid;
-      grid-template-columns: 20.4375rem 1fr;
-      gap: 2rem;
-
-      .filters {
-        width: 100%;
-        background: var(--neutral-100);
-        border-radius: 0.5rem;
-        display: flex;
-        flex-direction: column;
-
-        header {
-          padding: 1rem;
-          border-bottom: 2px solid var(--neutral-200, #f5f1ec);
-          color: var(--primary-800, #45051c);
-          font-weight: 700;
-          letter-spacing: -0.03em;
-        }
-
-        .filters-content {
+        .checklist {
           display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
+          gap: 0.375rem 1.5rem;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
 
-          :global(.stars-row) {
+          li {
             display: flex;
-            align-items: center;
-            gap: 0.125rem;
+            align-items: start;
+            gap: 0.5rem;
+            font-size: var(--typography-body-xl, 1.125rem);
+            line-height: 1.5;
 
             svg {
-              width: 0.875rem;
-              height: 0.875rem;
-            }
-          }
-        }
-
-        .filter-actions {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-
-          .apply-filters {
-            background: var(--primary-800);
-            color: white;
-            border: none;
-            border-radius: 0.25rem;
-            padding: 0.75rem;
-            font-size: var(--typography-body-m);
-            cursor: pointer;
-            transition: background-color 250ms var(--easing);
-            display: none;
-
-            &:hover:not(:disabled) {
-              background: var(--primary-900);
-            }
-
-            &:disabled {
-              opacity: 0.6;
-              cursor: not-allowed;
-            }
-
-            &.visible {
-              display: block;
-            }
-          }
-
-          .clear-filters {
-            background: transparent;
-            color: var(--primary-800);
-            border: 1px solid var(--neutral-500);
-            border-radius: 0.25rem;
-            padding: 0.75rem;
-            font-size: var(--typography-body-m);
-            cursor: pointer;
-            transition: background-color 250ms var(--easing);
-
-            &:hover {
-              background: var(--neutral-200);
+              margin-top: 3px;
             }
           }
         }
       }
 
-      .box {
-        justify-self: end;
-        max-width: 54.75rem;
+      .wrapper {
+        padding: 3rem 0;
         display: grid;
-        width: 100%;
-        grid-template-columns: repeat(2, 1fr);
-        justify-content: space-between;
-        grid-template-rows: auto auto 1fr auto;
+        grid-template-columns: 20.4375rem 1fr;
+        gap: 2rem;
 
-        :global(.SearchBar) {
-          grid-column: 1/2;
-          grid-row: 1/2;
-          width: 100%;
-          max-width: 20.3125rem;
-          align-self: center;
-          margin: 0;
-        }
-
-        :global(.filter-dropdown) {
-          grid-column: 2/3;
-          grid-row: 1/2;
-          width: 100%;
-          max-width: 20.3125rem;
-          justify-self: end;
-          align-self: center;
-        }
-
-        .count {
-          grid-column: 1/2;
-          grid-row: 2/3;
-          margin: 0.875rem 0 0.375rem;
-          font-size: var(--typography-body-m, 0.875rem);
-          letter-spacing: -0.01em;
+        .mobile-filter-button {
+          display: none;
+          align-items: center;
+          gap: 0.5rem;
+          min-height: 2.75rem;
+          padding: 0 0.625rem;
+          border-radius: 0.5rem;
+          color: var(--primary-800, #45051c);
           line-height: 1.7;
-
-          :global(strong) {
-            font-size: var(--typography-body-m, 0.875rem);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--primary-800, #45051c);
+          font-size: var(--typography-body-m, 0.875rem);
+          background-color: var(--neutral-100);
+          letter-spacing: -0.01em;
+          min-width: 5rem;
+          justify-content: center;
+          border: 1px solid var(--neutral-500, #d2c1b0);
+          cursor: pointer;
+          transition: border-color 150ms;
+          grid-column: 2/3;
+          grid-row: 2/3;
+          svg {
+            margin-top: 3px;
+            transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
           }
-        }
 
-        .listing {
-          grid-column: 1/3;
-          grid-row: 3/4;
-          gap: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
-          display: grid;
-          grid-template-columns: 1fr;
-        }
-        :global(.Pagination) {
-          grid-column: 1/3;
-          grid-row: 4/5;
-          margin-top: 3rem;
-        }
+          &:hover {
+            border-color: var(--primary-700, #600d2a);
 
-        .no-results {
-          grid-column: 1/3;
-          grid-row: 3/5;
-          display: flex;
-          flex-direction: column;
-          justify-self: center;
-          max-width: 27.125rem;
-
-          margin: clamp(3rem, calc(4vw / 0.48), 4rem) 0;
-
-          p {
-            font-size: var(--typography-body-2xl, 1.5rem);
-            letter-spacing: -0.035em;
-            line-height: 1.25;
-            margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
-
-            :global(strong) {
-              color: var(--primary-800, #45051c);
-              font-weight: 700;
-              letter-spacing: -0.04em;
+            svg {
+              transform: scale(1.1);
             }
           }
+        }
 
-          ul {
-            margin-bottom: clamp(2rem, calc(2.5vw / 0.48), 2.5rem);
-            li {
+        .filters {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+
+          .sidebar-header {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.625rem;
+
+            span {
+              font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+              color: var(--primary-700, #600d2a);
+              line-height: 0.9;
+              letter-spacing: -0.065em;
+              font-size: var(--typography-heading-l, 2rem);
+              text-transform: uppercase;
+              font-weight: 760;
+              margin-top: 8px;
+            }
+
+            .close-sidebar {
+              position: relative;
+              isolation: isolate;
+              border-radius: 50%;
+              min-width: 2.75rem;
+              min-height: 2.75rem;
               display: grid;
-              gap: 0.5rem;
-              grid-template-columns: auto 1fr;
-              font-size: var(--typography-body-xl, 1.125rem);
-
-              line-height: 1.5;
-              letter-spacing: -0.02em;
+              place-items: center;
+              transition: transform 300ms var(--easing);
 
               &::before {
                 content: '';
-                width: 0.25rem;
-                height: 0.25rem;
+                position: absolute;
+                inset: 0;
+                background: var(--neutral-100, #f5f1ec);
                 border-radius: 50%;
-                background-color: var(--primary-400, #74535e);
-                margin-top: 0.825rem;
+                transform: scale(0);
+                transition: transform 300ms var(--easing);
+                z-index: -1;
               }
-              &:not(:last-child) {
-                margin-bottom: clamp(0.25rem, calc(0.375vw / 0.48), 0.375rem);
+
+              &:hover {
+                transform: scale(1.2);
+                &::before {
+                  transform: scale(1);
+                }
+              }
+
+              &:focus:not(:focus-visible) {
+                transform: scale(1);
+              }
+
+              &:focus-visible {
+                outline-offset: -2px;
+              }
+            }
+          }
+
+          .filters-content {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--neutral-100);
+            border-radius: 0 0 0.5rem 0.5rem;
+            :global(.stars-row) {
+              display: flex;
+              align-items: center;
+              gap: 0.125rem;
+
+              svg {
+                width: 0.875rem;
+                height: 0.875rem;
+              }
+            }
+          }
+
+          :global(> button) {
+            max-width: 100%;
+            width: 100%;
+
+            &[data-theme='secondary'] {
+              display: flex;
+              justify-content: center;
+              margin-top: 0.5rem;
+            }
+
+            &[data-theme='primary'] {
+              margin-top: 1rem;
+              display: none;
+              :global(span) {
+                margin: 0 auto;
+                padding-right: 1.75rem;
               }
             }
           }
         }
-      }
-    }
-
-    @media (max-width: 69.3125rem) {
-      .wrapper {
-        grid-template-columns: 1fr;
-        display: block;
-
-        .filters {
-          display: none;
-        }
 
         .box {
-          grid-column: 1/2;
-          grid-row: 1/2;
-          grid-template-columns: 1fr auto auto;
-          grid-template-rows: auto auto 1fr;
-          max-width: 48rem;
-          margin: 0 auto;
+          justify-self: end;
+          max-width: 54.75rem;
+          display: grid;
+          width: 100%;
+          grid-template-columns: repeat(2, 1fr);
+          justify-content: space-between;
+          grid-template-rows: auto auto 1fr auto;
+          column-gap: clamp(0.25rem, calc(0.5vw / 0.48), 0.75rem);
+
           :global(.SearchBar) {
-            grid-column: 1/4;
+            grid-column: 1/2;
             grid-row: 1/2;
-            max-width: 100%;
-            margin-bottom: 0.375rem;
+            width: 100%;
+            max-width: 20.3125rem;
+            align-self: center;
+            margin: 0;
           }
 
           :global(.filter-dropdown) {
-            grid-column: 3/4;
-            grid-row: 2/3;
-            width: clamp(15.25rem, calc(18.625vw / 0.48), 18.625rem);
+            grid-column: 2/3;
+            grid-row: 1/2;
+            width: 100%;
+            max-width: 20.3125rem;
+            justify-self: end;
+            align-self: center;
           }
 
           .count {
             grid-column: 1/2;
             grid-row: 2/3;
+            margin: 0.875rem 0 0.375rem;
+            font-size: var(--typography-body-m, 0.875rem);
+            letter-spacing: -0.01em;
+            line-height: 1.7;
+
+            :global(strong) {
+              font-size: var(--typography-body-m, 0.875rem);
+              font-weight: 700;
+              letter-spacing: -0.02em;
+              color: var(--primary-800, #45051c);
+            }
           }
 
           .listing {
-            margin-top: 1rem;
-            grid-column: 1/4;
+            grid-column: 1/3;
             grid-row: 3/4;
+            gap: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr;
           }
-
           :global(.Pagination) {
-            grid-column: 1/4;
+            grid-column: 1/3;
             grid-row: 4/5;
+            margin-top: 3rem;
           }
 
           .no-results {
-            grid-column: 1/4;
+            grid-column: 1/3;
             grid-row: 3/5;
-            justify-self: start;
-          }
-        }
-      }
-    }
-
-    @media (max-width: 30.5625rem) {
-      .header {
-        display: block;
-        text-align: start;
-
-        .paragraph {
-          margin-bottom: 0.75rem;
-        }
-
-        .checklist {
-          flex-direction: column;
-          background: var(--neutral-200, #f5f1ec);
-          border-radius: 0.5rem;
-          align-items: flex-start;
-          padding: 0.625rem 0.625rem 0.75rem 0.625rem;
-        }
-      }
-
-      .wrapper .box {
-        .listing {
-          grid-template-columns: 1fr;
-        }
-
-        .no-results {
-          :global(a) {
-            max-width: 100%;
-            width: 100%;
-
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-self: center;
+            max-width: 27.125rem;
+            margin: clamp(3rem, calc(4vw / 0.48), 4rem) 0;
+
+            p {
+              font-size: var(--typography-body-2xl, 1.5rem);
+              letter-spacing: -0.035em;
+              line-height: 1.25;
+              margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+
+              :global(strong) {
+                color: var(--primary-800, #45051c);
+                font-weight: 700;
+                letter-spacing: -0.04em;
+              }
+            }
+
+            ul {
+              margin-bottom: clamp(2rem, calc(2.5vw / 0.48), 2.5rem);
+              li {
+                display: grid;
+                gap: 0.5rem;
+                grid-template-columns: auto 1fr;
+                font-size: var(--typography-body-xl, 1.125rem);
+
+                line-height: 1.5;
+                letter-spacing: -0.02em;
+
+                &::before {
+                  content: '';
+                  width: 0.25rem;
+                  height: 0.25rem;
+                  border-radius: 50%;
+                  background-color: var(--primary-400, #74535e);
+                  margin-top: 0.825rem;
+                }
+                &:not(:last-child) {
+                  margin-bottom: clamp(0.25rem, calc(0.375vw / 0.48), 0.375rem);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(237, 230, 222, 0.25);
+        backdrop-filter: blur(6px);
+        top: 0;
+        z-index: 100;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 200ms,
+          visibility 200ms;
+
+        &[aria-hidden='false'] {
+          opacity: 1;
+          visibility: visible;
+        }
+      }
+
+      @media (max-width: 69.3125rem) {
+        .wrapper {
+          grid-template-columns: 1fr;
+          display: block;
+
+          .mobile-filter-button {
+            display: flex;
+          }
+
+          .filters {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 150;
+            width: 100%;
+            max-width: clamp(22.5rem, calc(33.3125vw / 0.48), 33.3125rem);
+            height: 100vh;
+            background: var(--neutral-200);
+            transform: translateX(-50%);
+            opacity: 0;
+            visibility: hidden;
+            transition:
+              opacity 100ms,
+              visibility 100ms,
+              transform 250ms var(--easing);
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid;
+            border-image: linear-gradient(0deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: clamp(1.5rem, calc(4vw / 0.48), 4rem) clamp(1rem, calc(4vw / 0.48), 4rem);
+
+            .filters-content {
+              overflow-y: auto;
+              padding-right: 0.75rem;
+              display: flex;
+              flex-direction: column;
+              height: max-content;
+              border-radius: 0.5rem;
+
+              flex: 1;
+
+              :global(> details) {
+                flex-shrink: 0 !important;
+              }
+            }
+
+            .sidebar-header {
+              display: flex;
+            }
+
+            &[aria-hidden='false'] {
+              transform: translateX(0);
+              opacity: 1;
+              visibility: visible;
+            }
+          }
+
+          .box {
+            grid-column: 1/2;
+            grid-row: 1/2;
+            grid-template-columns: 1fr auto auto;
+            grid-template-rows: auto auto 1fr;
+            max-width: 48rem;
+            margin: 0 auto;
+
+            :global(.SearchBar) {
+              grid-column: 1/4;
+              grid-row: 1/2;
+              max-width: 100%;
+              margin-bottom: 0.375rem;
+            }
+
+            :global(.filter-dropdown) {
+              grid-column: 3/4;
+              grid-row: 2/3;
+              width: clamp(15.25rem, calc(18.625vw / 0.48), 18.625rem);
+            }
+
+            .count {
+              grid-column: 1/2;
+              grid-row: 2/3;
+            }
+
+            .listing {
+              margin-top: 1rem;
+              grid-column: 1/4;
+              grid-row: 3/4;
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+            }
+
+            :global(.Pagination) {
+              grid-column: 1/4;
+              grid-row: 4/5;
+            }
+
+            .no-results {
+              grid-column: 1/4;
+              grid-row: 3/5;
+              justify-self: start;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 30.5625rem) {
+        .header {
+          display: block;
+          text-align: start;
+
+          .paragraph {
+            margin-bottom: 0.75rem;
+          }
+
+          .checklist {
+            flex-direction: column;
+            background: var(--neutral-200, #f5f1ec);
+            border-radius: 0.5rem;
+            align-items: flex-start;
+            padding: 0.625rem 0.625rem 0.75rem 0.625rem;
+          }
+        }
+
+        .wrapper {
+          .filters {
+            max-width: 86vw;
+          }
+          .box {
+            .listing {
+              grid-template-columns: 1fr;
+            }
+
+            .no-results {
+              :global(a) {
+                max-width: 100%;
+                width: 100%;
+
+                display: flex;
+                justify-content: center;
+              }
+            }
+          }
+        }
+      }
+
+      @media (max-width: 27.4375rem) {
+        .wrapper .filters {
+          max-width: 86vw;
+          padding: 1.5rem 1rem;
+        }
+      }
+
+      @media (max-width: 31.1875rem) {
+        .wrapper {
+          .box {
+            grid-template-columns: auto 1fr;
+
+            .listing {
+              grid-column: 1/3;
+              grid-row: 4/5;
+            }
+
+            .mobile-filter-button {
+              grid-column: 1/2;
+              grid-row: 2/3;
+            }
+
+            .count {
+              grid-column: 1/3;
+              grid-row: 3/4;
+              justify-self: start;
+            }
+
+            :global(.filter-dropdown) {
+              grid-column: 2/3;
+              grid-row: 2/3;
+              width: 100%;
+            }
+
+            :global(.SearchBar) {
+              grid-column: 1/3;
+              grid-row: 1/2;
+            }
+
+            .no-results {
+              grid-column: 1/3;
+            }
+
+            :global(.Pagination) {
+              grid-column: 1/3;
+              grid-row: 5/6;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 23.0625rem) {
+        .wrapper {
+          .box {
+            .listing {
+              grid-column: 1/2;
+              grid-row: 5/6;
+            }
+
+            .no-results {
+              grid-column: 1/2;
+              grid-row: 5/6;
+            }
+
+            :global(.Pagination) {
+              grid-column: 1/2;
+              grid-row: 6/7;
+            }
+            .count {
+              grid-column: 1/2;
+              grid-row: 4/5;
+            }
+
+            .mobile-filter-button {
+              grid-column: 1/2;
+              grid-row: 2/3;
+              margin-bottom: 0.5rem;
+            }
+
+            :global(.filter-dropdown) {
+              grid-column: 1/2;
+              grid-row: 3/4;
+              max-width: 100%;
+            }
+
+            :global(.SearchBar) {
+              grid-column: 1/2;
+              grid-row: 1/2;
+            }
           }
         }
       }
     }
-  }
-</style>
+  </style>
 
-<script>
-  // Track filter changes
-  type FilterValue = string | string[] | null
-  const initialFilters: Record<string, FilterValue> = {}
-  const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')
-  const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')
-
-  // Store the initial URL state
-  const initialUrlState = {
-    location: new URLSearchParams(window.location.search).get('location'),
-    stars: new URLSearchParams(window.location.search).get('stars'),
-    rooms: (() => {
-      const params = new URLSearchParams(window.location.search)
-      const minRooms = params.get('minRooms')
-      const maxRooms = params.get('maxRooms')
-
-      if (minRooms === '1' && maxRooms === '50') return '1-50'
-      if (minRooms === '51' && maxRooms === '80') return '51-80'
-      if (minRooms === '81' && maxRooms === '150') return '81-150'
-      if (minRooms === '150' && !maxRooms) return '150-'
-      return null
-    })(),
-    amenities: new URLSearchParams(window.location.search).get('amenities')?.split(',') || [],
-  }
-
-  // Custom event types
-  interface FilterChangeEvent extends CustomEvent {
-    detail: {
-      paramName: string
-      value: string
-      checked?: boolean
+  <script>
+    // Track filter changes
+    type FilterValue = string | string[] | number | null
+    const initialFilters: Record<string, FilterValue> = {
+      minPrice: (() => {
+        const value = new URLSearchParams(window.location.search).get('minPrice')
+        return value ? parseInt(value) : null
+      })(),
+      maxPrice: (() => {
+        const value = new URLSearchParams(window.location.search).get('maxPrice')
+        return value ? parseInt(value) : null
+      })(),
     }
-  }
+    const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
+    const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')!
 
-  interface FilterClearEvent extends CustomEvent {
-    detail: {
-      paramName: string
-      secondaryParamName?: string
+    // Store the initial URL state
+    const initialUrlState = {
+      location: new URLSearchParams(window.location.search).get('location'),
+      stars: new URLSearchParams(window.location.search).get('stars'),
+      rooms: (() => {
+        const params = new URLSearchParams(window.location.search)
+        const minRooms = params.get('minRooms')
+        const maxRooms = params.get('maxRooms')
+
+        if (minRooms === '1' && maxRooms === '50') return '1-50'
+        if (minRooms === '51' && maxRooms === '80') return '51-80'
+        if (minRooms === '81' && maxRooms === '150') return '81-150'
+        if (minRooms === '150' && !maxRooms) return '150-'
+        return null
+      })(),
+      amenities: new URLSearchParams(window.location.search).get('amenities')?.split(',') || [],
+      minPrice: initialFilters.minPrice,
+      maxPrice: initialFilters.maxPrice,
     }
-  }
 
-  // Compare current state with initial state to detect changes
-  function checkFiltersChanged() {
-    let changed = false
+    // Custom event types
+    interface FilterChangeEvent extends CustomEvent {
+      detail: {
+        paramName: string
+        value?: string
+        checked?: boolean
+        minValue?: number
+        maxValue?: number
+      }
+    }
 
-    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-      const paramName = filterGroup.dataset.paramName
-      if (!paramName) return
+    interface FilterClearEvent extends CustomEvent {
+      detail: {
+        paramName: string
+        secondaryParamName?: string
+      }
+    }
 
-      const isMulti = filterGroup.dataset.multi === 'true'
+    // Compare current state with initial state to detect changes
+    function checkFiltersChanged() {
+      let changed = false
 
-      // Check select filters (both single and multi)
-      if (isMulti) {
-        const selectedValues = new URLSearchParams(window.location.search).get(paramName)?.split(',') || []
+      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+        const paramName = filterGroup.dataset.paramName
+        if (!paramName) return
 
-        // Compare arrays
-        const initialValues = (initialFilters[paramName] as string[]) || []
-        if (initialValues.length !== selectedValues.length) {
-          changed = true
+        const isMulti = filterGroup.dataset.multi === 'true'
+
+        // Check select filters (both single and multi)
+        if (paramName === 'price') {
+          // Check if price range has changed
+
+          const currentMinPrice = initialFilters.minPrice as number | null
+          const currentMaxPrice = initialFilters.maxPrice as number | null
+
+          // Compare current price range with initial state
+          if (currentMinPrice !== initialUrlState.minPrice || currentMaxPrice !== initialUrlState.maxPrice) {
+            changed = true
+          }
+        } else if (isMulti) {
+          const selectedValues = new URLSearchParams(window.location.search).get(paramName)?.split(',') || []
+
+          const initialValues = (initialFilters[paramName] as string[]) || []
+
+          if (initialValues.length !== selectedValues.length) {
+            changed = true
+          } else {
+            for (const value of selectedValues) {
+              if (!initialValues.includes(value)) {
+                changed = true
+                break
+              }
+            }
+          }
+        } else if (paramName === 'rooms') {
+          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+          const currentValue = selectedInput ? selectedInput.value : null
+
+          // Compare with initial URL state instead of current filter state
+          if (currentValue !== initialUrlState.rooms) {
+            changed = true
+          }
         } else {
-          for (const value of selectedValues) {
-            if (!initialValues.includes(value)) {
-              changed = true
-              break
-            }
+          // Compare with initial URL state
+          if (initialFilters[paramName] !== initialUrlState[paramName as keyof typeof initialUrlState]) {
+            changed = true
           }
         }
-      } else if (paramName === 'rooms') {
-        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-        const currentValue = selectedInput ? selectedInput.value : null
+      })
 
-        // Compare with initial URL state instead of current filter state
-        if (currentValue !== initialUrlState.rooms) {
-          changed = true
-        }
+      // Update apply button visibility
+      if (changed) {
+        applyButton.style.display = 'flex'
+        applyButton.disabled = false
       } else {
-        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-        const currentValue = selectedInput ? selectedInput.value : null
-
-        // Compare with initial URL state
-        if (currentValue !== initialUrlState[paramName as keyof typeof initialUrlState]) {
-          changed = true
-        }
+        applyButton.style.display = 'none'
       }
-    })
 
-    // Update apply button visibility
-    if (changed && applyButton) {
-      applyButton.classList.add('visible')
-      applyButton.style.display = 'block'
-      applyButton.disabled = false
-    } else if (applyButton) {
-      applyButton.classList.remove('visible')
-      applyButton.style.display = 'none'
+      return changed
     }
 
-    return changed
-  }
+    // Set up filter listeners
+    function setupFilterListeners() {
+      // Listen for filterChange events from SelectFilter component
+      window.addEventListener('filterChange', ((e: FilterChangeEvent) => {
+        const { paramName, value, checked, minValue, maxValue } = e.detail
 
-  // Set up filter listeners
-  function setupFilterListeners() {
-    // Listen for filterChange events from SelectFilter component
-    window.addEventListener('filterChange', ((e: FilterChangeEvent) => {
-      // Update our tracking of the changed filter
-      const { paramName, value, checked } = e.detail
-      console.log(paramName, value, checked)
+        if (paramName === 'price') {
+          // Handle price range filter
+          initialFilters.minPrice = typeof minValue === 'number' ? minValue : null
+          initialFilters.maxPrice = typeof maxValue === 'number' ? maxValue : null
+        } else if (paramName === 'amenities') {
+          // For multi-select filters, handle array management
+          if (!initialFilters[paramName]) {
+            initialFilters[paramName] = []
+          }
 
-      if (paramName === 'amenities') {
-        // For multi-select filters, handle array management
-        if (!initialFilters[paramName]) {
+          if (Array.isArray(initialFilters[paramName])) {
+            // For multi-select filters, we need to either add or remove the value
+            if (checked === false) {
+              // Remove value if it exists in the array
+              initialFilters[paramName] = (initialFilters[paramName] as string[]).filter((item) => item !== value)
+            } else {
+              // Add if not already present
+              if (!(initialFilters[paramName] as string[]).includes(value || '')) {
+                ;(initialFilters[paramName] as string[]).push(value || '')
+              }
+            }
+          }
+        } else {
+          initialFilters[paramName] = value || null
+        }
+
+        checkFiltersChanged()
+      }) as EventListener)
+
+      // Listen for filterClear events from SelectFilter component
+      window.addEventListener('filterClear', ((e: FilterClearEvent) => {
+        const { paramName } = e.detail
+
+        if (paramName === 'price') {
+          // Clear price range filter
+          initialFilters.minPrice = null
+          initialFilters.maxPrice = null
+        } else if (paramName === 'rooms') {
+          // Special handling for room ranges
+          initialFilters[paramName] = null
+        } else if (paramName === 'amenities') {
+          // For multi-select, set to empty array
           initialFilters[paramName] = []
+        } else {
+          // For single-select, set to null
+          initialFilters[paramName] = null
         }
 
-        if (Array.isArray(initialFilters[paramName])) {
-          // For multi-select filters, we need to either add or remove the value
-          if (checked === false) {
-            // Remove value if it exists in the array
-            initialFilters[paramName] = (initialFilters[paramName] as string[]).filter((item) => item !== value)
-          } else {
-            // Add if not already present
-            if (!(initialFilters[paramName] as string[]).includes(value)) {
-              ;(initialFilters[paramName] as string[]).push(value)
-            }
-          }
-        }
-      }
+        checkFiltersChanged()
+      }) as EventListener)
 
-      checkFiltersChanged()
-    }) as EventListener)
+      // Apply button
+      applyButton?.addEventListener('click', applyFilters)
 
-    // Listen for filterClear events from SelectFilter component
-    window.addEventListener('filterClear', ((e: FilterClearEvent) => {
-      const { paramName } = e.detail
+      // Clear all button
+      clearButton?.addEventListener('click', () => {
+        window.location.href = window.location.pathname
+      })
+    }
 
-      if (paramName === 'rooms') {
-        // Special handling for room ranges
-        initialFilters[paramName] = null
-      } else if (paramName === 'amenities') {
-        // For multi-select, set to empty array
-        initialFilters[paramName] = []
-      } else {
-        // For single-select, set to null
-        initialFilters[paramName] = null
-      }
+    // Apply all filters
+    function applyFilters() {
+      const url = new URL(window.location.href)
+      const params = new URLSearchParams()
 
-      checkFiltersChanged()
-    }) as EventListener)
+      // Collect all filter values
+      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+        const paramName = filterGroup.dataset.paramName
+        if (!paramName) return
 
-    // Apply button
-    applyButton?.addEventListener('click', applyFilters)
+        const isMulti = filterGroup.dataset.multi === 'true'
 
-    // Clear all button
-    clearButton?.addEventListener('click', () => {
-      window.location.href = window.location.pathname
-    })
-  }
+        if (paramName === 'rooms') {
+          // Handle room ranges
+          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
+          if (selectedInput && wasSelected) {
+            const value = selectedInput.value
 
-  // Apply all filters
-  function applyFilters() {
-    const url = new URL(window.location.href)
-    const params = new URLSearchParams()
+            // Parse the room range value (e.g., "1-50", "51-80", "81-150", "150-")
+            const [min, max] = value.split('-')
 
-    // Collect all filter values
-    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-      const paramName = filterGroup.dataset.paramName
-      if (!paramName) return
-
-      const isMulti = filterGroup.dataset.multi === 'true'
-
-      if (paramName === 'rooms') {
-        // Handle room ranges
-        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-        const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-        if (selectedInput && wasSelected) {
-          const value = selectedInput.value
-
-          // Parse the room range value (e.g., "1-50", "51-80", "81-150", "150-")
-          const [min, max] = value.split('-')
-
-          // For 1-50 range, only use maxRooms
-          if (min === '1' && max === '50') {
-            params.append('maxRooms', max)
-          } else {
-            // For other ranges, use both min and max
-            if (min) {
-              params.append('minRooms', min)
-            }
-
-            if (max && max !== '') {
+            // For 1-50 range, only use maxRooms
+            if (min === '1' && max === '50') {
               params.append('maxRooms', max)
+            } else {
+              // For other ranges, use both min and max
+              if (min) {
+                params.append('minRooms', min)
+              }
+
+              if (max && max !== '') {
+                params.append('maxRooms', max)
+              }
             }
           }
-        }
-      } else if (isMulti) {
-        // Handle multi-select filters
-        const selectedValues = (initialFilters[paramName] as string[]) || []
+        } else if (isMulti) {
+          // Handle multi-select filters
+          const selectedValues = (initialFilters[paramName] as string[]) || []
 
-        if (selectedValues.length > 0) {
-          // Join values with commas for URL-friendly format
-          params.append(paramName, selectedValues.join(','))
+          if (selectedValues.length > 0) {
+            // Join values with commas for URL-friendly format
+            params.append(paramName, selectedValues.join(','))
+          }
+        } else {
+          // Handle single-select filters
+          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
+          const minAbs = document.querySelector<HTMLElement>('.Listing')?.getAttribute('data-price-min')
+          const maxAbs = document.querySelector<HTMLElement>('.Listing')?.getAttribute('data-price-max')
+
+          if (
+            (paramName === 'minPrice' && selectedInput?.value === minAbs) ||
+            (paramName === 'maxPrice' && selectedInput?.value === maxAbs)
+          ) {
+            return
+          }
+
+          if (selectedInput && wasSelected) {
+            params.append(paramName, selectedInput.value)
+          }
         }
-      } else {
-        // Handle single-select filters
-        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-        const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-        if (selectedInput && wasSelected) {
-          params.append(paramName, selectedInput.value)
+      })
+
+      // Preserve search and order parameters if they exist
+      const currentParams = new URLSearchParams(window.location.search)
+      const searchParam = currentParams.get('search')
+      const orderParam = currentParams.get('order')
+
+      if (searchParam !== null) {
+        params.set('search', searchParam)
+      }
+      if (orderParam !== null) {
+        params.set('order', orderParam)
+      }
+
+      // Handle price range filter
+      const minPrice = initialFilters.minPrice
+      const maxPrice = initialFilters.maxPrice
+      if (typeof minPrice === 'number' && typeof maxPrice === 'number') {
+        params.set('minPrice', minPrice.toString())
+        params.set('maxPrice', maxPrice.toString())
+      }
+
+      // Update URL and redirect
+      url.search = params.toString()
+      window.location.href = url.toString()
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Initialize filters from URL parameters
+      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+        const paramName = filterGroup.dataset.paramName
+        if (!paramName) return
+
+        const isMulti = filterGroup.dataset.multi === 'true'
+
+        if (isMulti) {
+          // Handle multi-select filters (like amenities)
+          const values = initialUrlState.amenities
+          initialFilters[paramName] = values
+
+          // Check each checkbox that matches a value in our array
+          if (values.length > 0) {
+            filterGroup.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
+              input.checked = values.includes(input.value)
+              const label = input.parentElement
+              if (label) {
+                label.setAttribute('data-selected', input.checked.toString())
+              }
+            })
+          }
+        } else if (paramName === 'rooms') {
+          // Handle room ranges
+          const roomValue = initialUrlState.rooms
+          initialFilters[paramName] = roomValue
+
+          if (roomValue) {
+            filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+              const isMatch = input.value === roomValue
+              input.checked = isMatch
+              const label = input.parentElement
+              if (label) {
+                label.setAttribute('data-selected', isMatch.toString())
+              }
+            })
+          }
+        } else {
+          // Handle single-select filters (location and stars)
+          const value = initialUrlState[paramName as keyof typeof initialUrlState]
+          initialFilters[paramName] = value
+
+          if (value) {
+            filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+              const isMatch = input.value === value
+              input.checked = isMatch
+              const label = input.parentElement
+              if (label) {
+                label.setAttribute('data-selected', isMatch.toString())
+              }
+            })
+          }
+        }
+      })
+
+      // Then setup all the listeners
+      setupFilterListeners()
+    })
+
+    // Toggle filter sidebar
+    const listingSection = document.querySelector<HTMLElement>('.Listing')! as HTMLElement
+    const filterButton = listingSection.querySelector<HTMLButtonElement>('.mobile-filter-button')! as HTMLButtonElement
+    const sidebar = listingSection.querySelector<HTMLDivElement>('.filters')! as HTMLDivElement
+    const closeButton = listingSection.querySelector<HTMLButtonElement>('.close-sidebar')! as HTMLButtonElement
+    const overlay = listingSection.querySelector<HTMLDivElement>('.overlay')! as HTMLDivElement
+
+    filterButton.addEventListener('click', () => {
+      listingSection.setAttribute('data-mobile-open', 'true')
+      sidebar.setAttribute('aria-hidden', 'false')
+      overlay.setAttribute('aria-hidden', 'false')
+    })
+
+    closeButton.addEventListener('click', () => {
+      listingSection.setAttribute('data-mobile-open', 'false')
+      sidebar.setAttribute('aria-hidden', 'true')
+      overlay.setAttribute('aria-hidden', 'true')
+    })
+
+    overlay.addEventListener('click', () => {
+      listingSection.setAttribute('data-mobile-open', 'false')
+      sidebar.setAttribute('aria-hidden', 'true')
+      overlay.setAttribute('aria-hidden', 'true')
+    })
+
+    // Handle resize events for responsive behavior
+    let currentWidth = window.innerWidth
+    window.addEventListener('resize', () => {
+      // Only check if width changed (to avoid triggering on height changes like mobile keyboard)
+      if (currentWidth !== window.innerWidth) {
+        currentWidth = window.innerWidth
+        const isMobile = currentWidth < 1109 // 69.3125rem
+
+        if (!isMobile && listingSection) {
+          // Close sidebar if user resizes to desktop while sidebar is open
+          if (sidebar && overlay && sidebar.getAttribute('aria-hidden') === 'false') {
+            listingSection.setAttribute('data-mobile-open', 'false')
+            sidebar.setAttribute('aria-hidden', 'true')
+            overlay.setAttribute('aria-hidden', 'true')
+          }
         }
       }
     })
-
-    // Preserve search parameter if it exists
-    const searchParam = new URLSearchParams(window.location.search).get('search')
-    if (searchParam) {
-      params.append('search', searchParam)
-    }
-
-    // Preserve sort order if it exists
-    const orderParam = new URLSearchParams(window.location.search).get('order')
-    if (orderParam) {
-      params.append('order', orderParam)
-    }
-
-    // Update URL and redirect
-    url.search = params.toString()
-    window.location.href = url.toString()
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    // Initialize filters from URL parameters
-    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-      const paramName = filterGroup.dataset.paramName
-      if (!paramName) return
-
-      const isMulti = filterGroup.dataset.multi === 'true'
-
-      if (isMulti) {
-        // Handle multi-select filters (like amenities)
-        const values = initialUrlState.amenities
-        initialFilters[paramName] = values
-
-        // Check each checkbox that matches a value in our array
-        if (values.length > 0) {
-          filterGroup.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
-            input.checked = values.includes(input.value)
-            const label = input.parentElement
-            if (label) {
-              label.setAttribute('data-selected', input.checked.toString())
-            }
-          })
-        }
-      } else if (paramName === 'rooms') {
-        // Handle room ranges
-        const roomValue = initialUrlState.rooms
-        initialFilters[paramName] = roomValue
-
-        if (roomValue) {
-          filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
-            const isMatch = input.value === roomValue
-            input.checked = isMatch
-            const label = input.parentElement
-            if (label) {
-              label.setAttribute('data-selected', isMatch.toString())
-            }
-          })
-        }
-      } else {
-        // Handle single-select filters (location and stars)
-        const value = initialUrlState[paramName as keyof typeof initialUrlState]
-        initialFilters[paramName] = value
-
-        if (value) {
-          filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
-            const isMatch = input.value === value
-            input.checked = isMatch
-            const label = input.parentElement
-            if (label) {
-              label.setAttribute('data-selected', isMatch.toString())
-            }
-          })
-        }
-      }
-    })
-
-    // Then setup all the listeners
-    setupFilterListeners()
-  })
-</script>
+  </script>
+</section>

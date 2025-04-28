@@ -3,20 +3,22 @@ import { getLangFromPath, type Language } from '@/global/languages'
 
 type Props = {
   heading: string
+  description?: string
   minPrice: number
   maxPrice: number
   currentMin?: number
   currentMax?: number
+  forceDisabled?: boolean
 }
 
-const { heading, minPrice, maxPrice, currentMin, currentMax } = Astro.props
+const { heading, description, minPrice, maxPrice, currentMin, currentMax, forceDisabled = false } = Astro.props
 
 // Check if price filter should be disabled (no min/max price or they are equal)
-const isDisabled = !minPrice || !maxPrice || minPrice === maxPrice
+const isDisabled = !minPrice || !maxPrice || minPrice === maxPrice || forceDisabled
 
 // Ensure values are properly bounded by the min/max from Sanity
-let safeCurrentMin = currentMin ?? minPrice
-let safeCurrentMax = currentMax ?? maxPrice
+let safeCurrentMin = currentMin ? (currentMin < minPrice ? minPrice : currentMin) : minPrice
+let safeCurrentMax = currentMax ? (currentMax > maxPrice ? maxPrice : currentMax) : maxPrice
 
 // Check if we have custom values set from URL parameters (different from defaults)
 const hasCustomValues = (currentMin && currentMin !== minPrice) || (currentMax && currentMax !== maxPrice)
@@ -37,6 +39,7 @@ const translations = {
     min: 'from',
     max: 'to',
     currency: 'PLN',
+
     error: {
       range: 'Minimum value cannot be greater than maximum',
       bounds: 'Values must be between {min} and {max} PLN',
@@ -49,11 +52,11 @@ const t = translations[lang]
 ---
 
 <details
-  class="filter-group price-range-filter"
+  class="filter-group price-filter-group price-range-filter"
   data-min={minPrice}
   data-max={maxPrice}
-  data-param-name-min="minPrice"
-  data-param-name-max="maxPrice"
+  data-filter
+  data-param-name="price"
   data-has-selection={hasCustomValues ? hasCustomValues.toString() : 'false'}
   data-disabled={isDisabled.toString()}
   data-error-range={t.error.range}
@@ -61,29 +64,28 @@ const t = translations[lang]
     .replace('{min}', minPrice?.toString() ?? '')
     .replace('{max}', maxPrice?.toString() ?? '')}
   data-error-invalid={t.error.invalid}
-  open
+  data-expanded={!isDisabled ? 'true' : 'false'}
+  data-description={!description ? 'false' : 'true'}
+  open={!isDisabled}
 >
   <summary>
     <span>{heading}</span>
-    {
-      hasCustomValues && (
-        <button class="selected-value" type="button">
-          <span>
-            {safeCurrentMin} - {safeCurrentMax} {t.currency}
-          </span>
-          <div class="clear-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e" />
-              <path
-                d="M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836"
-                stroke="#74535e"
-                stroke-linecap="round"
-              />
-            </svg>
-          </div>
-        </button>
-      )
-    }
+    {description && <p class="description">{description}</p>}
+    <button class="selected-value" type="button" style={hasCustomValues ? 'display: flex' : 'display: none'}>
+      <span>
+        {safeCurrentMin} - {safeCurrentMax}
+        {t.currency}
+      </span>
+      <div class="clear-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e"></circle>
+          <path
+            d="M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836"
+            stroke="#74535e"
+            stroke-linecap="round"></path>
+        </svg>
+      </div>
+    </button>
     <div class="icon">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
         <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
@@ -106,7 +108,7 @@ const t = translations[lang]
           class="price-range min-range"
           min={minPrice}
           max={maxPrice}
-          step="10"
+          step="5"
           value={safeCurrentMin}
         />
         <input
@@ -114,7 +116,7 @@ const t = translations[lang]
           class="price-range max-range"
           min={minPrice}
           max={maxPrice}
-          step="10"
+          step="5"
           value={safeCurrentMax}
         />
       </div>
@@ -145,40 +147,83 @@ const t = translations[lang]
 </details>
 
 <style lang="scss">
-  .filter-group.price-range-filter {
-    margin-bottom: 0.75rem;
-    border: 1px solid var(--neutral-500);
-    border-radius: 0.25rem;
+  .price-filter-group {
     overflow: hidden;
-    background-color: var(--neutral-100);
     color: var(--primary-800);
-    transition: border-color 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+    padding: 0.375rem 0rem;
 
     &[data-disabled='true'] {
       summary {
         cursor: default;
-        opacity: 0.6;
-        pointer-events: none;
+
+        > span:first-of-type {
+          opacity: 0.6;
+          pointer-events: none;
+        }
+
+        .icon {
+          pointer-events: none;
+          opacity: 0.6;
+        }
+
+        // Keep the selected-value button fully visible and interactive
+        .selected-value {
+          opacity: 1;
+          cursor: pointer;
+          pointer-events: auto;
+
+          &:hover {
+            .clear-icon {
+              opacity: 1;
+            }
+          }
+        }
+
+        .description {
+          opacity: 0.6;
+          pointer-events: none;
+        }
       }
 
-      .selected-value {
-        opacity: 0.7;
+      // Disable the filter content
+      .filter-content {
         pointer-events: none;
+        opacity: 0.6;
         cursor: default;
+
+        .wrapper {
+          cursor: default;
+        }
+
+        .range-container {
+          cursor: default;
+          input[type='range'] {
+            cursor: default;
+            &::-webkit-slider-thumb {
+              cursor: default;
+            }
+            &::-moz-range-thumb {
+              cursor: default;
+            }
+          }
+        }
+
+        .inputs-container {
+          cursor: default;
+          input {
+            cursor: default;
+          }
+        }
       }
     }
 
     &[data-has-selection='true'] {
       border-color: var(--neutral-300);
-
-      summary {
-        background-color: var(--neutral-200);
-      }
     }
 
     summary {
-      padding: 0 0.625rem;
-      min-height: 2.5rem;
+      padding: 0rem 0.25rem 0rem 1rem;
+      min-height: 2.75rem;
       font-size: var(--typography-body-m);
       cursor: pointer;
       display: flex;
@@ -191,13 +236,20 @@ const t = translations[lang]
 
       > span {
         flex-shrink: 0;
+
+        &:first-of-type {
+          color: var(--primary-800, #45051c);
+          font-weight: 700;
+          line-height: 1.7;
+          font-size: var(--typography-body-m, 0.875rem);
+        }
       }
 
       .selected-value {
         margin-right: auto;
         font-size: var(--typography-body-s);
         padding: 0.1875rem 0.25rem;
-        background-color: var(--neutral-300);
+        background-color: var(--neutral-200);
         border-radius: 0.25rem;
         border: 1px solid var(--neutral-500);
         display: flex;
@@ -221,7 +273,7 @@ const t = translations[lang]
         .clear-icon {
           position: absolute;
           inset: 0;
-          background-color: var(--neutral-300);
+          background-color: var(--neutral-200);
           display: grid;
           place-items: center;
           opacity: 0;
@@ -248,6 +300,9 @@ const t = translations[lang]
         position: relative;
         overflow: hidden;
         flex-shrink: 0;
+        width: 2.75rem;
+        display: grid;
+        place-items: center;
 
         svg {
           transition: transform 300ms var(--easing);
@@ -265,8 +320,13 @@ const t = translations[lang]
       }
     }
 
+    .filter-content {
+      transition: height 200ms var(--easing);
+      overflow: hidden;
+    }
+
     .wrapper {
-      padding: 0.75rem 0.625rem 1rem;
+      padding: 0.25rem 1rem 1rem;
     }
 
     .range-container {
@@ -374,6 +434,7 @@ const t = translations[lang]
 
           input {
             width: 100%;
+            height: 100%;
             padding: 0 0.625rem;
             color: var(--primary-800);
             background: none;
@@ -399,6 +460,7 @@ const t = translations[lang]
             display: grid;
             place-content: center;
             border-left: 1px solid var(--neutral-500);
+            user-select: none;
           }
         }
       }
@@ -429,7 +491,281 @@ const t = translations[lang]
             }
           }
         }
+
+        .selected-value {
+          opacity: 0;
+          transform: translateY(0.5rem);
+          pointer-events: none;
+        }
+      }
+    }
+
+    &[data-description='true'] {
+      .description {
+        font-size: var(--typography-body-s);
+        color: var(--primary-400);
+        line-height: 1.5;
+        letter-spacing: -0.01em;
+        margin-bottom: 0.5rem;
+      }
+
+      summary {
+        display: grid;
+        grid-template-columns: auto auto 1fr;
+        align-items: center;
+        gap: 0.25rem;
+        padding-top: 0.5rem;
+        > span:first-of-type {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+
+        .selected-value {
+          grid-column: 2 / 3;
+          grid-row: 1 / 2;
+          margin-left: -1rem;
+        }
+
+        .description {
+          grid-column: 1 / 3;
+          grid-row: 2 / 3;
+        }
+
+        .icon {
+          grid-column: 3 / 4;
+          align-self: start;
+        }
       }
     }
   }
 </style>
+
+<script>
+  document.querySelectorAll<HTMLDetailsElement>('.price-filter-group.price-range-filter').forEach((details) => {
+    const summary = details.querySelector<HTMLElement>('summary')!
+    const content = details.querySelector<HTMLDivElement>('.filter-content')!
+    const clearButton = details.querySelector<HTMLButtonElement>('.selected-value')!
+    const selectedValueSpan = clearButton.querySelector('span')!
+    const minRange = details.querySelector<HTMLInputElement>('.min-range')!
+    const maxRange = details.querySelector<HTMLInputElement>('.max-range')!
+    const minInput = details.querySelector<HTMLInputElement>('.min-price')!
+    const maxInput = details.querySelector<HTMLInputElement>('.max-price')!
+    const sliderRange = details.querySelector<HTMLDivElement>('.slider-range')!
+    const errorMessage = details.querySelector<HTMLDivElement>('.error-message')!
+
+    const isDisabled = details.dataset.disabled === 'true'
+    const minPrice = parseInt(details.dataset.min || '0')
+    const maxPrice = parseInt(details.dataset.max || '0')
+
+    let isAnimating = false
+
+    function updateSliderRange() {
+      const minVal = parseInt(minRange.value)
+      const maxVal = parseInt(maxRange.value)
+      const minPercent = ((minVal - minPrice) / (maxPrice - minPrice)) * 100
+      const maxPercent = ((maxVal - minPrice) / (maxPrice - minPrice)) * 100
+
+      sliderRange.style.left = minPercent + '%'
+      sliderRange.style.width = maxPercent - minPercent + '%'
+    }
+
+    function validateAndUpdateInputs(minVal: number, maxVal: number): boolean {
+      // If disabled, only allow clearing
+      if (isDisabled) {
+        return false
+      }
+
+      // Clear previous error
+      errorMessage.textContent = ''
+
+      // Check if values are valid numbers
+      if (isNaN(minVal) || isNaN(maxVal)) {
+        errorMessage.textContent = details.dataset.errorInvalid || ''
+        return false
+      }
+
+      // Check if min is greater than max
+      if (minVal > maxVal) {
+        errorMessage.textContent = details.dataset.errorRange || ''
+        return false
+      }
+
+      // Check if values are within bounds
+      if (minVal < minPrice || maxVal > maxPrice) {
+        errorMessage.textContent = details.dataset.errorBounds || ''
+        return false
+      }
+
+      // Update all inputs
+      minRange.value = minVal.toString()
+      maxRange.value = maxVal.toString()
+      minInput.value = minVal.toString()
+      maxInput.value = maxVal.toString()
+
+      // Update slider range visual
+      updateSliderRange()
+
+      // Update selected value display
+      const currency = details.querySelector<HTMLSpanElement>('.currency')?.textContent || ''
+      selectedValueSpan.textContent = `${minVal} - ${maxVal} ${currency}`
+
+      // Show/hide clear button based on whether values differ from defaults
+      const hasCustomValues = minVal !== minPrice || maxVal !== maxPrice
+      clearButton.style.display = hasCustomValues ? 'flex' : 'none'
+      details.setAttribute('data-has-selection', hasCustomValues.toString())
+
+      // Dispatch custom event
+      if (!errorMessage.textContent) {
+        window.dispatchEvent(
+          new CustomEvent('filterChange', {
+            detail: {
+              paramName: 'price',
+              minValue: minVal,
+              maxValue: maxVal,
+            },
+          })
+        )
+      }
+
+      return true
+    }
+
+    // Ensure details is closed when disabled
+    if (isDisabled) {
+      details.open = false
+    }
+
+    // Initialize slider range
+    updateSliderRange()
+
+    // Initialize expanded state to match open state
+    details.setAttribute('data-expanded', (!isDisabled && details.open).toString())
+
+    // Clear button handler - should work even when disabled
+    clearButton.addEventListener('click', (event) => {
+      event.stopPropagation()
+
+      // Add exit animation
+      clearButton.style.opacity = '0'
+      clearButton.style.transform = 'translateX(-0.5rem)'
+      clearButton.style.pointerEvents = 'none'
+
+      setTimeout(() => {
+        // Reset to default values
+        minRange.value = minPrice.toString()
+        maxRange.value = maxPrice.toString()
+        minInput.value = minPrice.toString()
+        maxInput.value = maxPrice.toString()
+        updateSliderRange()
+
+        // Update selected value display
+        clearButton.style.display = 'none'
+        details.setAttribute('data-has-selection', 'false')
+
+        // Dispatch clear event
+        window.dispatchEvent(
+          new CustomEvent('filterClear', {
+            detail: { paramName: 'price' },
+          })
+        )
+      }, 150)
+    })
+
+    if (!isDisabled) {
+      // Range input handlers
+      minRange.addEventListener('input', () => {
+        const minVal = parseInt(minRange.value)
+        const maxVal = parseInt(maxRange.value)
+        if (minVal > maxVal) {
+          minRange.value = maxVal.toString()
+          return
+        }
+        validateAndUpdateInputs(minVal, maxVal)
+      })
+
+      maxRange.addEventListener('input', () => {
+        const minVal = parseInt(minRange.value)
+        const maxVal = parseInt(maxRange.value)
+        if (maxVal < minVal) {
+          maxRange.value = minVal.toString()
+          return
+        }
+        validateAndUpdateInputs(minVal, maxVal)
+      })
+
+      // Number input handlers
+      minInput.addEventListener('change', () => {
+        validateAndUpdateInputs(parseInt(minInput.value), parseInt(maxInput.value))
+      })
+
+      maxInput.addEventListener('change', () => {
+        validateAndUpdateInputs(parseInt(minInput.value), parseInt(maxInput.value))
+      })
+
+      // Animation logic for the dropdown
+      summary.addEventListener('click', (event) => {
+        // Always prevent default behavior
+        event.preventDefault()
+
+        // If disabled, prevent any interaction with the summary except for the clear button
+        if (isDisabled) {
+          event.stopPropagation()
+          // Force close the details if somehow it got opened
+          details.open = false
+          return
+        }
+
+        if (isAnimating) return
+
+        isAnimating = true
+        const willBeOpen = !details.open
+        details.setAttribute('data-expanded', willBeOpen.toString())
+
+        if (details.open) {
+          content.style.height = content.scrollHeight + 'px'
+          requestAnimationFrame(() => {
+            content.style.height = '0'
+          })
+
+          if (clearButton) {
+            clearButton.style.opacity = '1'
+            clearButton.style.transform = 'translateY(0)'
+            clearButton.style.pointerEvents = 'auto'
+          }
+
+          content.addEventListener(
+            'transitionend',
+            () => {
+              details.open = false
+              content.style.height = ''
+              isAnimating = false
+            },
+            { once: true }
+          )
+        } else {
+          details.open = true
+          const startHeight = content.scrollHeight
+          content.style.height = '0'
+          requestAnimationFrame(() => {
+            content.style.height = startHeight + 'px'
+          })
+
+          if (clearButton) {
+            clearButton.style.opacity = '0'
+            clearButton.style.transform = 'translateY(0.5rem)'
+            clearButton.style.pointerEvents = 'none'
+          }
+
+          content.addEventListener(
+            'transitionend',
+            () => {
+              content.style.height = ''
+              isAnimating = false
+            },
+            { once: true }
+          )
+        }
+      })
+    }
+  })
+</script>

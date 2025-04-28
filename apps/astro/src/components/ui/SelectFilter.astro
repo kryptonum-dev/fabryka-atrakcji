@@ -14,12 +14,17 @@ type Props = {
   paramName: string
   isMulti?: boolean
   allowHtmlName?: boolean
+  forceDisabled?: boolean
 }
 
-const { heading, items, paramName, isMulti = false, allowHtmlName = false } = Astro.props
+const { heading, items, paramName, isMulti = false, allowHtmlName = false, forceDisabled = false } = Astro.props
 
 const availableItems = items.filter((item) => item.count > 0 || item.isSelected)
-const isDisabled = availableItems.length === 0
+const selectedItems = items.filter((item) => item.isSelected)
+// Special case: if this is a multi-select filter with multiple selected items and forceDisabled is true
+const isAmenitiesSpecialCase = isMulti && forceDisabled && paramName === 'amenities' && selectedItems.length > 1
+// Component should be disabled unless it's the special amenities case
+const isDisabled = (availableItems.length === 0 || forceDisabled) && !isAmenitiesSpecialCase
 
 // Get language and prepare translation string
 const lang = getLangFromPath(Astro.url.pathname) as Language | 'pl'
@@ -35,17 +40,18 @@ const t = translations[lang]
 ---
 
 <details
-  class="filter-group"
+  class="filter-group select-filter-group"
   data-disabled={isDisabled}
   data-param-name={paramName}
   data-multi={isMulti}
   data-star-label={t.starLabel}
-  open
-  data-expanded="true"
+  data-amenities-special-case={isAmenitiesSpecialCase}
+  open={!isDisabled}
+  data-expanded={!isDisabled ? 'true' : 'false'}
 >
   <summary>
     <span>{heading}</span>
-    <button class="selected-value" type="button" style="display: none;" data-disabled={isDisabled}>
+    <button class="selected-value" type="button" style="display: none;">
       <span></span>
       <div class="clear-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -72,7 +78,8 @@ const t = translations[lang]
   <div class="filter-content">
     <div class="filter-options">
       {
-        availableItems.map((item) => (
+        // Show only selected items in special case, otherwise show all available items
+        (isAmenitiesSpecialCase ? selectedItems : availableItems).map((item) => (
           <label
             class="filter-option"
             data-selected={item.isSelected}
@@ -106,7 +113,7 @@ const t = translations[lang]
               </svg>
             </span>
             <span class="value">{allowHtmlName ? <Fragment set:html={item.name} /> : item.name}</span>
-            <span class="count">{item.count}</span>
+            <span class="count">{isAmenitiesSpecialCase ? '' : item.count}</span>
           </label>
         ))
       }
@@ -115,7 +122,7 @@ const t = translations[lang]
 </details>
 
 <style lang="scss">
-  .filter-group {
+  .select-filter-group {
     overflow: hidden;
     color: var(--primary-800);
     padding: 0.375rem 0rem;
@@ -124,19 +131,77 @@ const t = translations[lang]
     &[data-disabled='true'] {
       summary {
         cursor: default;
-        opacity: 0.6;
-        pointer-events: none;
+
+        > span:first-of-type {
+          opacity: 0.6;
+          pointer-events: none;
+        }
+
+        .icon {
+          pointer-events: none;
+          opacity: 0.6;
+        }
+
+        // Keep the selected-value button fully visible and interactive
+        .selected-value {
+          opacity: 1;
+          cursor: pointer;
+          pointer-events: auto;
+
+          &:hover {
+            .clear-icon {
+              opacity: 1;
+            }
+          }
+        }
       }
 
-      .selected-value {
-        opacity: 0.7;
+      // Disable the filter options
+      .filter-content {
         pointer-events: none;
+        opacity: 0.6;
         cursor: default;
+
+        .filter-option {
+          cursor: default;
+        }
       }
     }
 
     &[data-has-selection='true'] {
       border-color: var(--neutral-300);
+    }
+
+    &[data-amenities-special-case='true'] {
+      .filter-content {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      summary {
+        cursor: pointer;
+        opacity: 1;
+
+        > span:first-of-type {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .icon {
+          opacity: 1;
+          pointer-events: auto;
+        }
+      }
+
+      .filter-options {
+        .filter-option {
+          cursor: pointer;
+
+          &:hover {
+            background-color: var(--neutral-200);
+          }
+        }
+      }
     }
 
     summary {
@@ -422,7 +487,7 @@ const t = translations[lang]
 </style>
 
 <script>
-  document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((details) => {
+  document.querySelectorAll<HTMLDetailsElement>('.select-filter-group').forEach((details) => {
     const summary = details.querySelector<HTMLElement>('summary')!
     const content = details.querySelector<HTMLDivElement>('.filter-content')
     const clearButton = details.querySelector<HTMLButtonElement>('.selected-value')!
@@ -430,16 +495,9 @@ const t = translations[lang]
     const inputs = details.querySelectorAll<HTMLInputElement>('input')!
     const isDisabled = details.dataset.disabled === 'true'
     const isMulti = details.dataset.multi === 'true'
+    const isAmenitiesSpecialCase = details.dataset.amenitiesSpecialCase === 'true'
     const paramName = details.dataset.paramName
     const starLabel = details.dataset.starLabel
-
-    // Define custom event types
-    interface FilterChangeEventDetail {
-      paramName: string
-      value: string
-      label: string
-      checked?: boolean
-    }
 
     let isAnimating = false
 
@@ -479,12 +537,9 @@ const t = translations[lang]
       updateSelectedValue()
     })
 
-    // Clear button handler
+    // Clear button handler - should work even when disabled
     clearButton?.addEventListener('click', (event) => {
       event.stopPropagation()
-
-      // Don't process if disabled
-      if (isDisabled) return
 
       // Add exit animation
       clearButton.style.opacity = '0'
@@ -514,10 +569,22 @@ const t = translations[lang]
       }, 150)
     })
 
+    // Ensure details is closed when disabled
+    if (isDisabled) {
+      details.open = false
+    }
+
     // Animation logic for the dropdown opening/closing
-    if (summary && content && !isDisabled) {
+    if (summary && content) {
       summary.addEventListener('click', (event) => {
         event.preventDefault()
+
+        // If disabled and not special case, prevent any interaction
+        if (isDisabled && !isAmenitiesSpecialCase) {
+          event.stopPropagation()
+          details.open = false
+          return
+        }
 
         if (isAnimating) return
 
@@ -574,11 +641,17 @@ const t = translations[lang]
       })
     }
 
-    // Handle input changes
+    // Handle input changes - prevent changes when disabled
     inputs.forEach((input) => {
       input.addEventListener('change', () => {
         // Don't process if disabled
-        if (isDisabled) return
+        if (isDisabled) {
+          // Revert the change
+          if (isMulti) {
+            input.checked = !input.checked
+          }
+          return
+        }
 
         const label = input.parentElement
         const labelText = label?.querySelector('.value')?.textContent || ''
@@ -600,7 +673,7 @@ const t = translations[lang]
                 value: input.value,
                 label: labelText,
                 checked: input.checked,
-              } as FilterChangeEventDetail,
+              },
             })
           )
         } else {
@@ -650,6 +723,11 @@ const t = translations[lang]
         let wasUnselected = false
 
         input.addEventListener('click', (e) => {
+          if (isDisabled) {
+            e.preventDefault()
+            return
+          }
+
           const label = input.parentElement
           const wasSelected = label?.getAttribute('data-selected') === 'true'
 
