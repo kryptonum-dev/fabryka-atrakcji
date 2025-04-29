@@ -14,6 +14,14 @@ import Testimonials, { Testimonials_Query } from '@/src/components/ui/content-pt
 import Amenities, { Amenities_Query } from '@/src/components/ui/content-pt/hotel/Amenities.astro'
 import Location, { Location_Query } from '@/src/components/ui/content-pt/hotel/Location.astro'
 import StayingRules, { StayingRules_Query } from '@/src/components/ui/content-pt/hotel/StayingRules.astro'
+import Checklist, { Checklist_Query } from '@/src/components/ui/content-pt/shared/Checklist.astro'
+import BlocksWithImage, { BlocksWithImage_Query } from '@/src/components/ui/content-pt/offer/BlocksWithImage.astro'
+import ImageWithHeadingAndText, {
+  ImageWithHeadingAndText_Query,
+} from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
+import RowsWithIcons, { RowsWithIcons_Query } from '@/src/components/ui/content-pt/offer/RowsWithIcons.astro'
+import Timeline, { Timeline_Query } from '@/src/components/ui/content-pt/offer/Timeline.astro'
+import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer/NextSteps.astro'
 
 export type SingleHotelProps = {
   hotelsPage: {
@@ -48,7 +56,9 @@ export type SingleHotelProps = {
     city: string
     voivodeship: string
   }
-  googleMapsLink: string
+  googleMaps: {
+    googleMapsLink: string
+  }
   popularityIndex: number
   pricing: {
     hasFixedGroupPrice?: boolean
@@ -91,10 +101,12 @@ export async function fetchData(slug: string, lang: Language) {
       numberOfRooms,
       maxPeople,
       address,
-      googleMapsLink,
+      googleMaps{
+        googleMapsLink,
+      },
       popularityIndex,
       pricing,
-      ${ContentPT_Query([Faq_Query, Testimonials_Query, Amenities_Query, Location_Query, StayingRules_Query])}
+      ${ContentPT_Query([Faq_Query, Testimonials_Query, Amenities_Query, Location_Query, StayingRules_Query, Checklist_Query, BlocksWithImage_Query, ImageWithHeadingAndText_Query, RowsWithIcons_Query, Timeline_Query, NextSteps_Query])}
       ${Components_Query}
     }
   `,
@@ -150,6 +162,12 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
           Amenities,
           Location,
           StayingRules,
+          Checklist,
+          BlocksWithImage,
+          ImageWithHeadingAndText,
+          RowsWithIcons,
+          Timeline,
+          NextSteps,
         }}
       />
     </div>

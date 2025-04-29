@@ -199,25 +199,6 @@ const { node } = Astro.props as Props
 
         :global(.link) {
           color: var(--primary-800, #45051c);
-          position: relative;
-          min-height: fit-content;
-          overflow: visible;
-          &::before {
-            bottom: 2px;
-          }
-
-          &::after {
-            min-height: 2.75rem;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            aspect-ratio: auto;
-          }
-
-          &:focus {
-            &::after {
-              transform: translate(-50%, -50%) scaleX(1) scaleY(1);
-            }
-          }
         }
       }
     }

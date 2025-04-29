@@ -91,7 +91,7 @@ export default function Form({
         })}
         errors={errors}
       >
-        {t.form.legal.labelFirst}
+        {t.form.legal.labelFirst}{' '}
         <a
           href={t.form.legal.link}
           target="_blank"

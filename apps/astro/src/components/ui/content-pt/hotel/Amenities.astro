@@ -43,8 +43,8 @@ interface Props {
 const { node } = Astro.props
 ---
 
-<>
-  {node.heading && <PortableText value={node.heading} heading="h2" />}
+<section class="Amenities">
+  <PortableText value={node.heading} heading="h2" />
   <ul class="list">
     {
       node.amenityGroups.slice(0, 3).map((group) => (
@@ -84,98 +84,117 @@ const { node } = Astro.props
       </ul>
     </div>
   </PopupWindow>
-</>
+</section>
 
 <style lang="scss">
-  .list {
-    margin-bottom: 1.5rem !important;
-    .item {
-      margin-bottom: clamp(1.25rem, calc(1.5vw / 0.48), 1.5rem) !important;
-    }
-  }
-
-  .heading {
-    color: var(--primary-800, #45051c);
-    font-weight: 700;
-    line-height: 1.5;
-    letter-spacing: -0.03em;
-    margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
-    font-size: var(--typography-body-xl, 1.25rem);
-    margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
-  }
-
-  .group-item {
-    padding-left: 1.625rem;
-    position: relative;
-    margin-bottom: 0.5rem !important;
-
-    font-size: var(--typography-body-l, 1rem) !important;
-    &::before {
-      content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M14.6693 8.00065C14.6693 11.6825 11.6845 14.6673 8.0026 14.6673C4.32071 14.6673 1.33594 11.6825 1.33594 8.00065C1.33594 4.31875 4.32071 1.33398 8.0026 1.33398C11.6845 1.33398 14.6693 4.31875 14.6693 8.00065ZM10.6895 5.98043C10.8848 6.17569 10.8848 6.49228 10.6895 6.68754L7.35616 10.0209C7.1609 10.2161 6.84431 10.2161 6.64905 10.0209L5.31572 8.68754C5.12046 8.49228 5.12046 8.17569 5.31572 7.98043C5.51098 7.78517 5.82756 7.78517 6.02282 7.98043L7.0026 8.96021L8.49249 7.47032L9.98238 5.98043C10.1776 5.78517 10.4942 5.78517 10.6895 5.98043Z' fill='%23F67258'/%3E%3C/svg%3E");
-      position: absolute;
-      left: 0;
-      top: 2px;
-    }
-  }
-
-  .amenities-popup {
-    padding: 2.5rem;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 2rem 1rem;
-    max-width: 68.5rem;
-    max-height: calc(100dvh - 6rem);
-    width: calc(100vw - var(--pageMargin) * 2);
-    overflow: hidden;
-
-    :global(.CloseButton) {
-      margin-top: -8px;
+  .Amenities {
+    margin-bottom: clamp(3rem, calc(3.5vw / 0.48), 3.5rem);
+    :global(> h2) {
+      margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
     }
 
-    .content {
-      max-height: 22rem;
-      overflow-y: auto;
+    .list {
+      margin-bottom: 1.5rem !important;
+      .item {
+        margin-bottom: clamp(1.25rem, calc(1.5vw / 0.48), 1.5rem) !important;
+      }
+    }
+
+    .heading {
+      color: var(--primary-800, #45051c);
+      font-weight: 700;
+      line-height: 1.5;
+      letter-spacing: -0.03em;
+      margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+      font-size: var(--typography-body-xl, 1.25rem);
+      margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+    }
+
+    .group-item {
+      padding-left: 1.625rem;
+      position: relative;
+      margin-bottom: 0.5rem !important;
+
+      font-size: var(--typography-body-l, 1rem) !important;
+      &::before {
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M14.6693 8.00065C14.6693 11.6825 11.6845 14.6673 8.0026 14.6673C4.32071 14.6673 1.33594 11.6825 1.33594 8.00065C1.33594 4.31875 4.32071 1.33398 8.0026 1.33398C11.6845 1.33398 14.6693 4.31875 14.6693 8.00065ZM10.6895 5.98043C10.8848 6.17569 10.8848 6.49228 10.6895 6.68754L7.35616 10.0209C7.1609 10.2161 6.84431 10.2161 6.64905 10.0209L5.31572 8.68754C5.12046 8.49228 5.12046 8.17569 5.31572 7.98043C5.51098 7.78517 5.82756 7.78517 6.02282 7.98043L7.0026 8.96021L8.49249 7.47032L9.98238 5.98043C10.1776 5.78517 10.4942 5.78517 10.6895 5.98043Z' fill='%23F67258'/%3E%3C/svg%3E");
+        position: absolute;
+        left: 0;
+        top: 2px;
+      }
+    }
+
+    .amenities-popup {
+      padding: 2.5rem;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      grid-column: 1/3;
-      padding-right: 1.5rem;
+      grid-template-columns: 1fr auto;
+      gap: 2rem 1rem;
+      max-width: 68.5rem;
+      max-height: calc(100dvh - 6rem);
+      width: calc(100vw - var(--pageMargin) * 2);
+      overflow: hidden;
 
-      gap: clamp(1.5rem, calc(2vw / 0.48), 3rem);
-
-      &::-webkit-scrollbar {
-        width: 0.25rem;
+      :global(.CloseButton) {
+        margin-top: -8px;
       }
 
-      &::-webkit-scrollbar-track {
-        background: var(--neutral-300, #ede6de);
-        border-radius: 16px;
-      }
+      .content {
+        max-height: 22rem;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-column: 1/3;
+        padding-right: 1.5rem;
 
-      &::-webkit-scrollbar-thumb {
-        background: var(--primary-400, #74535e);
-        border-radius: 16px;
-      }
+        gap: clamp(1.5rem, calc(2vw / 0.48), 3rem);
 
-      &::-webkit-scrollbar-thumb:hover {
-        background: var(--primary-700, #600d2a);
+        &::-webkit-scrollbar {
+          width: 0.25rem;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: var(--neutral-300, #ede6de);
+          border-radius: 16px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: var(--primary-400, #74535e);
+          border-radius: 16px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+          background: var(--primary-700, #600d2a);
+        }
       }
     }
 
     @media (max-width: 899px) {
-      padding: clamp(1.5rem, calc(3.5vw / 0.48), 3.5rem) clamp(1rem, calc(3.5vw / 0.48), 3.5rem);
-
-      .content {
-        grid-template-columns: 1fr;
-        max-height: 32rem;
+      :global(.Wrapper) {
+        .amenities-popup {
+          padding: clamp(1.5rem, calc(3.5vw / 0.48), 3.5rem) clamp(1rem, calc(3.5vw / 0.48), 3.5rem);
+          .content {
+            grid-template-columns: 1fr;
+            max-height: 32rem;
+          }
+        }
       }
     }
 
     @media (max-width: 499px) {
-      padding: 1.5rem 1rem 0;
-      gap: 1rem;
+      :global(.Wrapper) {
+        :global(> button) {
+          width: 100%;
+          max-width: 100%;
+          justify-content: center;
+        }
+        .amenities-popup {
+          padding: 1.5rem 1rem 0;
+          gap: 1rem;
 
-      .content {
-        padding-bottom: 1rem;
+          .content {
+            padding-bottom: 1rem;
+          }
+        }
       }
     }
   }

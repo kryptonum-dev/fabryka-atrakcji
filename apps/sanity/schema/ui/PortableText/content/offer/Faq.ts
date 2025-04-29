@@ -18,6 +18,28 @@ export default defineField({
       type: 'Heading',
       title: 'Nagłówek',
       validation: (Rule) => Rule.required(),
+      initialValue: [
+        {
+          _key: '8a0d68722eaf',
+          _type: 'block',
+          children: [
+            {
+              _key: 'b0c030ee3f460',
+              _type: 'span',
+              marks: [],
+              text: 'Sprawdź o co najczęściej ',
+            },
+            {
+              _key: 'b0c030ee3f460',
+              _type: 'span',
+              marks: ['strong'],
+              text: 'pytali nasi klienci ',
+            },
+          ],
+          markDefs: [],
+          style: 'normal',
+        },
+      ],
     }),
     defineField({
       name: 'questions',

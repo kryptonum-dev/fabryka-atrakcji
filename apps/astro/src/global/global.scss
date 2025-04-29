@@ -254,23 +254,20 @@ h2,
 }
 
 .link {
-  min-height: 2.75rem;
   display: inline-flex;
   align-items: center;
-  overflow: hidden;
   position: relative;
-  isolation: isolate;
   border-radius: 4px;
+  min-height: fit-content;
+  overflow: visible;
+  max-width: max-content;
 
-  span {
-    transition: transform 450ms var(--easing);
-    z-index: 1;
-    &:nth-of-type(2) {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translateY(80%) translateX(-50%);
-    }
+  &::after {
+    min-height: 2.75rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    aspect-ratio: auto;
+    z-index: -10;
   }
 
   &::before {
@@ -279,7 +276,7 @@ h2,
     height: 2%;
     background-color: currentColor;
     position: absolute;
-    bottom: 10px;
+    bottom: 2px;
     left: 0;
     transform-origin: left;
     transition:
@@ -289,20 +286,19 @@ h2,
 
   &::after {
     content: '';
-    width: 100%;
+    width: 110%;
     aspect-ratio: 1;
+    height: 100%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
     position: absolute;
     background-color: var(--primary-400, #74535e);
-    transition: transform 400ms var(--easing);
-    border-radius: 50%;
+    transition: transform 200ms var(--easing);
     z-index: -1;
   }
 
   &:hover {
-    // text-decoration-color: var(--primary-500);
     &::before {
       transform: scaleX(1);
       animation: linkColorLoop 3s linear infinite;
@@ -322,9 +318,10 @@ h2,
   }
   &:focus:not(:focus-visible) {
     &::after {
-      transform: translate(-50%, -50%) scale(1.5);
+      transform: translate(-50%, -50%) scale(1);
     }
   }
+
   &[data-shade='light'] {
     &::after {
       background-color: var(--neutral-300, #ede6de);
@@ -363,22 +360,52 @@ h2,
 }
 
 div.paragraph {
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  strong {
+    color: var(--primary-700, #600d2a);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  > p,
+  > ul,
+  > ol,
+  > ul li,
+  > ol li,
+  > ul p,
+  > ol p {
+    margin-bottom: 0.5rem;
+  }
+
+  > li:last-child {
+    margin-bottom: 0;
+  }
+
   li {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.375rem;
+    padding-left: 1rem;
+    position: relative;
+
+    &:not(:last-child) {
+      margin-bottom: 0.75rem;
+    }
 
     &::before {
+      position: absolute;
+      left: 0rem;
+      top: 0.75rem;
       content: '';
       width: 0.25rem;
       height: 0.25rem;
-      background-color: currentColor;
       border-radius: 50%;
-      margin-top: 0.875rem;
+      background-color: currentColor;
     }
-  }
-  & > *:not(:last-child) {
-    margin-bottom: 0.5rem;
   }
 }
 

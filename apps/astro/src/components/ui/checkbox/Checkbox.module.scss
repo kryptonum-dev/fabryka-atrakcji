@@ -9,6 +9,8 @@
   font-size: var(--typography-body-m, 0.875rem);
   cursor: pointer;
   user-select: none;
+  z-index: 1;
+  position: relative;
 
   a {
     display: inline-flex;

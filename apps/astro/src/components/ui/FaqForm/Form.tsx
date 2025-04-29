@@ -111,7 +111,7 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
         })}
         errors={errors}
       >
-        {t.form.legal.labelFirst}
+        {t.form.legal.labelFirst}{' '}
         <a
           href={t.form.legal.link}
           target="_blank"

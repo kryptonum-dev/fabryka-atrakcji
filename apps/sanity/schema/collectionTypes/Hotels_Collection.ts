@@ -272,12 +272,28 @@ export default defineType({
       ],
     }),
     defineField({
-      name: 'googleMapsLink',
-      type: 'url',
-      title: 'Link do Google Maps',
-      validation: (Rule) => Rule.required().error('Link do Google Maps jest wymagany'),
+      name: 'googleMaps',
+      type: 'object',
+      title: 'Mapy Google',
       group: 'details',
+      validation: (Rule) => Rule.required().error('Mapy Google są wymagane'),
+      fields: [
+        defineField({
+          name: 'googleMapsLink',
+          type: 'url',
+          title: 'Link do Google Maps',
+          description: 'Link do Google Maps - przekierowuje do strony Google Maps',
+          validation: (Rule) => Rule.required().error('Link do Google Maps jest wymagany'),
+        }),
+        defineField({
+          name: 'googleMapsEmbed',
+          type: 'url',
+          title: 'Link do Google Maps Embed (opcjonalny)',
+          description: 'Kod Embed Google Maps - używany do wyświetlania interaktywnej mapy na stronie',
+        }),
+      ],
     }),
+
     defineField({
       name: 'popularityIndex',
       type: 'number',
