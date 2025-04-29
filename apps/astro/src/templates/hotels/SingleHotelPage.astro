@@ -1,0 +1,242 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import type { Language } from '@/global/languages'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import metadataFetch from '@/src/utils/metadata.fetch'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import Hero from '@/src/components/offer/Hero.astro'
+import ContentPT, { type Props as ContentPTProps, ContentPT_Query } from '@/src/components/ui/content-pt/index.astro'
+import Faq, { Faq_Query } from '@/src/components/ui/content-pt/offer/Faq.astro'
+import Testimonials, { Testimonials_Query } from '@/src/components/ui/content-pt/offer/Testimonials.astro'
+
+export type SingleHotelProps = {
+  hotelsPage: {
+    name: string
+    slug: string
+  }
+  _type: 'Hotels_Collection'
+  name: string
+  slug: string
+  title: PortableTextValue
+  description: string
+  imageList: ImageDataProps[]
+  amenities: Array<{
+    _id: string
+    name: string
+    icon?: any
+  }>
+  location: {
+    _id: string
+    name: string
+  }
+  stars: number
+  numberOfRooms: number
+  maxPeople: {
+    overnight: number
+    conference?: number
+    banquet?: number
+  }
+  address: {
+    street: string
+    postalCode: string
+    city: string
+    voivodeship: string
+  }
+  googleMapsLink: string
+  popularityIndex: number
+  pricing: {
+    hasFixedGroupPrice?: boolean
+    groupPrice?: number
+    groupPeopleCount?: number
+    pricePerPerson: number
+  }
+  components: ComponentsProps
+  content: ContentPTProps['value']
+}
+
+export async function fetchData(slug: string, lang: Language) {
+  const prefixes = {
+    pl: '/pl/hotele/',
+    en: '/en/hotels/',
+  }
+
+  const page = await sanityFetch<SingleHotelProps>({
+    query: `
+    *[_type == 'Hotels_Collection' && language == $language && slug.current == $slug][0] {
+      "hotelsPage": *[_type == "Hotels_Page" && language == $language][0] {
+        name,
+        "slug": slug.current
+      },
+      _type,
+      name,
+      "slug": slug.current,
+      ${PortableTextQuery('title')}
+      description,
+      ${ImageDataQuery('imageList[]')}
+      amenities[]->{
+        _id,
+        name,
+      },
+      location->{
+        _id,
+        name
+      },
+      stars,
+      numberOfRooms,
+      maxPeople,
+      address,
+      googleMapsLink,
+      popularityIndex,
+      pricing,
+      ${ContentPT_Query([Faq_Query, Testimonials_Query])}
+      ${Components_Query}
+    }
+  `,
+    params: { language: lang, slug: `${prefixes[lang]}${slug}` },
+  })
+
+  if (!page) return null
+
+  const metadata = await metadataFetch(page.slug)
+
+  if (!metadata) return null
+
+  return {
+    page,
+    metadata,
+  }
+}
+
+export async function staticPaths(lang: Language) {
+  const pages = await sanityFetch<{ slug: string }[]>({
+    query: `
+      *[_type == 'Hotels_Collection' && language == $language][] {
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+  return pages?.map(({ slug }) => ({
+    params: { slug: slug.split('/').pop() },
+  }))
+}
+
+const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof fetchData>>>
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs
+    data={[
+      { name: page.hotelsPage.name, path: page.hotelsPage.slug },
+      { name: page.name, path: page.slug },
+    ]}
+    firstItemType="OfferHero"
+  />
+  <Hero {...page} _type="Hotels_Collection" />
+
+  <article class="wrapper max-width" id="content">
+    <div class="content">
+      <ContentPT
+        value={page.content}
+        additionalComponents={{
+          Faq,
+          Testimonials,
+        }}
+      />
+    </div>
+    <div class="pricing"></div>
+  </article>
+  <Components data={page.components} hasPreviousSections />
+</Layout>
+
+<style lang="scss">
+  .wrapper {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-top: clamp(3rem, calc(3.5vw / 0.48), 3.5rem);
+
+    .content {
+      max-width: clamp(20rem, calc(25vw / 0.48), 40.9375rem);
+      justify-self: start;
+
+      :global(> :first-child) {
+        margin-top: 0;
+      }
+
+      :global(> :last-child) {
+        margin-bottom: 0;
+      }
+
+      :global(strong:not(h1 strong, h2 strong)) {
+        font-weight: 700;
+        color: var(--primary-800, #45051c);
+      }
+
+      :global(> p),
+      :global(> ul),
+      :global(> ol),
+      :global(> ul li),
+      :global(> ol li),
+      :global(> ul p),
+      :global(> ol p) {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      :global(> h2) {
+        margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
+        font-size: var(--typography-heading-l);
+      }
+
+      :global(> h3) {
+        color: var(--primary-700, #600d2a);
+        font-size: var(--typography-body-2xl, 1.5rem);
+        line-height: 1.25;
+        margin: 1.5rem 0 1rem;
+        letter-spacing: -0.04em;
+        font-variant-numeric: lining-nums proportional-nums;
+
+        font-weight: 700;
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+      }
+
+      :global(li:last-child) {
+        margin-bottom: 0;
+      }
+    }
+
+    .pricing {
+      background: var(--neutral-200, #f5f1ec);
+      border-radius: 0.75rem;
+      max-width: 27.0625rem;
+      width: 100%;
+      padding: 1.5rem;
+      height: 15.625rem;
+      justify-self: end;
+      position: sticky;
+      top: 89px;
+      max-height: calc(100vh - 89px);
+    }
+
+    @media (max-width: 1089px) {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      max-width: 48rem;
+      .pricing {
+        grid-row: 1/2;
+        position: static;
+        max-width: 100%;
+      }
+      .content {
+        grid-row: 2/3;
+        max-width: 100%;
+      }
+    }
+  }
+</style>

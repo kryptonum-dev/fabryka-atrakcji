@@ -1,21 +1,12 @@
 ---
 import type { SingleActivityProps } from '@/src/templates/activities/SingleActivityPage.astro'
-import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import PortableText from '@/src/components/ui/portable-text'
 import Button from '@/src/components/ui/Button'
 import { getLangFromPath, type Language } from '@/src/global/languages'
-import type { ImageDataProps } from '../ui/image'
 import Image from '@/src/components/ui/image/index.astro'
 import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
 import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
-
-type SingleHotelProps = {
-  _type: 'Hotels_Collection'
-  name: string
-  slug: string
-  title: PortableTextValue
-  description: string
-  imageList: ImageDataProps[]
-}
+import type { SingleHotelProps } from '@/src/templates/hotels/SingleHotelPage.astro'
 
 type HeroProps = SingleActivityProps | SingleHotelProps
 
@@ -25,7 +16,6 @@ const translations = {
   pl: {
     activities: {
       readMore: 'Przeczytaj więcej o integracji',
-      getPrice: 'Wybierz do kompleksowej wyceny',
       viewAll: 'Wszystkie zdjęcia',
       outdoor: 'Na zewnątrz',
       indoor: 'Wewnątrz',
@@ -44,15 +34,22 @@ const translations = {
       },
     },
     hotels: {
-      title: 'Hotele',
-      description: 'Hotele',
-      imageList: 'Hotele',
+      readMore: 'Przeczytaj więcej o hotelu',
+      showOnMap: 'Pokaż na mapie',
+      maxPrefix: 'Maks.',
+      participants: {
+        single: 'osoba',
+        few: 'osoby',
+        plural: 'osób',
+      },
+      onConference: 'na konferencji',
+      onBanquet: 'na bankiecie',
     },
+    getPrice: 'Wybierz do kompleksowej wyceny',
   },
   en: {
     activities: {
       readMore: 'Read more about the activity',
-      getPrice: 'Get a comprehensive price estimate',
       viewAll: 'All photos',
       outdoor: 'Outdoor',
       indoor: 'Indoor',
@@ -71,10 +68,18 @@ const translations = {
       },
     },
     hotels: {
-      title: 'Hotels',
-      description: 'Hotels',
-      imageList: 'Hotels',
+      readMore: 'Read more about the hotel',
+      showOnMap: 'Show on map',
+      maxPrefix: 'Max.',
+      participants: {
+        single: 'person',
+        few: 'people',
+        plural: 'people',
+      },
+      onConference: 'on conference',
+      onBanquet: 'on banquet',
     },
+    getPrice: 'Get a comprehensive price estimate',
   },
 }
 
@@ -98,11 +103,22 @@ const imageSizes = {
     ],
   },
 
-  blog: {
-    1: {},
-    2: {},
-    3: {},
-    4: {},
+  hotels: {
+    2: [
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 64vw, 875px',
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 32vw, 438px',
+    ],
+    3: [
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 38vw, 522px',
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 19vw, 262px',
+
+      '(max-width: 1089px) 0px, (max-width: 1366px) 38vw, 522px',
+    ],
+    4: [
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 49vw, 662px',
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 23vw, 312px',
+      '(max-width: 1089px) 0px, (max-width: 1366px) 24vw, 332px',
+    ],
   },
 }
 
@@ -117,18 +133,75 @@ function getHoursText(hours: number, lang: Language) {
   return hours === 1 ? t.activities.duration.hoursSingle : t.activities.duration.hoursPlural
 }
 
+function getParticipantsText(participants: number, lang: Language) {
+  if (lang === 'pl') {
+    if (participants === 1) return t.hotels.participants.single
+    if (participants % 10 >= 2 && participants % 10 <= 4 && (participants % 100 < 10 || participants % 100 >= 20)) {
+      return t.hotels.participants.few
+    }
+    return t.hotels.participants.plural
+  }
+  return participants === 1 ? t.hotels.participants.single : t.hotels.participants.plural
+}
+
 const props = Astro.props as HeroProps
 const { title, description, imageList, _type } = props
+
+const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <mask id="path-1-inside-1_6107_29788" fill="white">
+            <path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/>
+          </mask>
+          <g clip-path="url(#paint0_angular_6107_29788_clip_path)" data-figma-skip-parse="true"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}"/>
+          <g clip-path="url(#paint1_angular_6107_29788_clip_path)" data-figma-skip-parse="true" mask="url(#path-1-inside-1_6107_29788)"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}" mask="url(#path-1-inside-1_6107_29788)"/>
+          <defs>
+            <clipPath id="paint0_angular_6107_29788_clip_path"><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/></clipPath><clipPath id="paint1_angular_6107_29788_clip_path"><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" mask="url(#path-1-inside-1_6107_29788)"/></clipPath></defs>
+            </svg>`
 ---
 
-<section class="Hero max-width">
+<section class="Hero max-width" data-type={_type}>
+  {
+    _type === 'Hotels_Collection' && (
+      <>
+        <span class="stars">
+          {Array.from({ length: props.stars }, () => (
+            <Fragment set:html={hotelStar} />
+          ))}
+        </span>
+        <p class="address">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+            <path
+              fill="#F67258"
+              d="M7.999 14.667c3.682 0 6.666-1.343 6.666-3 0-.845-.775-1.607-2.023-2.153-.761 1.398-1.922 2.602-3.397 3.232-.793.339-1.7.339-2.493 0-1.474-.63-2.636-1.834-3.397-3.232-1.248.546-2.023 1.309-2.023 2.153 0 1.657 2.985 3 6.667 3Z"
+            />
+            <path
+              fill="#F67258"
+              fill-rule="evenodd"
+              d="M3.332 5.676c0-2.398 2.09-4.343 4.667-4.343s4.666 1.945 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.666 1.333 1.333 0 0 0 0 2.666Z"
+              clip-rule="evenodd"
+            />{' '}
+          </svg>
+          <span>
+            {props.address.street}
+            {', '}
+            {props.address.postalCode} {props.address.city}
+            {', '}
+            {props.address.voivodeship}
+          </span>
+        </p>
+        <a href={props.googleMapsLink} target="_blank" rel="noopener noreferrer" class="link" data-shade="light">
+          {t.hotels.showOnMap}
+        </a>
+      </>
+    )
+  }
   <PortableText value={title} heading="h1" class="heading" />
   <p class="description">{description}</p>
   <div class="buttons">
-    <Button theme="primary" shade="dark">{t.activities.readMore}</Button>
-    <Button theme="primary" shade="light">{t.activities.getPrice}</Button>
+    <Button theme="primary" shade="dark" href="#content"
+      >{_type === 'Activities_Collection' ? t.activities.readMore : t.hotels.readMore}</Button
+    >
+    <Button theme="primary" shade="light">{t.getPrice}</Button>
   </div>
-
   <ul class="details">
     {
       _type === 'Activities_Collection' && (
@@ -274,8 +347,66 @@ const { title, description, imageList, _type } = props
         </>
       )
     }
+    {
+      props._type === 'Hotels_Collection' && (
+        <>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+              <path
+                fill="#F67258"
+                d="M4.668 9.167V8.5a2 2 0 0 0-1.995-2c.005-.219.018-.377.046-.52a2.667 2.667 0 0 1 2.095-2.095c.258-.052.568-.052 1.187-.052h1.5v5.334H4.668ZM8.501 9.167h2.834V8.5a2 2 0 0 1 1.995-2 3.055 3.055 0 0 0-.047-.52 2.667 2.667 0 0 0-2.095-2.095c-.257-.052-.567-.052-1.187-.052h-1.5v5.334Z"
+              />
+              <path
+                fill="#F67258"
+                d="M12.295 12.5H3.702c-.184 0-.364-.021-.537-.061v.728a.5.5 0 0 1-1 0v-1.233a2.365 2.365 0 0 1-.833-1.804V8.5a1.333 1.333 0 1 1 2.667 0v.8c0 .295.238.533.533.533h6.933A.533.533 0 0 0 12 9.3v-.8a1.333 1.333 0 0 1 2.666 0v1.63c0 .722-.323 1.37-.833 1.804v1.233a.5.5 0 1 1-1 0v-.728c-.173.04-.352.061-.537.061Z"
+              />
+            </svg>
+            <span>
+              {t.hotels.maxPrefix}
+              <strong>
+                {props.maxPeople.overnight} {getParticipantsText(props.maxPeople.overnight, lang)}
+              </strong>
+            </span>
+          </li>
+          {props.maxPeople.conference && (
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <path
+                  fill="#F67258"
+                  d="M4.932 3.5c-.268.464-.268 1.087-.268 2.333v2.018c.287-.018.61-.018.957-.018h4.753c.347 0 .67 0 .957.018V5.833c0-1.246 0-1.869-.268-2.333a2 2 0 0 0-.732-.732C9.867 2.5 9.244 2.5 7.997 2.5c-1.246 0-1.869 0-2.333.268a2 2 0 0 0-.732.732ZM4.17 11.16c-.335-.013-.538-.058-.677-.21-.198-.215-.172-.515-.12-1.116.037-.434.121-.726.311-.943.342-.391.89-.391 1.989-.391h4.66c1.098 0 1.647 0 1.988.39.19.218.274.51.311.944.052.6.078.9-.12 1.117-.139.151-.341.196-.676.21V14.5a.5.5 0 1 1-1 0v-3.333H5.169V14.5a.5.5 0 0 1-1 0v-3.34Z"
+                />
+              </svg>
+              <span>
+                {t.hotels.maxPrefix}
+                <strong>
+                  {props.maxPeople.conference} {getParticipantsText(props.maxPeople.conference, lang)}
+                </strong>
+                {t.hotels.onConference}
+              </span>
+            </li>
+          )}
+          {props.maxPeople.banquet && (
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <path
+                  fill="#F67258"
+                  d="M12.866 2.5H3.134c-1 0-1.509 1.196-.811 1.91L4.157 6.5h7.686l1.835-2.09c.697-.714.189-1.91-.812-1.91ZM10.966 7.5H5.034L7.5 10.31V14H5.17a.5.5 0 0 0 0 1h5.66a.5.5 0 0 0 0-1H8.5V10.31L10.966 7.5Z"
+                />
+              </svg>
+              <span>
+                {t.hotels.maxPrefix}
+                <strong>
+                  {props.maxPeople.banquet} {getParticipantsText(props.maxPeople.banquet, lang)}
+                </strong>
+                {t.hotels.onBanquet}
+              </span>
+            </li>
+          )}
+        </>
+      )
+    }
   </ul>
-  <div class="gallery" data-image-count={imageList.length > 4 ? 4 : imageList.length} data-type={_type}>
+  <div class="gallery" data-image-count={imageList.length > 4 ? 4 : imageList.length}>
     {
       imageList.slice(0, 4).map((image, index) => {
         const count = imageList.length > 4 ? 4 : imageList.length
@@ -317,9 +448,8 @@ const { title, description, imageList, _type } = props
 
 <style lang="scss">
   .Hero {
-    padding: clamp(3.5rem, calc(4.5vw / 0.48), 5rem) 0 clamp(1.5rem, calc(2.25vw / 0.48), 2.25rem);
+    padding: clamp(3.5rem, calc(5vw / 0.48), 5rem) 0 clamp(1.5rem, calc(2.25vw / 0.48), 2.25rem);
     display: grid;
-    grid-template-rows: auto auto auto 1fr;
     grid-template-columns:
       clamp(25rem, calc(24vw / 0.48), 40.9375rem)
       auto;
@@ -328,139 +458,93 @@ const { title, description, imageList, _type } = props
 
     .heading {
       margin-bottom: 1rem;
-      grid-column: 1 / 3;
-      grid-row: 1 / 2;
+      grid-area: heading;
       max-width: 40.9375rem;
     }
 
     .description {
       margin-bottom: clamp(1.25rem, calc(2vw / 0.48), 2rem);
       font-size: var(--typography-body-l, 1rem);
-      grid-column: 1 / 2;
-      grid-row: 2 / 3;
+      grid-area: description;
     }
 
     .buttons {
-      grid-column: 1 / 2;
-      grid-row: 3 / 4;
+      grid-area: buttons;
       display: flex;
       flex-wrap: wrap;
       gap: 0.75rem;
     }
 
-    .details {
-      grid-column: 2 / 3;
-      grid-row: 2 / 4;
-      align-self: end;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem 0.25rem;
-      max-width: 27.0625rem;
-      justify-content: flex-end;
-      align-items: center;
-      justify-self: end;
-
-      li:not(.separator) {
-        background-color: var(--neutral-200, #f5f1ec);
-        border-radius: 999rem;
-        min-height: 2.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0 0.75rem 0 0.625rem;
-        font-size: var(--typography-body-m, 0.875rem);
-        line-height: 1.7;
-        letter-spacing: -0.01em;
-
-        svg {
-          margin-top: 1px;
-        }
-      }
-
-      .separator {
-        width: 0.25rem;
-        height: 0.25rem;
-        border-radius: 50%;
-        background-color: var(--neutral-400,);
-      }
-    }
     .gallery {
       margin-top: clamp(1rem, calc(2vw / 0.48), 3rem);
       min-height: 15rem;
-      grid-column: 1 / 3;
-      grid-row: 4 / 5;
+      grid-area: gallery;
       display: grid;
       grid-template-rows: 1fr 1fr;
       min-height: 26rem;
       gap: clamp(0.25rem, calc(0.25vw / 0.48), 0.375rem);
       position: relative;
+      grid-template-rows: 1fr;
 
-      &[data-type='Activities_Collection'] {
-        grid-template-columns: 19.5fr 41.4fr 20.75fr;
+      img {
+        height: 100%;
+        border-radius: 0.5rem;
 
+        &:first-child {
+          grid-column: 1 / 2;
+          grid-row: 1 / 3;
+        }
+
+        &:nth-child(2) {
+          grid-column: 2 / 3;
+          grid-row: 1 / 3;
+        }
+
+        &:nth-child(3) {
+          grid-column: 3 / 4;
+          grid-row: 1 / 2;
+        }
+
+        &:nth-child(4) {
+          grid-column: 3 / 4;
+          grid-row: 2 / 3;
+        }
+      }
+
+      &[data-image-count='2'] {
         img {
-          height: 100%;
-          border-radius: 0.5rem;
-
           &:first-child {
             grid-column: 1 / 2;
-            grid-row: 1 / 3;
+            grid-row: 1 / 2;
           }
 
           &:nth-child(2) {
             grid-column: 2 / 3;
-            grid-row: 1 / 3;
+            grid-row: 1 / 2;
+          }
+        }
+      }
+
+      &[data-image-count='3'] {
+        img {
+          &:first-child {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+          }
+
+          &:nth-child(2) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
           }
 
           &:nth-child(3) {
             grid-column: 3 / 4;
             grid-row: 1 / 2;
           }
-
-          &:nth-child(4) {
-            grid-column: 3 / 4;
-            grid-row: 2 / 3;
-          }
         }
-
-        &[data-image-count='2'] {
-          grid-template-columns: 1fr 2fr;
-          grid-template-rows: 1fr;
-
-          img {
-            &:first-child {
-              grid-column: 1 / 2;
-              grid-row: 1 / 2;
-            }
-
-            &:nth-child(2) {
-              grid-column: 2 / 3;
-              grid-row: 1 / 2;
-            }
-          }
-        }
-
-        &[data-image-count='3'] {
-          grid-template-columns: 1fr 2fr 2fr;
-          grid-template-rows: 1fr;
-
-          img {
-            &:first-child {
-              grid-column: 1 / 2;
-              grid-row: 1 / 2;
-            }
-
-            &:nth-child(2) {
-              grid-column: 2 / 3;
-              grid-row: 1 / 2;
-            }
-
-            &:nth-child(3) {
-              grid-column: 3 / 4;
-              grid-row: 1 / 2;
-            }
-          }
-        }
+      }
+      &[data-image-count='4'] {
+        grid-template-rows: repeat(2, 1fr);
       }
 
       :global(.Wrapper) {
@@ -525,7 +609,7 @@ const { title, description, imageList, _type } = props
             grid-row: 2 / 3;
 
             .images {
-              columns: 3;
+              columns: 2;
               overflow-y: auto;
               gap: 0.5rem;
 
@@ -561,24 +645,265 @@ const { title, description, imageList, _type } = props
       }
     }
 
-    @media (max-width: 1089px) {
-      grid-template-columns: 1fr;
-      max-width: 48rem;
+    &[data-type='Hotels_Collection'] {
+      grid-template-rows: repeat(4, auto) 1fr;
+      grid-template-columns: auto auto 1fr auto;
+      grid-template-areas:
+        'stars address map map'
+        'heading heading heading details'
+        'description description description details'
+        'buttons buttons buttons details'
+        'gallery gallery gallery gallery';
+      column-gap: 0rem;
+
+      .stars {
+        display: flex;
+        align-items: center;
+        gap: 0.1875rem;
+        margin-right: 1.25rem;
+        grid-area: stars;
+
+        :global(svg) {
+          width: 1rem;
+          height: 1rem;
+        }
+      }
+
+      .address {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.375rem, calc(0.375vw / 0.48), 0.5rem);
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+        grid-area: address;
+        margin-right: 0.5rem;
+        svg {
+          margin-top: 1px;
+        }
+      }
+
+      :global(.link) {
+        grid-area: map;
+        color: var(--primary-800, #45051c);
+        position: relative;
+        min-height: fit-content;
+        overflow: visible;
+        font-size: var(--typography-body-m, 0.875rem);
+        max-width: max-content;
+        &::before {
+          bottom: 2px;
+        }
+
+        &::after {
+          min-height: 2.75rem;
+          border-radius: 0.5rem;
+          overflow: hidden;
+          aspect-ratio: auto;
+        }
+
+        &:focus {
+          &::after {
+            transform: translate(-50%, -50%) scaleX(1) scaleY(1);
+          }
+        }
+      }
 
       .heading {
-        grid-column: 1 / 2;
-        grid-row: 1 / 2;
-        margin-bottom: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+        margin-top: clamp(0.5rem, calc(0.625vw / 0.48), 1rem);
+        max-width: 40.9375rem;
       }
 
       .description {
-        grid-column: 1 / 2;
-        grid-row: 3 / 4;
+        max-width: 40.9375rem;
       }
 
       .buttons {
-        grid-column: 1 / 2;
-        grid-row: 4 / 5;
+        max-width: 40.9375rem;
+      }
+
+      .details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem 0.25rem;
+        align-self: end;
+        grid-area: details;
+
+        li {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          svg {
+            margin-bottom: 1px;
+          }
+        }
+      }
+
+      .gallery {
+        grid-template-columns: 39.75fr 20.6875fr 21.2625fr;
+
+        &[data-image-count='2'] {
+          grid-template-columns: 2fr 1fr;
+        }
+
+        &[data-image-count='3'] {
+          grid-template-columns: 2fr 1fr 1fr;
+        }
+      }
+    }
+
+    &[data-type='Activities_Collection'] {
+      grid-template-rows: repeat(3, auto) 1fr;
+      grid-template-areas:
+        'heading details'
+        'description details'
+        'buttons details'
+        'gallery gallery';
+
+      .details {
+        grid-area: details;
+        align-self: end;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.25rem;
+        max-width: 27.0625rem;
+        justify-content: flex-end;
+        align-items: center;
+        justify-self: end;
+
+        li:not(.separator) {
+          background-color: var(--neutral-200, #f5f1ec);
+          border-radius: 999rem;
+          min-height: 2.5rem;
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+          padding: 0 0.75rem 0 0.625rem;
+          font-size: var(--typography-body-m, 0.875rem);
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+
+          svg {
+            margin-top: 1px;
+          }
+        }
+
+        .separator {
+          width: 0.25rem;
+          height: 0.25rem;
+          border-radius: 50%;
+          background-color: var(--neutral-400,);
+        }
+      }
+
+      .gallery {
+        grid-template-columns: 19.5fr 41.4fr 20.75fr;
+
+        &[data-image-count='2'] {
+          grid-template-columns: 1fr 2fr;
+        }
+
+        &[data-image-count='3'] {
+          grid-template-columns: 1fr 2fr 2fr;
+        }
+      }
+    }
+
+    @media (max-width: 1089px) {
+      max-width: 48rem;
+
+      &[data-type='Hotels_Collection'] {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: repeat(6, auto) 1fr;
+        grid-template-areas:
+          'stars stars'
+          'heading heading'
+          'address map'
+          'details details'
+          'description description'
+          'buttons buttons'
+          'gallery gallery';
+
+        .heading,
+        .description,
+        .buttons {
+          max-width: 100%;
+        }
+
+        .address {
+          margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+        }
+
+        :global(.link) {
+          align-self: start;
+        }
+
+        .details {
+          flex-direction: row;
+          margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+
+          li {
+            background: var(--neutral-200, #f5f1ec);
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+            padding: 0.75rem 0.625rem;
+            border-radius: 0.25rem;
+
+            svg {
+              margin-bottom: 0;
+            }
+          }
+        }
+
+        .gallery {
+          &[data-image-count='2'],
+          &[data-image-count='3'],
+          &[data-image-count='4'] {
+            grid-template-columns: 31.75fr 15.9375fr;
+            grid-template-rows: 1fr;
+          }
+        }
+      }
+
+      &[data-type='Activities_Collection'] {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          'heading'
+          'details'
+          'description'
+          'buttons'
+          'gallery';
+
+        .details {
+          margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+          overflow-x: auto;
+          justify-self: stretch;
+          justify-content: flex-start;
+          max-width: 100%;
+          flex-wrap: nowrap;
+
+          li {
+            flex-shrink: 0;
+          }
+        }
+
+        .gallery {
+          &[data-image-count='2'],
+          &[data-image-count='3'],
+          &[data-image-count='4'] {
+            grid-template-columns: 15.9375fr 31.75fr;
+            grid-template-rows: 1fr;
+          }
+        }
+      }
+
+      .heading {
+        margin-bottom: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      }
+
+      .buttons {
         display: grid;
         grid-template-columns: 1fr 1fr;
         :global(button) {
@@ -599,67 +924,30 @@ const { title, description, imageList, _type } = props
         }
       }
 
-      .details {
-        grid-column: 1 / 2;
-        grid-row: 2 / 3;
-        margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
-        overflow-x: auto;
-        justify-self: stretch;
-        justify-content: flex-start;
-        max-width: 100%;
-        flex-wrap: nowrap;
-
-        li {
-          flex-shrink: 0;
-        }
-      }
-
       .gallery {
-        grid-column: 1 / 2;
-        grid-row: 5 / 6;
         margin-left: calc(-1 * var(--pageMargin));
         margin-right: calc(-1 * var(--pageMargin));
 
-        &[data-type='Activities_Collection'] {
-          &[data-image-count='2'],
-          &[data-image-count='3'],
-          &[data-image-count='4'] {
-            grid-template-columns: 15.9375fr 31.75fr;
-            grid-template-rows: 1fr;
-            > img {
-              &:first-child {
-                grid-column: 1 / 2;
-                grid-row: 1 / 2;
-              }
+        > img {
+          &:first-child {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+          }
 
-              &:nth-child(2) {
-                grid-column: 2 / 3;
-                grid-row: 1 / 2;
-              }
+          &:nth-child(2) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+          }
 
-              &:nth-of-type(3),
-              &:nth-of-type(4) {
-                display: none;
-              }
-            }
+          &:nth-of-type(3),
+          &:nth-of-type(4) {
+            display: none;
           }
         }
 
         :global(.Wrapper) {
           bottom: 0.75rem;
           right: 0.75rem;
-        }
-      }
-    }
-
-    @media (max-width: 899px) {
-      .gallery > :global(.Wrapper) {
-        .masonry-grid {
-          .images-wrapper {
-            .images {
-              columns: 2;
-            }
-          }
         }
       }
     }
@@ -675,18 +963,66 @@ const { title, description, imageList, _type } = props
           margin-top: -6px;
           margin-right: -14px;
         }
+
+        .images-wrapper {
+          .images {
+            columns: 1;
+          }
+        }
       }
     }
 
     @media (max-width: 549px) {
-      .details {
-        grid-row: 3 / 4;
+      &[data-type='Hotels_Collection'] {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          'stars'
+          'heading'
+          'gallery'
+          'address'
+          'map'
+          'details' 'description' 'buttons';
+
+        .address {
+          margin-bottom: 0;
+          gap: 0.375rem;
+        }
+
+        :global(.link) {
+          margin-left: 1.375rem;
+          margin-bottom: 0.75rem;
+        }
+
+        .details {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.375rem;
+
+          li {
+            flex-direction: row;
+            background: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--neutral-300, #ede6de);
+            width: 100%;
+
+            span {
+              order: 1;
+            }
+
+            svg {
+              order: 2;
+            }
+          }
+        }
       }
-      .description {
-        grid-row: 4 / 5;
+
+      &[data-type='Activities_Collection'] {
+        grid-template-areas: 'heading' 'gallery' 'details' 'description' 'buttons';
       }
+
       .gallery {
-        grid-row: 2/3;
         margin-top: 0;
         margin-left: 0;
         margin-right: 0;
@@ -712,19 +1048,10 @@ const { title, description, imageList, _type } = props
               }
             }
           }
-
-          .masonry-grid {
-            .images-wrapper {
-              .images {
-                columns: 1;
-              }
-            }
-          }
         }
       }
 
       .buttons {
-        grid-row: 5 / 6;
         max-width: 100%;
       }
     }

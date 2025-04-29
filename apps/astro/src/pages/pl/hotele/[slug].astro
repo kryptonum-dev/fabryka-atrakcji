@@ -1,0 +1,11 @@
+---
+import SingleHotelPage, { fetchData, staticPaths } from '@/src/templates/hotels/SingleHotelPage.astro'
+
+const data = await fetchData(Astro.params.slug || '', 'pl')
+
+if (!data) return Astro.rewrite('/pl/404')
+
+export const getStaticPaths = () => staticPaths('pl')
+---
+
+<SingleHotelPage {...data} />
