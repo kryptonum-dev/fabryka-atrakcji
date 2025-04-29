@@ -1,0 +1,20 @@
+---
+export const StayingRules_Query = `
+  _type == "hotel.stayingRules" => {
+    _type,
+    heading
+  },
+`
+
+interface Props {
+  node: {
+    heading: string
+  }
+}
+
+const { node } = Astro.props
+---
+
+<section></section>
+
+<style lang="scss"></style>

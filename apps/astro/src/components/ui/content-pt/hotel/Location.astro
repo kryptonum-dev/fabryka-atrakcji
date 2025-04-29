@@ -1,0 +1,48 @@
+---
+import PortableText from '@/src/components/ui/portable-text'
+
+export const Location_Query = `
+  _type == "hotel.location" => {
+    _type,
+    heading,
+    howToGetThere {
+      heading,
+      content
+    },
+    attractions {
+      heading,
+      list[] {
+        name,
+        description,
+        distance,
+        googleMapsLink
+      }
+    }
+  },
+`
+
+interface Props {
+  node: {
+    heading: string
+    howToGetThere: {
+      heading: string
+      content: any[]
+    }
+    attractions: {
+      heading: string
+      list: Array<{
+        name: string
+        description: string
+        distance: string
+        googleMapsLink: string
+      }>
+    }
+  }
+}
+
+const { node } = Astro.props
+---
+
+<section></section>
+
+<style lang="scss"></style>

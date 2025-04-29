@@ -13,6 +13,9 @@ import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
 import StarRating from '../ui/StarRating'
+import Amenities from '../ui/PortableText/content/hotel/Amenities'
+import StayingRules from '../ui/PortableText/content/hotel/StayingRules'
+import Location from '../ui/PortableText/content/hotel/Location'
 
 const title = 'Hotele'
 const icon = Hotel
@@ -345,6 +348,9 @@ export default defineType({
         BlocksWithImage,
         RowsWithIcons,
         NextSteps,
+        Amenities,
+        Location,
+        StayingRules,
       ],
     }),
     defineField({

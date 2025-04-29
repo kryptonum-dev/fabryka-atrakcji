@@ -11,6 +11,9 @@ import Hero from '@/src/components/offer/Hero.astro'
 import ContentPT, { type Props as ContentPTProps, ContentPT_Query } from '@/src/components/ui/content-pt/index.astro'
 import Faq, { Faq_Query } from '@/src/components/ui/content-pt/offer/Faq.astro'
 import Testimonials, { Testimonials_Query } from '@/src/components/ui/content-pt/offer/Testimonials.astro'
+import Amenities, { Amenities_Query } from '@/src/components/ui/content-pt/hotel/Amenities.astro'
+import Location, { Location_Query } from '@/src/components/ui/content-pt/hotel/Location.astro'
+import StayingRules, { StayingRules_Query } from '@/src/components/ui/content-pt/hotel/StayingRules.astro'
 
 export type SingleHotelProps = {
   hotelsPage: {
@@ -91,7 +94,7 @@ export async function fetchData(slug: string, lang: Language) {
       googleMapsLink,
       popularityIndex,
       pricing,
-      ${ContentPT_Query([Faq_Query, Testimonials_Query])}
+      ${ContentPT_Query([Faq_Query, Testimonials_Query, Amenities_Query, Location_Query, StayingRules_Query])}
       ${Components_Query}
     }
   `,
@@ -144,6 +147,9 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
         additionalComponents={{
           Faq,
           Testimonials,
+          Amenities,
+          Location,
+          StayingRules,
         }}
       />
     </div>
