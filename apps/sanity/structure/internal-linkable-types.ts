@@ -14,4 +14,6 @@ export const InternalLinkableTypes: { type: string }[] = [
   { type: 'BlogCategory_Collection' },
   { type: 'Activities_Collection' },
   { type: 'ActivitiesCategory_Collection' },
+  { type: 'Hotels_Page' },
+  { type: 'Hotels_Collection' },
 ]

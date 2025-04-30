@@ -32,8 +32,6 @@ const data = await sanityFetch<{
   params: { slug: slugPrefix[lang] + slug || null, lang: lang || null },
 })
 
-console.log(data)
-
 export const Location_Query = `
   _type == "Location" => {
     _type,
@@ -133,8 +131,6 @@ const transformToKm = (meters: number) => {
   const remainingMeters = Math.floor((meters % 1000) / 100)
   return `${kmValue},${remainingMeters} km`
 }
-
-console.log(node)
 ---
 
 <section class="Location">

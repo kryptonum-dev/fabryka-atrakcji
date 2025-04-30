@@ -21,7 +21,7 @@ import BackgroundImageWithCenteredHeading, {
 } from '@/components/global/BackgroundImageWithCenteredHeading.astro'
 import TextBlocksGrid, { TextBlocksGrid_Query } from '@/components/global/TextBlocksGrid.astro'
 import Testimonials, { Testimonials_Query } from '@/components/global/Testimonials.astro'
-
+import FeaturedHotelsList, { FeaturedHotelsList_Query } from '@/components/global/FeaturedHotelsList.astro'
 const components = {
   CardSteps,
   GradientBackgroundCta,
@@ -40,6 +40,7 @@ const components = {
   FloatingPointsList,
   BackgroundImageWithCenteredHeading,
   TextBlocksGrid,
+  FeaturedHotelsList,
 }
 
 type ComponentsMap = {
@@ -78,6 +79,7 @@ export const Components_Query = /* groq */ `
     ${FloatingPointsList_Query}
     ${BackgroundImageWithCenteredHeading_Query}
     ${TextBlocksGrid_Query}
+    ${FeaturedHotelsList_Query}
   },
 `
 ---

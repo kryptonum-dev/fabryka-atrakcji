@@ -1,0 +1,164 @@
+---
+import { ButtonDataQuery, type ButtonDataProps } from '@/components/ui/Button'
+import Button from '@/components/ui/Button'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
+import HotelCard, { HotelCardQuery, type HotelCardProps } from '../ui/HotelCard.astro'
+
+export const FeaturedHotelsList_Query = `
+  _type == "FeaturedHotelsList" => {
+    labelIcon,
+    ${PortableTextQuery('heading')}
+    ${ButtonDataQuery('cta')}
+    hotels[]->{
+      ${HotelCardQuery}
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  labelIcon?: string
+  heading: PortableTextValue
+  cta: ButtonDataProps
+  hotels: HotelCardProps[]
+}
+
+const { index, sectionId, labelIcon, heading, cta, hotels } = Astro.props
+---
+
+<section class="FeaturedHotelsList" id={sectionId}>
+  <div class="container max-width">
+    <header class="header">
+      {
+        labelIcon && (
+          <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none">
+              <path
+                stroke="#FAF7F7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M16.254 10c0 4.142-3.359 7.5-7.502 7.5A7.501 7.501 0 1 1 15.25 6.25m-1.054 4.573 1.875-1.875 1.876 1.875m-6.384 1.222-2.813-.937v-3.92"
+              />
+            </svg>
+          </div>
+        )
+      }
+      <PortableText value={heading} heading={index === 0 ? 'h1' : 'h2'} class="heading" />
+    </header>
+    <div class="list">
+      {
+        hotels.map((hotel, hotelIndex) => (
+          <HotelCard
+            {...hotel}
+            variant="featured"
+            imgConfig={{
+              sizes:
+                '(max-width: 29.9375rem) 93vw, (max-width: 37.4375rem) 45vw, (max-width: 56.1875rem) 40vw, (max-width: 78.0625rem) 26vw, 325px',
+              loading: index === 0 ? 'eager' : 'lazy',
+              fetchpriority: index === 0 && hotelIndex === 0 ? 'high' : 'auto',
+            }}
+          />
+        ))
+      }
+    </div>
+    <Button {...cta} />
+  </div>
+</section>
+
+<style lang="scss">
+  .FeaturedHotelsList {
+    padding: clamp(3rem, calc(4vw / 0.48), 4rem) 0;
+    background: var(--neutral-200, #f5f1ec);
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 54.75rem;
+      justify-content: space-between;
+
+      .header {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+        display: flex;
+        gap: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: clamp(1.75rem, calc(1.75vw / 0.48), 2.5rem);
+
+        .icon {
+          position: relative;
+          display: grid;
+          place-items: center;
+          width: clamp(2rem, calc(2.25vw / 0.48), 2.25rem);
+          height: clamp(2rem, calc(2.25vw / 0.48), 2.25rem);
+          padding-left: 0.125rem;
+          background: var(--primary-500, #f67258);
+          border-radius: 50%;
+
+          svg {
+            width: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+            height: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+          }
+        }
+      }
+      .list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-bottom: clamp(1.75rem, calc(1.75vw / 0.48), 2.5rem);
+        grid-row: 2 / 3;
+        grid-column: 2/3;
+      }
+
+      :global(> a) {
+        justify-self: start;
+        grid-column: 2 / 3;
+        grid-row: 3 / 4;
+      }
+    }
+
+    @media (max-width: 69.3125rem) {
+      .container {
+        grid-template-columns: 1fr;
+
+        .header {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+
+        .list {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+        }
+
+        :global(> a) {
+          grid-column: 1 / 2;
+          grid-row: 3 / 4;
+        }
+      }
+    }
+
+    @media (max-width: 56.1875rem) {
+      .container {
+        .list {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    }
+
+    @media (max-width: 29.9375rem) {
+      .container {
+        .list {
+          grid-template-columns: 1fr;
+        }
+
+        :global(> a) {
+          max-width: 100%;
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+  }
+</style>

@@ -16,7 +16,7 @@ import Newsletter from './components/Newsletter'
 import StepsList from './components/StepsList'
 import Testimonials from './components/Testimonials'
 import TextBlocksGrid from './components/TextBlocksGrid'
-
+import FeaturedHotelsList from './components/FeaturedHotelsList'
 export default defineType({
   name: 'components',
   type: 'array',
@@ -39,6 +39,7 @@ export default defineType({
     FloatingPointsList,
     BackgroundImageWithCenteredHeading,
     TextBlocksGrid,
+    FeaturedHotelsList,
   ],
   options: {
     insertMenu: {
