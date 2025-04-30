@@ -22,6 +22,7 @@ import ImageWithHeadingAndText, {
 import RowsWithIcons, { RowsWithIcons_Query } from '@/src/components/ui/content-pt/offer/RowsWithIcons.astro'
 import Timeline, { Timeline_Query } from '@/src/components/ui/content-pt/offer/Timeline.astro'
 import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer/NextSteps.astro'
+import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 
 export type SingleHotelProps = {
   hotelsPage: {
@@ -171,7 +172,16 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
         }}
       />
     </div>
-    <div class="pricing"></div>
+    <SubmitSidebar
+      type="hotels"
+      basePrice={page.pricing.hasFixedGroupPrice
+        ? {
+            amount: page.pricing.groupPrice!,
+            maxPeople: page.pricing.groupPeopleCount!,
+          }
+        : undefined}
+      perPersonPrice={page.pricing.pricePerPerson}
+    />
   </article>
   <Components data={page.components} hasPreviousSections />
 </Layout>

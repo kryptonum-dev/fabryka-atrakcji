@@ -20,6 +20,7 @@ import Image, { Image_Query } from '@/src/components/ui/content-pt/shared/Image.
 import ImageWithHeadingAndText, {
   ImageWithHeadingAndText_Query,
 } from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
+import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export type SingleActivityProps = {
@@ -187,7 +188,14 @@ const { page, metadata } = Astro.props
         }}
       />
     </div>
-    <div class="pricing"></div>
+    <SubmitSidebar
+      type="activities"
+      basePrice={{
+        amount: page.pricing.basePrice,
+        maxPeople: page.pricing.maxParticipants,
+      }}
+      perPersonPrice={page.pricing.additionalPersonPrice}
+    />
   </article>
   <Components data={page.components} hasPreviousSections />
 </Layout>
@@ -249,19 +257,6 @@ const { page, metadata } = Astro.props
       :global(li:last-child) {
         margin-bottom: 0;
       }
-    }
-
-    .pricing {
-      background: var(--neutral-200, #f5f1ec);
-      border-radius: 0.75rem;
-      max-width: 27.0625rem;
-      width: 100%;
-      padding: 1.5rem;
-      height: 15.625rem;
-      justify-self: end;
-      position: sticky;
-      top: 89px;
-      max-height: calc(100vh - 89px);
     }
 
     @media (max-width: 1089px) {

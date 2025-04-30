@@ -19,6 +19,7 @@ import ContentPT, {
 import { ArticleToPlainText, getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import Author, { AuthorQuery, type AuthorProps } from '@/src/components/blog/post/Author.astro'
 import BlogPostingSchema from '@/src/Schema/BlogPostingSchema.astro'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   lang: Language
@@ -37,6 +38,7 @@ export async function fetchData(slug: string, lang: Language) {
       }
       content: ContentPTProps['value']
       author: AuthorProps
+      components: ComponentsProps
     } & HeroProps &
       TableOfContentProps
   >({
@@ -55,7 +57,8 @@ export async function fetchData(slug: string, lang: Language) {
         ${TableOfContent_Query}
         ${ContentPT_Query}
         ${AuthorQuery}
-        }
+        ${Components_Query}
+      }
     `,
     params: { slug: fullSlug, language: lang },
   })
@@ -128,6 +131,7 @@ const blogSchema = {
     </section>
     <Author {...page.author} />
   </article>
+  <Components data={page.components} hasPreviousSections />
 </Layout>
 
 <style lang="scss">

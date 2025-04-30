@@ -73,7 +73,7 @@ const { node } = Astro.props as Props
 const language = (Astro.params.lang as Language) || 'pl'
 ---
 
-<section class="Faq">
+<section class="Faq" id="faq-section-marker">
   <div class="max-width container">
     <header class="header">
       <PortableText value={node.heading} heading="h2" />
