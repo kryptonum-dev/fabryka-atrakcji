@@ -1,4 +1,4 @@
-import { Handshake } from 'lucide-react'
+import { Cpu, Handshake, PlusSquareIcon } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { DocumentsIcon, InfoOutlineIcon, CreditCardIcon, SearchIcon, DocumentTextIcon } from '@sanity/icons'
@@ -12,6 +12,8 @@ import RowsWithIcons from '../ui/PortableText/content/offer/RowsWithIcons'
 import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
+import { createAddonsObject } from '../shared/addons'
+
 const title = 'Integracje'
 const icon = Handshake
 
@@ -34,6 +36,11 @@ export default defineType({
     {
       name: 'pricing',
       title: 'Cennik',
+      icon: CreditCardIcon,
+    },
+    {
+      name: 'addons',
+      title: 'Dodatki',
       icon: CreditCardIcon,
     },
     {
@@ -301,6 +308,7 @@ export default defineType({
       type: 'object',
       title: 'Cennik',
       group: 'pricing',
+      validation: (Rule) => Rule.required().error('Cennik jest wymagany'),
       fields: [
         defineField({
           name: 'basePrice',
@@ -348,6 +356,47 @@ export default defineType({
             }),
         }),
       ],
+    }),
+    createAddonsObject({
+      title: 'Dodatki do integracji',
+      description: 'Zarządzaj dodatkami do integracji',
+      labels: {
+        hasAddons: {
+          title: 'Czy integracja ma dodatki?',
+          description: 'Zaznacz, jeśli integracja ma możliwość wyboru dodatków.',
+        },
+        heading: {
+          title: 'Nagłówek okienka dodatków',
+          description: 'Nagłówek okienka dodatków, pojawia się przy wybieraniu dodatków do danej integracji',
+        },
+        addonsChoice: {
+          title: 'Możliwość wyboru dodatków',
+          description:
+            'Wybierz, ile maksymalnie dodatków może wybrać użytkownik. Przy wyborze maks. 1 dodatku, pole "Wybór ilości" zostaje automatycznie wyłączone.',
+        },
+        minOneAddon: {
+          title: 'Wymagany wybór co najmniej jednego dodatku',
+          description: 'Wybierz, czy użytkownik musi wybrać co najmniej jeden dodatek.',
+        },
+        addonsLayout: {
+          title: 'Układ dodatków',
+          description:
+            'Wybierz układ dodatków. Układ pionowy (Dodatki wypisane jeden po drugim w formie wierszy tabeli) - używany gdy dodatki mają zdjęcia. Układ poziomy (Dodatki porozmieszczane w kafelkach) - używany gdy dodatki nie mają zdjęć.',
+        },
+        addonsHaveImage: {
+          title: 'Dodatki mają zdjęcia',
+          description:
+            'Wybierz, czy dodatki mają zdjęcia. Jeśli zaznaczysz to pole, każdy dodatek będzie wymagał dodania zdjęcia.',
+        },
+        addonsList: {
+          title: 'Lista dodatków',
+          description: 'Dodaj dodatki do integracji',
+        },
+        additionalInfo: {
+          title: 'Dodatkowe informacje (opcjonalne)',
+          description: 'Dodaj dodatkowe informacje o dodatkach - pojawiają się poniżej listy dodatków',
+        },
+      },
     }),
     createPortableText({
       title: 'Treść integracji',

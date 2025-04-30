@@ -25,6 +25,7 @@ import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 
 export type SingleHotelProps = {
+  _id: string
   hotelsPage: {
     name: string
     slug: string
@@ -80,6 +81,7 @@ export async function fetchData(slug: string, lang: Language) {
   const page = await sanityFetch<SingleHotelProps>({
     query: `
     *[_type == 'Hotels_Collection' && language == $language && slug.current == $slug][0] {
+      _id,
       "hotelsPage": *[_type == "Hotels_Page" && language == $language][0] {
         name,
         "slug": slug.current
@@ -173,6 +175,7 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
       />
     </div>
     <SubmitSidebar
+      id={page._id}
       type="hotels"
       basePrice={page.pricing.hasFixedGroupPrice
         ? {

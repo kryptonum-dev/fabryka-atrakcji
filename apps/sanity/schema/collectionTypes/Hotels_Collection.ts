@@ -16,6 +16,7 @@ import StarRating from '../ui/StarRating'
 import Amenities from '../ui/PortableText/content/hotel/Amenities'
 import StayingRules from '../ui/PortableText/content/hotel/StayingRules'
 import Location from '../ui/PortableText/content/hotel/Location'
+import { createAddonsObject } from '../shared/addons'
 
 const title = 'Hotele'
 const icon = Hotel
@@ -39,6 +40,11 @@ export default defineType({
     {
       name: 'pricing',
       title: 'Cennik',
+      icon: CreditCardIcon,
+    },
+    {
+      name: 'addons',
+      title: 'Dodatki',
       icon: CreditCardIcon,
     },
     {
@@ -351,6 +357,47 @@ export default defineType({
           validation: (Rule) => Rule.required().min(1).error('Cena za osobę jest wymagana i musi być większa niż 0'),
         }),
       ],
+    }),
+    createAddonsObject({
+      title: 'Dodatki do hotelu',
+      description: 'Zarządzaj dodatkami do hotelu',
+      labels: {
+        hasAddons: {
+          title: 'Czy hotel ma dodatki?',
+          description: 'Zaznacz, jeśli hotel ma możliwość wyboru dodatków.',
+        },
+        heading: {
+          title: 'Nagłówek okienka dodatków',
+          description: 'Nagłówek okienka dodatków, pojawia się przy wybieraniu dodatków do hotelu',
+        },
+        addonsChoice: {
+          title: 'Możliwość wyboru dodatków',
+          description:
+            'Wybierz, ile maksymalnie dodatków może wybrać użytkownik. Przy wyborze maks. 1 dodatku, pole "Wybór ilości" zostaje automatycznie wyłączone.',
+        },
+        minOneAddon: {
+          title: 'Wymagany wybór co najmniej jednego dodatku',
+          description: 'Wybierz, czy użytkownik musi wybrać co najmniej jeden dodatek.',
+        },
+        addonsLayout: {
+          title: 'Układ dodatków',
+          description:
+            'Wybierz układ dodatków. Układ pionowy (Dodatki wypisane jeden po drugim w formie wierszy tabeli) - używany gdy dodatki mają zdjęcia. Układ poziomy (Dodatki porozmieszczane w kafelkach) - używany gdy dodatki nie mają zdjęć.',
+        },
+        addonsHaveImage: {
+          title: 'Dodatki mają zdjęcia',
+          description:
+            'Wybierz, czy dodatki mają zdjęcia. Jeśli zaznaczysz to pole, każdy dodatek będzie wymagał dodania zdjęcia.',
+        },
+        addonsList: {
+          title: 'Lista dodatków',
+          description: 'Dodaj dodatki do hotelu',
+        },
+        additionalInfo: {
+          title: 'Dodatkowe informacje (opcjonalne)',
+          description: 'Dodaj dodatkowe informacje o dodatkach - pojawiają się poniżej listy dodatków',
+        },
+      },
     }),
     createPortableText({
       title: 'Treść',

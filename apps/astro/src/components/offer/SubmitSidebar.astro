@@ -3,6 +3,7 @@ import { getLangFromPath, type Language } from '@/src/global/languages'
 import Button from '@/components/ui/Button'
 
 export type Props = {
+  id: string
   type: 'hotels' | 'activities'
   basePrice?: {
     amount: number
@@ -22,9 +23,10 @@ const translations = {
     },
     currency: 'zł',
     pricingPrefix: 'Szacowany koszt: ',
-    activityAlert: 'Koszt może różnić się w zależności od lokalizacji i wybranego scenariusza',
+    activityAlert: 'Koszt może różnić się w zależności od lokalizacji i wybranego scenariusza',
     callout: 'Poznaj wstępną wycenę – bez podawania danych!',
     buttonText: 'Wybierz do kompleksowej wyceny',
+    addedButtonText: 'Dodano do wyceny',
   },
   en: {
     people: {
@@ -38,6 +40,7 @@ const translations = {
     activityAlert: 'The cost may vary depending on the location and chosen scenario',
     callout: 'Get an initial estimate - without providing data!',
     buttonText: 'Choose for a comprehensive estimate',
+    addedButtonText: 'Added to estimate',
   },
 }
 
@@ -54,10 +57,10 @@ function getPeopleText(participants: number, lang: Language) {
   return participants === 1 ? t.people.single : t.people.multiple
 }
 
-const { basePrice, perPersonPrice, type } = Astro.props
+const { id, basePrice, perPersonPrice, type } = Astro.props
 ---
 
-<div class="SubmitSidebar" id="submit-sidebar">
+<div class="SubmitSidebar" id="submit-sidebar" data-id={id} data-type={type}>
   <div class="wrapper">
     {
       basePrice ? (
@@ -93,7 +96,7 @@ const { basePrice, perPersonPrice, type } = Astro.props
         </div>
       )
     }
-    <Button>{t.buttonText}</Button>
+    <Button id="add-to-cart-button">{t.buttonText}</Button>
     {
       type === 'activities' && (
         <p class="activity-alert">
@@ -203,6 +206,11 @@ const { basePrice, perPersonPrice, type } = Astro.props
         }
       }
 
+      :global(.in-cart) {
+        background-color: var(--primary-700) !important;
+        cursor: default !important;
+      }
+
       .activity-alert {
         padding: 0 0.25rem;
         margin-top: 0.5rem;
@@ -237,8 +245,26 @@ const { basePrice, perPersonPrice, type } = Astro.props
 </style>
 
 <script>
+  import { addToCart, isInCart } from '@/src/store/cart'
+
   const sidebar = document.getElementById('submit-sidebar')!
+  const addToCartButton = document.getElementById('add-to-cart-button')!
   const faqSection = document.getElementById('faq-section-marker')!
+
+  // Get language from URL
+  const lang = window.location.pathname.includes('/en/') ? 'en' : 'pl'
+
+  // Translations for client-side script
+  const translations = {
+    pl: {
+      buttonText: 'Wybierz do kompleksowej wyceny',
+      addedButtonText: 'Dodano do wyceny',
+    },
+    en: {
+      buttonText: 'Choose for a comprehensive estimate',
+      addedButtonText: 'Added to estimate',
+    },
+  }
 
   let ticking = false
 
@@ -271,4 +297,41 @@ const { basePrice, perPersonPrice, type } = Astro.props
   })
 
   checkOverlap()
+
+  // Cart functionality
+  if (sidebar && addToCartButton) {
+    const itemId = sidebar.dataset.id
+    const itemType = sidebar.dataset.type as 'hotels' | 'activities'
+
+    // Check if already in cart and update button accordingly
+    const updateButtonState = () => {
+      if (itemId && itemType) {
+        const inCart = isInCart(itemId, itemType)
+
+        if (inCart) {
+          addToCartButton.classList.add('in-cart')
+          addToCartButton.querySelector('span')!.textContent = translations[lang].addedButtonText
+        } else {
+          addToCartButton.classList.remove('in-cart')
+          addToCartButton.querySelector('span')!.textContent = translations[lang].buttonText
+        }
+      }
+    }
+
+    // Initial state
+    updateButtonState()
+
+    // Handle click
+    addToCartButton.addEventListener('click', () => {
+      if (itemId && itemType) {
+        addToCart({
+          id: itemId,
+          type: itemType,
+          addOns: {},
+        })
+
+        updateButtonState()
+      }
+    })
+  }
 </script>

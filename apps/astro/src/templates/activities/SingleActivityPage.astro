@@ -24,6 +24,7 @@ import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export type SingleActivityProps = {
+  _id: string
   activitiesPage: {
     name: string
     slug: string
@@ -76,6 +77,7 @@ export async function fetchData(slug: string, lang: Language) {
   const page = await sanityFetch<SingleActivityProps>({
     query: `
     *[_type == 'Activities_Collection' && language == $language && slug.current == $slug][0] {
+      _id,
       "activitiesPage": *[_type == "Activities_Page" && language == $language][0] {
         name,
         "slug": slug.current
@@ -189,6 +191,7 @@ const { page, metadata } = Astro.props
       />
     </div>
     <SubmitSidebar
+      id={page._id}
       type="activities"
       basePrice={{
         amount: page.pricing.basePrice,
