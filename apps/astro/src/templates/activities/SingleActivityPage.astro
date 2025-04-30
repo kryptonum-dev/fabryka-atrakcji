@@ -64,6 +64,37 @@ export type SingleActivityProps = {
     maxParticipants: number
     additionalPersonPrice: number
   }
+  addons?: {
+    hasAddons: boolean
+    heading?: PortableTextValue
+    addonsChoice?: 'unlimited' | 'limited'
+    minOneAddon?: boolean
+    addonsLayout?: 'vertical' | 'horizontal'
+    addonsHaveImage?: boolean
+    addonsList?: Array<{
+      _key: string
+      name: string
+      image?: ImageDataProps
+      pricing: {
+        type: 'fixed' | 'per_unit' | 'threshold' | 'individual'
+        fixedPrice?: number
+        perUnit?: {
+          price: number
+          hasCount: boolean
+          singular: string
+          plural: string
+        }
+        threshold?: {
+          basePrice: number
+          maxUnits: number
+          additionalPrice: number
+          singular: string
+          plural: string
+        }
+      }
+    }>
+    additionalInfo?: string
+  }
   components: ComponentsProps
   content: ContentPTProps['value']
 }
@@ -116,6 +147,37 @@ export async function fetchData(slug: string, lang: Language) {
         basePrice,
         maxParticipants,
         additionalPersonPrice
+      },
+      addons{
+        hasAddons,
+        ${PortableTextQuery('heading')}
+        addonsChoice,
+        minOneAddon,
+        addonsLayout,
+        addonsHaveImage,
+        addonsList[] {
+          _key,
+          name,
+          ${ImageDataQuery('image')}
+          pricing {
+            type,
+            fixedPrice,
+            perUnit {
+              price,
+              hasCount,
+              singular,
+              plural
+            },
+            threshold {
+              basePrice,
+              maxUnits,
+              additionalPrice,
+              singular,
+              plural
+            },
+          },
+        },
+        additionalInfo
       },
       ${ContentPT_Query([
         RowsWithIcons_Query,
@@ -198,6 +260,7 @@ const { page, metadata } = Astro.props
         maxPeople: page.pricing.maxParticipants,
       }}
       perPersonPrice={page.pricing.additionalPersonPrice}
+      addons={page.addons}
     />
   </article>
   <Components data={page.components} hasPreviousSections />

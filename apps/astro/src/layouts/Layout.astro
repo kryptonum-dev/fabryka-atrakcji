@@ -5,6 +5,7 @@ import Head, { type HeadProps } from './Head.astro'
 import OrganizationSchema from '../Schema/OrganizationSchema.astro'
 import Footer from './Footer.astro'
 import Header from './Header.astro'
+import AddonsPopup from '../components/offer/AddonsPopup.astro'
 import type { Language } from '../global/languages'
 type Props = HeadProps
 
@@ -26,5 +27,6 @@ const lang = (Astro.params.lang as Language) || 'pl'
       <slot />
     </main>
     <Footer lang={lang} />
+    <AddonsPopup />
   </body>
 </html>

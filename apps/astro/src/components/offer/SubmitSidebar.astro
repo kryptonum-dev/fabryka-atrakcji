@@ -1,6 +1,8 @@
 ---
 import { getLangFromPath, type Language } from '@/src/global/languages'
 import Button from '@/components/ui/Button'
+import type { PortableTextValue } from '@/src/components/ui/portable-text'
+import type { ImageDataProps } from '@/src/components/ui/image'
 
 export type Props = {
   id: string
@@ -10,6 +12,37 @@ export type Props = {
     maxPeople: number
   }
   perPersonPrice: number
+  addons?: {
+    hasAddons: boolean
+    heading?: PortableTextValue
+    addonsChoice?: 'unlimited' | 'limited'
+    minOneAddon?: boolean
+    addonsLayout?: 'vertical' | 'horizontal'
+    addonsHaveImage?: boolean
+    addonsList?: Array<{
+      _key: string
+      name: string
+      image?: ImageDataProps
+      pricing: {
+        type: 'fixed' | 'per_unit' | 'threshold' | 'individual'
+        fixedPrice?: number
+        perUnit?: {
+          price: number
+          hasCount: boolean
+          singular: string
+          plural: string
+        }
+        threshold?: {
+          basePrice: number
+          maxUnits: number
+          additionalPrice: number
+          singular: string
+          plural: string
+        }
+      }
+    }>
+    additionalInfo?: string
+  }
 }
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
@@ -27,6 +60,11 @@ const translations = {
     callout: 'Poznaj wstępną wycenę – bez podawania danych!',
     buttonText: 'Wybierz do kompleksowej wyceny',
     addedButtonText: 'Dodano do wyceny',
+    continueButton: 'Przejdź do koszyka',
+    skipButton: 'Kontynuuj przeglądanie',
+    addedTitle: 'Dodano do wyceny!',
+    addedText: 'Możesz teraz przejść do koszyka lub kontynuować przeglądanie',
+    cartUrl: '/pl/koszyk',
   },
   en: {
     people: {
@@ -41,6 +79,11 @@ const translations = {
     callout: 'Get an initial estimate - without providing data!',
     buttonText: 'Choose for a comprehensive estimate',
     addedButtonText: 'Added to estimate',
+    continueButton: 'Go to cart',
+    skipButton: 'Continue browsing',
+    addedTitle: 'Added to quote!',
+    addedText: 'You can now go to the cart or continue browsing',
+    cartUrl: '/en/cart',
   },
 }
 
@@ -57,10 +100,22 @@ function getPeopleText(participants: number, lang: Language) {
   return participants === 1 ? t.people.single : t.people.multiple
 }
 
-const { id, basePrice, perPersonPrice, type } = Astro.props
+const { id, basePrice, perPersonPrice, type, addons } = Astro.props
+const hasAddons = addons?.hasAddons || false
+
+// Prepare data for data attributes
+const translationsJson = JSON.stringify(translations)
 ---
 
-<div class="SubmitSidebar" id="submit-sidebar" data-id={id} data-type={type}>
+<div
+  class="SubmitSidebar"
+  id="submit-sidebar"
+  data-id={id}
+  data-type={type}
+  data-lang={lang}
+  data-translations={translationsJson}
+  data-has-addons={hasAddons}
+>
   <div class="wrapper">
     {
       basePrice ? (
@@ -143,7 +198,7 @@ const { id, basePrice, perPersonPrice, type } = Astro.props
       transition: background-color 150ms;
 
       .group-price {
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         .fixed {
           margin-bottom: 0.125rem;
           strong {
@@ -213,7 +268,7 @@ const { id, basePrice, perPersonPrice, type } = Astro.props
 
       .activity-alert {
         padding: 0 0.25rem;
-        margin-top: 0.5rem;
+        margin-top: 0.75rem;
       }
     }
 
@@ -249,33 +304,27 @@ const { id, basePrice, perPersonPrice, type } = Astro.props
 
   const sidebar = document.getElementById('submit-sidebar')!
   const addToCartButton = document.getElementById('add-to-cart-button')!
-  const faqSection = document.getElementById('faq-section-marker')!
+  const faqSection = document.getElementById('faq-section-marker')
 
-  // Get language from URL
-  const lang = window.location.pathname.includes('/en/') ? 'en' : 'pl'
-
-  // Translations for client-side script
-  const translations = {
-    pl: {
-      buttonText: 'Wybierz do kompleksowej wyceny',
-      addedButtonText: 'Dodano do wyceny',
-    },
-    en: {
-      buttonText: 'Choose for a comprehensive estimate',
-      addedButtonText: 'Added to estimate',
-    },
-  }
+  // Get language and translations from data attributes
+  const lang = sidebar.dataset.lang as string
+  const translations = JSON.parse(sidebar.dataset.translations as string)
+  const itemId = sidebar.dataset.id
+  const itemType = sidebar.dataset.type as 'hotels' | 'activities'
+  const hasAddons = sidebar.dataset.hasAddons === 'true'
 
   let ticking = false
 
   const checkOverlap = () => {
+    if (!faqSection) return
+
     const sidebarStyle = window.getComputedStyle(sidebar)
     const position = sidebarStyle.position
 
     if (position === 'sticky' || position === 'fixed') {
       const sidebarRect = sidebar.getBoundingClientRect()
       const faqRect = faqSection.getBoundingClientRect()
-      console.log(sidebarRect.bottom, sidebarRect.top, faqRect.bottom, faqRect.top)
+
       const isOverlapping = sidebarRect.bottom > faqRect.top && sidebarRect.top < faqRect.bottom
 
       if (isOverlapping) {
@@ -298,40 +347,47 @@ const { id, basePrice, perPersonPrice, type } = Astro.props
 
   checkOverlap()
 
-  // Cart functionality
-  if (sidebar && addToCartButton) {
-    const itemId = sidebar.dataset.id
-    const itemType = sidebar.dataset.type as 'hotels' | 'activities'
+  // Add to cart and trigger external popup
+  addToCartButton.addEventListener('click', () => {
+    // Add item to cart
+    if (itemId && itemType) {
+      addToCart({
+        id: itemId,
+        type: itemType,
+        addOns: {},
+      })
 
-    // Check if already in cart and update button accordingly
-    const updateButtonState = () => {
-      if (itemId && itemType) {
-        const inCart = isInCart(itemId, itemType)
+      // Update button state
+      updateButtonState()
 
-        if (inCart) {
-          addToCartButton.classList.add('in-cart')
-          addToCartButton.querySelector('span')!.textContent = translations[lang].addedButtonText
-        } else {
-          addToCartButton.classList.remove('in-cart')
-          addToCartButton.querySelector('span')!.textContent = translations[lang].buttonText
-        }
+      // Dispatch a custom event to notify the popup to open
+      const event = new CustomEvent('open-addons-popup', {
+        detail: {
+          itemId,
+          itemType,
+          hasAddons,
+        },
+        bubbles: true,
+      })
+      document.dispatchEvent(event)
+    }
+  })
+
+  // Check if already in cart and update button accordingly
+  const updateButtonState = () => {
+    if (itemId && itemType) {
+      const inCart = isInCart(itemId, itemType)
+
+      if (inCart) {
+        addToCartButton.classList.add('in-cart')
+        addToCartButton.querySelector('span')!.textContent = translations[lang].addedButtonText
+      } else {
+        addToCartButton.classList.remove('in-cart')
+        addToCartButton.querySelector('span')!.textContent = translations[lang].buttonText
       }
     }
-
-    // Initial state
-    updateButtonState()
-
-    // Handle click
-    addToCartButton.addEventListener('click', () => {
-      if (itemId && itemType) {
-        addToCart({
-          id: itemId,
-          type: itemType,
-          addOns: {},
-        })
-
-        updateButtonState()
-      }
-    })
   }
+
+  // Initial state
+  updateButtonState()
 </script>

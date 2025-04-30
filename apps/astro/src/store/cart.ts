@@ -3,7 +3,7 @@ import { persistentAtom } from '@nanostores/persistent'
 export type CartItem = {
   id: string
   type: 'hotels' | 'activities'
-  addOns: Record<string, any> // Empty object for now, will be used later
+  addOns: Record<string, any>
 }
 
 export const cartStore = persistentAtom<{
@@ -51,4 +51,16 @@ export function isInCart(id: string, type: 'hotels' | 'activities'): boolean {
   const collection = type === 'hotels' ? 'hotels' : 'activities'
 
   return currentCart[collection].some((item: CartItem) => item.id === id)
+}
+
+export function updateCartAddons(id: string, type: 'hotels' | 'activities', addons: Record<string, any>): void {
+  const currentCart = cartStore.get()
+  const collection = type === 'hotels' ? 'hotels' : 'activities'
+
+  const existingItemIndex = currentCart[collection].findIndex((item) => item.id === id)
+
+  if (existingItemIndex !== -1) {
+    currentCart[collection][existingItemIndex].addOns = addons
+    cartStore.set(currentCart)
+  }
 }

@@ -68,6 +68,37 @@ export type SingleHotelProps = {
     groupPeopleCount?: number
     pricePerPerson: number
   }
+  addons?: {
+    hasAddons: boolean
+    heading?: PortableTextValue
+    addonsChoice?: 'unlimited' | 'limited'
+    minOneAddon?: boolean
+    addonsLayout?: 'vertical' | 'horizontal'
+    addonsHaveImage?: boolean
+    addonsList?: Array<{
+      _key: string
+      name: string
+      image?: ImageDataProps
+      pricing: {
+        type: 'fixed' | 'per_unit' | 'threshold' | 'individual'
+        fixedPrice?: number
+        perUnit?: {
+          price: number
+          hasCount: boolean
+          singular: string
+          plural: string
+        }
+        threshold?: {
+          basePrice: number
+          maxUnits: number
+          additionalPrice: number
+          singular: string
+          plural: string
+        }
+      }
+    }>
+    additionalInfo?: string
+  }
   components: ComponentsProps
   content: ContentPTProps['value']
 }
@@ -109,6 +140,37 @@ export async function fetchData(slug: string, lang: Language) {
       },
       popularityIndex,
       pricing,
+      addons{
+        hasAddons,
+        ${PortableTextQuery('heading')}
+        addonsChoice,
+        minOneAddon,
+        addonsLayout,
+        addonsHaveImage,
+        addonsList[] {
+          _key,
+          name,
+          ${ImageDataQuery('image')}
+          pricing {
+            type,
+            fixedPrice,
+            perUnit {
+              price,
+              hasCount,
+              singular,
+              plural
+            },
+            threshold {
+              basePrice,
+              maxUnits,
+              additionalPrice,
+              singular,
+              plural
+            },
+          },
+        },
+        additionalInfo
+      },
       ${ContentPT_Query([Faq_Query, Testimonials_Query, Amenities_Query, Location_Query, StayingRules_Query, Checklist_Query, BlocksWithImage_Query, ImageWithHeadingAndText_Query, RowsWithIcons_Query, Timeline_Query, NextSteps_Query])}
       ${Components_Query}
     }
@@ -184,6 +246,7 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
           }
         : undefined}
       perPersonPrice={page.pricing.pricePerPerson}
+      addons={page.addons}
     />
   </article>
   <Components data={page.components} hasPreviousSections />

@@ -1,0 +1,281 @@
+---
+import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
+import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
+import Button from '@/components/ui/Button'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+
+// Get language from URL for default text
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+// Default translations (will be replaced by translations from the event)
+const defaultTranslations = {
+  pl: {
+    addedTitle: 'Dodano do wyceny!',
+    addedText: 'Możesz teraz przejść do koszyka lub kontynuować przeglądanie',
+    cartUrl: '/pl/koszyk',
+    continueButton: 'Przejdź do koszyka',
+    skipButton: 'Kontynuuj przeglądanie',
+  },
+  en: {
+    addedTitle: 'Added to quote!',
+    addedText: 'You can now go to the cart or continue browsing',
+    cartUrl: '/en/cart',
+    continueButton: 'Go to cart',
+    skipButton: 'Continue browsing',
+  },
+}
+
+// Use the default translations for initial rendering
+const t = defaultTranslations[lang]
+---
+
+<div id="addons-popup-container" class="addons-popup-container">
+  <PopupWindow id="addons-popup">
+    <!-- Hidden trigger button that will be programmatically clicked -->
+    <div slot="open" class="hidden-trigger">
+      <button id="popup-trigger"></button>
+    </div>
+    <div slot="content" class="addons-popup">
+      <CloseButton />
+      <div class="confirmation">
+        <h3 id="popup-title">{t.addedTitle}</h3>
+        <p id="popup-text">{t.addedText}</p>
+      </div>
+      <div class="actions">
+        <Button id="continue-browsing" theme="primary" shade="light">{t.skipButton}</Button>
+        <Button id="continue-to-cart" theme="primary" shade="dark" href={t.cartUrl}>{t.continueButton}</Button>
+      </div>
+    </div>
+  </PopupWindow>
+</div>
+
+<style lang="scss">
+  .addons-popup-container {
+    z-index: 9999;
+    position: relative;
+
+    .hidden-trigger {
+      display: none;
+    }
+
+    :global(.Wrapper) {
+      :global(.content) {
+        &::after {
+          background: var(--neutral-100) !important;
+        }
+      }
+    }
+
+    .addons-popup {
+      width: 100%;
+      max-width: 54.75rem;
+      max-height: calc(100dvh - 6rem);
+
+      .heading {
+        margin-bottom: 1.5rem;
+
+        &-content {
+          :global(p) {
+            margin: 0;
+          }
+          :global(strong) {
+            color: var(--primary-800);
+          }
+        }
+      }
+
+      .addons-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+
+        &.horizontal {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+          gap: 1rem;
+        }
+      }
+
+      .addon-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        background-color: var(--neutral-100);
+
+        .horizontal & {
+          flex-direction: column;
+        }
+      }
+
+      .addon-checkbox {
+        display: flex;
+        position: relative;
+        cursor: pointer;
+
+        input {
+          position: absolute;
+          opacity: 0;
+          cursor: pointer;
+          height: 0;
+          width: 0;
+        }
+
+        .checkbox-custom {
+          position: relative;
+          top: 0.25rem;
+          height: 1.25rem;
+          width: 1.25rem;
+          background-color: white;
+          border: 1px solid var(--neutral-400);
+          border-radius: 0.25rem;
+          flex-shrink: 0;
+        }
+
+        input:checked ~ .checkbox-custom {
+          background-color: var(--primary-700);
+          border-color: var(--primary-700);
+        }
+
+        .checkbox-custom:after {
+          content: '';
+          position: absolute;
+          display: none;
+        }
+
+        input:checked ~ .checkbox-custom:after {
+          display: block;
+        }
+
+        .checkbox-custom:after {
+          left: 0.4375rem;
+          top: 0.1875rem;
+          width: 0.3125rem;
+          height: 0.625rem;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+        }
+      }
+
+      .addon-content {
+        flex: 1;
+      }
+
+      .addon-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+
+      .addon-price {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--primary-800);
+      }
+
+      .quantity-selector {
+        display: flex;
+        align-items: center;
+
+        button {
+          width: 1.5rem;
+          height: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid var(--neutral-400);
+          background: white;
+          border-radius: 0.25rem;
+          cursor: pointer;
+        }
+
+        input {
+          width: 2rem;
+          height: 1.5rem;
+          text-align: center;
+          border: none;
+          margin: 0 0.25rem;
+        }
+      }
+
+      .addon-image {
+        width: 100%;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .additional-info {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background-color: var(--neutral-100);
+        border-radius: 0.5rem;
+        font-size: var(--typography-body-m);
+        color: var(--neutral-700);
+      }
+
+      .confirmation {
+        text-align: center;
+        padding: 1.5rem 0;
+
+        h3 {
+          font-size: var(--typography-body-xl);
+          color: var(--primary-800);
+          margin-bottom: 0.5rem;
+        }
+
+        p {
+          color: var(--neutral-700);
+          font-size: var(--typography-body-m);
+        }
+      }
+
+      .actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        :global(button),
+        :global(a.Button) {
+          flex: 1;
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  const popupContainer = document.getElementById('addons-popup-container')!
+  const popupTrigger = document.getElementById('popup-trigger') as HTMLButtonElement
+  const popupWindow = document.querySelector('#addons-popup .popup-window') as HTMLDivElement
+  const continueBrowsingBtn = document.getElementById('continue-browsing') as HTMLButtonElement
+
+  document.addEventListener('open-addons-popup', (event) => {
+    const { itemId, itemType } = (event as CustomEvent).detail
+    if (itemId && itemType) {
+      popupContainer.dataset.itemId = itemId
+      popupContainer.dataset.itemType = itemType
+    }
+
+    // Trigger the popup to open by clicking the hidden button
+    popupTrigger.click()
+  })
+
+  // Set up handlers for popup buttons
+  continueBrowsingBtn.addEventListener('click', () => {
+    // Close the popup
+    if (popupWindow) {
+      popupWindow.setAttribute('aria-hidden', 'true')
+    }
+  })
+</script>
