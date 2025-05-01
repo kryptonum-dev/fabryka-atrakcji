@@ -3,6 +3,7 @@ import { getLangFromPath, type Language } from '@/src/global/languages'
 import Button from '@/components/ui/Button'
 import type { PortableTextValue } from '@/src/components/ui/portable-text'
 import type { ImageDataProps } from '@/src/components/ui/image'
+import Loader from '@/components/ui/Loader'
 
 export type Props = {
   id: string
@@ -59,12 +60,15 @@ const translations = {
     activityAlert: 'Koszt może różnić się w zależności od lokalizacji i wybranego scenariusza',
     callout: 'Poznaj wstępną wycenę – bez podawania danych!',
     buttonText: 'Wybierz do kompleksowej wyceny',
-    addedButtonText: 'Dodano do wyceny',
-    continueButton: 'Przejdź do koszyka',
-    skipButton: 'Kontynuuj przeglądanie',
-    addedTitle: 'Dodano do wyceny!',
-    addedText: 'Możesz teraz przejść do koszyka lub kontynuować przeglądanie',
+    viewInCart: 'Przejdź do koszyka',
+    removeFromEstimate: 'Usuń z wyceny',
+    changeAddons: 'Zmień opcje',
+    removedAlert: 'Usunięto z wyceny',
     cartUrl: '/pl/koszyk',
+    alreadyInCart: {
+      hotel: 'Ten hotel już jest w Twojej wycenie',
+      activity: 'Ta integracja jest już w Twojej wycenie',
+    },
   },
   en: {
     people: {
@@ -78,12 +82,15 @@ const translations = {
     activityAlert: 'The cost may vary depending on the location and chosen scenario',
     callout: 'Get an initial estimate - without providing data!',
     buttonText: 'Choose for a comprehensive estimate',
-    addedButtonText: 'Added to estimate',
-    continueButton: 'Go to cart',
-    skipButton: 'Continue browsing',
-    addedTitle: 'Added to quote!',
-    addedText: 'You can now go to the cart or continue browsing',
+    viewInCart: 'View in cart',
+    removeFromEstimate: 'Remove from estimate',
+    changeAddons: 'Change options',
+    removedAlert: 'Removed from estimate',
     cartUrl: '/en/cart',
+    alreadyInCart: {
+      hotel: 'This hotel is already in your estimate',
+      activity: 'This activity is already in your estimate',
+    },
   },
 }
 
@@ -116,7 +123,11 @@ const translationsJson = JSON.stringify(translations)
   data-translations={translationsJson}
   data-has-addons={hasAddons}
 >
-  <div class="wrapper">
+  <div class="sidebar-placeholder" id="sidebar-placeholder"></div>
+  <div class="wrapper" id="sidebar-wrapper">
+    <div class="sidebar-loader">
+      <Loader isLoading={true} hasFinishedLoading={false} lang={lang} />
+    </div>
     {
       basePrice ? (
         <div class="group-price">
@@ -151,26 +162,73 @@ const translationsJson = JSON.stringify(translations)
         </div>
       )
     }
-    <Button id="add-to-cart-button">{t.buttonText}</Button>
-    {
-      type === 'activities' && (
-        <p class="activity-alert">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
-            <path
-              fill="#F67258"
-              fill-rule="evenodd"
-              d="M14.667 8A6.667 6.667 0 1 1 1.334 8a6.667 6.667 0 0 1 13.333 0Zm-6.666 3.834a.5.5 0 0 0 .5-.5v-4a.5.5 0 1 0-1 0v4a.5.5 0 0 0 .5.5Zm0-7.167A.667.667 0 1 1 8 6a.667.667 0 0 1 0-1.333Z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          <span>{t.activityAlert}</span>
-        </p>
-      )
-    }
+
+    <div class="not-in-cart-content">
+      <Button className="add-to-cart-button">{t.buttonText}</Button>
+      {
+        type === 'activities' && (
+          <p class="activity-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+              <path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M14.667 8A6.667 6.667 0 1 1 1.334 8a6.667 6.667 0 0 1 13.333 0Zm-6.666 3.834a.5.5 0 0 0 .5-.5v-4a.5.5 0 1 0-1 0v4a.5.5 0 0 0 .5.5Zm0-7.167A.667.667 0 1 1 8 6a.667.667 0 0 1 0-1.333Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span>{t.activityAlert}</span>
+          </p>
+        )
+      }
+    </div>
+
+    <div class="in-cart-content">
+      <div class="status-text">
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" fill="none">
+          <path
+            fill="#F67258"
+            fill-rule="evenodd"
+            d="M6.896 2.134c-.163.138-.244.207-.33.265a1.809 1.809 0 0 1-.657.272c-.103.02-.209.029-.422.046-.534.043-.801.064-1.024.143-.515.182-.92.587-1.103 1.103-.079.223-.1.49-.143 1.024a3.82 3.82 0 0 1-.045.421 1.809 1.809 0 0 1-.272.657c-.058.087-.127.168-.266.33-.347.408-.521.612-.623.825a1.809 1.809 0 0 0 0 1.56c.102.213.276.417.623.825.139.163.208.244.266.33.133.2.225.422.272.657.02.102.028.209.045.421.043.535.064.802.143 1.025.182.515.588.92 1.103 1.103.223.078.49.1 1.024.142.213.017.32.026.422.046.234.046.458.139.656.272.087.058.168.127.33.266.409.347.612.521.826.623a1.808 1.808 0 0 0 1.56 0c.213-.102.417-.276.825-.623.162-.139.243-.208.33-.266a1.81 1.81 0 0 1 .657-.272c.102-.02.208-.029.42-.046.535-.042.802-.064 1.025-.142.516-.182.921-.588 1.103-1.103.079-.223.1-.49.143-1.025.017-.212.025-.319.045-.42.047-.236.14-.459.272-.658.059-.086.128-.167.266-.33.348-.408.522-.612.623-.825a1.808 1.808 0 0 0 0-1.56c-.101-.213-.275-.417-.623-.825-.138-.162-.207-.243-.266-.33a1.808 1.808 0 0 1-.272-.657c-.02-.102-.028-.208-.045-.421-.043-.534-.064-.801-.143-1.024a1.809 1.809 0 0 0-1.103-1.103c-.223-.08-.49-.1-1.024-.143-.213-.017-.319-.025-.421-.046a1.81 1.81 0 0 1-.657-.272c-.087-.058-.168-.127-.33-.265-.408-.348-.612-.522-.825-.624a1.809 1.809 0 0 0-1.56 0c-.214.102-.418.276-.825.624Zm4.52 4.442a.543.543 0 1 0-.767-.768L7.415 9.042 6.352 7.979a.543.543 0 0 0-.767.767l1.447 1.447a.543.543 0 0 0 .767 0l3.617-3.617Z"
+            clip-rule="evenodd"></path>
+        </svg>
+        <span>{t.alreadyInCart[type === 'hotels' ? 'hotel' : 'activity']}</span>
+      </div>
+      {
+        hasAddons ? (
+          <>
+            <Button className="change-addons-button" theme="primary" shade="dark">
+              {t.changeAddons}
+            </Button>
+            <Button className="remove-from-cart-button" theme="primary" shade="light">
+              {t.removeFromEstimate}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button className="view-cart-button" theme="primary" shade="dark" href={t.cartUrl}>
+              {t.viewInCart}
+            </Button>
+            <Button className="remove-from-cart-button" theme="primary" shade="light">
+              {t.removeFromEstimate}
+            </Button>
+          </>
+        )
+      }
+    </div>
+    <div class="callout callout-mobile">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" fill="none">
+        <path
+          fill="#F67258"
+          fill-rule="evenodd"
+          d="M6.896 2.134c-.163.138-.244.207-.33.265a1.809 1.809 0 0 1-.657.272c-.103.02-.209.029-.422.046-.534.043-.801.064-1.024.143-.515.182-.92.587-1.103 1.103-.079.223-.1.49-.143 1.024a3.82 3.82 0 0 1-.045.421 1.809 1.809 0 0 1-.272.657c-.058.087-.127.168-.266.33-.347.408-.521.612-.623.825a1.809 1.809 0 0 0 0 1.56c.102.213.276.417.623.825.139.163.208.244.266.33.133.2.225.422.272.657.02.102.028.209.045.421.043.535.064.802.143 1.025.182.515.588.92 1.103 1.103.223.078.49.1 1.024.142.213.017.32.026.422.046.234.046.458.139.656.272.087.058.168.127.33.266.409.347.612.521.826.623a1.808 1.808 0 0 0 1.56 0c.213-.102.417-.276.825-.623.162-.139.243-.208.33-.266a1.81 1.81 0 0 1 .657-.272c.102-.02.208-.029.42-.046.535-.042.802-.064 1.025-.142.516-.182.921-.588 1.103-1.103.079-.223.1-.49.143-1.025.017-.212.025-.319.045-.42.047-.236.14-.459.272-.658.059-.086.128-.167.266-.33.348-.408.522-.612.623-.825a1.808 1.808 0 0 0 0-1.56c-.101-.213-.275-.417-.623-.825-.138-.162-.207-.243-.266-.33a1.808 1.808 0 0 1-.272-.657c-.02-.102-.028-.208-.045-.421-.043-.534-.064-.801-.143-1.024a1.809 1.809 0 0 0-1.103-1.103c-.223-.08-.49-.1-1.024-.143-.213-.017-.319-.025-.421-.046a1.81 1.81 0 0 1-.657-.272c-.087-.058-.168-.127-.33-.265-.408-.348-.612-.522-.825-.624a1.809 1.809 0 0 0-1.56 0c-.214.102-.418.276-.825.624Zm4.52 4.442a.543.543 0 1 0-.767-.768L7.415 9.042 6.352 7.979a.543.543 0 0 0-.767.767l1.447 1.447a.543.543 0 0 0 .767 0l3.617-3.617Z"
+          clip-rule="evenodd"></path>
+      </svg>
+      <span>{t.callout}</span>
+    </div>
   </div>
   <p class="callout">
-    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" fill="none"
-      ><path
+    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" fill="none">
+      <path
         fill="#F67258"
         fill-rule="evenodd"
         d="M6.896 2.134c-.163.138-.244.207-.33.265a1.809 1.809 0 0 1-.657.272c-.103.02-.209.029-.422.046-.534.043-.801.064-1.024.143-.515.182-.92.587-1.103 1.103-.079.223-.1.49-.143 1.024a3.82 3.82 0 0 1-.045.421 1.809 1.809 0 0 1-.272.657c-.058.087-.127.168-.266.33-.347.408-.521.612-.623.825a1.809 1.809 0 0 0 0 1.56c.102.213.276.417.623.825.139.163.208.244.266.33.133.2.225.422.272.657.02.102.028.209.045.421.043.535.064.802.143 1.025.182.515.588.92 1.103 1.103.223.078.49.1 1.024.142.213.017.32.026.422.046.234.046.458.139.656.272.087.058.168.127.33.266.409.347.612.521.826.623a1.808 1.808 0 0 0 1.56 0c.213-.102.417-.276.825-.623.162-.139.243-.208.33-.266a1.81 1.81 0 0 1 .657-.272c.102-.02.208-.029.42-.046.535-.042.802-.064 1.025-.142.516-.182.921-.588 1.103-1.103.079-.223.1-.49.143-1.025.017-.212.025-.319.045-.42.047-.236.14-.459.272-.658.059-.086.128-.167.266-.33.348-.408.522-.612.623-.825a1.808 1.808 0 0 0 0-1.56c-.101-.213-.275-.417-.623-.825-.138-.162-.207-.243-.266-.33a1.808 1.808 0 0 1-.272-.657c-.02-.102-.028-.208-.045-.421-.043-.534-.064-.801-.143-1.024a1.809 1.809 0 0 0-1.103-1.103c-.223-.08-.49-.1-1.024-.143-.213-.017-.319-.025-.421-.046a1.81 1.81 0 0 1-.657-.272c-.087-.058-.168-.127-.33-.265-.408-.348-.612-.522-.825-.624a1.809 1.809 0 0 0-1.56 0c-.214.102-.418.276-.825.624Zm4.52 4.442a.543.543 0 1 0-.767-.768L7.415 9.042 6.352 7.979a.543.543 0 0 0-.767.767l1.447 1.447a.543.543 0 0 0 .767 0l3.617-3.617Z"
@@ -190,12 +248,60 @@ const translationsJson = JSON.stringify(translations)
     width: 100%;
     height: fit-content;
     margin-bottom: 2rem;
+
+    .sidebar-placeholder {
+      display: none;
+    }
+
     .wrapper {
       margin-bottom: 0.625rem;
       background-color: var(--neutral-200, #f5f1ec);
       padding: 1.75rem;
       border-radius: 0.75rem;
-      transition: background-color 150ms;
+      transition: background-color 450ms var(--easing);
+      position: relative;
+
+      .sidebar-loader {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 450ms var(--easing);
+        background-color: var(--neutral-200, #f5f1ec);
+        border-radius: 0.75rem;
+      }
+
+      .sidebar-content {
+        position: relative;
+        z-index: 2;
+      }
+
+      .not-in-cart-content,
+      .in-cart-content {
+        display: none;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .not-in-cart-content.visible,
+      .in-cart-content.visible {
+        display: flex;
+      }
+
+      .status-text {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-800);
+        font-size: var(--typography-body-l);
+        margin-bottom: 0.5rem;
+
+        svg {
+          flex-shrink: 0;
+        }
+      }
 
       .group-price {
         margin-bottom: 1.5rem;
@@ -231,6 +337,7 @@ const translationsJson = JSON.stringify(translations)
         margin-bottom: 1rem;
         display: flex;
         align-items: flex-end;
+        flex-wrap: wrap;
         gap: 0.5rem;
 
         .prefix {
@@ -251,7 +358,8 @@ const translationsJson = JSON.stringify(translations)
         }
       }
 
-      :global(> button) {
+      :global(button),
+      :global(a) {
         width: 100%;
         max-width: 100%;
 
@@ -261,14 +369,85 @@ const translationsJson = JSON.stringify(translations)
         }
       }
 
-      :global(.in-cart) {
-        background-color: var(--primary-700) !important;
-        cursor: default !important;
-      }
-
       .activity-alert {
         padding: 0 0.25rem;
         margin-top: 0.75rem;
+      }
+
+      &.is-fixed {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        right: 0;
+        max-width: 100%;
+        z-index: 100;
+        margin: 0;
+        border-radius: 0.75rem 0.75rem 0 0;
+        transform: translateY(100%);
+        opacity: 0;
+        background-color: var(--neutral-200, #f5f1ec);
+        will-change: transform, opacity;
+        transition: none;
+
+        &.scrolling-down {
+          transform: translateY(0);
+          opacity: 1;
+          transition:
+            transform 450ms var(--easing),
+            opacity 450ms var(--easing),
+            background-color 450ms var(--easing);
+        }
+
+        &.scrolling-up {
+          transform: translateY(100%);
+          opacity: 0;
+          transition:
+            transform 450ms var(--easing),
+            opacity 450ms var(--easing),
+            background-color 450ms var(--easing);
+        }
+
+        .activity-alert,
+        .callout,
+        .callout-mobile,
+        .status-text {
+          display: none;
+        }
+
+        .not-in-cart-content,
+        .in-cart-content {
+          gap: 0.5rem;
+        }
+
+        .group-price,
+        .price-per-person {
+          margin-bottom: 1rem;
+          width: 100%;
+        }
+
+        @media (max-width: 1089px) {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+
+          .group-price,
+          .price-per-person {
+            margin-bottom: 1rem;
+          }
+
+          .not-in-cart-content,
+          .in-cart-content {
+            width: 100%;
+          }
+        }
+
+        @media (max-width: 649px) {
+          .group-price,
+          .price-per-person {
+            margin-bottom: 0.75rem;
+          }
+        }
       }
     }
 
@@ -295,28 +474,278 @@ const translationsJson = JSON.stringify(translations)
 
     .callout {
       justify-content: center;
+
+      &-mobile {
+        display: none;
+      }
+    }
+
+    @media (max-width: 1089px) {
+      max-width: 100%;
+      margin-bottom: 0;
+      position: static;
+
+      .sidebar-placeholder {
+        display: block;
+        height: 0;
+      }
+
+      .wrapper {
+        width: 100%;
+        margin-bottom: 0;
+        display: grid;
+        grid-template-columns: 16.625rem 1fr;
+        gap: 0.5rem 1.5rem;
+        justify-content: space-between;
+        transform: none;
+
+        &.is-fixed {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 100;
+          margin: 0;
+          border-radius: 0.75rem 0.75rem 0 0;
+          transform: translateY(100%);
+          opacity: 0;
+          background-color: var(--neutral-200, #f5f1ec);
+          will-change: transform, opacity;
+          transition: none;
+
+          &.scrolling-down {
+            transform: translateY(0);
+            opacity: 1;
+            transition:
+              transform 450ms var(--easing),
+              opacity 450ms var(--easing),
+              background-color 450ms var(--easing);
+          }
+
+          &.scrolling-up {
+            transform: translateY(100%);
+            opacity: 0;
+            transition:
+              transform 450ms var(--easing),
+              opacity 450ms var(--easing),
+              background-color 450ms var(--easing);
+          }
+        }
+
+        .group-price,
+        .price-per-person {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+          margin-bottom: 0;
+          align-self: center;
+        }
+
+        .not-in-cart-content,
+        .in-cart-content {
+          grid-column: 2 / 3;
+          grid-row: 1 / 3;
+          align-self: center;
+        }
+
+        .activity-alert {
+          grid-column: 2 / 3;
+          grid-row: 2 / 3;
+          margin-top: 0;
+        }
+
+        .callout-mobile {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+        }
+      }
+
+      .callout {
+        display: none;
+
+        &-mobile {
+          display: flex;
+        }
+      }
+    }
+
+    @media (max-width: 899px) {
+      margin: 0 calc(-1 * var(--pageMargin));
+      justify-self: center;
+      width: calc(100% + (2 * var(--pageMargin)));
+      max-width: none;
+      background-color: var(--neutral-200);
+
+      .wrapper {
+        max-width: 46rem;
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 649px) {
+      background-color: transparent;
+      .wrapper {
+        display: block;
+        margin-bottom: 1rem;
+
+        .group-price {
+          margin-bottom: 1.5rem;
+        }
+
+        .price-per-person {
+          margin-bottom: 1rem;
+        }
+
+        .not-in-cart-content,
+        .in-cart-content {
+          margin-bottom: 0.75rem;
+        }
+      }
+      .callout {
+        display: flex;
+        &-mobile {
+          display: none;
+        }
+      }
+    }
+
+    @media (max-width: 499px) {
+      .wrapper {
+        padding: 1rem;
+      }
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes sidebarSlideIn {
+    0% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes sidebarSlideOut {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100%);
+      opacity: 0;
     }
   }
 </style>
 
 <script>
-  import { addToCart, isInCart } from '@/src/store/cart'
+  import { addToCart, isInCart, removeFromCart } from '@/src/store/cart'
 
   const sidebar = document.getElementById('submit-sidebar')!
-  const addToCartButton = document.getElementById('add-to-cart-button')!
+  const addToCartButton = document.querySelector('.add-to-cart-button')!
+  const removeFromCartButton = document.querySelector('.remove-from-cart-button')
+  const changeAddonsButton = document.querySelector('.change-addons-button')
   const faqSection = document.getElementById('faq-section-marker')
+  const loader = document.querySelector('.sidebar-loader') as HTMLElement
+  const notInCartContent = document.querySelector('.not-in-cart-content') as HTMLElement
+  const inCartContent = document.querySelector('.in-cart-content') as HTMLElement
+  const wrapper = document.getElementById('sidebar-wrapper')!
+  const placeholder = document.getElementById('sidebar-placeholder')!
 
-  // Get language and translations from data attributes
+  // Get data from attributes
   const lang = sidebar.dataset.lang as string
-  const translations = JSON.parse(sidebar.dataset.translations as string)
+  const translations = JSON.parse(sidebar.dataset.translations as string)[lang]
   const itemId = sidebar.dataset.id
   const itemType = sidebar.dataset.type as 'hotels' | 'activities'
   const hasAddons = sidebar.dataset.hasAddons === 'true'
 
-  let ticking = false
+  // Check if viewport width is below 1089px
+  const isMobileView = () => window.innerWidth <= 1089
 
+  // Handle scroll and fixed positioning on mobile
+  let isFixed = false
+  let wrapperHeight = 0
+  let staticWrapperHeight = 0 // New variable to store static height
+  let ticking = false
+  let lastScrollY = window.scrollY
+  let wasScrollingUp = false
+  let isInitialLoad = true
+
+  const updateWrapperHeight = () => {
+    const newHeight = wrapper.offsetHeight
+    if (newHeight !== wrapperHeight) {
+      wrapperHeight = newHeight
+      // Store static height only when not fixed
+      if (!isFixed) {
+        staticWrapperHeight = newHeight
+      }
+      if (isFixed) {
+        placeholder.style.height = `${staticWrapperHeight}px` // Use static height
+      }
+    }
+  }
+
+  const updateFixedState = () => {
+    if (!isMobileView()) return
+
+    const scrollPosition = window.scrollY
+    const sidebarBottomPosition = placeholder.offsetTop + staticWrapperHeight // Use static height
+    const shouldBeFixed = scrollPosition > sidebarBottomPosition
+    const isScrollingUp = scrollPosition < lastScrollY
+
+    // Handle initial fixed state
+    if (shouldBeFixed && !isFixed) {
+      isFixed = true
+      wrapper.classList.add('is-fixed')
+      placeholder.style.height = `${staticWrapperHeight}px` // Use static height
+
+      // Skip animation on initial load if already scrolled past sidebar
+      if (!isInitialLoad) {
+        requestAnimationFrame(() => {
+          wrapper.classList.add('scrolling-down')
+        })
+      } else {
+        wrapper.classList.add('scrolling-down')
+        wrapper.style.transition = 'none'
+        requestAnimationFrame(() => {
+          wrapper.style.transition = ''
+        })
+      }
+    }
+    // Handle switching back to static
+    else if (!shouldBeFixed && isFixed) {
+      isFixed = false
+      wrapper.classList.remove('is-fixed', 'scrolling-up', 'scrolling-down')
+      placeholder.style.height = '0'
+    }
+    // Update scroll direction when already fixed
+    else if (isFixed && isScrollingUp !== wasScrollingUp) {
+      if (isScrollingUp) {
+        wrapper.classList.add('scrolling-up')
+        wrapper.classList.remove('scrolling-down')
+      } else {
+        wrapper.classList.remove('scrolling-up')
+        wrapper.classList.add('scrolling-down')
+      }
+    }
+
+    wasScrollingUp = isScrollingUp
+    lastScrollY = scrollPosition
+    isInitialLoad = false
+  }
+
+  // Check overlap function
   const checkOverlap = () => {
-    if (!faqSection) return
+    if (!faqSection || isMobileView()) return
 
     const sidebarStyle = window.getComputedStyle(sidebar)
     const position = sidebarStyle.position
@@ -335,21 +764,44 @@ const translationsJson = JSON.stringify(translations)
     }
   }
 
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        checkOverlap()
-        ticking = false
-      })
-      ticking = true
+  // Initial setup after loader is hidden
+  const initializeSidebar = () => {
+    if (loader) {
+      loader.style.opacity = '0'
+      loader.addEventListener(
+        'transitionend',
+        () => {
+          loader.style.display = 'none'
+          // Update initial measurements after loader is hidden
+          updateWrapperHeight()
+          updateFixedState()
+          // Start observing height changes
+          resizeObserver.observe(wrapper)
+        },
+        { once: true }
+      )
+    }
+  }
+
+  // Create ResizeObserver to monitor height changes
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.target === wrapper) {
+        updateWrapperHeight()
+      }
     }
   })
 
-  checkOverlap()
+  // Listen for cart state changes
+  document.addEventListener('cart-updated', () => {
+    // Force height update after DOM changes
+    requestAnimationFrame(() => {
+      updateWrapperHeight()
+    })
+  })
 
-  // Add to cart and trigger external popup
+  // Listen for add to cart button click
   addToCartButton.addEventListener('click', () => {
-    // Add item to cart
     if (itemId && itemType) {
       addToCart({
         id: itemId,
@@ -357,10 +809,10 @@ const translationsJson = JSON.stringify(translations)
         addOns: {},
       })
 
-      // Update button state
-      updateButtonState()
+      // Update sidebar state and height
+      updateSidebarState()
+      setTimeout(updateWrapperHeight, 0)
 
-      // Dispatch a custom event to notify the popup to open
       const event = new CustomEvent('open-addons-popup', {
         detail: {
           itemId,
@@ -373,21 +825,86 @@ const translationsJson = JSON.stringify(translations)
     }
   })
 
-  // Check if already in cart and update button accordingly
-  const updateButtonState = () => {
+  // Handle remove from cart action
+  if (removeFromCartButton) {
+    removeFromCartButton.addEventListener('click', () => {
+      if (itemId && itemType) {
+        removeFromCart(itemId, itemType)
+        updateSidebarState()
+        setTimeout(updateWrapperHeight, 0)
+
+        // Show alert (will be replaced with toast later)
+        alert(translations.removedAlert)
+      }
+    })
+  }
+
+  // Handle change addons button
+  if (changeAddonsButton) {
+    changeAddonsButton.addEventListener('click', () => {
+      if (itemId && itemType && hasAddons) {
+        const event = new CustomEvent('open-addons-popup', {
+          detail: {
+            itemId,
+            itemType,
+            hasAddons,
+            isEditing: true,
+          },
+          bubbles: true,
+        })
+        document.dispatchEvent(event)
+      }
+    })
+  }
+
+  // Update sidebar state based on cart status
+  const updateSidebarState = () => {
     if (itemId && itemType) {
       const inCart = isInCart(itemId, itemType)
 
       if (inCart) {
-        addToCartButton.classList.add('in-cart')
-        addToCartButton.querySelector('span')!.textContent = translations[lang].addedButtonText
+        notInCartContent.classList.remove('visible')
+        inCartContent.classList.add('visible')
       } else {
-        addToCartButton.classList.remove('in-cart')
-        addToCartButton.querySelector('span')!.textContent = translations[lang].buttonText
+        notInCartContent.classList.add('visible')
+        inCartContent.classList.remove('visible')
       }
     }
   }
 
-  // Initial state
-  updateButtonState()
+  // Initial setup
+  initializeSidebar()
+  updateSidebarState()
+  checkOverlap()
+
+  // Set initial state without animation if needed
+  updateWrapperHeight()
+  updateFixedState()
+
+  // Handle resize
+  window.addEventListener('resize', () => {
+    const currentIsMobile = isMobileView()
+
+    // If switching from mobile to desktop view
+    if (!currentIsMobile && isFixed) {
+      isFixed = false
+      wrapper.classList.remove('is-fixed', 'scrolling-up', 'scrolling-down')
+      placeholder.style.height = '0'
+    }
+
+    updateWrapperHeight()
+    updateFixedState()
+  })
+
+  // Handle scroll
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        updateFixedState()
+        checkOverlap()
+        ticking = false
+      })
+      ticking = true
+    }
+  })
 </script>

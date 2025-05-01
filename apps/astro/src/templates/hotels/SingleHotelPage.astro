@@ -266,6 +266,10 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
 
       :global(> :first-child) {
         margin-top: 0;
+
+        :global(> :first-child) {
+          margin-top: 0 !important;
+        }
       }
 
       :global(> :last-child) {
@@ -328,6 +332,8 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
       grid-template-columns: 1fr;
       justify-items: center;
       max-width: 48rem;
+      padding-top: 0;
+      gap: 0;
       .pricing {
         grid-row: 1/2;
         position: static;
@@ -336,6 +342,7 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
       .content {
         grid-row: 2/3;
         max-width: 100%;
+        padding-top: clamp(3rem, calc(3.5vw / 0.48), 3.5rem);
       }
     }
   }
