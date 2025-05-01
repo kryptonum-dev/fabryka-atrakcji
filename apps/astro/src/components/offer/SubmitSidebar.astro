@@ -44,6 +44,7 @@ export type Props = {
     }>
     additionalInfo?: string
   }
+  name: string
 }
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
@@ -107,7 +108,7 @@ function getPeopleText(participants: number, lang: Language) {
   return participants === 1 ? t.people.single : t.people.multiple
 }
 
-const { id, basePrice, perPersonPrice, type, addons } = Astro.props
+const { id, basePrice, perPersonPrice, type, addons, name } = Astro.props
 const hasAddons = addons?.hasAddons || false
 
 // Prepare data for data attributes
@@ -122,6 +123,7 @@ const translationsJson = JSON.stringify(translations)
   data-lang={lang}
   data-translations={translationsJson}
   data-has-addons={hasAddons}
+  data-name={name}
 >
   <div class="sidebar-placeholder" id="sidebar-placeholder"></div>
   <div class="wrapper" id="sidebar-wrapper">
@@ -389,6 +391,10 @@ const translationsJson = JSON.stringify(translations)
         background-color: var(--neutral-200, #f5f1ec);
         will-change: transform, opacity;
         transition: none;
+
+        &.is-overlapping-faq {
+          background-color: var(--neutral-100);
+        }
 
         &.scrolling-down {
           transform: translateY(0);
@@ -667,6 +673,7 @@ const translationsJson = JSON.stringify(translations)
   const itemId = sidebar.dataset.id
   const itemType = sidebar.dataset.type as 'hotels' | 'activities'
   const hasAddons = sidebar.dataset.hasAddons === 'true'
+  const itemName = sidebar.dataset.name
 
   // Check if viewport width is below 1089px
   const isMobileView = () => window.innerWidth <= 1089
@@ -745,22 +752,51 @@ const translationsJson = JSON.stringify(translations)
 
   // Check overlap function
   const checkOverlap = () => {
-    if (!faqSection || isMobileView()) return
+    if (!faqSection) return
 
+    const articleSection = document.getElementById('content')
     const sidebarStyle = window.getComputedStyle(sidebar)
     const position = sidebarStyle.position
+    const isValidPosition = position === 'sticky' || position === 'fixed' || wrapper.classList.contains('is-fixed')
 
-    if (position === 'sticky' || position === 'fixed') {
-      const sidebarRect = sidebar.getBoundingClientRect()
+    if (isValidPosition) {
+      const isMobile = isMobileView()
+      const sidebarRect =
+        isMobile && wrapper.classList.contains('is-fixed')
+          ? wrapper.getBoundingClientRect()
+          : sidebar.getBoundingClientRect()
       const faqRect = faqSection.getBoundingClientRect()
+      const articleRect = articleSection?.getBoundingClientRect()
 
-      const isOverlapping = sidebarRect.bottom > faqRect.top && sidebarRect.top < faqRect.bottom
+      // Check if we're past the article section in mobile view
+      if (isMobile && articleRect && wrapper.classList.contains('is-fixed')) {
+        const isPastArticle = articleRect.bottom <= window.innerHeight
+        if (isPastArticle) {
+          wrapper.classList.add('scrolling-up')
+          wrapper.classList.remove('scrolling-down')
+          return
+        } else {
+          wrapper.classList.remove('scrolling-up')
+        }
+      }
+
+      // Different overlap conditions for mobile and desktop
+      const isOverlapping =
+        isMobile && wrapper.classList.contains('is-fixed')
+          ? sidebarRect.top >= faqRect.top && sidebarRect.top <= faqRect.bottom // Mobile: sidebar is within FAQ section bounds
+          : sidebarRect.bottom > faqRect.top && sidebarRect.top < faqRect.bottom // Desktop: any overlap
 
       if (isOverlapping) {
         sidebar.classList.add('is-overlapping-faq')
+        wrapper.classList.add('is-overlapping-faq')
       } else {
         sidebar.classList.remove('is-overlapping-faq')
+        wrapper.classList.remove('is-overlapping-faq')
       }
+    } else {
+      // Remove classes when position is not valid
+      sidebar.classList.remove('is-overlapping-faq')
+      wrapper.classList.remove('is-overlapping-faq')
     }
   }
 
@@ -818,6 +854,7 @@ const translationsJson = JSON.stringify(translations)
           itemId,
           itemType,
           hasAddons,
+          itemName,
         },
         bubbles: true,
       })

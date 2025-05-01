@@ -21,6 +21,7 @@ import ImageWithHeadingAndText, {
   ImageWithHeadingAndText_Query,
 } from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
+import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export type SingleActivityProps = {
@@ -261,9 +262,11 @@ const { page, metadata } = Astro.props
       }}
       perPersonPrice={page.pricing.additionalPersonPrice}
       addons={page.addons}
+      name={page.name}
     />
   </article>
   <Components data={page.components} hasPreviousSections />
+  <AddonsPopup addons={page.addons} type="activities" />
 </Layout>
 
 <style lang="scss">

@@ -23,6 +23,7 @@ import RowsWithIcons, { RowsWithIcons_Query } from '@/src/components/ui/content-
 import Timeline, { Timeline_Query } from '@/src/components/ui/content-pt/offer/Timeline.astro'
 import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer/NextSteps.astro'
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
+import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 
 export type SingleHotelProps = {
   _id: string
@@ -247,9 +248,11 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
         : undefined}
       perPersonPrice={page.pricing.pricePerPerson}
       addons={page.addons}
+      name={page.name}
     />
   </article>
   <Components data={page.components} hasPreviousSections />
+  <AddonsPopup addons={page.addons} type="hotels" />
 </Layout>
 
 <style lang="scss">

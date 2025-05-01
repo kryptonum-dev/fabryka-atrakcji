@@ -3,6 +3,8 @@ import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
 import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
 import Button from '@/components/ui/Button'
 import { getLangFromPath, type Language } from '@/src/global/languages'
+import type { ImageDataProps } from '../ui/image'
+import PortableText, { type PortableTextValue } from '../ui/portable-text'
 
 // Get language from URL for default text
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
@@ -10,40 +12,108 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 // Default translations (will be replaced by translations from the event)
 const defaultTranslations = {
   pl: {
-    addedTitle: 'Dodano do wyceny!',
-    addedText: 'Możesz teraz przejść do koszyka lub kontynuować przeglądanie',
+    addedTitle: {
+      hotel: 'Dodano hotel do wyceny!',
+      activity: 'Dodano integrację do wyceny!',
+    },
+    addedText:
+      'Przejdź do koszyka lub kontynuuj wybieranie spośród wielu hoteli i integracji, które spełniają Twoje wymagania',
     cartUrl: '/pl/koszyk',
     continueButton: 'Przejdź do koszyka',
     skipButton: 'Kontynuuj przeglądanie',
   },
   en: {
-    addedTitle: 'Added to quote!',
-    addedText: 'You can now go to the cart or continue browsing',
+    addedTitle: {
+      hotel: 'Added hotel to quote!',
+      activity: 'Added activity to quote!',
+    },
+    addedText: 'You can now go to the cart or continue browsing hotels and activities',
     cartUrl: '/en/cart',
     continueButton: 'Go to cart',
     skipButton: 'Continue browsing',
   },
 }
 
+type Props = {
+  addons?: {
+    hasAddons: boolean
+    heading?: PortableTextValue
+    addonsChoice?: 'unlimited' | 'limited'
+    minOneAddon?: boolean
+    addonsLayout?: 'vertical' | 'horizontal'
+    addonsHaveImage?: boolean
+    addonsList?: Array<{
+      _key: string
+      name: string
+      image?: ImageDataProps
+      pricing: {
+        type: 'fixed' | 'per_unit' | 'threshold' | 'individual'
+        fixedPrice?: number
+        perUnit?: {
+          price: number
+          hasCount: boolean
+          singular: string
+          plural: string
+        }
+        threshold?: {
+          basePrice: number
+          maxUnits: number
+          additionalPrice: number
+          singular: string
+          plural: string
+        }
+      }
+    }>
+    additionalInfo?: string
+  }
+  type: 'hotels' | 'activities'
+}
+
 // Use the default translations for initial rendering
 const t = defaultTranslations[lang]
+
+const { addons, type } = Astro.props
+
+console.log(addons)
 ---
 
-<div id="addons-popup-container" class="addons-popup-container">
-  <PopupWindow id="addons-popup">
+<div class="addons-popup-container">
+  <PopupWindow>
     <!-- Hidden trigger button that will be programmatically clicked -->
     <div slot="open" class="hidden-trigger">
-      <button id="popup-trigger"></button>
+      <button></button>
     </div>
     <div slot="content" class="addons-popup">
       <CloseButton />
-      <div class="confirmation">
-        <h3 id="popup-title">{t.addedTitle}</h3>
-        <p id="popup-text">{t.addedText}</p>
+      <div class="addons-wrapper">
+        {
+          addons?.hasAddons ? (
+            <>
+              <PortableText value={addons.heading!} heading="h3" class="heading" />
+              <p class="paragraph">{addons.additionalInfo}</p>
+            </>
+          ) : (
+            <>
+              <div class="heading">
+                <h3>{type === 'hotels' ? t.addedTitle.hotel : t.addedTitle.activity}</h3>
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 17 16" fill="none">
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M6.89754 2.13368C6.73519 2.27203 6.65401 2.34121 6.56731 2.39932C6.36858 2.53252 6.14539 2.62497 5.91067 2.67131C5.80828 2.69153 5.70196 2.70001 5.48932 2.71698C4.95507 2.75961 4.68794 2.78093 4.46508 2.85965C3.94961 3.04172 3.54416 3.44717 3.36209 3.96263C3.28337 4.1855 3.26205 4.45263 3.21942 4.98688C3.20245 5.19952 3.19397 5.30584 3.17375 5.40823C3.12741 5.64294 3.03497 5.86613 2.90176 6.06487C2.84365 6.15157 2.77448 6.23274 2.63612 6.3951C2.28849 6.80302 2.11467 7.00698 2.01275 7.22023C1.777 7.71346 1.777 8.28686 2.01275 8.78009C2.11467 8.99334 2.28849 9.1973 2.63612 9.60523C2.77446 9.76756 2.84366 9.84876 2.90176 9.93545C3.03497 10.1342 3.12741 10.3574 3.17375 10.5921C3.19397 10.6945 3.20245 10.8008 3.21942 11.0134C3.26205 11.5477 3.28337 11.8148 3.36209 12.0377C3.54416 12.5532 3.94961 12.9586 4.46507 13.1407C4.68794 13.2194 4.95507 13.2407 5.48932 13.2833C5.70196 13.3003 5.80828 13.3088 5.91067 13.329C6.14539 13.3754 6.36858 13.4678 6.56731 13.601C6.65401 13.6591 6.73519 13.7283 6.89754 13.8666C7.30546 14.2143 7.50942 14.3881 7.72268 14.49C8.21591 14.7258 8.7893 14.7258 9.28253 14.49C9.49578 14.3881 9.69974 14.2143 10.1077 13.8666C10.27 13.7283 10.3512 13.6591 10.4379 13.601C10.6366 13.4678 10.8598 13.3754 11.0945 13.329C11.1969 13.3088 11.3032 13.3003 11.5159 13.2833C12.0501 13.2407 12.3173 13.2194 12.5401 13.1407C13.0556 12.9586 13.461 12.5532 13.6431 12.0377C13.7218 11.8148 13.7432 11.5477 13.7858 11.0134C13.8028 10.8008 13.8112 10.6945 13.8315 10.5921C13.8778 10.3574 13.9702 10.1342 14.1034 9.93546C14.1616 9.84876 14.2307 9.76758 14.3691 9.60523C14.7167 9.1973 14.8905 8.99334 14.9925 8.78009C15.2282 8.28686 15.2282 7.71346 14.9925 7.22023C14.8905 7.00698 14.7167 6.80302 14.3691 6.3951C14.2307 6.23274 14.1616 6.15157 14.1034 6.06487C13.9702 5.86613 13.8778 5.64294 13.8315 5.40823C13.8112 5.30584 13.8028 5.19952 13.7858 4.98688C13.7432 4.45263 13.7218 4.1855 13.6431 3.96263C13.461 3.44717 13.0556 3.04172 12.5401 2.85965C12.3173 2.78093 12.0501 2.75961 11.5159 2.71698C11.3032 2.70001 11.1969 2.69153 11.0945 2.67131C10.8598 2.62497 10.6366 2.53252 10.4379 2.39932C10.3512 2.34121 10.27 2.27203 10.1077 2.13368C9.69974 1.78605 9.49578 1.61223 9.28253 1.51031C8.7893 1.27456 8.21591 1.27456 7.72267 1.51031C7.50943 1.61223 7.30546 1.78605 6.89754 2.13368ZM11.4183 6.57559C11.6301 6.3637 11.6301 6.02016 11.4183 5.80827C11.2064 5.59638 10.8628 5.59638 10.6509 5.80827L7.41745 9.04177L6.35424 7.97856C6.14236 7.76668 5.79882 7.76668 5.58693 7.97856C5.37504 8.19045 5.37504 8.53399 5.58693 8.74588L7.03379 10.1927C7.24568 10.4046 7.58922 10.4046 7.80111 10.1927L11.4183 6.57559Z"
+                    fill="#F67258"
+                  />
+                </svg>
+              </div>
+              <p class="paragraph">{t.addedText}</p>
+            </>
+          )
+        }
       </div>
       <div class="actions">
-        <Button id="continue-browsing" theme="primary" shade="light">{t.skipButton}</Button>
-        <Button id="continue-to-cart" theme="primary" shade="dark" href={t.cartUrl}>{t.continueButton}</Button>
+        <Button theme="primary" className="continue-browsing" shade="light">{t.skipButton}</Button>
+        <Button theme="primary" shade="dark" href={t.cartUrl}>{t.continueButton}</Button>
       </div>
     </div>
   </PopupWindow>
@@ -62,6 +132,11 @@ const t = defaultTranslations[lang]
       :global(.content) {
         &::after {
           background: var(--neutral-100) !important;
+          border-radius: clamp(1rem, calc(1.15vw / 0.48), 1.15rem) !important;
+        }
+
+        &::before {
+          border-radius: clamp(1rem, calc(1.25vw / 0.48), 1.25rem) !important;
         }
       }
     }
@@ -70,173 +145,45 @@ const t = defaultTranslations[lang]
       width: 100%;
       max-width: 54.75rem;
       max-height: calc(100dvh - 6rem);
+      padding: 4rem;
 
-      .heading {
-        margin-bottom: 1.5rem;
+      :global(.CloseButton) {
+        position: absolute !important;
+        top: 1.5rem;
+        right: 1.5rem;
 
-        &-content {
-          :global(p) {
-            margin: 0;
-          }
-          :global(strong) {
-            color: var(--primary-800);
-          }
+        &::before {
+          background: var(--neutral-200) !important;
         }
       }
 
-      .addons-list {
+      .addons-wrapper {
+        text-align: center;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
+        align-items: center;
 
-        &.horizontal {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-          gap: 1rem;
-        }
-      }
+        .heading {
+          color: var(--primary-800, #45051c);
+          font-size: var(--typography-body-2xl, 1.5rem);
+          line-height: 1.25;
+          letter-spacing: -0.04em;
+          font-weight: 700;
+          max-width: fit-content;
 
-      .addon-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        border-radius: 0.75rem;
-        background-color: var(--neutral-100);
-
-        .horizontal & {
-          flex-direction: column;
-        }
-      }
-
-      .addon-checkbox {
-        display: flex;
-        position: relative;
-        cursor: pointer;
-
-        input {
-          position: absolute;
-          opacity: 0;
-          cursor: pointer;
-          height: 0;
-          width: 0;
-        }
-
-        .checkbox-custom {
           position: relative;
-          top: 0.25rem;
-          height: 1.25rem;
-          width: 1.25rem;
-          background-color: white;
-          border: 1px solid var(--neutral-400);
-          border-radius: 0.25rem;
-          flex-shrink: 0;
+
+          :global(svg) {
+            margin-top: 0.375rem;
+            position: absolute;
+            top: -0.75rem;
+            right: -2.25rem;
+          }
         }
 
-        input:checked ~ .checkbox-custom {
-          background-color: var(--primary-700);
-          border-color: var(--primary-700);
-        }
-
-        .checkbox-custom:after {
-          content: '';
-          position: absolute;
-          display: none;
-        }
-
-        input:checked ~ .checkbox-custom:after {
-          display: block;
-        }
-
-        .checkbox-custom:after {
-          left: 0.4375rem;
-          top: 0.1875rem;
-          width: 0.3125rem;
-          height: 0.625rem;
-          border: solid white;
-          border-width: 0 2px 2px 0;
-          transform: rotate(45deg);
-        }
-      }
-
-      .addon-content {
-        flex: 1;
-      }
-
-      .addon-name {
-        font-weight: 500;
-        margin-bottom: 0.25rem;
-      }
-
-      .addon-price {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--primary-800);
-      }
-
-      .quantity-selector {
-        display: flex;
-        align-items: center;
-
-        button {
-          width: 1.5rem;
-          height: 1.5rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--neutral-400);
-          background: white;
-          border-radius: 0.25rem;
-          cursor: pointer;
-        }
-
-        input {
-          width: 2rem;
-          height: 1.5rem;
-          text-align: center;
-          border: none;
-          margin: 0 0.25rem;
-        }
-      }
-
-      .addon-image {
-        width: 100%;
-        aspect-ratio: 16/9;
-        overflow: hidden;
-        border-radius: 0.5rem;
-        margin-bottom: 0.5rem;
-
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-      }
-
-      .additional-info {
-        margin-top: 1rem;
-        padding: 0.75rem;
-        background-color: var(--neutral-100);
-        border-radius: 0.5rem;
-        font-size: var(--typography-body-m);
-        color: var(--neutral-700);
-      }
-
-      .confirmation {
-        text-align: center;
-        padding: 1.5rem 0;
-
-        h3 {
-          font-size: var(--typography-body-xl);
-          color: var(--primary-800);
-          margin-bottom: 0.5rem;
-        }
-
-        p {
-          color: var(--neutral-700);
-          font-size: var(--typography-body-m);
+        .paragraph {
+          margin: 1.5rem 0 2.5rem;
+          max-width: 30rem;
         }
       }
 
@@ -244,10 +191,18 @@ const t = defaultTranslations[lang]
         display: flex;
         gap: 1rem;
         margin-top: 1.5rem;
+        width: 100%;
 
         :global(button),
-        :global(a.Button) {
+        :global(a) {
           flex: 1;
+          width: 100%;
+          max-width: 100%;
+
+          :global(span) {
+            margin: 0 auto;
+            padding-right: 1.75rem;
+          }
         }
       }
     }
@@ -255,10 +210,10 @@ const t = defaultTranslations[lang]
 </style>
 
 <script>
-  const popupContainer = document.getElementById('addons-popup-container')!
-  const popupTrigger = document.getElementById('popup-trigger') as HTMLButtonElement
-  const popupWindow = document.querySelector('#addons-popup .popup-window') as HTMLDivElement
-  const continueBrowsingBtn = document.getElementById('continue-browsing') as HTMLButtonElement
+  const popupContainer = document.querySelector('.addons-popup-container')! as HTMLDivElement
+  const popupTrigger = document.querySelector('.hidden-trigger button')! as HTMLButtonElement
+  const popupWindow = document.querySelector('.addons-popup-container .popup-window') as HTMLDivElement
+  const continueBrowsingBtn = document.querySelector('.addons-popup-container .continue-browsing') as HTMLButtonElement
 
   document.addEventListener('open-addons-popup', (event) => {
     const { itemId, itemType } = (event as CustomEvent).detail
@@ -268,6 +223,7 @@ const t = defaultTranslations[lang]
     }
 
     // Trigger the popup to open by clicking the hidden button
+
     popupTrigger.click()
   })
 
