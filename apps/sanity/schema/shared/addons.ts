@@ -276,7 +276,7 @@ export const createAddonsObject = (config: AddonsConfig) => {
                         initialValue: false,
                         hidden: ({ document }) => {
                           const doc = document as any
-                          return doc?.addons?.addonsChoice === 'limited' || doc?.addons?.minOneAddon === true
+                          return doc?.addons?.addonsChoice === 'limited'
                         },
                       },
                       {

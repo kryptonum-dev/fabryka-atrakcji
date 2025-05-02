@@ -17,20 +17,26 @@ const defaultTranslations = {
       activity: 'Dodano integrację do wyceny!',
     },
     addedText:
-      'Przejdź do koszyka lub kontynuuj wybieranie spośród wielu hoteli i integracji, które spełniają Twoje wymagania',
+      'Przejdź do koszyka lub kontynuuj wybieranie spośród wielu hoteli i integracji, które spełniają Twoje wymagania.',
     cartUrl: '/pl/koszyk',
     continueButton: 'Przejdź do koszyka',
     skipButton: 'Kontynuuj przeglądanie',
+    saveButton: 'Zapisz dodatki',
+    updateButton: 'Aktualizuj dodatki',
+    requiredAddonsAlert: 'Aby przejść do koszyka, musisz wybrać przynajmniej jeden dodatek.',
   },
   en: {
     addedTitle: {
       hotel: 'Added hotel to quote!',
       activity: 'Added activity to quote!',
     },
-    addedText: 'You can now go to the cart or continue browsing hotels and activities',
+    addedText: 'You can now go to the cart or continue browsing hotels and activities.',
     cartUrl: '/en/cart',
     continueButton: 'Go to cart',
     skipButton: 'Continue browsing',
+    saveButton: 'Save add-ons',
+    updateButton: 'Update add-ons',
+    requiredAddonsAlert: 'To proceed to cart, you must select at least one add-on.',
   },
 }
 
@@ -74,10 +80,26 @@ const t = defaultTranslations[lang]
 
 const { addons, type } = Astro.props
 
-console.log(addons)
+const getValidationRules = (addons: Props['addons']) => {
+  if (!addons?.hasAddons) return {}
+
+  return {
+    required: addons.minOneAddon ? true : false,
+    maxSelections: addons.addonsChoice === 'limited' ? 1 : null,
+  }
+}
+
+const validationRules = getValidationRules(addons)
 ---
 
-<div class="addons-popup-container">
+<div
+  class="addons-popup-container"
+  data-cart-url-pl={defaultTranslations.pl.cartUrl}
+  data-cart-url-en={defaultTranslations.en.cartUrl}
+  data-alert-pl={defaultTranslations.pl.requiredAddonsAlert}
+  data-alert-en={defaultTranslations.en.requiredAddonsAlert}
+  data-lang={lang}
+>
   <PopupWindow>
     <!-- Hidden trigger button that will be programmatically clicked -->
     <div slot="open" class="hidden-trigger">
@@ -90,6 +112,62 @@ console.log(addons)
           addons?.hasAddons ? (
             <>
               <PortableText value={addons.heading!} heading="h3" class="heading" />
+
+              <div class={`addons-list ${addons.addonsLayout === 'horizontal' ? 'horizontal' : 'vertical'}`}>
+                {addons.addonsList?.map((addon) => (
+                  <div
+                    class={`addon-item ${addons.addonsChoice === 'limited' ? 'single-selection' : ''}`}
+                    data-addon-key={addon._key}
+                  >
+                    <label class="addon-label">
+                      <input
+                        type={addons.addonsChoice === 'limited' ? 'radio' : 'checkbox'}
+                        name="addon-selection"
+                        data-addon-key={addon._key}
+                        required={validationRules.required}
+                      />
+
+                      {addons.addonsHaveImage && addon.image && (
+                        <div class="addon-image">
+                          <img src={addon.image.asset.url} alt={addon.name} />
+                        </div>
+                      )}
+
+                      <div class="addon-details">
+                        <span class="addon-name">{addon.name}</span>
+
+                        <span class="addon-price">
+                          {addon.pricing.type === 'fixed' && `${addon.pricing.fixedPrice} zł`}
+                          {addon.pricing.type === 'per_unit' && (
+                            <>
+                              {`${addon.pricing.perUnit?.price} zł`}
+                              {addon.pricing.perUnit?.hasCount && addons.addonsChoice !== 'limited' && (
+                                <div class="quantity-control">
+                                  <button type="button" class="quantity-decrease">
+                                    -
+                                  </button>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value="0"
+                                    data-quantity-for={addon._key}
+                                    class="quantity-input"
+                                  />
+                                  <button type="button" class="quantity-increase">
+                                    +
+                                  </button>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {addon.pricing.type === 'threshold' && `${addon.pricing.threshold?.basePrice} zł`}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+
               <p class="paragraph">{addons.additionalInfo}</p>
             </>
           ) : (
@@ -113,7 +191,7 @@ console.log(addons)
       </div>
       <div class="actions">
         <Button theme="primary" className="continue-browsing" shade="light">{t.skipButton}</Button>
-        <Button theme="primary" shade="dark" href={t.cartUrl}>{t.continueButton}</Button>
+        <Button theme="primary" shade="dark" className="go-to-cart-button">{t.continueButton}</Button>
       </div>
     </div>
   </PopupWindow>
@@ -176,14 +254,159 @@ console.log(addons)
           :global(svg) {
             margin-top: 0.375rem;
             position: absolute;
-            top: -0.75rem;
-            right: -2.25rem;
+            top: -1.25rem;
+            right: -3rem;
           }
         }
 
         .paragraph {
           margin: 1.5rem 0 2.5rem;
           max-width: 30rem;
+        }
+
+        .addons-list {
+          width: 100%;
+          margin: 1.5rem 0;
+
+          &.horizontal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+            gap: 1rem;
+          }
+
+          &.vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+
+          .addon-item {
+            background: var(--neutral-100);
+            border-radius: 0.5rem;
+            overflow: hidden;
+          }
+
+          .addon-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            cursor: pointer;
+            width: 100%;
+
+            input[type='checkbox'],
+            input[type='radio'] {
+              flex-shrink: 0;
+              width: 1.25rem;
+              height: 1.25rem;
+              cursor: pointer;
+            }
+          }
+
+          .addon-item.single-selection {
+            position: relative;
+
+            .addon-label input[type='radio'] {
+              &:hover {
+                cursor: pointer;
+              }
+            }
+          }
+
+          .addon-image {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.25rem;
+            overflow: hidden;
+
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+          }
+
+          .addon-details {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+          }
+
+          .addon-name {
+            font-weight: 500;
+            color: var(--primary-800);
+          }
+
+          .addon-price {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.25rem;
+          }
+
+          .quantity-control {
+            display: flex;
+            align-items: center;
+
+            .quantity-input {
+              width: 2rem;
+              text-align: center;
+              border: 1px solid var(--neutral-300);
+              border-radius: 0.25rem;
+              margin: 0 0.25rem;
+            }
+
+            button {
+              width: 1.5rem;
+              height: 1.5rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: var(--neutral-200);
+              border: none;
+              border-radius: 0.25rem;
+              cursor: pointer;
+
+              &:hover {
+                background: var(--neutral-300);
+              }
+            }
+          }
+        }
+
+        .required-addons-message {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: var(--primary-600);
+          font-size: var(--typography-body-m);
+          margin: 0.75rem 0;
+          padding: 0.75rem 1rem;
+          background-color: var(--neutral-100);
+          border-radius: 0.5rem;
+          border-left: 3px solid var(--primary-500);
+
+          svg {
+            flex-shrink: 0;
+          }
+
+          &.highlight-error {
+            background-color: rgba(230, 57, 70, 0.1);
+            border-left-color: var(--error-color, #e63946);
+            animation: pulse 0.5s;
+          }
+        }
+
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+          100% {
+            transform: scale(1);
+          }
         }
       }
 
@@ -210,28 +433,333 @@ console.log(addons)
 </style>
 
 <script>
+  import {
+    updateCartAddons,
+    isInCart,
+    getCartItem,
+    type AddonItem,
+    addToCart,
+    removeFromCart,
+    cartStore,
+  } from '@/src/store/cart'
+
   const popupContainer = document.querySelector('.addons-popup-container')! as HTMLDivElement
   const popupTrigger = document.querySelector('.hidden-trigger button')! as HTMLButtonElement
   const popupWindow = document.querySelector('.addons-popup-container .popup-window') as HTMLDivElement
   const continueBrowsingBtn = document.querySelector('.addons-popup-container .continue-browsing') as HTMLButtonElement
 
+  // Function to pre-select addons when editing
+  function preSelectAddons(addons: AddonItem[]) {
+    // Get all addon checkboxes/inputs
+    const addonInputs = document.querySelectorAll(
+      '.addons-popup input[type="checkbox"], .addons-popup input[type="radio"]'
+    )
+
+    // For each input, check if it's in the addons array and set checked state
+    addonInputs.forEach((input) => {
+      const addonKey = input.getAttribute('data-addon-key')
+      if (addonKey) {
+        const addon = addons.find((a) => a.id === addonKey)
+        if (addon) {
+          ;(input as HTMLInputElement).checked = true
+
+          // Mark radio as previously checked for deselection logic
+          if (input.getAttribute('type') === 'radio') {
+            ;(input as HTMLInputElement).dataset.wasChecked = 'true'
+          }
+
+          // If addon has count, set it
+          const quantityInput = document.querySelector(`[data-quantity-for="${addonKey}"]`) as HTMLInputElement
+          if (quantityInput && addon.count !== undefined) {
+            quantityInput.value = addon.count.toString()
+          }
+        }
+      }
+    })
+  }
+
+  // Function to handle addon selection changes
+  function handleAddonSelection() {
+    const itemId = popupContainer.dataset.itemId
+    const itemType = popupContainer.dataset.itemType as 'hotels' | 'activities'
+    const requiresAddons = popupContainer.dataset.requiresInitialAddons === 'true'
+    const isLimitedSelection = popupContainer.dataset.addonsChoice === 'limited'
+
+    console.log('handleAddonSelection - isLimitedSelection:', isLimitedSelection)
+    console.log('handleAddonSelection - popupContainer.dataset.addonsChoice:', popupContainer.dataset.addonsChoice)
+
+    if (itemId && itemType) {
+      // Collect selected addons
+      const selectedAddons: AddonItem[] = []
+      const addonInputs = document.querySelectorAll(
+        '.addons-popup input[type="checkbox"]:checked, .addons-popup input[type="radio"]:checked'
+      )
+
+      addonInputs.forEach((input) => {
+        const addonKey = input.getAttribute('data-addon-key')
+        if (addonKey) {
+          // Handle differently based on selection mode
+          if (isLimitedSelection) {
+            // For limited selection (max one addon), never include count
+            selectedAddons.push({
+              id: addonKey,
+            })
+          } else {
+            // For unlimited selection, check if there's a quantity
+            const quantityInput = document.querySelector(`[data-quantity-for="${addonKey}"]`) as HTMLInputElement
+            if (quantityInput) {
+              const count = parseInt(quantityInput.value, 10) || 0
+              // Only add the addon if count is greater than 0
+              if (count > 0) {
+                selectedAddons.push({
+                  id: addonKey,
+                  count: count,
+                })
+              }
+            } else {
+              // For addons without quantity control
+              selectedAddons.push({
+                id: addonKey,
+              })
+            }
+          }
+        }
+      })
+
+      // Handle cart updates based on selection
+      if (requiresAddons) {
+        if (selectedAddons.length > 0) {
+          // Add to cart if not already in cart
+          if (!isInCart(itemId, itemType)) {
+            addToCart({
+              id: itemId,
+              type: itemType,
+              addOns: selectedAddons,
+            })
+          } else {
+            // Just update the addons
+            updateCartAddons(itemId, itemType, selectedAddons)
+          }
+        } else {
+          // If no addons selected and it requires addons, remove from cart
+          if (isInCart(itemId, itemType)) {
+            removeFromCart(itemId, itemType)
+          }
+        }
+      } else {
+        // Just update the addons if item doesn't require addons
+        updateCartAddons(itemId, itemType, selectedAddons)
+      }
+
+      // Trigger cart updated event
+      document.dispatchEvent(
+        new CustomEvent('cart-updated', {
+          detail: {
+            itemId,
+            itemType,
+          },
+        })
+      )
+
+      // Log the cart state after addon change
+      console.log('Addon changed - Current cart:', cartStore.get())
+    }
+  }
+
   document.addEventListener('open-addons-popup', (event) => {
-    const { itemId, itemType } = (event as CustomEvent).detail
+    const { itemId, itemType, isEditing, minOneAddon, requiresAddons, addonsChoice } = (event as CustomEvent).detail
+
     if (itemId && itemType) {
       popupContainer.dataset.itemId = itemId
       popupContainer.dataset.itemType = itemType
+      console.log(cartStore.get())
+      popupContainer.dataset.requiredAddons = minOneAddon ? 'true' : 'false'
+      popupContainer.dataset.requiresInitialAddons = requiresAddons ? 'true' : 'false'
+
+      // Store the addons selection mode
+      popupContainer.dataset.addonsChoice = addonsChoice || 'unlimited'
+
+      console.log('addonsChoice:', addonsChoice)
+      console.log('popupContainer.dataset.addonsChoice:', popupContainer.dataset.addonsChoice)
+
+      // Show the required addons message if needed
+      const requiredMessage = document.querySelector('.required-addons-message') as HTMLElement
+      if (requiredMessage) {
+        requiredMessage.style.display = requiresAddons ? 'flex' : 'none'
+      }
+
+      // Reset all quantity inputs to 0 and uncheck all checkboxes/radio buttons
+      setTimeout(() => {
+        document
+          .querySelectorAll('.addons-popup input[type="checkbox"], .addons-popup input[type="radio"]')
+          .forEach((input) => {
+            ;(input as HTMLInputElement).checked = false
+          })
+
+        document.querySelectorAll('.quantity-input').forEach((input) => {
+          ;(input as HTMLInputElement).value = '0'
+        })
+
+        // If editing, load current addons after resetting
+        if (isEditing && isInCart(itemId, itemType)) {
+          const cartItem = getCartItem(itemId, itemType)
+          if (cartItem) {
+            // Ensure addOns is an array before passing to preSelectAddons
+            const addons = Array.isArray(cartItem.addOns) ? cartItem.addOns : []
+            // Pre-select addons based on cartItem.addOns
+            preSelectAddons(addons)
+          }
+        }
+      }, 100) // Add delay to ensure DOM is ready
+
+      // Trigger the popup to open by clicking the hidden button
+      popupTrigger.click()
+
+      // After popup is open, set up input change listeners
+      setTimeout(() => {
+        // Add change listeners to checkboxes and radio buttons
+        document
+          .querySelectorAll('.addons-popup input[type="checkbox"], .addons-popup input[type="radio"]')
+          .forEach((input) => {
+            input.addEventListener('change', handleAddonSelection)
+          })
+
+        // Add ability to deselect radio buttons when in limited selection mode
+        const addonsChoice = popupContainer.dataset.addonsChoice
+        console.log('Setting up radio button handlers with addonsChoice:', addonsChoice)
+
+        if (addonsChoice === 'limited') {
+          // For limited selection mode, we need to enable radio button deselection
+          document.querySelectorAll('.addons-popup input[type="radio"]').forEach((radio) => {
+            const radioInput = radio as HTMLInputElement
+
+            // Add a direct click handler to each radio button
+            radio.addEventListener('click', () => {
+              // If this radio was already checked, uncheck it
+              if (radioInput.dataset.wasChecked === 'true') {
+                setTimeout(() => {
+                  radioInput.checked = false
+                  radioInput.dataset.wasChecked = 'false'
+                  handleAddonSelection()
+                }, 0)
+              } else {
+                // Mark this radio as checked for next click
+                document.querySelectorAll('input[name="addon-selection"]').forEach((r) => {
+                  ;(r as HTMLInputElement).dataset.wasChecked = 'false'
+                })
+                radioInput.dataset.wasChecked = 'true'
+              }
+            })
+          })
+        }
+      }, 200)
     }
-
-    // Trigger the popup to open by clicking the hidden button
-
-    popupTrigger.click()
   })
 
   // Set up handlers for popup buttons
   continueBrowsingBtn.addEventListener('click', () => {
-    // Close the popup
+    // Close the popup regardless of selection
     if (popupWindow) {
       popupWindow.setAttribute('aria-hidden', 'true')
+
+      // Trigger cart-updated event one more time to ensure sidebar is in sync
+      const itemId = popupContainer.dataset.itemId
+      const itemType = popupContainer.dataset.itemType
+
+      if (itemId && itemType) {
+        document.dispatchEvent(
+          new CustomEvent('cart-updated', {
+            detail: {
+              itemId,
+              itemType,
+            },
+          })
+        )
+      }
     }
+  })
+
+  // Handle "Go to cart" button click
+  const goToCartBtn = document.querySelector('.go-to-cart-button') as HTMLButtonElement
+  if (goToCartBtn) {
+    goToCartBtn.addEventListener('click', () => {
+      const itemId = popupContainer.dataset.itemId
+      const itemType = popupContainer.dataset.itemType as 'hotels' | 'activities' | undefined
+      const requiresAddons = popupContainer.dataset.requiresInitialAddons === 'true'
+
+      // If addons are required, check if any are selected
+      if (requiresAddons && itemId && itemType) {
+        const hasSelectedAddons =
+          document.querySelectorAll(
+            '.addons-popup input[type="checkbox"]:checked, .addons-popup input[type="radio"]:checked'
+          ).length > 0
+
+        if (!hasSelectedAddons) {
+          //TODO Add toast notification
+
+          alert(
+            popupContainer.dataset.lang === 'pl'
+              ? popupContainer.getAttribute('data-alert-pl')
+              : popupContainer.getAttribute('data-alert-en')
+          )
+
+          return // Prevent navigation to cart
+        }
+      }
+
+      // If we got here, we can navigate to cart
+      const cartUrl =
+        popupContainer.dataset.lang === 'pl'
+          ? popupContainer.getAttribute('data-cart-url-pl')
+          : popupContainer.getAttribute('data-cart-url-en')
+
+      window.location.href = cartUrl || '/cart'
+    })
+  }
+
+  // Handle quantity controls
+  document.querySelectorAll('.quantity-decrease').forEach((button) => {
+    button.addEventListener('click', () => {
+      const input = button.nextElementSibling as HTMLInputElement
+      const currentValue = parseInt(input.value)
+      if (currentValue > 0) {
+        input.value = (currentValue - 1).toString()
+
+        // If count reaches 0 and there's a checkbox/radio connected to this quantity,
+        // uncheck it if count is 0
+        if (currentValue - 1 === 0) {
+          const addonKey = input.getAttribute('data-quantity-for')
+          if (addonKey) {
+            const addonInput = document.querySelector(`input[data-addon-key="${addonKey}"]`) as HTMLInputElement
+            if (addonInput) {
+              addonInput.checked = false
+            }
+          }
+        }
+
+        handleAddonSelection()
+      }
+    })
+  })
+
+  document.querySelectorAll('.quantity-increase').forEach((button) => {
+    button.addEventListener('click', () => {
+      const input = button.previousElementSibling as HTMLInputElement
+      const currentValue = parseInt(input.value)
+      input.value = (currentValue + 1).toString()
+
+      // If count increases from 0, ensure the checkbox/radio is checked
+      if (currentValue === 0) {
+        const addonKey = input.getAttribute('data-quantity-for')
+        if (addonKey) {
+          const addonInput = document.querySelector(`input[data-addon-key="${addonKey}"]`) as HTMLInputElement
+          if (addonInput) {
+            addonInput.checked = true
+          }
+        }
+      }
+
+      handleAddonSelection()
+    })
   })
 </script>

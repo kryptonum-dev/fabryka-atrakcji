@@ -1,9 +1,14 @@
 import { persistentAtom } from '@nanostores/persistent'
 
+export type AddonItem = {
+  id: string
+  count?: number
+}
+
 export type CartItem = {
   id: string
   type: 'hotels' | 'activities'
-  addOns: Record<string, any>
+  addOns: AddonItem[]
 }
 
 export const cartStore = persistentAtom<{
@@ -53,7 +58,17 @@ export function isInCart(id: string, type: 'hotels' | 'activities'): boolean {
   return currentCart[collection].some((item: CartItem) => item.id === id)
 }
 
-export function updateCartAddons(id: string, type: 'hotels' | 'activities', addons: Record<string, any>): void {
+/**
+ * Gets a specific item from the cart by id and type
+ */
+export function getCartItem(id: string, type: 'hotels' | 'activities'): CartItem | undefined {
+  const currentCart = cartStore.get()
+  const collection = type === 'hotels' ? 'hotels' : 'activities'
+
+  return currentCart[collection].find((item) => item.id === id)
+}
+
+export function updateCartAddons(id: string, type: 'hotels' | 'activities', addons: AddonItem[]): void {
   const currentCart = cartStore.get()
   const collection = type === 'hotels' ? 'hotels' : 'activities'
 

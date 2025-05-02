@@ -123,7 +123,9 @@ const translationsJson = JSON.stringify(translations)
   data-lang={lang}
   data-translations={translationsJson}
   data-has-addons={hasAddons}
+  data-min-one-addon={addons?.minOneAddon || false}
   data-name={name}
+  data-addons-choice={addons?.addonsChoice || 'unlimited'}
 >
   <div class="sidebar-placeholder" id="sidebar-placeholder"></div>
   <div class="wrapper" id="sidebar-wrapper">
@@ -673,7 +675,6 @@ const translationsJson = JSON.stringify(translations)
   const itemId = sidebar.dataset.id
   const itemType = sidebar.dataset.type as 'hotels' | 'activities'
   const hasAddons = sidebar.dataset.hasAddons === 'true'
-  const itemName = sidebar.dataset.name
 
   // Check if viewport width is below 1089px
   const isMobileView = () => window.innerWidth <= 1089
@@ -830,6 +831,9 @@ const translationsJson = JSON.stringify(translations)
 
   // Listen for cart state changes
   document.addEventListener('cart-updated', () => {
+    // Update sidebar state to reflect current cart
+    updateSidebarState()
+
     // Force height update after DOM changes
     requestAnimationFrame(() => {
       updateWrapperHeight()
@@ -839,26 +843,42 @@ const translationsJson = JSON.stringify(translations)
   // Listen for add to cart button click
   addToCartButton.addEventListener('click', () => {
     if (itemId && itemType) {
-      addToCart({
-        id: itemId,
-        type: itemType,
-        addOns: {},
-      })
+      const requiresAddons = sidebar.dataset.hasAddons === 'true' && sidebar.dataset.minOneAddon === 'true'
 
-      // Update sidebar state and height
-      updateSidebarState()
-      setTimeout(updateWrapperHeight, 0)
+      // If the item requires addons, DON'T add to cart immediately
+      if (!requiresAddons) {
+        // Add to cart only if no addons required
+        addToCart({
+          id: itemId,
+          type: itemType,
+          addOns: [],
+        })
 
+        // Update sidebar state and height
+        updateSidebarState()
+        setTimeout(updateWrapperHeight, 0)
+      }
+
+      // Always open popup - it will show either addons interface or confirmation
       const event = new CustomEvent('open-addons-popup', {
         detail: {
           itemId,
           itemType,
           hasAddons,
-          itemName,
+          isEditing: false,
+          minOneAddon: sidebar.dataset.minOneAddon === 'true',
+          requiresAddons: requiresAddons,
+          addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
         },
         bubbles: true,
       })
       document.dispatchEvent(event)
+
+      // Only update sidebar state if item was not added (will be updated by addon selection)
+      if (requiresAddons) {
+        updateSidebarState()
+        setTimeout(updateWrapperHeight, 0)
+      }
     }
   })
 
@@ -880,12 +900,16 @@ const translationsJson = JSON.stringify(translations)
   if (changeAddonsButton) {
     changeAddonsButton.addEventListener('click', () => {
       if (itemId && itemType && hasAddons) {
+        const requiresAddons = sidebar.dataset.hasAddons === 'true' && sidebar.dataset.minOneAddon === 'true'
+
         const event = new CustomEvent('open-addons-popup', {
           detail: {
             itemId,
             itemType,
-            hasAddons,
+            hasAddons: true, // This is always true if the change button exists
             isEditing: true,
+            requiresAddons: requiresAddons,
+            addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
           },
           bubbles: true,
         })
