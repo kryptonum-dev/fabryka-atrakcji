@@ -97,6 +97,7 @@ export type SingleHotelProps = {
           plural: string
         }
       }
+      description?: string
     }>
     additionalInfo?: string
   }
@@ -169,6 +170,7 @@ export async function fetchData(slug: string, lang: Language) {
               plural
             },
           },
+          description
         },
         additionalInfo
       },

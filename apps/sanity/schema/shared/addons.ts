@@ -195,6 +195,13 @@ export const createAddonsObject = (config: AddonsConfig) => {
                 validation: (Rule) => Rule.required().error('Nazwa dodatku jest wymagana'),
               },
               {
+                name: 'description',
+                type: 'text',
+                title: 'Opis dodatku (opcjonalny)',
+                description: 'Krótki opis dodatku, który pojawi się pod jego nazwą',
+                rows: 3,
+              },
+              {
                 name: 'pricing',
                 type: 'object',
                 title: 'Cennik dodatku',
@@ -247,10 +254,7 @@ export const createAddonsObject = (config: AddonsConfig) => {
 
                         const objValue = value as { singular: string; plural: string; price: number }
 
-                        if (
-                          parent?.type === 'per_unit' &&
-                          (!objValue?.singular || !objValue?.plural || !objValue?.price)
-                        ) {
+                        if (parent?.type === 'per_unit' && (!objValue?.singular || !objValue?.price)) {
                           return 'Cena za jednostkę jest wymagana'
                         }
                         return true
@@ -284,12 +288,6 @@ export const createAddonsObject = (config: AddonsConfig) => {
                         type: 'string',
                         title: 'Nazwa jednostki (pojedyncza)',
                         description: 'np. osoba, dzień',
-                      },
-                      {
-                        name: 'plural',
-                        type: 'string',
-                        title: 'Nazwa jednostki (mnoga)',
-                        description: 'np. osoby/osób, dni',
                       },
                     ],
                   },
@@ -364,14 +362,14 @@ export const createAddonsObject = (config: AddonsConfig) => {
                       {
                         name: 'singular',
                         type: 'string',
-                        title: 'Nazwa jednostki (pojedyncza)',
-                        description: 'np. osoba, dzień',
+                        title: 'Nazwa jednostki w dopełniaczu (pojedyncza)',
+                        description: 'np. osób, samochodów',
                       },
                       {
                         name: 'plural',
                         type: 'string',
-                        title: 'Nazwa jednostki (mnoga)',
-                        description: 'np. osoby/osób, dni',
+                        title: 'Nazwa dodatkowej jednostki',
+                        description: 'np. "Każda dodatkowa osoba"',
                       },
                     ],
                   },
