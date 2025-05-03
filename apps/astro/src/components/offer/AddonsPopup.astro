@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import { getLangFromPath, type Language } from '@/src/global/languages'
 import type { ImageDataProps } from '../ui/image'
 import PortableText, { type PortableTextValue } from '../ui/portable-text'
+import Image from '@/src/components/ui/image'
 
 // Get language from URL for default text
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
@@ -113,12 +114,11 @@ const validationRules = getValidationRules(addons)
     </div>
     <div slot="content" class="addons-popup">
       <CloseButton />
-      <div class="addons-wrapper">
+      <div class="addons-wrapper" data-has-addons={addons?.hasAddons ? 'true' : 'false'}>
         {
           addons?.hasAddons ? (
             <>
               <PortableText value={addons.heading!} heading="h3" class="heading" />
-
               <div class="addons-list" data-layout={addons.addonsLayout}>
                 {addons.addonsList?.map((addon) => {
                   const hasCounter =
@@ -131,7 +131,14 @@ const validationRules = getValidationRules(addons)
                       data-has-description={addon.description ? 'true' : 'false'}
                       data-addon-key={addon._key}
                       data-has-counter={hasCounter ? 'true' : 'false'}
+                      data-has-image={addon.image ? 'true' : 'false'}
                     >
+                      {addons.addonsLayout === 'horizontal' && addons.addonsHaveImage && addon.image && (
+                        <Image
+                          {...addon.image}
+                          sizes="(max-width: 28.6875rem) 92vw, (max-width: 31.1875rem) 45vw, (max-width: 32.75rem) 81vw, (max-width: 37.4375rem) 40vw, (max-width: 38.8125rem) 68vw, (max-width: 54.8125rem) 36vw, (max-width: 56.1875rem) 24vw, 254px"
+                        />
+                      )}
                       {!hasCounter && (
                         <>
                           <input
@@ -182,11 +189,7 @@ const validationRules = getValidationRules(addons)
                           </button>
                         </div>
                       )}
-                      {addons.addonsLayout === 'horizontal' && addons.addonsHaveImage && addon.image && (
-                        <div class="addon-image">
-                          <img src={addon.image.asset.url} alt={addon.name} />
-                        </div>
-                      )}
+
                       <span class="addon-name">{addon.name}</span>
                       {addon.description && <p class="addon-description">{addon.description}</p>}
                       <div class="addon-price" data-pricing={addon.pricing.type}>
@@ -303,7 +306,10 @@ const validationRules = getValidationRules(addons)
       width: 100%;
       max-width: 54.75rem;
       max-height: calc(100dvh - 6rem);
-      padding: 4rem;
+      padding: clamp(2rem, calc(2vw / 0.48), 4rem);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
 
       :global(.CloseButton) {
         position: absolute !important;
@@ -316,10 +322,20 @@ const validationRules = getValidationRules(addons)
       }
 
       .addons-wrapper {
-        text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
+        flex: 1;
+        min-height: 0;
+
+        &[data-has-addons='true'] {
+          .heading {
+            width: 100%;
+            padding: 0 2rem;
+            align-self: stretch;
+            max-width: 100%;
+          }
+        }
 
         .heading {
           color: var(--primary-800, #45051c);
@@ -328,7 +344,8 @@ const validationRules = getValidationRules(addons)
           letter-spacing: -0.04em;
           font-weight: 700;
           max-width: fit-content;
-
+          flex-shrink: 0;
+          text-align: center;
           position: relative;
 
           :global(svg) {
@@ -341,6 +358,10 @@ const validationRules = getValidationRules(addons)
           :global(strong) {
             color: var(--primary-400, #74535e);
           }
+        }
+
+        .paragraph {
+          text-align: center;
         }
 
         .additional-info {
@@ -362,24 +383,205 @@ const validationRules = getValidationRules(addons)
         .paragraph {
           margin: 1.5rem 0 2.5rem;
           max-width: 30rem;
+          flex-shrink: 0;
         }
 
         .addons-list {
-          width: 100%;
-          margin-top: 2.25rem;
+          width: calc(100% + 0.25rem);
+          margin-top: clamp(1.5rem, calc(1.75vw / 0.48), 2.25rem);
+          overflow-y: auto;
+          max-height: 25rem;
+          scroll-behavior: smooth;
+          min-height: 0;
+          flex: 1;
+          padding-right: 0.25rem;
+          margin-right: -0.25rem;
+
+          &::-webkit-scrollbar {
+            width: 0.25rem;
+          }
+
+          &::-webkit-scrollbar-track {
+            background: var(--neutral-300, #ede6de);
+            border-radius: 16px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: var(--primary-400, #74535e);
+            border-radius: 16px;
+          }
+
+          &::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-700, #600d2a);
+          }
 
           &[data-layout='horizontal'] {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+            gap: 0.5rem;
+            grid-auto-rows: minmax(min-content, auto);
 
             .addon-item {
-              border-radius: 0.75rem;
-              padding: 0.75rem;
-              display: flex;
-              flex-direction: column;
-              gap: 0.75rem;
+              display: grid;
+              grid-template-columns: 1fr auto;
               cursor: pointer;
+              min-height: 9.1875rem;
+
+              &[data-has-image='false'] {
+                padding: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
+              }
+
+              &[data-has-description='true'] {
+                grid-template-rows: auto auto 1fr;
+                grid-template-areas:
+                  'name checkbox'
+                  'description description'
+                  'price price';
+
+                &[data-has-image='true'] {
+                  grid-template-rows: auto auto auto 1fr;
+                  grid-template-areas:
+                    'image image'
+                    'name checkbox'
+                    'description description'
+                    'price price';
+                }
+              }
+
+              &[data-has-description='false'] {
+                grid-template-rows: auto 1fr;
+                grid-template-areas:
+                  'name checkbox'
+                  'price price';
+
+                &[data-has-image='true'] {
+                  grid-template-rows: auto auto 1fr;
+                  grid-template-areas:
+                    'image image'
+                    'name checkbox'
+                    'price price';
+                }
+              }
+
+              &.counter-only {
+                display: grid;
+                padding-left: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
+
+                &[data-has-description='true'] {
+                  grid-template-areas:
+                    'name'
+                    'description'
+                    'price'
+                    'counter' !important;
+
+                  &[data-has-image='true'] {
+                    padding-left: 0;
+                    grid-template-areas:
+                      'image'
+                      'name'
+                      'description'
+                      'price'
+                      'counter' !important;
+                  }
+                }
+
+                &[data-has-description='false'] {
+                  grid-template-areas:
+                    'name'
+                    'price'
+                    'counter' !important;
+
+                  &[data-has-image='true'] {
+                    padding-left: 0;
+                    grid-template-areas:
+                      'image'
+                      'name'
+                      'price'
+                      'counter' !important;
+                  }
+                }
+
+                .addon-description {
+                  margin-bottom: 0.25rem;
+                }
+
+                .addon-price {
+                  align-self: start;
+                  margin-top: 0.5rem;
+                }
+                .quantity-control {
+                  align-self: end;
+                  margin-top: 0.5rem;
+                  margin-bottom: -0.5rem;
+                }
+
+                &[data-has-image='true'] {
+                  .quantity-control {
+                    margin: clamp(0.5rem, calc(0.75vw / 0.48), 1rem) !important;
+                    margin-top: 0rem !important;
+                  }
+
+                  .addon-price {
+                    margin-bottom: 0.5rem !important;
+                  }
+                }
+              }
+              > img {
+                width: 100%;
+                aspect-ratio: 244/162.63;
+                height: auto;
+                grid-column: 1/3;
+                margin-bottom: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
+              }
+
+              .addon-name {
+                font-weight: 700;
+              }
+
+              .addon-description {
+                margin-top: 0.25rem;
+              }
+
+              .addon-price {
+                margin-top: 01rem;
+                align-self: end;
+
+                &[data-pricing='threshold'] {
+                  text-align: left;
+                  align-items: flex-start;
+                }
+
+                &[data-pricing='individual'],
+                &[data-pricing='fixed'] {
+                  :global(strong) {
+                    color: var(--primary-400);
+                  }
+                }
+              }
+
+              .checkbox-custom {
+                margin-left: 0.75rem;
+              }
+
+              &[data-has-image='true'] {
+                .addon-name {
+                  margin-left: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
+                }
+
+                .addon-description {
+                  margin-left: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
+                  margin-right: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
+                }
+
+                .addon-price {
+                  margin: clamp(0.5rem, calc(0.75vw / 0.48), 1rem) !important;
+                  margin-top: 0.5rem !important;
+                }
+
+                .checkbox-custom {
+                  margin-right: clamp(0.5rem, calc(0.75vw / 0.48), 1rem);
+                }
+              }
             }
           }
 
@@ -389,81 +591,54 @@ const validationRules = getValidationRules(addons)
             gap: 0.375rem;
 
             .addon-item {
-              border-radius: 0.375rem;
               padding: 0.75rem;
               display: grid;
               padding: 0.5rem 1rem;
               min-height: 3.5rem;
+              text-align: left;
               grid-template-columns: auto 1fr auto;
               grid-template-areas: 'checkbox name price';
               align-items: center;
               cursor: pointer;
-              border: 1px solid var(--neutral-300, #ede6de);
 
               &[data-has-description='true'] {
-                grid-template-rows: auto 1fr;
                 grid-template-areas:
                   'checkbox name price'
                   'checkbox description price';
 
-                  .addon-name{
-                    margin-bottom: -0.25rem;
-                  }
-
-                  .checkbox-custom{
-                    margin-bottom: 0.375rem;
-                  }
+                .checkbox-custom {
+                  margin-bottom: 0.125rem;
+                }
               }
 
               .checkbox-custom {
                 margin-right: 0.625rem;
-                grid-area: checkbox;
               }
 
               .addon-name {
                 grid-area: name;
                 justify-self: start;
-                color: var(--primary-800, #45051c);
-                font-size: var(--typography-body-m, 0.875rem);
-                letter-spacing: -0.01em;
-                line-height: 1.7;
               }
 
               .addon-description {
                 grid-area: description;
                 justify-self: start;
-                font-size: var(--typography-body-s, 0.75rem);
-margin-top: -0.25rem;
-                letter-spacing: -0.01em;
-                line-height: 1.6;
+
+                align-self: start;
               }
 
               .addon-price {
-                grid-area: price;
-
-                &[data-pricing='threshold'] {
-                  display: flex;
-                  flex-direction: column;
-                  align-items: flex-end;
-                  text-align: right;
-
-                  :global(> span > span:nth-child(2)) {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 0.25rem;
-
-                    :global(svg) {
-                      margin-top: 5px;
-                    }
-                  }
-                }
+                margin-left: 1rem;
               }
             }
           }
 
           .addon-item {
             background-color: var(--neutral-200);
-            transition: background-color 250ms var(--easing);
+            border-radius: 0.5rem;
+            border: 1px solid var(--neutral-300, #ede6de);
+            flex-shrink: 0;
+            overflow: hidden;
 
             &.counter-only {
               padding-left: 0.25rem;
@@ -592,21 +767,58 @@ margin-top: -0.25rem;
 
             .addon-name {
               user-select: none;
+              grid-area: name;
+              color: var(--primary-800, #45051c);
+              font-size: var(--typography-body-m, 0.875rem);
+              letter-spacing: -0.01em;
+              line-height: 1.2;
             }
 
             .addon-description {
               user-select: none;
+              grid-area: description;
+              font-size: var(--typography-body-s, 0.75rem);
+              letter-spacing: -0.01em;
+              line-height: 1.25;
             }
 
             .addon-price {
               line-height: 1.7;
               font-size: var(--typography-body-m, 0.875rem);
               letter-spacing: -0.01em;
+              grid-area: price;
 
               :global(strong) {
                 font-weight: 700;
                 color: var(--primary-800);
               }
+
+              &[data-pricing='threshold'] {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                text-align: right;
+
+                :global(> span > span:nth-child(2)) {
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 0.25rem;
+
+                  :global(svg) {
+                    margin-top: 5px;
+                    flex-shrink: 0;
+                  }
+
+                  @media (max-width: 56.1875rem) {
+                    // 899px
+                    font-size: var(--typography-body-s, 0.75rem);
+                  }
+                }
+              }
+            }
+
+            .checkbox-custom {
+              grid-area: checkbox;
             }
 
             .quantity-control {
@@ -680,9 +892,10 @@ margin-top: -0.25rem;
 
       .actions {
         display: flex;
-        gap: 1rem;
-        margin-top: 2.25rem;
+        gap: clamp(0.5rem, calc(0.5vw / 0.48), 1rem);
+        margin-top: clamp(1.5rem, calc(1.75vw / 0.48), 2.25rem);
         width: 100%;
+        flex-shrink: 0;
 
         :global(button),
         :global(a) {
@@ -697,9 +910,134 @@ margin-top: -0.25rem;
         }
       }
     }
+
+    @media (max-width: 56.1875rem) {
+      // 899px
+      .addons-popup {
+        .addons-wrapper[data-has-addons='true'] {
+          .heading {
+            padding: 0rem;
+            padding-right: 3rem;
+            text-align: start;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 45.5625rem) {
+      // 729px
+      .addons-popup {
+        .actions {
+          flex-direction: column;
+        }
+      }
+    }
+
+    @media (max-width: 41.1875rem) {
+      // 659px
+      .addons-popup .addons-wrapper .addons-list[data-layout='vertical'] {
+        .addon-item {
+          grid-template-columns: 1fr auto;
+          padding: 0.5rem;
+
+          &[data-has-description='true'] {
+            grid-template-areas:
+              'name checkbox '
+              'description checkbox'
+              'price price';
+          }
+
+          &[data-has-description='false'] {
+            grid-template-areas:
+              'name checkbox'
+              'price price';
+          }
+
+          .addon-price {
+            justify-self: start;
+            margin-left: 0;
+            justify-content: flex-start !important;
+            text-align: start !important;
+            margin-top: 0.25rem;
+
+            &[data-pricing='threshold'] {
+              margin-top: 0.5rem;
+            }
+          }
+          .checkbox-custom {
+            margin-top: 0;
+            margin-right: 0.5rem;
+            margin-left: 1.25rem;
+            margin-bottom: 0;
+          }
+
+          &.counter-only {
+            padding: 0.5rem;
+
+            .quantity-control {
+              margin-right: 0.125rem;
+              margin-left: 1.5rem;
+              align-self: start;
+
+              button {
+                min-height: 2.5rem;
+                width: 2.5rem;
+              }
+
+              .quantity-input {
+                min-height: 2.5rem;
+                width: 2.5rem;
+              }
+            }
+
+            &[data-has-description='true'] {
+              grid-template-areas:
+                'name counter'
+                'description counter'
+                'price counter' !important;
+            }
+
+            &[data-has-description='false'] {
+              grid-template-areas:
+                'name counter'
+                'price counter' !important;
+            }
+          }
+        }
+      }
+    }
+
+    @media (max-width: 31.1875rem) {
+      // 499px
+      :global(.Wrapper) {
+        :global(.content) {
+          &::before,
+          &::after {
+            border-bottom-left-radius: 0rem !important;
+            border-bottom-right-radius: 0rem !important;
+          }
+        }
+      }
+      .addons-popup {
+        padding: 1.5rem 1rem;
+        :global(.CloseButton) {
+          top: unset;
+
+          &::after {
+            background: var(--neutral-100) !important;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 28.6875rem) {
+      // 459px
+      .addons-popup .addons-wrapper[data-has-addons='true'] .addons-list[data-layout='horizontal'] .addon-item {
+        min-height: unset;
+      }
+    }
   }
 </style>
-
 <script>
   import {
     updateCartAddons,
@@ -927,6 +1265,28 @@ margin-top: -0.25rem;
 
       // Trigger the popup to open
       popupTrigger.click()
+
+      // Focus management - wait for popup to be visible
+      setTimeout(() => {
+        // Check if there are addons
+        const hasAddonsInPopup = document.querySelector('.addons-list')
+
+        if (hasAddonsInPopup) {
+          // Find first focusable addon input
+          const firstInput = document.querySelector(
+            '.addons-popup input[type="checkbox"], .addons-popup input[type="radio"], .addons-popup .quantity-input'
+          ) as HTMLElement
+          if (firstInput) {
+            firstInput.focus()
+          }
+        } else {
+          // If no addons, focus on the first button
+          const firstButton = document.querySelector('.addons-popup button.continue-browsing') as HTMLElement
+          if (firstButton) {
+            firstButton.focus()
+          }
+        }
+      }, 200) // Wait for popup animation
 
       // Set up input change listeners
       setTimeout(() => {
@@ -1158,7 +1518,7 @@ margin-top: -0.25rem;
     inputElement.addEventListener('input', () => {
       // Remove any non-digit characters
       inputElement.value = inputElement.value.replace(/[^\d]/g, '')
-      
+
       // Ensure the value is not empty
       if (inputElement.value === '') {
         inputElement.value = '0'
@@ -1200,7 +1560,7 @@ margin-top: -0.25rem;
       if (isNaN(value) || value < 0) {
         value = 0
         inputElement.value = '0'
-        
+
         // Get the addon item and update its state
         const addonItem = inputElement.closest('.addon-item')
         const addonKey = inputElement.getAttribute('data-quantity-for')
