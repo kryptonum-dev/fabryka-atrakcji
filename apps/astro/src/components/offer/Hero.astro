@@ -7,6 +7,7 @@ import Image from '@/src/components/ui/image/index.astro'
 import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
 import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
 import type { SingleHotelProps } from '@/src/templates/hotels/SingleHotelPage.astro'
+import Loader from '@/src/components/ui/Loader.astro'
 
 type HeroProps = SingleActivityProps | SingleHotelProps
 
@@ -46,6 +47,9 @@ const translations = {
       onBanquet: 'na bankiecie',
     },
     getPrice: 'Wybierz do kompleksowej wyceny',
+    removeFromQuote: 'Usuń z wyceny',
+    addedAlert: 'Dodano do wyceny',
+    removedAlert: 'Usunięto z wyceny',
   },
   en: {
     activities: {
@@ -80,6 +84,9 @@ const translations = {
       onBanquet: 'on banquet',
     },
     getPrice: 'Get a comprehensive price estimate',
+    removeFromQuote: 'Remove from quote',
+    addedAlert: 'Added to quote',
+    removedAlert: 'Removed from quote',
   },
 }
 
@@ -145,7 +152,7 @@ function getParticipantsText(participants: number, lang: Language) {
 }
 
 const props = Astro.props as HeroProps
-const { title, description, imageList, _type } = props
+const { title, description, imageList, _type, addons, _id } = props
 
 const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
           <mask id="path-1-inside-1_6107_29788" fill="white">
@@ -158,7 +165,21 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
             </svg>`
 ---
 
-<section class="Hero max-width" data-type={_type}>
+<section
+  class="Hero max-width"
+  data-type={_type}
+  data-id={_id}
+  data-has-addons={addons?.hasAddons ? 'true' : 'false'}
+  data-min-one-addon={addons?.minOneAddon ? 'true' : 'false'}
+  data-addons-choice={addons?.addonsChoice || 'unlimited'}
+  data-lang={lang}
+  data-text={JSON.stringify({
+    addToCart: t.getPrice,
+    removeFromCart: t.removeFromQuote,
+    addToCartAlert: t.addedAlert,
+    removeFromCartAlert: t.removedAlert,
+  })}
+>
   {
     _type === 'Hotels_Collection' && (
       <>
@@ -206,7 +227,12 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
     <Button theme="primary" shade="dark" href="#content"
       >{_type === 'Activities_Collection' ? t.activities.readMore : t.hotels.readMore}</Button
     >
-    <Button theme="primary" shade="light">{t.getPrice}</Button>
+    <Button theme="primary" shade="light" disabled>
+      <Loader />
+      <span>
+        {t.getPrice}
+      </span>
+    </Button>
   </div>
   <ul class="details">
     {
@@ -479,6 +505,60 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
       display: flex;
       flex-wrap: wrap;
       gap: 0.75rem;
+
+      :global(button[data-theme='primary'][data-shade='light']) {
+        position: relative;
+
+        :global(div[aria-label='Ładowanie...']) {
+          position: absolute;
+          inset: 0;
+          margin: auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 1 !important;
+          visibility: visible !important;
+          transition:
+            opacity 300ms ease,
+            visibility 300ms ease;
+          background: none;
+          backdrop-filter: none;
+          width: 1.5rem;
+          height: 1.5rem;
+          border-radius: 0;
+
+          :global(svg) {
+            width: 1.5rem;
+            height: 1.5rem;
+          }
+        }
+
+        // Group all initially hidden elements
+        :global(span span),
+        :global(div:first-of-type),
+        :global(div:first-of-type div > svg) {
+          opacity: 0;
+          visibility: hidden;
+          transition:
+            opacity 300ms ease,
+            visibility 300ms ease;
+        }
+
+        &[data-loaded='true'] {
+          :global(div[aria-label='Ładowanie...']) {
+            opacity: 0 !important;
+            visibility: hidden !important;
+          }
+
+          // Show all elements together
+          :global(span span),
+          :global(div:first-of-type),
+          :global(div:first-of-type div > svg) {
+            opacity: 1;
+            visibility: visible;
+          }
+        }
+      }
     }
 
     .gallery {
@@ -1059,3 +1139,137 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
     }
   }
 </style>
+
+<script>
+  import { addToCart, isInCart, removeFromCart } from '@/src/store/cart'
+
+  // Get references to the hero section and button
+  const heroSection = document.querySelector('.Hero') as HTMLElement
+  const toggleButton = document.querySelector('button[data-theme="primary"][data-shade="light"]') as HTMLButtonElement
+
+  if (heroSection && toggleButton) {
+    // Get data attributes
+    const itemId = heroSection.dataset.id
+    const itemType = heroSection.dataset.type === 'Hotels_Collection' ? 'hotels' : 'activities'
+    const hasAddons = heroSection.dataset.hasAddons === 'true'
+    const requiresAddons = hasAddons && heroSection.dataset.minOneAddon === 'true'
+    const translations = JSON.parse(heroSection.getAttribute('data-text') || '{}')
+
+    // Function to update the button text based on cart state
+    function updateButtonState() {
+      if (!itemId || !itemType) return
+
+      const inCart = isInCart(itemId, itemType)
+      const textState = toggleButton.querySelector('span:last-of-type span')
+
+      if (textState) {
+        if (inCart) {
+          textState.textContent = translations.removeFromCart
+          toggleButton.dataset.cart = 'true'
+        } else {
+          textState.textContent = translations.addToCart
+          toggleButton.dataset.cart = 'false'
+        }
+      }
+
+      // Enable button and show content
+      toggleButton.disabled = false
+      toggleButton.dataset.loaded = 'true'
+    }
+
+    // Handle click on the toggle button
+    toggleButton.addEventListener('click', () => {
+      if (!itemId || !itemType) return
+
+      const inCart = isInCart(itemId, itemType)
+
+      if (inCart) {
+        // Remove from cart
+        removeFromCart(itemId, itemType)
+
+        // Update button text
+        updateButtonState()
+
+        // Trigger cart-updated event for other components
+        document.dispatchEvent(
+          new CustomEvent('cart-updated', {
+            detail: {
+              itemId,
+              itemType,
+              action: 'remove',
+            },
+          })
+        )
+      } else {
+        // If item has addons and requires them, open the addons popup
+        if (requiresAddons) {
+          // Open the addon selection popup without adding to cart immediately
+          const event = new CustomEvent('open-addons-popup', {
+            detail: {
+              itemId,
+              itemType,
+              hasAddons,
+              isEditing: false,
+              minOneAddon: heroSection.dataset.minOneAddon === 'true',
+              requiresAddons: requiresAddons,
+              addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
+            },
+            bubbles: true,
+          })
+          document.dispatchEvent(event)
+        } else {
+          // Add to cart immediately if no addons required
+          addToCart({
+            id: itemId,
+            type: itemType,
+            addOns: [],
+          })
+
+          // If has optional addons, open the popup
+          if (hasAddons) {
+            const event = new CustomEvent('open-addons-popup', {
+              detail: {
+                itemId,
+                itemType,
+                hasAddons,
+                isEditing: false,
+                minOneAddon: false,
+                requiresAddons: false,
+                addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
+              },
+              bubbles: true,
+            })
+            document.dispatchEvent(event)
+          }
+
+          // Update button text
+          updateButtonState()
+
+          // Trigger cart-updated event for other components
+          document.dispatchEvent(
+            new CustomEvent('cart-updated', {
+              detail: {
+                itemId,
+                itemType,
+                action: 'add',
+              },
+            })
+          )
+        }
+      }
+    })
+
+    // Listen for cart updates from other components
+    document.addEventListener('cart-updated', () => {
+      updateButtonState()
+    })
+
+    // Initialize button state on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateButtonState()
+    })
+
+    // Also check immediately in case the DOM is already loaded
+    updateButtonState()
+  }
+</script>
