@@ -1,15 +1,17 @@
 import { defineField } from 'sanity'
 import { TextIcon } from '@sanity/icons'
 import { toPlainText } from '../../../../../utils/to-plain-text'
+import { sectionPreview } from '../../../../../utils/section-preview'
 
+const name = 'ImageWithHeadingAndText'
 const title = 'Zdjęcie z tekstem i nagłówkiem'
 const icon = TextIcon
 
 export default defineField({
-  name: 'ImageWithHeadingAndText',
+  name,
   type: 'object',
+  ...sectionPreview({ imgUrl: `/static/offer/${name}.webp`, icon }),
   title,
-  icon,
   fields: [
     defineField({
       name: 'image',
@@ -32,14 +34,12 @@ export default defineField({
   ],
   preview: {
     select: {
-      image: 'image',
       heading: 'heading',
     },
-    prepare: ({ image, heading }) => {
+    prepare: ({ heading }) => {
       return {
         title,
         subtitle: toPlainText(heading),
-        media: image,
       }
     },
   },

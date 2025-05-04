@@ -8,9 +8,18 @@ type Props = {
   initialDelay?: number
   iterationDelay?: number
   fired?: boolean
+  initialFired?: boolean
 }
 
-const { heading, level, class: className, initialDelay = 0, iterationDelay = 35, fired = false } = Astro.props
+const {
+  heading,
+  level,
+  class: className,
+  initialDelay = 0,
+  iterationDelay = 35,
+  fired = false,
+  initialFired = false,
+} = Astro.props
 
 // This function split the PortableText Heading into an array of {text: string, marks: string[]}.
 
@@ -40,15 +49,15 @@ const delay = (index: number) => {
 }
 ---
 
-<Heading data-fired={fired} class={`animated-heading ${className}`}>
+<Heading data-fired={fired} class={`animated-heading ${className}`} data-initial-fired={initialFired}>
   {
     splitHeading(heading).map((item: any, i: number) => (
       <>
         {i === 0 ? '' : ' '}
         {item.marks.includes('strong') ? (
-          <strong style={`transition-delay: ${delay(i)}ms`}>{item.text}</strong>
+          <strong style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</strong>
         ) : (
-          <span style={`transition-delay: ${delay(i)}ms`}>{item.text}</span>
+          <span style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</span>
         )}
       </>
     ))
@@ -65,7 +74,6 @@ const delay = (index: number) => {
       transition:
         opacity 200ms,
         transform 700ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
-      will-change: opacity, transform;
     }
 
     &[data-fired='true'] {
@@ -73,6 +81,32 @@ const delay = (index: number) => {
       strong {
         opacity: 1;
         transform: translateY(0);
+      }
+    }
+
+    &[data-initial-fired='false'] {
+      will-change: opacity, transform;
+    }
+    &[data-initial-fired='true'] {
+      span,
+      strong {
+        animation: AniamteHeadingFadeIn 500ms cubic-bezier(0.18, 0.89, 0.32, 1.2) forwards;
+      }
+
+      @keyframes AniamteHeadingFadeIn {
+        0% {
+          opacity: 0;
+          transform: translateY(3.5rem);
+        }
+
+        40% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     }
   }

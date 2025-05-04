@@ -1,13 +1,16 @@
 import { defineField } from 'sanity'
 import { ThListIcon } from '@sanity/icons'
+import { sectionPreview } from '../../../../../utils/section-preview'
+
+const name = 'RowsWithIcons'
 const title = 'Wiersze z ikonami'
 const icon = ThListIcon
 
 export default defineField({
-  name: 'RowsWithIcons',
+  name,
   type: 'object',
   title,
-  icon,
+  ...sectionPreview({ imgUrl: `/static/offer/${name}.webp`, icon }),
   fields: [
     defineField({
       name: 'rows',
@@ -68,7 +71,6 @@ export default defineField({
       return {
         title,
         ...(subtitle && { subtitle }),
-        media: icon,
       }
     },
   },

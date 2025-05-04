@@ -1,15 +1,17 @@
 import { defineField } from 'sanity'
 import { ArrowRightIcon } from '@sanity/icons'
 import { toPlainText } from '../../../../../utils/to-plain-text'
+import { sectionPreview } from '../../../../../utils/section-preview'
 
+const name = 'NextSteps'
 const title = 'Lista następnych kroków'
 const icon = ArrowRightIcon
 
 export default defineField({
-  name: 'NextSteps',
+  name,
   type: 'object',
   title,
-  icon,
+  ...sectionPreview({ imgUrl: `/static/offer/${name}.webp`, icon }),
   fields: [
     defineField({
       name: 'heading',
@@ -52,7 +54,6 @@ export default defineField({
     prepare: ({ heading }) => ({
       title,
       ...(heading && { subtitle: toPlainText(heading) }),
-      media: icon,
     }),
   },
 })

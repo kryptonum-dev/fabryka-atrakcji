@@ -1,5 +1,8 @@
 import { defineField } from 'sanity'
 import { UsersIcon } from '@sanity/icons'
+import { sectionPreview } from '../../../../../utils/section-preview'
+
+const name = 'Testimonials'
 const title = 'Opinie klientów'
 const icon = UsersIcon
 
@@ -7,7 +10,7 @@ export default defineField({
   name: 'Testimonials',
   type: 'object',
   title,
-  icon,
+  ...sectionPreview({ imgUrl: `/static/offer/${name}.webp`, icon }),
   fields: [
     defineField({
       name: 'testimonials',
@@ -41,7 +44,6 @@ export default defineField({
     prepare: ({ testimonials = [] }) => ({
       title: 'Opinie klientów',
       subtitle: `Liczba opinii: [${testimonials.length}]`,
-      media: icon,
     }),
   },
 })

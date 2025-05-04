@@ -1,15 +1,17 @@
 import { defineField } from 'sanity'
 import { ListIcon } from '@sanity/icons'
 import { toPlainText } from '../../../../../utils/to-plain-text'
+import { sectionPreview } from '../../../../../utils/section-preview'
 
+const name = 'BlocksWithImage'
 const title = 'Lista bloków ze zdjęciem'
 const icon = ListIcon
 
 export default defineField({
-  name: 'BlocksWithImage',
+  name,
   type: 'object',
   title,
-  icon,
+  ...sectionPreview({ imgUrl: `/static/offer/${name}.webp`, icon }),
   fields: [
     defineField({
       name: 'blocks',
@@ -67,7 +69,6 @@ export default defineField({
       return {
         title,
         ...(subtitle && { subtitle }),
-        media: icon,
       }
     },
   },

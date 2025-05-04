@@ -12,7 +12,7 @@ export default defineField({
   name,
   type: 'object',
   title,
-  ...sectionPreview({ imgUrl: `/static/BlogPost_Collection/${name}.webp`, icon }),
+  ...sectionPreview({ imgUrl: `/static/hotel/${name}.webp`, icon }),
   fields: [
     defineField({
       name: 'heading',
