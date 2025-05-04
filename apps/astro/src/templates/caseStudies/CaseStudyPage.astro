@@ -8,7 +8,7 @@ import Components, { Components_Query, type ComponentsProps } from '@/src/compon
 import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/caseStudy/Listing.astro'
 
-export const ITEMS_PER_PAGE = 3
+export const ITEMS_PER_PAGE = 15
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number

@@ -23,7 +23,7 @@ type Props = {
 const { index, sectionId, list } = Astro.props
 ---
 
-<section class="TextBlocksGrid" id={sectionId}>
+<section class="TextBlocksGrid" id={sectionId} data-has-toggle={list.length > 6}>
   <div class="wrapper" aria-expanded="false">
     <ul class="list">
       {
@@ -39,11 +39,15 @@ const { index, sectionId, list } = Astro.props
         ))
       }
     </ul>
-    <div class="toggle">
-      <Button theme="secondary" data-toggle aria-expanded="false" aria-controls={`${sectionId}-content`}>
-        Wczytaj wszystkie teksty
-      </Button>
-    </div>
+    {
+      list.length > 6 && (
+        <div class="toggle">
+          <Button theme="secondary" data-toggle aria-expanded="false" aria-controls={`${sectionId}-content`}>
+            Wczytaj wszystkie teksty
+          </Button>
+        </div>
+      )
+    }
   </div>
 </section>
 
@@ -112,6 +116,15 @@ const { index, sectionId, list } = Astro.props
       }
     }
 
+    &[data-has-toggle='false'] {
+      .wrapper {
+        max-height: 100%;
+        .list {
+          padding-bottom: 0;
+        }
+      }
+    }
+
     @media (max-width: 61.8125rem) {
       .wrapper {
         padding-right: var(--pageMargin);
@@ -139,6 +152,9 @@ const { index, sectionId, list } = Astro.props
     const wrapper = section.querySelector('.wrapper') as HTMLElement
     const button = section.querySelector('button[data-toggle]') as HTMLButtonElement
     const buttonText = button.querySelector('span') as HTMLSpanElement
+    const hasToggle = (section as HTMLElement).dataset.hasToggle === 'true'
+
+    if (!hasToggle) return
     let isAnimating = false
 
     const updateWrapperHeight = () => {

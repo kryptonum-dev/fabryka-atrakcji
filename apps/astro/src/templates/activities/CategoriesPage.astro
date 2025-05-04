@@ -185,7 +185,10 @@ const totalPages = isSearchPage(page)
               priceRange={page.priceRange}
               noResults={page.noResults}
             />
-            <Components data={page.components} hasPreviousSections />
+            <Components
+              data={page.listing.length > 0 ? page.components : page.noResults.components}
+              hasPreviousSections
+            />
           </>
         )
       : isRegularPage(page) && (

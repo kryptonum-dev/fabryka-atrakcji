@@ -52,7 +52,20 @@ export default defineType({
       of: [{ type: 'string' }],
       validation: (Rule) => Rule.min(2).max(3).error('Musisz wybrać między 2 a 3 punktami'),
     }),
-
+    defineField({
+      name: 'noResults',
+      type: 'object',
+      title: 'Brak wyników wyszukiwania',
+      group: 'content',
+      fields: [
+        defineField({
+          name: 'components',
+          type: 'components',
+          title: 'Komponenty podstrony (brak wyników wyszukiwania)',
+          description: 'Komponenty podstrony, które pojawią się w przypadku braku wyników wyszukiwania',
+        }),
+      ],
+    }),
     defineField({
       name: 'components',
       type: 'components',

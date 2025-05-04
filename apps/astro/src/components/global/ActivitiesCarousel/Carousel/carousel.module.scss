@@ -12,6 +12,31 @@
     transform: translateY(-50%);
     right: 0;
   }
+  &[data-no-anchors='true'] {
+    margin-bottom: 0rem;
+
+    position: static;
+
+    .controls {
+      position: static;
+      transform: none;
+      justify-content: flex-end;
+      width: 100%;
+      margin-top: calc(-1 * (2.75rem + clamp(1.25rem, calc(1.25vw / 0.48), 1.5rem)));
+      max-height: fit-content;
+
+      :global(button) {
+        margin-top: calc(-1 * clamp(1.25rem, calc(1.25vw / 0.48), 2.75rem));
+        margin-top: 0;
+      }
+
+      @media (max-width: 63.9375rem) {
+        margin-top: 0;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+      }
+    }
+  }
 }
 
 .embla {

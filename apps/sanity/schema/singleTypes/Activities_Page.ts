@@ -85,14 +85,21 @@ export default defineType({
             },
           ],
         }),
+        defineField({
+          name: 'components',
+          type: 'components',
+          title: 'Komponenty podstrony (brak wyników wyszukiwania)',
+          description: 'Komponenty podstrony, które pojawią się w przypadku braku wyników wyszukiwania',
+        }),
       ],
     }),
     defineField({
       name: 'components',
       type: 'components',
-      title: 'Komponenty podstrony',
+      title: 'Komponenty podstrony (opcjonalne)',
       group: 'content',
     }),
+
     defineField({
       name: 'seo',
       type: 'seo',

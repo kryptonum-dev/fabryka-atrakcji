@@ -79,7 +79,7 @@ const svgContent = labelIcon ? await imageToInlineSvg(labelIcon) : null
     <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
     {paragraph && <PortableText value={paragraph} class="paragraph" />}
   </header>
-  <Carousel client:load activities={clientActivities} index={index}>
+  <Carousel client:load activities={clientActivities} index={index} isNoAnchors={!ctas || ctas.length === 0}>
     {ctas && ctas.map((cta) => <Button {...cta} />)}
   </Carousel>
 </section>

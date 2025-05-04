@@ -3,6 +3,7 @@ import CategoryBlock, { CategoryBlockQuery, type CategoryBlockProps } from '../u
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
 import { getLangFromPath, type Language } from '@/global/languages'
 import Button from '../ui/Button'
+import { Components_Query, type ComponentsProps } from '../Components.astro'
 
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
@@ -22,6 +23,7 @@ export type NoSearchResultsProps = {
     heading: PortableTextValue
     buttonText: string
     highlightedCategories: CategoryBlockProps[]
+    components: ComponentsProps
   }
 }
 
@@ -32,6 +34,7 @@ export const NoSearchResults_Query = `
         highlightedCategories[]->{
             ${CategoryBlockQuery}
         },
+        ${Components_Query}
     },
 `
 
@@ -44,7 +47,7 @@ const { noResults, headingText, headingList, isFirstIndex } = Astro.props as NoS
 const HeadingEl = isFirstIndex ? 'h1' : 'h2'
 ---
 
-<section class="NoSearchResults">
+<div class="NoSearchResults">
   <header class="header">
     <HeadingEl class="heading"><Fragment set:html={headingText} /></HeadingEl>
     <ul class="list">
@@ -67,7 +70,7 @@ const HeadingEl = isFirstIndex ? 'h1' : 'h2'
       }
     </ul>
   </div>
-</section>
+</div>
 
 <style lang="scss">
   .NoSearchResults {

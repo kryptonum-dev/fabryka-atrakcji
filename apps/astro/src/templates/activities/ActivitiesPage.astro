@@ -181,5 +181,8 @@ const breadcrumbs = [
     priceRange={page.priceRange}
     noResults={page.noResults}
   />
-  <Components data={page.selectedCategory.components} hasPreviousSections />
+  <Components
+    data={page.listing.length > 0 ? page.selectedCategory.components : page.noResults.components}
+    hasPreviousSections
+  />
 </Layout>

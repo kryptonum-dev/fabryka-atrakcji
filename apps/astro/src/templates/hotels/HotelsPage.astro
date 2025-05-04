@@ -40,6 +40,9 @@ export async function fetchData(lang: Language, pageNumber: number, searchParams
       paragraph: PortableTextValue
       checklist: string[]
       components: ComponentsProps
+      noResults: {
+        components: ComponentsProps
+      }
     } & ListingProps
   >({
     query: `
@@ -49,6 +52,9 @@ export async function fetchData(lang: Language, pageNumber: number, searchParams
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
         checklist[],
+        noResults {
+          ${Components_Query}
+        },
         ${Listing_Query(orderClause)}
         ${Components_Query}
       }
@@ -145,5 +151,5 @@ const breadcrumbs = [
     stars={page.stars}
     roomRangeCounts={page.roomRangeCounts}
   />
-  <Components data={page.components} hasPreviousSections />
+  <Components data={page.listing.length > 0 ? page.components : page?.noResults?.components} hasPreviousSections />
 </Layout>

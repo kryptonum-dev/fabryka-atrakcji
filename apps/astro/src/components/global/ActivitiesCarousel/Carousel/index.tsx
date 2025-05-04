@@ -18,9 +18,10 @@ type CarouselProps = {
     isRecent?: boolean
   }[]
   index: number
+  isNoAnchors?: boolean
 }
 
-export default function Carousel({ children, activities, index }: CarouselProps) {
+export default function Carousel({ children, activities, index, isNoAnchors = false }: CarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: 'start',
@@ -37,7 +38,7 @@ export default function Carousel({ children, activities, index }: CarouselProps)
 
   return (
     <>
-      <div className={styles.container}>
+      <div className={styles.container} data-no-anchors={isNoAnchors}>
         {children}
         <div className={styles.controls}>
           <ArrowButton direction="left" onClick={scrollPrev} />

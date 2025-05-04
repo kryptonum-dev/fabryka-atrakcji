@@ -3,6 +3,7 @@ import { defineField } from 'sanity'
 import { InternalLinkableTypes } from '../../structure/internal-linkable-types'
 import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
+import { sectionPreview } from '../../utils/section-preview'
 
 const name = 'CardSteps'
 const title = 'Sekcja z Kartami Kroków'
@@ -274,7 +275,7 @@ export default defineField({
     prepare: ({ heading }) => ({
       title: title,
       subtitle: toPlainText(heading),
-      //   ...sectionPreview({ imgUrl: `/static/components/${name}.webp`, icon: icon() }),
+      ...sectionPreview({ imgUrl: `/static/components/${name}.webp`, icon }),
     }),
   },
 })

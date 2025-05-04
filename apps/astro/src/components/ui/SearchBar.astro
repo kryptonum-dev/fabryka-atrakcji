@@ -198,6 +198,7 @@ const t = translations[lang]
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.SearchBar') as HTMLFormElement
+    const searchWrapper = form.querySelector('.search-wrapper') as HTMLDivElement
     const input = form.querySelector('.search-input') as HTMLInputElement
     const dropdown = form.querySelector('.search-history-dropdown') as HTMLDivElement
 
@@ -240,7 +241,7 @@ const t = translations[lang]
 
     // Hide dropdown when clicking outside
     document.addEventListener('click', (e) => {
-      if (!form.contains(e.target as Node)) {
+      if (!searchWrapper.contains(e.target as Node)) {
         hideHistoryDropdown()
       }
     })

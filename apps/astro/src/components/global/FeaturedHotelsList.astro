@@ -20,7 +20,7 @@ type Props = {
   sectionId?: string
   labelIcon?: string
   heading: PortableTextValue
-  cta: ButtonDataProps
+  cta?: ButtonDataProps
   hotels: HotelCardProps[]
 }
 
@@ -63,7 +63,7 @@ const { index, sectionId, labelIcon, heading, cta, hotels } = Astro.props
         ))
       }
     </div>
-    <Button {...cta} />
+    {cta && <Button {...cta} />}
   </div>
 </section>
 
