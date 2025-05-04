@@ -12,10 +12,14 @@ type Props = {
 const { node } = Astro.props
 ---
 
-<ImageRenderer
-  asset={node.asset}
-  sizes="(max-width: 599px) 94vw, (max-width: 899px) 83vw, (max-width: 1109px) 768px, 655px"
-/>
+{
+  node.asset && (
+    <ImageRenderer
+      asset={node.asset}
+      sizes="(max-width: 599px) 94vw, (max-width: 899px) 83vw, (max-width: 1109px) 768px, 655px"
+    />
+  )
+}
 
 <style lang="scss">
   img {

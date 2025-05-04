@@ -5,13 +5,25 @@ import { getRelativeDate } from '@/src/utils/get-relative-date'
 import { getLangFromPath, type Language } from '@/global/languages'
 import CategoryTab from '../ui/CategoryTab.astro'
 
-const { name, image, description, _createdAt, readingTime, category } = Astro.props as BlogCardProps
+const { name, image, description, _createdAt, readingTime, category, slug } = Astro.props as BlogCardProps
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    prefix: '/pl/blog/',
+  },
+  en: {
+    prefix: '/en/blog/',
+  },
+}
+
+const t = translations[lang]
 ---
 
 <section class="BlogHero max-width">
   <article>
+    <a href={`${t.prefix}${slug.split('/').pop()}`} class="background-link"></a>
     <Image
       {...image}
       sizes="(max-width: 37.4375rem) 94vw, (max-width: 56.1875rem) 83vw, (max-width: 69.3125rem) 768px, (max-width: 85.375rem) 50vw, 659px"
@@ -132,9 +144,34 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
       border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
       grid-template-columns: repeat(2, 1fr);
       overflow: hidden;
+      position: relative;
+
+      .background-link {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+      }
+
       > img {
         aspect-ratio: 659/370.59;
         min-height: 100%;
+      }
+
+      &::before {
+        content: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBzdHJva2U9IiNEQjJBNTAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik00LjE2NCAxMGgxMC44MzNtLTQuMTY2LTUgNC40MSA0LjQxYS44MzMuODMzIDAgMCAxIDAgMS4xOEwxMC44MzIgMTUiLz48L3N2Zz4=');
+        position: absolute;
+        left: 25%;
+        top: 50%;
+        transform: translateY(-50%) rotate(60deg) scale(0.8);
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background: var(--neutral-400, #ffe4ca);
+        padding: 0.625rem;
+        opacity: 0;
+        transition:
+          transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27),
+          opacity 200ms;
       }
 
       .content {
@@ -173,6 +210,10 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
           flex-wrap: wrap;
           justify-content: flex-start;
 
+          :global(> a) {
+            z-index: 5;
+          }
+
           .detail {
             display: flex;
             align-items: center;
@@ -186,6 +227,24 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
             }
           }
         }
+      }
+
+      &:has(.background-link:hover) {
+        &::before {
+          opacity: 1;
+          transform: rotate(0deg) translate(150%, -50%) scale(1);
+        }
+      }
+
+      &:has(.background-link:focus:not(:focus-visible)) {
+        &::before {
+          transform: rotate(0deg) translate(150%, -50%) scale(0.85);
+        }
+      }
+
+      &:has(.background-link:focus-visible) {
+        outline: 2px solid var(--primary-800, #600d2a);
+        outline-offset: 2px;
       }
     }
 
@@ -208,6 +267,18 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
 
         > img {
           border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+        }
+
+        &::before {
+          left: 50%;
+          top: 30vw;
+          transform: translate(-50%, -50%) rotate(60deg) scale(0.8);
+        }
+
+        &:has(.background-link:hover) {
+          &::before {
+            transform: translate(100%, -50%) rotate(0deg) scale(1);
+          }
         }
       }
     }
