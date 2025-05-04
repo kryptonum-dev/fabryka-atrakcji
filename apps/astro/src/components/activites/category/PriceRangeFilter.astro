@@ -135,33 +135,37 @@ if (hasValues) {
 
             <div class="inputs-container">
               <div class="input-group">
-                <label>{t.min}</label>
-                <div class="input-wrapper">
-                  <input
-                    type="number"
-                    class="price-input price-min"
-                    min={minPrice}
-                    max={maxPrice}
-                    value={safeCurrentMin || minPrice}
-                  />
-                  <span class="currency">{t.currency}</span>
-                </div>
+                <label>
+                  <span>{t.min}</span>
+                  <div class="input-wrapper">
+                    <input
+                      type="number"
+                      class="price-input price-min"
+                      min={minPrice}
+                      max={maxPrice}
+                      value={safeCurrentMin || minPrice}
+                    />
+                    <span class="currency">{t.currency}</span>
+                  </div>
+                </label>
               </div>
 
               <span class="separator">-</span>
 
               <div class="input-group">
-                <label>{t.max}</label>
-                <div class="input-wrapper">
-                  <input
-                    type="number"
-                    class="price-input price-max"
-                    min={minPrice}
-                    max={maxPrice}
-                    value={safeCurrentMax || maxPrice}
-                  />
-                  <span class="currency">{t.currency}</span>
-                </div>
+                <label>
+                  <span>{t.max}</span>
+                  <div class="input-wrapper">
+                    <input
+                      type="number"
+                      class="price-input price-max"
+                      min={minPrice}
+                      max={maxPrice}
+                      value={safeCurrentMax || maxPrice}
+                    />
+                    <span class="currency">{t.currency}</span>
+                  </div>
+                </label>
               </div>
             </div>
 
@@ -380,11 +384,17 @@ if (hasValues) {
         flex: 1;
 
         label {
-          font-size: var(--typography-body-s);
           line-height: 1.6;
           letter-spacing: -0.01em;
-          margin-bottom: 0.125rem;
+          margin-bottom: 0;
           display: block;
+          cursor: pointer;
+
+          > span {
+            display: block;
+            margin-bottom: 0.125rem;
+            font-size: var(--typography-body-s);
+          }
         }
 
         .input-wrapper {

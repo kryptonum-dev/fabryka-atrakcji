@@ -133,35 +133,39 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
           </div>
           <div class="inputs-container">
             <div class="input-group" aria-disabled={isDisabled}>
-              <label>{t.min}</label>
-              <div class="input-wrapper">
-                <div class="gradient" />
-                <input
-                  type="number"
-                  class="price-input min-price"
-                  min={minPrice}
-                  max={maxPrice}
-                  value={currentMin || minPrice}
-                  disabled={isDisabled}
-                />
-                <span class="currency">{t.currency}</span>
-              </div>
+              <label>
+                <span>{t.min}</span>
+                <div class="input-wrapper">
+                  <div class="gradient" />
+                  <input
+                    type="number"
+                    class="price-input min-price"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={currentMin || minPrice}
+                    disabled={isDisabled}
+                  />
+                  <span class="currency">{t.currency}</span>
+                </div>
+              </label>
             </div>
             <span class="separator">-</span>
             <div class="input-group" aria-disabled={isDisabled}>
-              <label>{t.max}</label>
-              <div class="input-wrapper">
-                <div class="gradient" />
-                <input
-                  type="number"
-                  class="price-input max-price"
-                  min={minPrice}
-                  max={maxPrice}
-                  value={currentMax || maxPrice}
-                  disabled={isDisabled}
-                />
-                <span class="currency">{t.currency}</span>
-              </div>
+              <label>
+                <span>{t.max}</span>
+                <div class="input-wrapper">
+                  <div class="gradient" />
+                  <input
+                    type="number"
+                    class="price-input max-price"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={currentMax || maxPrice}
+                    disabled={isDisabled}
+                  />
+                  <span class="currency">{t.currency}</span>
+                </div>
+              </label>
             </div>
           </div>
           <div class="error-message" aria-live="polite" />
@@ -422,11 +426,18 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
           flex: 1;
 
           label {
-            font-size: var(--typography-body-s);
-            color: var(--primary-800, #45051c);
             line-height: 1.6;
             letter-spacing: -0.01em;
-            margin-bottom: 0.125rem;
+            margin-bottom: 0;
+            display: block;
+            cursor: pointer;
+
+            > span {
+              display: block;
+              margin-bottom: 0.125rem;
+              font-size: var(--typography-body-s);
+              color: var(--primary-800, #45051c);
+            }
           }
 
           .input-wrapper {
