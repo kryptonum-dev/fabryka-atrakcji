@@ -204,7 +204,7 @@ const translationsJson = JSON.stringify(translations)
             <Button className="change-addons-button" theme="primary" shade="dark">
               {t.changeAddons}
             </Button>
-            <Button className="remove-from-cart-button" theme="primary" shade="light">
+            <Button className="remove-from-cart-button" theme="primary" shade="light" data-remove-trigger>
               {t.removeFromEstimate}
             </Button>
           </>
@@ -213,7 +213,7 @@ const translationsJson = JSON.stringify(translations)
             <Button className="view-cart-button" theme="primary" shade="dark" href={t.cartUrl}>
               {t.viewInCart}
             </Button>
-            <Button className="remove-from-cart-button" theme="primary" shade="light">
+            <Button className="remove-from-cart-button" theme="primary" shade="light" data-remove-trigger>
               {t.removeFromEstimate}
             </Button>
           </>
@@ -657,12 +657,11 @@ const translationsJson = JSON.stringify(translations)
 </style>
 
 <script>
-  import { addToCart, isInCart, removeFromCart } from '@/src/store/cart'
-  import { showToast } from '@/src/utils/toast'
+  import { addToCart, isInCart } from '@/src/store/cart'
+  import { dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
 
   const sidebar = document.getElementById('submit-sidebar')!
   const addToCartButton = document.querySelector('.add-to-cart-button')!
-  const removeFromCartButton = document.querySelector('.remove-from-cart-button')
   const changeAddonsButton = document.querySelector('.change-addons-button')
   const faqSection = document.getElementById('faq-section-marker')
   const loader = document.querySelector('.sidebar-loader') as HTMLElement
@@ -672,8 +671,6 @@ const translationsJson = JSON.stringify(translations)
   const placeholder = document.getElementById('sidebar-placeholder')!
 
   // Get data from attributes
-  const lang = sidebar.dataset.lang as string
-  const translations = JSON.parse(sidebar.dataset.translations as string)[lang]
   const itemId = sidebar.dataset.id
   const itemType = sidebar.dataset.type as 'hotels' | 'activities'
   const hasAddons = sidebar.dataset.hasAddons === 'true'
@@ -832,7 +829,7 @@ const translationsJson = JSON.stringify(translations)
   })
 
   // Listen for cart state changes
-  document.addEventListener('cart-updated', () => {
+  listenToCartUpdates(() => {
     // Update sidebar state to reflect current cart
     updateSidebarState()
 
@@ -862,19 +859,15 @@ const translationsJson = JSON.stringify(translations)
       }
 
       // Always open popup - it will show either addons interface or confirmation
-      const event = new CustomEvent('open-addons-popup', {
-        detail: {
-          itemId,
-          itemType,
-          hasAddons,
-          isEditing: false,
-          minOneAddon: sidebar.dataset.minOneAddon === 'true',
-          requiresAddons: requiresAddons,
-          addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
-        },
-        bubbles: true,
+      dispatchAddonsPopup({
+        itemId,
+        itemType,
+        hasAddons,
+        isEditing: false,
+        minOneAddon: sidebar.dataset.minOneAddon === 'true',
+        requiresAddons,
+        addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
       })
-      document.dispatchEvent(event)
 
       // Only update sidebar state if item was not added (will be updated by addon selection)
       if (requiresAddons) {
@@ -884,49 +877,21 @@ const translationsJson = JSON.stringify(translations)
     }
   })
 
-  // Handle remove from cart action
-  if (removeFromCartButton) {
-    removeFromCartButton.addEventListener('click', () => {
-      if (itemId && itemType) {
-        removeFromCart(itemId, itemType)
-        updateSidebarState()
-        setTimeout(updateWrapperHeight, 0)
-
-        // Show toast notification instead of alert
-        showToast(translations.removedAlert, 'success')
-
-        // Dispatch cart-updated event
-        document.dispatchEvent(
-          new CustomEvent('cart-updated', {
-            detail: {
-              itemId,
-              itemType,
-              action: 'remove',
-            },
-          })
-        )
-      }
-    })
-  }
-
   // Handle change addons button
   if (changeAddonsButton) {
     changeAddonsButton.addEventListener('click', () => {
       if (itemId && itemType && hasAddons) {
         const requiresAddons = sidebar.dataset.hasAddons === 'true' && sidebar.dataset.minOneAddon === 'true'
 
-        const event = new CustomEvent('open-addons-popup', {
-          detail: {
-            itemId,
-            itemType,
-            hasAddons: true, // This is always true if the change button exists
-            isEditing: true,
-            requiresAddons: requiresAddons,
-            addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
-          },
-          bubbles: true,
+        dispatchAddonsPopup({
+          itemId,
+          itemType,
+          hasAddons: true, // This is always true if the change button exists
+          isEditing: true,
+          requiresAddons,
+          addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
+          minOneAddon: sidebar.dataset.minOneAddon === 'true',
         })
-        document.dispatchEvent(event)
       }
     })
   }

@@ -1048,6 +1048,7 @@ const validationRules = getValidationRules(addons)
     removeFromCart,
     cartStore,
   } from '@/src/store/cart'
+  import { dispatchSimpleCartUpdate, type CartItemType, listenToAddonsPopup } from '@/src/utils/events'
 
   const popupContainer = document.querySelector('.addons-popup-container')! as HTMLDivElement
   const popupTrigger = document.querySelector('.hidden-trigger button')! as HTMLButtonElement
@@ -1109,7 +1110,7 @@ const validationRules = getValidationRules(addons)
   // Function to handle addon selection changes
   function handleAddonSelection() {
     const itemId = popupContainer.dataset.itemId
-    const itemType = popupContainer.dataset.itemType as 'hotels' | 'activities'
+    const itemType = popupContainer.dataset.itemType as CartItemType
     const requiresAddons = popupContainer.dataset.requiresInitialAddons === 'true'
     const isLimitedSelection = popupContainer.dataset.addonsChoice === 'limited'
 
@@ -1202,23 +1203,15 @@ const validationRules = getValidationRules(addons)
         updateCartAddons(itemId, itemType, selectedAddons)
       }
 
-      // Trigger cart updated event
-      document.dispatchEvent(
-        new CustomEvent('cart-updated', {
-          detail: {
-            itemId,
-            itemType,
-          },
-        })
-      )
+      // Dispatch cart update event
+      dispatchSimpleCartUpdate(itemId, itemType)
     }
 
     console.log(cartStore.get())
   }
 
-  document.addEventListener('open-addons-popup', (event) => {
-    const { itemId, itemType, isEditing, minOneAddon, requiresAddons, addonsChoice } = (event as CustomEvent).detail
-
+  // Listen for addon popup events
+  listenToAddonsPopup(({ itemId, itemType, isEditing, minOneAddon, requiresAddons, addonsChoice }) => {
     if (itemId && itemType) {
       popupContainer.dataset.itemId = itemId
       popupContainer.dataset.itemType = itemType
@@ -1380,17 +1373,10 @@ const validationRules = getValidationRules(addons)
 
       // Trigger cart-updated event one more time to ensure sidebar is in sync
       const itemId = popupContainer.dataset.itemId
-      const itemType = popupContainer.dataset.itemType
+      const itemType = popupContainer.dataset.itemType as CartItemType
 
       if (itemId && itemType) {
-        document.dispatchEvent(
-          new CustomEvent('cart-updated', {
-            detail: {
-              itemId,
-              itemType,
-            },
-          })
-        )
+        dispatchSimpleCartUpdate(itemId, itemType)
       }
     }
   })
@@ -1400,7 +1386,7 @@ const validationRules = getValidationRules(addons)
   if (goToCartBtn) {
     goToCartBtn.addEventListener('click', () => {
       const itemId = popupContainer.dataset.itemId
-      const itemType = popupContainer.dataset.itemType as 'hotels' | 'activities' | undefined
+      const itemType = popupContainer.dataset.itemType as CartItemType | undefined
       const requiresAddons = popupContainer.dataset.requiresInitialAddons === 'true'
 
       // If addons are required, check if any are selected

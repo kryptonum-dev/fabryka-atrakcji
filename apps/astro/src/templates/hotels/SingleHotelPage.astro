@@ -1,6 +1,7 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
 import type { Language } from '@/global/languages'
+import { getLangFromPath } from '@/src/global/languages'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import sanityFetch from '@/src/utils/sanity.fetch'
 import metadataFetch from '@/src/utils/metadata.fetch'
@@ -24,6 +25,7 @@ import Timeline, { Timeline_Query } from '@/src/components/ui/content-pt/offer/T
 import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer/NextSteps.astro'
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
+import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 
 export type SingleHotelProps = {
   _id: string
@@ -208,6 +210,7 @@ export async function staticPaths(lang: Language) {
 }
 
 const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof fetchData>>>
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 ---
 
 <Layout {...metadata}>
@@ -255,6 +258,13 @@ const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof 
   </article>
   <Components data={page.components} hasPreviousSections />
   <AddonsPopup addons={page.addons} type="hotels" />
+  <RemoveConfirmation
+    itemId={page._id}
+    itemType="hotels"
+    hasAddons={!!page.addons?.hasAddons}
+    lang={lang}
+    itemName={page.name}
+  />
 </Layout>
 
 <style lang="scss">

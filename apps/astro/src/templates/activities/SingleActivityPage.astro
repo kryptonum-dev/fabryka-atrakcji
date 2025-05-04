@@ -1,6 +1,7 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
 import type { Language } from '@/global/languages'
+import { getLangFromPath } from '@/src/global/languages'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import sanityFetch from '@/src/utils/sanity.fetch'
 import metadataFetch from '@/src/utils/metadata.fetch'
@@ -22,6 +23,7 @@ import ImageWithHeadingAndText, {
 } from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
+import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export type SingleActivityProps = {
@@ -226,6 +228,7 @@ export async function staticPaths(lang: Language) {
 }
 
 const { page, metadata } = Astro.props
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 ---
 
 <Layout {...metadata}>
@@ -269,6 +272,13 @@ const { page, metadata } = Astro.props
   </article>
   <Components data={page.components} hasPreviousSections />
   <AddonsPopup addons={page.addons} type="activities" />
+  <RemoveConfirmation
+    itemId={page._id}
+    itemType="activities"
+    hasAddons={!!page.addons?.hasAddons}
+    lang={lang}
+    itemName={page.name}
+  />
 </Layout>
 
 <style lang="scss">
