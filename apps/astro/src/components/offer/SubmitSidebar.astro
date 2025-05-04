@@ -658,6 +658,7 @@ const translationsJson = JSON.stringify(translations)
 
 <script>
   import { addToCart, isInCart, removeFromCart } from '@/src/store/cart'
+  import { showToast } from '@/src/utils/toast'
 
   const sidebar = document.getElementById('submit-sidebar')!
   const addToCartButton = document.querySelector('.add-to-cart-button')!
@@ -891,8 +892,19 @@ const translationsJson = JSON.stringify(translations)
         updateSidebarState()
         setTimeout(updateWrapperHeight, 0)
 
-        // Show alert (will be replaced with toast later)
-        alert(translations.removedAlert)
+        // Show toast notification instead of alert
+        showToast(translations.removedAlert, 'success')
+
+        // Dispatch cart-updated event
+        document.dispatchEvent(
+          new CustomEvent('cart-updated', {
+            detail: {
+              itemId,
+              itemType,
+              action: 'remove',
+            },
+          })
+        )
       }
     })
   }

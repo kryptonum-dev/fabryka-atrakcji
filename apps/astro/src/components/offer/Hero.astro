@@ -1142,6 +1142,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 
 <script>
   import { addToCart, isInCart, removeFromCart } from '@/src/store/cart'
+  import { showToast } from '@/src/utils/toast'
 
   // Get references to the hero section and button
   const heroSection = document.querySelector('.Hero') as HTMLElement
@@ -1163,13 +1164,8 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
       const textState = toggleButton.querySelector('span:last-of-type span')
 
       if (textState) {
-        if (inCart) {
-          textState.textContent = translations.removeFromCart
-          toggleButton.dataset.cart = 'true'
-        } else {
-          textState.textContent = translations.addToCart
-          toggleButton.dataset.cart = 'false'
-        }
+        textState.textContent = inCart ? translations.removeFromCart : translations.addToCart
+        toggleButton.dataset.cart = inCart ? 'true' : 'false'
       }
 
       // Enable button and show content
@@ -1186,6 +1182,9 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
       if (inCart) {
         // Remove from cart
         removeFromCart(itemId, itemType)
+
+        // Show toast notification
+        showToast(translations.removeFromCartAlert, 'success')
 
         // Update button text
         updateButtonState()
@@ -1260,14 +1259,10 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
     })
 
     // Listen for cart updates from other components
-    document.addEventListener('cart-updated', () => {
-      updateButtonState()
-    })
+    document.addEventListener('cart-updated', updateButtonState)
 
     // Initialize button state on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      updateButtonState()
-    })
+    document.addEventListener('DOMContentLoaded', updateButtonState)
 
     // Also check immediately in case the DOM is already loaded
     updateButtonState()
