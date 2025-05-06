@@ -161,7 +161,17 @@ const { metadata, page } = Astro.props
             <span class="text">{t.cartHeading}</span>
             <span class="count">0</span>
           </h1>
-          <div class="inputs"></div>
+          <div class="inputs">
+            <div class="input-field participants">
+              <label for="participantCount">
+                <span class="label">{t.howManyParticipants}</span>
+              </label>
+              <div class="input-box">
+                <div class="gradient"></div>
+                <input type="number" id="participantCount" class="participant-input" min="1" step="1" value="50" />
+              </div>
+            </div>
+          </div>
         </header>
         <div class="hotels-section">
           <h2 class="cart-heading cart-heading-s">
@@ -352,11 +362,119 @@ const { metadata, page } = Astro.props
 
           .inputs {
             margin-top: clamp(1rem, calc(1vw / 0.48), 1.5rem);
-            height: 3.75rem;
+            display: flex;
+            gap: 1rem;
             width: 100%;
             max-width: 26.5rem;
-            background-color: var(--neutral-100, #faf7f7);
-            border-radius: 0.5rem;
+
+            .input-field {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              gap: 0.125rem;
+
+              &.participants {
+                max-width: 7.625rem;
+              }
+
+              .label {
+                font-size: var(--typography-body-s, 0.75rem);
+                line-height: 1.6;
+                letter-spacing: -0.01em;
+                color: var(--primary-800, #45051c);
+              }
+
+              .input-box {
+                position: relative;
+                isolation: isolate;
+                background-color: var(--neutral-100, #faf7f7);
+                border-radius: 0.25rem;
+
+                &::before,
+                &::after {
+                  position: absolute;
+                  z-index: -3;
+                  inset: 0;
+                  content: '';
+                  background-color: var(--neutral-500, #d2c1b0);
+                  border-radius: 0.25rem;
+                  transition: background-color 275ms;
+                }
+
+                &::after {
+                  z-index: -1;
+                  inset: 0.125rem;
+                  background: linear-gradient(var(--neutral-100, #faf7f7), var(--neutral-100, #faf7f7)) padding-box;
+                  border-radius: 0.125rem;
+                }
+
+                &:hover::before {
+                  background-color: var(--primary-400, #74535e);
+                }
+
+                .gradient {
+                  position: absolute;
+                  z-index: -2;
+                  inset: 0;
+                  overflow: hidden;
+                  border-radius: 0.25rem;
+
+                  &::before {
+                    position: absolute;
+                    inset: -0.0625rem;
+                    content: '';
+                    background: conic-gradient(
+                      from 135deg at 50% 50%,
+                      #798ddc 0deg,
+                      #e7c78f 90deg,
+                      #fa7468 266.40000343322754deg,
+                      #798ddc 360deg
+                    );
+                    opacity: 0;
+                    transform: scaleX(0);
+                    transition:
+                      opacity 125ms,
+                      transform 475ms var(--easing);
+                  }
+                }
+
+                input {
+                  width: 100%;
+                  min-height: 2.5rem;
+                  padding: 0.625rem;
+                  color: var(--primary-800, #45051c);
+                  font-size: 1rem;
+                  line-height: 1.4;
+                  border-radius: 0.25rem;
+                  border: none;
+                  background: transparent;
+
+                  &:focus-visible {
+                    outline: none;
+                  }
+
+                  &::-webkit-outer-spin-button,
+                  &::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                  }
+
+                  /* Firefox */
+                  &[type='number'] {
+                    -moz-appearance: textfield;
+                  }
+                }
+
+                &:has(input:focus-visible) {
+                  .gradient {
+                    &::before {
+                      opacity: 1;
+                      transform: scaleX(1);
+                    }
+                  }
+                }
+              }
+            }
           }
         }
 
@@ -469,6 +587,52 @@ const { metadata, page } = Astro.props
   const cartElement = document.querySelector('.Cart')
   const pageLang = cartElement?.getAttribute('data-lang') || 'pl'
   const t = JSON.parse(cartElement?.getAttribute('data-translations') || '{}') as Record<string, any>
+
+  // Participant count handling
+  function initParticipantInput() {
+    const participantInput = document.getElementById('participantCount') as HTMLInputElement
+    if (!participantInput) return
+
+    // Load saved value from localStorage if available
+    const savedCount = localStorage.getItem('cart_participant_count')
+    if (savedCount) {
+      participantInput.value = savedCount
+    }
+
+    // Handle input changes
+    participantInput.addEventListener('input', () => {
+      // Clean input - remove non-numeric values
+      let value = participantInput.value.replace(/[^\d]/g, '')
+
+      // Ensure value is at least 1
+      if (!value || parseInt(value) < 1) {
+        value = '1'
+      }
+
+      // Update input value
+      participantInput.value = value
+
+      // Store in localStorage
+      localStorage.setItem('cart_participant_count', value)
+
+      // Log to console
+      console.log('Participants count updated:', value)
+    })
+
+    // Handle blur to format value properly
+    participantInput.addEventListener('blur', () => {
+      let value = participantInput.value
+
+      // Convert to integer
+      const intValue = parseInt(value)
+
+      // Update with parsed integer value
+      if (!isNaN(intValue)) {
+        participantInput.value = intValue.toString()
+        localStorage.setItem('cart_participant_count', intValue.toString())
+      }
+    })
+  }
 
   // Create fetch functions for hotels and activities
   async function fetchHotelData(id: string, addonIds: string[] = []) {
@@ -737,5 +901,8 @@ const { metadata, page } = Astro.props
   })
 
   // Initialize cart loading when DOM is ready
-  document.addEventListener('DOMContentLoaded', loadCartItems)
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCartItems()
+    initParticipantInput()
+  })
 </script>
