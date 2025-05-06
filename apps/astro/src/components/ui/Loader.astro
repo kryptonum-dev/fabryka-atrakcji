@@ -6,7 +6,7 @@ type Props = HTMLAttributes<'div'>
 const { ...props } = Astro.props
 ---
 
-<div {...props} aria-label="Ładowanie...">
+<div {...props} aria-label="Ładowanie..." data-loader>
   <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"
     ><circle cx="5.45455" cy="5.45455" r="5.45455" transform="matrix(1 0 0 -1 14.547 40)" fill="#F67258"
     ></circle><circle cx="5.45455" cy="5.45455" r="5.45455" transform="matrix(1 0 0 -1 14.547 10.91)" fill="#F67258"
@@ -35,6 +35,8 @@ const { ...props } = Astro.props
       svg {
         animation: dynamic-rotate 1.6s infinite linear;
         transform-origin: center;
+        max-width: 2.5rem;
+        aspect-ratio: 1;
       }
     }
 

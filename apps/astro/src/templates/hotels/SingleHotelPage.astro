@@ -5,8 +5,8 @@ import { getLangFromPath } from '@/src/global/languages'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import sanityFetch from '@/src/utils/sanity.fetch'
 import metadataFetch from '@/src/utils/metadata.fetch'
-import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
-import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import { ImageDataQuery } from '@/src/components/ui/image'
+import { PortableTextQuery } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import Hero from '@/src/components/offer/Hero.astro'
 import ContentPT, { type Props as ContentPTProps, ContentPT_Query } from '@/src/components/ui/content-pt/index.astro'
@@ -26,83 +26,14 @@ import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
+import type { BaseHotelProps } from '@/src/global/types'
 
-export type SingleHotelProps = {
-  _id: string
+export type SingleHotelProps = BaseHotelProps & {
   hotelsPage: {
     name: string
     slug: string
   }
   _type: 'Hotels_Collection'
-  name: string
-  slug: string
-  title: PortableTextValue
-  description: string
-  imageList: ImageDataProps[]
-  amenities: Array<{
-    _id: string
-    name: string
-    icon?: any
-  }>
-  location: {
-    _id: string
-    name: string
-  }
-  stars: number
-  numberOfRooms: number
-  maxPeople: {
-    overnight: number
-    conference?: number
-    banquet?: number
-  }
-  address: {
-    street: string
-    postalCode: string
-    city: string
-    voivodeship: string
-  }
-  googleMaps: {
-    googleMapsLink: string
-  }
-  popularityIndex: number
-  pricing: {
-    hasFixedGroupPrice?: boolean
-    groupPrice?: number
-    groupPeopleCount?: number
-    pricePerPerson: number
-  }
-  addons?: {
-    hasAddons: boolean
-    heading?: PortableTextValue
-    addonsChoice?: 'unlimited' | 'limited'
-    minOneAddon?: boolean
-    addonsLayout?: 'vertical' | 'horizontal'
-    addonsHaveImage?: boolean
-    addonsList?: Array<{
-      _key: string
-      name: string
-      image?: ImageDataProps
-      pricing: {
-        type: 'fixed' | 'per_unit' | 'threshold' | 'individual'
-        fixedPrice?: number
-        perUnit?: {
-          price: number
-          hasCount: boolean
-          singular: string
-          plural: string
-        }
-        threshold?: {
-          basePrice: number
-          maxUnits: number
-          additionalPrice: number
-          singular: string
-          plural: string
-        }
-      }
-      description?: string
-    }>
-    additionalInfo?: string
-  }
   components: ComponentsProps
   content: ContentPTProps['value']
 }

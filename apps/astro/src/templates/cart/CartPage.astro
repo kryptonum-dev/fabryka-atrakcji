@@ -1,0 +1,741 @@
+---
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import Layout from '@/src/layouts/Layout.astro'
+import metadataFetch from '@/src/utils/metadata.fetch'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import ActivityTemplate from './ActivityTemplate.astro'
+import HotelTemplate from './HotelTemplate.astro'
+import Button from '@/src/components/ui/Button'
+import Loader from '@/src/components/ui/Loader.astro'
+import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
+import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
+
+export async function fetchData(lang: Language) {
+  const page = await sanityFetch<{
+    name: string
+    slug: string
+    infoParagraph: PortableTextValue
+    noResults: {
+      heading: PortableTextValue
+      paragraph: PortableTextValue
+    }
+  }>({
+    query: `
+      *[_type == "Cart_Page" && language == $language][0] {
+        name,
+        "slug": slug.current,
+        ${PortableTextQuery('infoParagraph')}
+        noResults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+      }
+    `,
+    params: { language: lang },
+  })
+
+  if (!page) return null
+
+  const metadata = await metadataFetch(page.slug)
+
+  if (!metadata) return null
+
+  return {
+    metadata,
+    page,
+  }
+}
+
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const translations = {
+  pl: {
+    back: {
+      content: 'Wróć do przeglądania integracji i hoteli',
+      url: '/pl',
+    },
+    cartHeading: 'Twój koszyk',
+    activitiesHeading: 'Integracje',
+    hotelsHeading: 'Hotele',
+    extrasHeading: 'Dodaj coś ekstra',
+    optional: '(opcjonalne)',
+    howManyParticipants: 'Ile osób bierze udział?',
+    whichDate: 'Kiedy planujecie pobyt i/lub event?',
+    getQuote: {
+      text: 'Otrzymaj wstępną wycenę',
+      additionalInfo: 'W następnym kroku poznasz wycenę. Nie oznacza to rezerwacji hotelu ani integracji',
+    },
+    hotels: 'Hotele',
+    hotelsPrefix: '/pl/hotele/',
+    activities: 'Integracje',
+    activitiesPrefix: '/pl/integracje/',
+    people: 'osób',
+    person: 'osoba',
+    from: 'od',
+    perNight: 'zł/noc za osobę',
+    max: 'Maks.',
+    addons: 'Dobierz dodatki',
+    editAddons: 'Edytuj dodatki',
+  },
+  en: {
+    back: {
+      content: 'Back to activities and hotels',
+      url: '/en',
+    },
+    cartHeading: 'Your cart',
+    activitiesHeading: 'Activities',
+    hotelsHeading: 'Hotels',
+    extrasHeading: 'Add something extra',
+    optional: '(optional)',
+    howManyParticipants: 'How many participants?',
+    whichDate: 'Which date?',
+    getQuote: {
+      text: 'Get a quote',
+      additionalInfo:
+        'In the next step, you will receive a quote. This does not mean a hotel reservation or integration reservation',
+    },
+    hotels: 'Hotels',
+    hotelsPrefix: '/en/hotels/',
+    activities: 'Activities',
+    activitiesPrefix: '/en/activities/',
+    people: 'people',
+    person: 'person',
+    from: 'from',
+    perNight: 'PLN/night per person',
+    max: 'Max.',
+    addons: 'Add add-ons',
+    editAddons: 'Edit add-ons',
+  },
+} as const
+
+const t = translations[lang]
+
+const { metadata, page } = Astro.props
+---
+
+<Layout {...metadata}>
+  <section class="Cart" data-lang={lang} data-translations={JSON.stringify(translations[lang])}>
+    <a href={t.back.url} class="back-link"
+      ><span class="icons">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="13" viewBox="0 0 12 13" fill="none">
+          <path
+            d="M7.5 2.75L4.5 6.25L7.5 9.75"
+            stroke="#74535E"
+            stroke-width="1.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="13" viewBox="0 0 12 13" fill="none">
+          <path
+            d="M7.5 2.75L4.5 6.25L7.5 9.75"
+            stroke="#74535E"
+            stroke-width="1.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </span>
+      <span>{t.back.content}</span>
+    </a>
+    <div class="cart-container">
+      <Loader />
+      <div class="empty">
+        <PortableText value={page.noResults.heading} heading="h1" />
+        <PortableText value={page.noResults.paragraph} />
+      </div>
+      <div class="items-wrapper">
+        <header class="header">
+          <div class="info-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+              ><path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M14.67 8A6.667 6.667 0 1 1 1.335 8a6.667 6.667 0 0 1 13.333 0Zm-6.667 3.834a.5.5 0 0 0 .5-.5v-4a.5.5 0 1 0-1 0v4a.5.5 0 0 0 .5.5Zm0-7.167a.667.667 0 1 1 0 1.333.667.667 0 0 1 0-1.333Z"
+                clip-rule="evenodd"></path></svg
+            >
+            <PortableText value={page.infoParagraph} />
+          </div>
+          <h1 class="cart-heading">
+            <span class="text">{t.cartHeading}</span>
+            <span class="count">0</span>
+          </h1>
+          <div class="inputs"></div>
+        </header>
+        <div class="hotels-section">
+          <h2 class="cart-heading cart-heading-s">
+            <span class="title">{t.hotelsHeading}</span>
+            <span class="count">0</span>
+          </h2>
+          <ul class="list"></ul>
+        </div>
+        <div class="activities-section">
+          <h2 class="cart-heading cart-heading-s">
+            <span class="title">{t.activitiesHeading}</span>
+            <span class="count">0</span>
+          </h2>
+          <ul class="list"></ul>
+        </div>
+        <div class="extras">
+          <h2 class="cart-heading cart-heading-s">
+            <span class="title">{t.extrasHeading} <strong>{t.optional}</strong></span>
+            <span class="count">0</span>
+          </h2>
+          <ul class="list"></ul>
+        </div>
+        <div class="actions">
+          <Button>{t.getQuote.text}</Button>
+          <p class="additional-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none"
+              ><path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M6.398 2.382a3.817 3.817 0 0 1-.33.266 1.809 1.809 0 0 1-.657.272c-.103.02-.209.029-.422.046-.534.042-.801.063-1.024.142-.515.182-.92.588-1.103 1.103-.079.223-.1.49-.143 1.024-.017.213-.025.32-.045.422a1.809 1.809 0 0 1-.272.656 3.818 3.818 0 0 1-.266.33c-.348.409-.521.613-.623.826a1.809 1.809 0 0 0 0 1.56c.102.213.275.417.623.825.138.162.208.243.266.33.133.199.225.422.272.657.02.102.028.208.045.421.043.534.064.801.143 1.024.182.516.588.921 1.103 1.103.223.079.49.1 1.024.143.213.017.32.025.422.046.234.046.458.138.656.272.087.058.168.127.33.265.408.348.612.522.826.624a1.809 1.809 0 0 0 1.56 0c.213-.102.417-.276.825-.624a3.81 3.81 0 0 1 .33-.265 1.81 1.81 0 0 1 .656-.272c.103-.02.21-.03.422-.046.534-.043.801-.064 1.024-.143.516-.182.921-.587 1.103-1.103.079-.223.1-.49.143-1.024.017-.213.025-.319.046-.421.046-.235.138-.458.271-.657.059-.087.128-.168.266-.33.348-.408.521-.612.623-.825a1.809 1.809 0 0 0 0-1.56c-.102-.213-.275-.417-.623-.825a3.83 3.83 0 0 1-.266-.33 1.808 1.808 0 0 1-.271-.657c-.02-.103-.03-.209-.046-.422-.043-.534-.064-.801-.143-1.024a1.809 1.809 0 0 0-1.103-1.103c-.223-.079-.49-.1-1.024-.142a3.817 3.817 0 0 1-.421-.046 1.808 1.808 0 0 1-.657-.272 3.817 3.817 0 0 1-.33-.266c-.408-.347-.612-.521-.825-.623a1.809 1.809 0 0 0-1.56 0c-.214.102-.418.276-.825.623Zm4.52 4.442a.543.543 0 0 0-.767-.767L6.917 9.29 5.854 8.227a.543.543 0 1 0-.767.767l1.447 1.447a.543.543 0 0 0 .767 0l3.617-3.617Z"
+                clip-rule="evenodd"></path></svg
+            ><span>{t.getQuote.additionalInfo}</span>
+          </p>
+        </div>
+      </div>
+      <div class="error-wrapper"></div>
+    </div>
+  </section>
+
+  <HotelTemplate />
+  <ActivityTemplate />
+  <AddonsPopup type="hotels" addons={{ hasAddons: true, addonsList: [] }} />
+  <RemoveConfirmation itemId="" itemType="hotels" hasAddons={false} lang={lang} itemName="" />
+</Layout>
+
+<style lang="scss">
+  .Cart {
+    max-width: 55.5rem;
+    margin: 0 auto;
+    padding: clamp(1rem, calc(3vw / 0.48), 4rem) 0 clamp(2rem, calc(4vw / 0.48), 4rem);
+
+    .back-link {
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      color: var(--primary-700, #600d2a);
+      font-size: var(--typography-body-m, 0.875rem);
+      letter-spacing: -0.01em;
+      line-height: 1.7;
+      min-height: 3rem;
+      max-width: fit-content;
+      position: relative;
+      overflow: hidden;
+      padding: 0 0.5rem;
+      margin-left: -0.5rem;
+      border-radius: 0.5rem;
+
+      &::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/1;
+        background: var(--neutral-200, #f5f1ec);
+        z-index: -1;
+        border-radius: 50%;
+        transform: scale(0);
+
+        transition: transform 300ms var(--easing);
+      }
+
+      .icons {
+        position: relative;
+        overflow: hidden;
+
+        :global(svg) {
+          transition: transform 350ms var(--easing);
+          &:last-child {
+            position: absolute;
+            top: 0%;
+            left: 0%;
+            transform: rotate(40deg) translateX(100%);
+          }
+        }
+      }
+
+      > span:last-child {
+        transition: transform 350ms var(--easing);
+      }
+
+      &:hover {
+        .icons {
+          :global(svg) {
+            &:first-child {
+              transform: translateX(-100%);
+            }
+
+            &:last-child {
+              transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+              transform: rotate(0deg) translateX(0%);
+            }
+          }
+        }
+
+        > span:last-child {
+          transform: translateX(-2px);
+        }
+      }
+
+      &:focus:not(:focus-visible) {
+        &::before {
+          transform: scale(1);
+        }
+      }
+
+      &:focus-visible {
+        outline-offset: 0px;
+      }
+    }
+
+    .cart-container {
+      position: relative;
+      min-height: 30rem;
+      padding: clamp(1rem, calc(2.75vw / 0.48), 2.75rem) 2.75rem;
+      border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+      isolation: isolate;
+
+      &::before,
+      &::after {
+        inset: 2px;
+        position: absolute;
+        content: '';
+        background: var(--neutral-200, #f5f1ec);
+        z-index: -1;
+        border-radius: clamp(0.4rem, calc(0.6vw / 0.48), 0.6rem);
+      }
+
+      &::after {
+        background: conic-gradient(
+          from 135deg at 50% 50%,
+          #798ddc 0deg,
+          #e7c78f 90deg,
+          #fa7468 266.40000343322754deg,
+          #798ddc 360deg
+        );
+        z-index: -2;
+        inset: 0;
+        border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      .empty {
+        display: none;
+      }
+
+      .items-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(2rem, calc(2vw / 0.48), 2.25rem);
+        .header {
+          .info-box {
+            background: var(--neutral-100, #faf7f7);
+            border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+            padding: 0.5rem 0.75rem;
+            gap: 0.5rem;
+            display: flex;
+            align-items: flex-start;
+            font-size: var(--typography-body-m, 0.875rem);
+            line-height: 1.7;
+            letter-spacing: -0.01em;
+            margin-bottom: clamp(1rem, calc(1vw / 0.48), 1.5rem);
+
+            svg {
+              flex-shrink: 0;
+              margin-top: 4px;
+            }
+          }
+
+          .inputs {
+            margin-top: clamp(1rem, calc(1vw / 0.48), 1.5rem);
+            height: 3.75rem;
+            width: 100%;
+            max-width: 26.5rem;
+            background-color: var(--neutral-100, #faf7f7);
+            border-radius: 0.5rem;
+          }
+        }
+
+        .cart-heading {
+          font-variant-numeric: lining-nums proportional-nums;
+          font-size: var(--typography-body-2xl, 1.5rem);
+          line-height: 1.25;
+          font-weight: 700;
+          font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+          color: var(--primary-800, #45051c);
+          display: flex;
+          align-items: center;
+          letter-spacing: -0.04em;
+          gap: 0.5rem;
+          text-transform: none;
+
+          :global(strong) {
+            color: var(--primary-400, #74535e);
+          }
+
+          .count {
+            display: grid;
+            place-items: center;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
+            background: var(--neutral-300, #faf7f7);
+            font-size: var(--typography-body-l, 1rem);
+            line-height: 1.55;
+            letter-spacing: -0.03em;
+            margin-top: 2px;
+            padding-bottom: 2px;
+            padding-right: 1px;
+          }
+
+          &-s {
+            font-size: var(--typography-body-xl, 1.125rem);
+            letter-spacing: -0.03em;
+            line-height: 1.55;
+
+            .count {
+              font-size: var(--typography-body-m, 0.875rem);
+              line-height: 1.7;
+              letter-spacing: -0.02em;
+            }
+          }
+        }
+
+        .hotels-section,
+        .activities-section {
+          .cart-heading {
+            margin-bottom: 1rem;
+          }
+          .list {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.375rem, calc(0.5vw / 0.48), 0.5rem);
+          }
+        }
+
+        .hotels-section {
+          padding-bottom: 0.75rem;
+          border-bottom: 2px solid var(--neutral-300, #ede6de);
+        }
+
+        .actions {
+          display: flex;
+          flex-direction: column;
+
+          :global(button) {
+            max-width: 100%;
+            width: 100%;
+            margin-bottom: clamp(0.375rem, calc(0.5vw / 0.48), 0.5rem);
+
+            :global(span) {
+              margin: 0 auto;
+              padding-right: 1.75rem;
+            }
+          }
+
+          .additional-info {
+            gap: 0.375rem;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            font-size: var(--typography-body-m, 0.875rem);
+            line-height: 1.7;
+            letter-spacing: -0.01em;
+
+            :global(svg) {
+              flex-shrink: 0;
+              margin-top: 4px;
+            }
+          }
+        }
+      }
+
+      .error-wrapper {
+        display: none;
+      }
+    }
+  }
+</style>
+
+<script>
+  import { cartStore } from '@/src/store/cart'
+  import type { AddonItem } from '@/src/store/cart'
+  import { renderHotel, renderActivity, type ExtendedHotelData, type ExtendedActivityData } from '@/src/utils/cart'
+
+  const cartElement = document.querySelector('.Cart')
+  const pageLang = cartElement?.getAttribute('data-lang') || 'pl'
+  const t = JSON.parse(cartElement?.getAttribute('data-translations') || '{}') as Record<string, any>
+
+  // Create fetch functions for hotels and activities
+  async function fetchHotelData(id: string, addonIds: string[] = []) {
+    try {
+      const addonIdsParam = addonIds.length > 0 ? `&addonIds=${addonIds.join(',')}` : ''
+      const response = await fetch(`/api/cart/hotel?id=${id}&lang=${pageLang}${addonIdsParam}`)
+      if (!response.ok) throw new Error('Failed to fetch hotel data')
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching hotel:', error)
+      return null
+    }
+  }
+
+  async function fetchActivityData(id: string, addonIds: string[] = []) {
+    try {
+      const addonIdsParam = addonIds.length > 0 ? `&addonIds=${addonIds.join(',')}` : ''
+      const response = await fetch(`/api/cart/activity?id=${id}&lang=${pageLang}${addonIdsParam}`)
+      if (!response.ok) throw new Error('Failed to fetch activity data')
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching activity:', error)
+      return null
+    }
+  }
+
+  // Function to render all cart items
+  async function renderCartItems(hotels: ExtendedHotelData[], activities: ExtendedActivityData[]) {
+    const cartContent = document.querySelector('.cart-container')! as HTMLDivElement
+    const cartHeadingCount = cartContent.querySelector('.header .cart-heading .count')! as HTMLSpanElement
+
+    if (!cartContent) return
+
+    // Render hotels section if there are hotels
+    if (hotels && hotels.length > 0) {
+      const hotelsSection = cartContent.querySelector('.hotels-section')! as HTMLDivElement
+      const hotelList = hotelsSection.querySelector('.list')! as HTMLDivElement
+      const hotelsCount = hotelsSection.querySelector('.count')! as HTMLSpanElement
+      const hotelPromises = hotels.map(async (hotel) => {
+        const hotelElement = await renderHotel(hotel, t)
+        return hotelElement
+      })
+      const hotelElements = await Promise.all(hotelPromises)
+      hotelElements.forEach((hotelElement) => {
+        if (hotelElement) {
+          hotelList.appendChild(hotelElement)
+        }
+      })
+      hotelsCount.textContent = hotels.length.toString()
+    }
+
+    // Render activities section if there are activities
+    if (activities && activities.length > 0) {
+      const activitiesSection = cartContent.querySelector('.activities-section')! as HTMLDivElement
+      const activitiesList = activitiesSection.querySelector('.list')! as HTMLDivElement
+      const activitiesCount = activitiesSection.querySelector('.count')! as HTMLSpanElement
+      const activityPromises = activities.map(async (activity) => {
+        const activityElement = await renderActivity(activity, t)
+        return activityElement
+      })
+      const activityElements = await Promise.all(activityPromises)
+      activityElements.forEach((activityElement) => {
+        if (activityElement) {
+          activitiesList.appendChild(activityElement)
+        }
+      })
+      activitiesCount.textContent = activities.length.toString()
+    }
+
+    cartHeadingCount.textContent = `${hotels.length + activities.length}`
+  }
+
+  // Main function to load cart items
+  async function loadCartItems() {
+    const cartLoader = document.querySelector('[data-loader]')! as HTMLDivElement
+    const cartEmpty = document.querySelector('.empty')! as HTMLDivElement
+
+    try {
+      // Get cart data from store
+      const cart = cartStore.get()
+      console.log('Cart data from store:', cart)
+
+      // Show empty state if cart is empty
+      if (!cart.hotels.length && !cart.activities.length) {
+        cartLoader.style.display = 'none'
+        cartEmpty.style.display = 'block'
+        return
+      }
+
+      // Fetch all hotels
+      const hotelPromises = cart.hotels.map(async (item) => {
+        const addonIds = item.addOns.map((addon) => addon.id)
+        const hotelData = await fetchHotelData(item.id, addonIds)
+        if (hotelData) {
+          const matchedAddons = item.addOns
+            .map((addon: AddonItem) => {
+              const fullAddon = hotelData.addons?.addonsList?.find((a: any) => a._key === addon.id)
+              return {
+                ...addon,
+                fullData: fullAddon || null,
+              }
+            })
+            .filter((addon) => addon.fullData !== null)
+
+          return {
+            ...hotelData,
+            cartAddons: matchedAddons,
+          }
+        }
+        return null
+      })
+
+      // Fetch all activities
+      const activityPromises = cart.activities.map(async (item) => {
+        const addonIds = item.addOns.map((addon) => addon.id)
+        const activityData = await fetchActivityData(item.id, addonIds)
+        if (activityData) {
+          const matchedAddons = item.addOns
+            .map((addon: AddonItem) => {
+              const fullAddon = activityData.addons?.addonsList?.find((a: any) => a._key === addon.id)
+              return {
+                ...addon,
+                fullData: fullAddon || null,
+              }
+            })
+            .filter((addon) => addon.fullData !== null)
+
+          return {
+            ...activityData,
+            cartAddons: matchedAddons,
+          }
+        }
+        return null
+      })
+
+      // Wait for all fetches to complete
+      const [hotels, activities] = await Promise.all([Promise.all(hotelPromises), Promise.all(activityPromises)])
+
+      // Filter out null results
+      const validHotels = hotels.filter(Boolean)
+      const validActivities = activities.filter(Boolean)
+
+      console.log('Fetched hotels:', validHotels)
+      console.log('Fetched activities:', validActivities)
+
+      // Hide loader when done
+      cartLoader.style.display = 'none'
+
+      // If nothing was fetched successfully, show empty state
+      if (validHotels.length === 0 && validActivities.length === 0) {
+        cartEmpty.style.display = 'block'
+        return
+      }
+
+      // Render the cart items
+      renderCartItems(validHotels, validActivities)
+    } catch (error) {
+      console.error('Error loading cart items:', error)
+      cartLoader.style.display = 'none'
+
+      // Create error message
+      const errorElement = document.querySelector('.error-wrapper')! as HTMLDivElement
+      errorElement.style.display = 'block'
+    }
+  }
+
+  // Listen for cart updates (both hotels and activities)
+  document.addEventListener('cart-updated', async (event) => {
+    type CartEventDetail = {
+      itemId: string
+      itemType: 'hotels' | 'activities'
+      action: 'remove' | 'update'
+    }
+
+    type CartAddon = {
+      id: string
+      count?: number
+    }
+
+    type CartItem = {
+      id: string
+      addOns: CartAddon[]
+    }
+
+    const detail = (event as CustomEvent<CartEventDetail>).detail
+    if (!detail || !detail.itemId || !detail.itemType || !detail.action) return
+
+    const item = document.querySelector(`[data-item-id="${detail.itemId}"]`) as HTMLElement | null
+    if (!item) return
+
+    if (detail.action === 'remove') {
+      const cartHeadingCount = document.querySelector(
+        '.cart-container .header .cart-heading .count'
+      )! as HTMLSpanElement
+      // Animate removal and then remove from DOM
+      item.classList.add('removing')
+      setTimeout(() => {
+        item.remove()
+
+        // Check if there are no more items of this type
+        const section = document.querySelector(`.${detail.itemType}-section`)
+        const updatedItemType = detail.itemType === 'hotels' ? 'hotel' : 'activity'
+        cartHeadingCount.textContent = `${cartStore.get().hotels.length + cartStore.get().activities.length}`
+        if (section) {
+          const remainingItems = section.querySelectorAll(`.${updatedItemType}-item`).length
+          console.log(remainingItems)
+          // Update count
+          const countElement = section.querySelector('.count')
+          if (countElement) {
+            countElement.textContent = remainingItems.toString()
+          }
+          // Remove section if empty
+          if (remainingItems === 0) {
+            section.remove()
+          }
+        }
+
+        // Update the main cart count
+        const cartCount = document.querySelector('.cart-heading .count')
+        if (cartCount) {
+          const totalItems = document.querySelectorAll('.hotel-item, .activity-item').length
+          cartCount.textContent = totalItems.toString()
+        }
+
+        // Check if cart is now empty
+        if (!document.querySelector('.hotel-item') && !document.querySelector('.activity-item')) {
+          const cartEmpty = document.querySelector('.empty')
+          const itemsWrapper = document.querySelector('.items-wrapper')
+          if (cartEmpty && itemsWrapper) {
+            cartEmpty.setAttribute('style', 'display: block')
+            itemsWrapper.setAttribute('style', 'display: none')
+          }
+        }
+      }, 300)
+    } else if (detail.action === 'update') {
+      // Update addons list if it exists
+      const addonList = item.querySelector('.addon-list')
+      if (addonList) {
+        const cart = cartStore.get()
+        const cartItem = cart[detail.itemType].find((i: CartItem) => i.id === detail.itemId)
+        addonList.innerHTML = ''
+
+        if (cartItem && cartItem.addOns.length > 0) {
+          const addonsNames = JSON.parse(item.getAttribute('data-addon-names') || '{}')
+          cartItem.addOns.forEach((addon: CartAddon) => {
+            const li = document.createElement('li')
+            li.innerHTML = addon.count
+              ? `${addonsNames.find((a: any) => a.id === addon.id)?.name}: <strong>${addon.count}</strong>`
+              : addonsNames.find((a: any) => a.id === addon.id)?.name
+            addonList.appendChild(li)
+          })
+        }
+
+        // Update addons button state
+        const addonsButton = item.querySelector('.addons')
+        if (addonsButton) {
+          const hasAddons = cartItem && cartItem.addOns.length > 0
+          addonsButton.setAttribute('data-is-editing', hasAddons ? 'true' : 'false')
+          const span = addonsButton.querySelector('.text')
+          if (span) {
+            span.innerHTML = hasAddons ? t.editAddons : `${t.addons} <strong>${t.optional}</strong>`
+          }
+        }
+      }
+    }
+  })
+
+  // Initialize cart loading when DOM is ready
+  document.addEventListener('DOMContentLoaded', loadCartItems)
+</script>

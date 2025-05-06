@@ -77,6 +77,7 @@ export const structure: StructureResolver = (S) =>
               createSingleton({ S, name: 'footer' }),
               createSingleton({ S, name: 'global' }),
               createCollection(S, 'SocialMedia_Collection'),
+              createSingleton({ S, name: 'Cart_Page' }),
               createSingleton({ S, name: 'NotFound_Page' }),
               createSingleton({ S, name: 'TermsAndConditions_Page' }),
               createSingleton({ S, name: 'PrivacyPolicy_Page' }),

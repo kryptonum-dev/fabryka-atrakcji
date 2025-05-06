@@ -29,6 +29,10 @@ const translations = {
     },
     confirm: 'Tak, usuń',
     cancel: 'Anuluj',
+    removedAlert: {
+      hotels: 'Hotel został usunięty z wyceny',
+      activities: 'Integracja została usunięta z wyceny',
+    },
   },
   en: {
     title: {
@@ -45,17 +49,27 @@ const translations = {
     },
     confirm: 'Yes, remove',
     cancel: 'Cancel',
+    removedAlert: {
+      hotels: 'Hotel has been removed from your estimate',
+      activities: 'Activity has been removed from your estimate',
+    },
   },
 }
 
 const t = translations[lang as keyof typeof translations] || translations.en
-const title = t.title[itemType as keyof typeof t.title]
-  .replace('{hotelName}', itemName)
-  .replace('{activityName}', itemName)
+const title = itemName
+  ? t.title[itemType as keyof typeof t.title].replace('{hotelName}', itemName).replace('{activityName}', itemName)
+  : t.title[itemType as keyof typeof t.title]
 const message = t.message[itemType as keyof typeof t.message]
 ---
 
-<div class="remove-confirmation-container" data-id={itemId} data-type={itemType}>
+<div
+  class="remove-confirmation-container"
+  data-id={itemId}
+  data-lang={lang}
+  data-type={itemType}
+  data-text={JSON.stringify(t)}
+>
   <PopupWindow>
     <div slot="open" class="hidden-trigger">
       <button></button>
@@ -150,6 +164,40 @@ const message = t.message[itemType as keyof typeof t.message]
   import { removeFromCart } from '@/src/store/cart'
   import { showToast } from '@/src/utils/toast'
   import { dispatchCartUpdate } from '@/src/utils/events'
+  import type { Language } from '@/src/global/languages'
+
+  const getTranslations = (hasAddons: boolean) => {
+    return {
+      pl: {
+        title: {
+          hotels: 'Czy na pewno chcesz usunąć <strong>{hotelName}</strong> z wyceny?',
+          activities: 'Czy na pewno chcesz usunąć <strong>{activityName}</strong> z wyceny?',
+        },
+        message: {
+          hotels: hasAddons
+            ? 'Usunięcie tego hotelu spowoduje utratę wszystkich wybranych opcji dodatkowych.'
+            : 'Czy na pewno chcesz usunąć ten hotel z wyceny?',
+          activities: hasAddons
+            ? 'Usunięcie tej integracji spowoduje utratę wszystkich wybranych opcji dodatkowych.'
+            : 'Czy na pewno chcesz usunąć tę integrację z wyceny?',
+        },
+      },
+      en: {
+        title: {
+          hotels: 'Are you sure you want to remove <strong>{hotelName}</strong> from your estimate?',
+          activities: 'Are you sure you want to remove <strong>{activityName}</strong> from your estimate?',
+        },
+        message: {
+          hotels: hasAddons
+            ? 'Removing this hotel will result in losing all selected additional options.'
+            : 'Are you sure you want to remove this hotel from your estimate?',
+          activities: hasAddons
+            ? 'Removing this activity will result in losing all selected additional options.'
+            : 'Are you sure you want to remove this activity from your estimate?',
+        },
+      },
+    }
+  }
 
   // Find all confirmation containers
   const confirmationContainers = document.querySelectorAll('.remove-confirmation-container')
@@ -161,28 +209,37 @@ const message = t.message[itemType as keyof typeof t.message]
     const cancelBtn = container.querySelector('.cancel-remove-btn')
     const closeBtn = container.querySelector('[data-popup-close]')
     const hiddenTrigger = container.querySelector('.hidden-trigger button')
+    const lang = container.getAttribute('data-lang') as Language
+    const translationsText = JSON.parse(container.getAttribute('data-text') || '{}')
+    document.addEventListener('change-confirmation-data', (e) => {
+      const { type, name, hasAddons } = (e as CustomEvent).detail
+      const translations = getTranslations(hasAddons)[lang]
+      const title = translations.title[type as keyof typeof translations.title]
+        .replace('{hotelName}', name)
+        .replace('{activityName}', name)
+      const message = translations.message[type as keyof typeof translations.message]
+      console.log(title, message)
+
+      const titleEl = container.querySelector('.title')!
+      const messageEl = container.querySelector('.message')!
+
+      titleEl.innerHTML = title
+
+      messageEl.innerHTML = message
+    })
 
     // Handle confirm button click
     confirmBtn?.addEventListener('click', () => {
+      const itemType = container.getAttribute('data-type') as 'hotels' | 'activities'
+      const itemId = container.getAttribute('data-id')
+
       if (itemId && itemType) {
         // Remove item from cart
         removeFromCart(itemId, itemType)
 
-        // Get translations from the nearest parent component
-        const parentElement = document.querySelector(
-          `[data-id="${itemId}"][data-type="${itemType === 'hotels' ? 'Hotels_Collection' : 'Activities_Collection'}"]`
-        )
-        const translationsText = parentElement?.getAttribute('data-text')
-        let message = 'Item removed'
+        // Get  from the nearest parent component
 
-        if (translationsText) {
-          try {
-            const translations = JSON.parse(translationsText)
-            message = translations.removeFromCartAlert || message
-          } catch {
-            // Silently handle parse errors and use default message
-          }
-        }
+        const message = translationsText.removedAlert[itemType as keyof typeof translationsText.removedAlert]
 
         // Show toast notification
         showToast(message, 'success')
@@ -204,14 +261,10 @@ const message = t.message[itemType as keyof typeof t.message]
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement
       const triggerButton = target.closest('[data-remove-trigger]')
-      console.log(triggerButton)
 
       if (triggerButton) {
         const sidebarId = triggerButton.closest('[data-id]')?.getAttribute('data-id')
         const sidebarType = triggerButton.closest('[data-type]')?.getAttribute('data-type')
-        console.log(triggerButton.closest('[data-type]'))
-        console.log(sidebarId, sidebarType)
-        console.log(itemId, itemType)
 
         if (sidebarId === itemId && sidebarType === itemType) {
           ;(hiddenTrigger as HTMLButtonElement)?.click()

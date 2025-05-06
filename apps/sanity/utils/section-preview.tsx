@@ -5,8 +5,6 @@ import type { LucideIcon } from 'lucide-react'
 // This ensures that the preview works seamlessly with both the main components
 // for page builder and components embedded within the portable-text custom section.
 export const sectionPreview = ({ imgUrl, icon }: { imgUrl: string; icon: LucideIcon }) => {
-  console.log('imgUrl', imgUrl)
-  console.log('icon', icon)
   const Icon = icon
   const Preview = () => (
     <Tooltip

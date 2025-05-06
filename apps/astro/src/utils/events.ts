@@ -16,11 +16,17 @@ interface AddonsPopupDetail {
   minOneAddon: boolean
   requiresAddons: boolean
   addonsChoice: string
+  addonData?: any // Optional addon data for dynamic rendering
 }
 
 interface CartUpdateDetail {
   itemId: string
   itemType: CartItemType
+  action?: 'update' | 'remove'
+  addons?: Array<{
+    id: string
+    count?: number
+  }>
 }
 
 interface ToastEventDetail {
@@ -49,6 +55,7 @@ export function dispatchAddonsPopup({
   minOneAddon,
   requiresAddons,
   addonsChoice,
+  addonData,
 }: AddonsPopupDetail) {
   document.dispatchEvent(
     new CustomEvent('open-addons-popup', {
@@ -60,6 +67,7 @@ export function dispatchAddonsPopup({
         minOneAddon,
         requiresAddons,
         addonsChoice,
+        addonData,
       },
       bubbles: true,
     })
@@ -86,6 +94,24 @@ export function dispatchToast(message: string, type: ToastType = 'success') {
   )
 }
 
+// Add a new event dispatcher for addon updates
+export function dispatchAddonUpdate(
+  itemId: string,
+  itemType: CartItemType,
+  addons: Array<{ id: string; count?: number }>
+) {
+  document.dispatchEvent(
+    new CustomEvent<CartUpdateDetail>('cart-updated', {
+      detail: {
+        itemId,
+        itemType,
+        action: 'update',
+        addons,
+      },
+    })
+  )
+}
+
 // Event listeners
 export function listenToCartUpdates(callback: () => void) {
   document.addEventListener('cart-updated', callback)
@@ -96,10 +122,10 @@ export function listenToCartUpdates(callback: () => void) {
   }
 }
 
-export function listenToAddonsPopup(callback: (detail: AddonsPopupDetail) => void) {
-  const handler = (event: Event) => {
+export async function listenToAddonsPopup(callback: (detail: AddonsPopupDetail) => Promise<void>) {
+  const handler = async (event: Event) => {
     const customEvent = event as CustomEvent<AddonsPopupDetail>
-    callback(customEvent.detail)
+    await callback(customEvent.detail)
   }
 
   document.addEventListener('open-addons-popup', handler)

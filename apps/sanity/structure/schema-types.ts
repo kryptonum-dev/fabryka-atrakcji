@@ -11,6 +11,8 @@ import redirects from '../schema/singleTypes/redirects'
 import TermsAndConditions_Page from '../schema/singleTypes/legal/TermsAndConditions_Page'
 import PrivacyPolicy_Page from '../schema/singleTypes/legal/PrivacyPolicy_Page'
 import Hotels_Page from '../schema/singleTypes/Hotels_Page'
+import Cart_Page from '../schema/singleTypes/Cart_Page'
+
 const singleTypes = [
   global,
   redirects,
@@ -24,6 +26,7 @@ const singleTypes = [
   TermsAndConditions_Page,
   PrivacyPolicy_Page,
   Hotels_Page,
+  Cart_Page,
 ]
 
 // Collections Types
