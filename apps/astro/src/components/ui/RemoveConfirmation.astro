@@ -218,7 +218,6 @@ const message = t.message[itemType as keyof typeof t.message]
         .replace('{hotelName}', name)
         .replace('{activityName}', name)
       const message = translations.message[type as keyof typeof translations.message]
-      console.log(title, message)
 
       const titleEl = container.querySelector('.title')!
       const messageEl = container.querySelector('.message')!

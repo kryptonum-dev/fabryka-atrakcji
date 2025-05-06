@@ -1287,8 +1287,6 @@ const { addons, type } = Astro.props
       const isInCartPage = !!addonData
       popupContainer.dataset.isInCartPage = isInCartPage ? 'true' : 'false'
 
-      console.log(addonData)
-
       // If addonData was provided from the cart, update the popup content
       if (addonData) {
         const addonsWrapper = document.querySelector('.addons-wrapper')
@@ -1311,7 +1309,6 @@ const { addons, type } = Astro.props
               // Create each addon item
               if (addonData.fullAddonsList && addonData.fullAddonsList.length > 0) {
                 addonData.fullAddonsList?.forEach(async (addon: AddonItemType) => {
-                  console.log(addonData.addonsChoice)
                   const hasCounter =
                     addon.pricing.type === 'per_unit' &&
                     addon.pricing.perUnit?.hasCount &&
@@ -1517,16 +1514,12 @@ const { addons, type } = Astro.props
               '.addons-popup input[type="checkbox"]:checked, .addons-popup input[type="radio"]:checked'
             ).length
 
-            console.log(totalSelected)
-
             // Also check counter-only items
             let counterSelected = false
             document.querySelectorAll('.addon-item[data-has-counter="true"] .quantity-input').forEach((input) => {
               const count = parseInt((input as HTMLInputElement).value, 10) || 0
               if (count > 0) counterSelected = true
             })
-
-            console.log(counterSelected)
 
             // If this is the last selected item and no counter items are selected
             if (totalSelected < 1 && !counterSelected) {

@@ -10,6 +10,7 @@ import Button from '@/src/components/ui/Button'
 import Loader from '@/src/components/ui/Loader.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
+import DatePicker from '@/src/components/ui/DatePicker.astro'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
@@ -171,6 +172,7 @@ const { metadata, page } = Astro.props
                 <input type="number" id="participantCount" class="participant-input" min="1" step="1" value="50" />
               </div>
             </div>
+            <DatePicker lang={lang} />
           </div>
         </header>
         <div class="hotels-section">
@@ -365,7 +367,6 @@ const { metadata, page } = Astro.props
             display: flex;
             gap: 1rem;
             width: 100%;
-            max-width: 26.5rem;
 
             .input-field {
               flex: 1;
@@ -614,9 +615,6 @@ const { metadata, page } = Astro.props
 
       // Store in localStorage
       localStorage.setItem('cart_participant_count', value)
-
-      // Log to console
-      console.log('Participants count updated:', value)
     })
 
     // Handle blur to format value properly
@@ -713,7 +711,6 @@ const { metadata, page } = Astro.props
     try {
       // Get cart data from store
       const cart = cartStore.get()
-      console.log('Cart data from store:', cart)
 
       // Show empty state if cart is empty
       if (!cart.hotels.length && !cart.activities.length) {
@@ -838,7 +835,6 @@ const { metadata, page } = Astro.props
         cartHeadingCount.textContent = `${cartStore.get().hotels.length + cartStore.get().activities.length}`
         if (section) {
           const remainingItems = section.querySelectorAll(`.${updatedItemType}-item`).length
-          console.log(remainingItems)
           // Update count
           const countElement = section.querySelector('.count')
           if (countElement) {

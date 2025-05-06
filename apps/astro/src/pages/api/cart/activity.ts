@@ -70,8 +70,6 @@ export const GET: APIRoute = async ({ request }) => {
       },
     })
 
-    console.log(activity)
-
     if (!activity) {
       return new Response(JSON.stringify({ error: 'Activity not found' }), {
         status: 404,
@@ -88,7 +86,6 @@ export const GET: APIRoute = async ({ request }) => {
       },
     })
   } catch (error) {
-    console.error('Error fetching activity:', error)
     return new Response(JSON.stringify({ error: 'Failed to fetch activity data' }), {
       status: 500,
       headers: {
