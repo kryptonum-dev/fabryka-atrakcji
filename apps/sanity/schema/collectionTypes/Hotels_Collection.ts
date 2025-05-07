@@ -1,4 +1,4 @@
-import { Hotel } from 'lucide-react'
+import { AlertCircleIcon, Hotel } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { DocumentsIcon, InfoOutlineIcon, CreditCardIcon, SearchIcon, DocumentTextIcon } from '@sanity/icons'
@@ -17,6 +17,8 @@ import Amenities from '../ui/PortableText/content/hotel/Amenities'
 import StayingRules from '../ui/PortableText/content/hotel/StayingRules'
 import Location from '../ui/PortableText/content/hotel/Location'
 import { createAddonsObject } from '../shared/addons'
+import { toPlainText } from '../../utils/to-plain-text'
+import { createAlertsObject } from '../shared/alerts'
 
 const title = 'Hotele'
 const icon = Hotel
@@ -46,6 +48,11 @@ export default defineType({
       name: 'addons',
       title: 'Dodatki',
       icon: CreditCardIcon,
+    },
+    {
+      name: 'alerts',
+      title: 'Alerty',
+      icon: InfoOutlineIcon,
     },
     {
       name: 'content',
@@ -398,6 +405,9 @@ export default defineType({
           description: 'Dodaj dodatkowe informacje o dodatkach - pojawiają się poniżej listy dodatków',
         },
       },
+    }),
+    createAlertsObject({
+      paragraph: 'Alerty wyświetlane w koszyku dla tego hotelu.',
     }),
     createPortableText({
       title: 'Treść',

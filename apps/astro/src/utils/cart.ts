@@ -1,7 +1,8 @@
-import type { BaseHotelProps, BaseActivityProps, AddonItem } from '@/src/global/types'
+import type { BaseHotelProps, BaseActivityProps, AddonItem, Alert } from '@/src/global/types'
 import type { ImageDataProps } from '@/src/components/ui/image'
 import { dispatchAddonsPopup } from './events'
 import { optimizeImage } from './optimize-images'
+import { toHTMLClient } from './to-html-client'
 
 // Function to create stars based on rating
 function createStarRating(count: number): string {
@@ -125,6 +126,11 @@ function setupAddonList(item: CartItem, addonList: Element) {
 function setupItemAttributes(item: CartItem, itemElement: Element) {
   itemElement.setAttribute('data-item-id', item._id)
 
+  // Add max people data attribute for hotels
+  if ('maxPeople' in item && item.maxPeople?.overnight) {
+    itemElement.setAttribute('data-max-people', String(item.maxPeople.overnight))
+  }
+
   if (item.addons?.hasAddons && Array.isArray(item.addons.addonsList) && item.addons.addonsList.length > 0) {
     const addonNames = item.addons.fullAddonsList?.map((addon) => ({ name: addon.name, id: addon._key }))
     itemElement.setAttribute('data-addon-names', JSON.stringify(addonNames))
@@ -206,6 +212,14 @@ export async function renderHotel(hotel: ExtendedHotelData, t: Record<string, an
     details[2].innerHTML += `${t.max} ${maxPeople} ${maxPeople === 1 ? t.person : t.people}`
   }
 
+  // Render alerts if they exist
+  if (hotel.alerts && hotel.alerts.length > 0) {
+    const alertsList = clone.querySelector('.alerts')
+    if (alertsList) {
+      renderAlerts(hotel.alerts, alertsList)
+    }
+  }
+
   return clone
 }
 
@@ -234,5 +248,45 @@ export async function renderActivity(
     participantsSpan.textContent = `${activity.participantsCount.min}–${activity.participantsCount.max} ${t.people}`
   }
 
+  // Render alerts if they exist
+  if (activity.alerts && activity.alerts.length > 0) {
+    const alertsList = clone.querySelector('.alerts')
+    if (alertsList) {
+      renderAlerts(activity.alerts, alertsList)
+    }
+  }
+
   return clone
+}
+
+// Helper function to render alerts - enhanced and exported
+export function renderAlerts(alerts: Alert[], alertsContainer: Element, customClass?: string): void {
+  for (const alert of alerts) {
+    const alertTemplate = document.getElementById('alert-template')! as HTMLTemplateElement
+    const alertItem = alertTemplate?.content.cloneNode(true) as HTMLElement
+    const alertWrapper = alertItem.querySelector('.wrapper')!
+
+    // Add custom class if provided
+    if (customClass) {
+      alertItem.querySelector('li')?.classList.add(customClass)
+    }
+
+    // Handle heading - can be string or PortableText
+    const alertHeading = alertWrapper.querySelector('.alert-heading')!
+    alertHeading.innerHTML = typeof alert.heading === 'string' ? alert.heading : toHTMLClient(alert.heading)
+
+    // Handle paragraph - can be string or PortableText
+    const alertParagraph = alertWrapper.querySelector('.alert-paragraph')!
+    alertParagraph.innerHTML = typeof alert.paragraph === 'string' ? alert.paragraph : toHTMLClient(alert.paragraph)
+
+    // Handle CTA link
+    const ctaLink = alertWrapper.querySelector('a')!
+    ctaLink.querySelector('span')!.textContent =
+      typeof alert.cta.text === 'string' ? alert.cta.text : String(alert.cta.text || '')
+
+    // Set href based on link type or direct href
+    ctaLink.href = alert.cta.internalReference?.slug || (alert.cta as any).href || '#'
+
+    alertsContainer.appendChild(alertItem)
+  }
 }

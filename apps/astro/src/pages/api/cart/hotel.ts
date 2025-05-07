@@ -2,6 +2,7 @@ import sanityFetch from '@/src/utils/sanity.fetch'
 import { ImageDataQuery } from '@/src/components/ui/image'
 import { PortableTextQuery } from '@/src/components/ui/portable-text'
 import type { APIRoute } from 'astro'
+import { ButtonDataQuery } from '@/src/components/ui/Button'
 
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url)
@@ -62,7 +63,19 @@ export const GET: APIRoute = async ({ request }) => {
             addonsLayout,
             addonsHaveImage,
             additionalInfo,
-          }
+          },
+          alerts[]{
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            cta{
+              text,
+              internalReference->{
+                _id,
+                name,
+                "slug": slug.current,
+              },
+            },
+          },
         }
       `,
       params: {

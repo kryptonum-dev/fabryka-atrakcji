@@ -11,6 +11,7 @@ import Loader from '@/src/components/ui/Loader.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 import DatePicker from '@/src/components/ui/DatePicker.astro'
+import AlertTemplate from './AlertTemplate.astro'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
@@ -80,6 +81,14 @@ const translations = {
     max: 'Maks.',
     addons: 'Dobierz dodatki',
     editAddons: 'Edytuj dodatki',
+    participantExceedsMaxAlert: {
+      heading: 'Ten hotel jest maksymalnie dla <strong>{maxPeople}</strong> osób',
+      paragraph: 'Możesz kontynuować wycenę albo zmienić hotel, który pomieści więcej osób.',
+      cta: {
+        text: 'Przeglądaj hotele',
+        href: '/pl/hotele',
+      },
+    },
   },
   en: {
     back: {
@@ -109,6 +118,14 @@ const translations = {
     max: 'Max.',
     addons: 'Add add-ons',
     editAddons: 'Edit add-ons',
+    participantExceedsMaxAlert: {
+      heading: 'This hotel is maxed out for <strong>{maxPeople}</strong> people',
+      paragraph: 'You can continue with the quote or change the hotel to one that can accommodate more people.',
+      cta: {
+        text: 'Browse hotels',
+        href: '/en/hotels',
+      },
+    },
   },
 } as const
 
@@ -215,6 +232,7 @@ const { metadata, page } = Astro.props
 
   <HotelTemplate />
   <ActivityTemplate />
+  <AlertTemplate />
   <AddonsPopup type="hotels" addons={{ hasAddons: true, addonsList: [] }} />
   <RemoveConfirmation itemId="" itemType="hotels" hasAddons={false} lang={lang} itemName="" />
 </Layout>
@@ -583,7 +601,14 @@ const { metadata, page } = Astro.props
 <script>
   import { cartStore } from '@/src/store/cart'
   import type { AddonItem } from '@/src/store/cart'
-  import { renderHotel, renderActivity, type ExtendedHotelData, type ExtendedActivityData } from '@/src/utils/cart'
+  import {
+    renderHotel,
+    renderActivity,
+    renderAlerts,
+    type ExtendedHotelData,
+    type ExtendedActivityData,
+  } from '@/src/utils/cart'
+  import type { Alert } from '@/src/global/types'
 
   const cartElement = document.querySelector('.Cart')
   const pageLang = cartElement?.getAttribute('data-lang') || 'pl'
@@ -615,6 +640,9 @@ const { metadata, page } = Astro.props
 
       // Store in localStorage
       localStorage.setItem('cart_participant_count', value)
+
+      // Update alerts when participant count changes
+      updateParticipantAlerts()
     })
 
     // Handle blur to format value properly
@@ -628,6 +656,70 @@ const { metadata, page } = Astro.props
       if (!isNaN(intValue)) {
         participantInput.value = intValue.toString()
         localStorage.setItem('cart_participant_count', intValue.toString())
+
+        // Update alerts on blur
+        updateParticipantAlerts()
+      }
+    })
+  }
+
+  // Function to update participant alerts based on current count
+  function updateParticipantAlerts() {
+    const participantInput = document.getElementById('participantCount') as HTMLInputElement
+
+    // First check if we have value in localStorage, and use that if available
+    const savedCount = localStorage.getItem('cart_participant_count')
+    let participantCount = 0
+
+    if (savedCount) {
+      participantCount = parseInt(savedCount)
+      // Make sure the input value matches localStorage
+      if (participantInput) {
+        participantInput.value = savedCount
+      }
+    } else if (participantInput) {
+      // Fallback to the input value if no localStorage value exists
+      participantCount = parseInt(participantInput.value || '0')
+    }
+
+    console.log('Checking participant alerts with count:', participantCount)
+
+    // Find all hotel items in the cart
+    const hotelItems = document.querySelectorAll('.hotel-item')
+    console.log('Found hotel items:', hotelItems.length)
+
+    hotelItems.forEach((item) => {
+      const itemId = item.getAttribute('data-item-id')
+      const maxPeople = parseInt(item.getAttribute('data-max-people') || '0')
+      console.log('Hotel:', itemId, 'Max People:', maxPeople, 'Participant Count:', participantCount)
+
+      if (!itemId || !maxPeople) return
+
+      const alertsList = item.querySelector('.alerts')
+      if (!alertsList) return
+
+      // Remove any existing participant alerts
+      const existingAlerts = alertsList.querySelectorAll('.participant-alert')
+      existingAlerts.forEach((alert) => alert.remove())
+
+      // If count exceeds max, add a new alert
+      if (participantCount > maxPeople) {
+        console.log('Adding alert for hotel:', itemId, 'max:', maxPeople, 'count:', participantCount)
+
+        // Create a custom alert object
+        const participantAlert: Alert = {
+          heading: t.participantExceedsMaxAlert.heading.replace('{maxPeople}', String(maxPeople)),
+          paragraph: t.participantExceedsMaxAlert.paragraph.replace('{maxPeople}', String(maxPeople)),
+          cta: {
+            text: t.participantExceedsMaxAlert.cta.text,
+            internalReference: {
+              slug: t.participantExceedsMaxAlert.cta.href,
+            } as any,
+          },
+        }
+
+        // Use the exported renderAlerts function with a custom class
+        renderAlerts([participantAlert], alertsList, 'participant-alert')
       }
     })
   }
@@ -898,7 +990,15 @@ const { metadata, page } = Astro.props
 
   // Initialize cart loading when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
-    loadCartItems()
+    // First initialize the participant input to ensure it has the correct value from localStorage
     initParticipantInput()
+
+    // Then load cart items and update alerts after everything is loaded
+    loadCartItems().then(() => {
+      // Give the DOM a moment to update before checking alerts
+      setTimeout(() => {
+        updateParticipantAlerts()
+      }, 100)
+    })
   })
 </script>

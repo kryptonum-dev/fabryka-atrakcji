@@ -1,3 +1,4 @@
+import type { ButtonDataProps } from '../components/ui/Button'
 import type { ImageDataProps } from '../components/ui/image'
 import type { PortableTextValue } from '../components/ui/portable-text'
 
@@ -83,6 +84,20 @@ export type BaseHotelProps = {
     pricePerPerson: number
   }
   addons?: AddonProps
+  alerts?: Alert[]
+}
+
+export type Alert = {
+  heading: any
+  paragraph?: any
+  cta: {
+    text: string
+    internalReference: {
+      _id: string
+      name: string
+      slug: string
+    }
+  }
 }
 
 export type BaseActivityProps = {
@@ -100,6 +115,7 @@ export type BaseActivityProps = {
     max: number
   }
   addons?: AddonProps
+  alerts?: Alert[]
 }
 
 export type AddonProps = {

@@ -13,6 +13,7 @@ import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
 import { createAddonsObject } from '../shared/addons'
+import { createAlertsObject } from '../shared/alerts'
 
 const title = 'Integracje'
 const icon = Handshake
@@ -42,6 +43,11 @@ export default defineType({
       name: 'addons',
       title: 'Dodatki',
       icon: CreditCardIcon,
+    },
+    {
+      name: 'alerts',
+      title: 'Alerty',
+      icon: InfoOutlineIcon,
     },
     {
       name: 'content',
@@ -397,6 +403,9 @@ export default defineType({
           description: 'Dodaj dodatkowe informacje o dodatkach - pojawiają się poniżej listy dodatków',
         },
       },
+    }),
+    createAlertsObject({
+      paragraph: 'Alerty wyświetlane w koszyku dla tego hotelu.',
     }),
     createPortableText({
       title: 'Treść integracji',
