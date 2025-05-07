@@ -56,6 +56,269 @@ export default defineType({
         }),
       ],
     }),
+
+    defineField({
+      name: 'orderAddons',
+      type: 'object',
+      title: 'Dodatki do zamówienia',
+      group: 'content',
+      fields: [
+        defineField({
+          name: 'transportOptions',
+          type: 'object',
+          title: 'Opcje transportu',
+          description:
+            'Dodatek w postaci transportu jest jedynym nieusuwalnym dodatkiem. Możliwość edycji zdjęcia oraz minimalnej ceny.',
+          validation: (Rule) => Rule.required(),
+          fields: [
+            defineField({
+              name: 'image',
+              type: 'image',
+              title: 'Zdjęcie',
+              validation: (Rule) => Rule.required().error('Zdjęcie jest wymagane'),
+            }),
+            defineField({
+              name: 'pricing',
+              type: 'object',
+              title: 'Cennik',
+              options: {
+                collapsible: false,
+                collapsed: false,
+              },
+              validation: (Rule) => Rule.required().error('Cennik jest wymagany'),
+              fields: [
+                {
+                  name: 'type',
+                  type: 'string',
+                  title: 'Typ cennika',
+                  options: {
+                    list: [
+                      { title: 'Stała cena', value: 'fixed' },
+                      { title: 'Cena progowa', value: 'threshold' },
+                    ],
+                    layout: 'radio',
+                  },
+                  validation: (Rule) => Rule.required().error('Typ cennika jest wymagany'),
+                  initialValue: 'fixed',
+                },
+                {
+                  name: 'fixedPrice',
+                  type: 'number',
+                  title: 'Cena (PLN)',
+                  hidden: ({ parent }) => parent?.type !== 'fixed',
+                  validation: (Rule) =>
+                    Rule.custom((value, context) => {
+                      const parent = context.parent as any
+                      if (parent?.type === 'fixed') {
+                        if (!value) return 'Cena jest wymagana dla stałej ceny'
+                        if (typeof value !== 'number' || !Number.isInteger(value))
+                          return 'Cena musi być liczbą całkowitą'
+                        if (value < 1) return 'Cena musi być większa niż 0 PLN'
+                      }
+                      return true
+                    }),
+                },
+                {
+                  name: 'threshold',
+                  type: 'object',
+                  title: 'Cena progowa',
+                  options: {
+                    collapsible: false,
+                    collapsed: false,
+                  },
+                  hidden: ({ parent }) => parent?.type !== 'threshold',
+                  validation: (Rule) =>
+                    Rule.custom((value, context) => {
+                      const parent = context.parent as any
+                      const objValue = value as {
+                        basePrice: number
+                        maxUnits: number
+                        additionalPrice: number
+                        singular: string
+                      }
+                      if (
+                        parent?.type === 'threshold' &&
+                        (!objValue?.basePrice || !objValue?.maxUnits || !objValue?.additionalPrice)
+                      ) {
+                        return 'Wszystkie pola są wymagane dla ceny progowej'
+                      }
+                      return true
+                    }),
+                  fields: [
+                    {
+                      name: 'basePrice',
+                      type: 'number',
+                      title: 'Cena podstawowa (PLN)',
+                      validation: (Rule) =>
+                        Rule.custom((value: number) => {
+                          if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
+                            return 'Cena musi być liczbą całkowitą'
+                          if (!!value && value < 1) return 'Cena musi być większa niż 0 PLN'
+                          return true
+                        }),
+                    },
+                    {
+                      name: 'maxUnits',
+                      type: 'number',
+                      title: 'Maksymalna liczba osób w cenie podstawowej',
+                      validation: (Rule) =>
+                        Rule.custom((value: number) => {
+                          if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
+                            return 'Maksymalna liczba osób musi być liczbą całkowitą'
+                          if (!!value && value < 1) return 'Maksymalna liczba osób musi być większa niż 0'
+                          return true
+                        }),
+                    },
+                    {
+                      name: 'additionalPrice',
+                      type: 'number',
+                      title: 'Cena za każdą dodatkową osobę (PLN)',
+                      validation: (Rule) =>
+                        Rule.custom((value: number) => {
+                          if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
+                            return 'Cena musi być liczbą całkowitą'
+                          if (!!value && value < 1) return 'Cena musi być większa niż 0 PLN'
+                          return true
+                        }),
+                    },
+                  ],
+                },
+              ],
+            }),
+          ],
+        }),
+        defineField({
+          name: 'addonsList',
+          type: 'array',
+          title: 'Lista dodatków (opcjonalnie)',
+          description: 'Lista opcjonalnych dodatków, które można dodać do każdego zamówienia',
+          of: [
+            {
+              type: 'object',
+              validation: (Rule) => Rule.required().error('Dodatki do zamówienia są wymagane'),
+              fields: [
+                defineField({
+                  name: 'image',
+                  type: 'image',
+                  title: 'Zdjęcie',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'name',
+                  type: 'string',
+                  title: 'Nazwa dodatku',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'pricing',
+                  type: 'object',
+                  title: 'Cennik',
+                  validation: (Rule) => Rule.required().error('Cennik jest wymagany'),
+                  fields: [
+                    {
+                      name: 'type',
+                      type: 'string',
+                      title: 'Typ cennika',
+                      options: {
+                        list: [
+                          { title: 'Stała cena', value: 'fixed' },
+                          { title: 'Cena progowa', value: 'threshold' },
+                        ],
+                        layout: 'radio',
+                      },
+                      validation: (Rule) => Rule.required().error('Typ cennika jest wymagany'),
+                      initialValue: 'fixed',
+                    },
+                    {
+                      name: 'fixedPrice',
+                      type: 'number',
+                      title: 'Cena (PLN)',
+                      hidden: ({ parent }) => parent?.type !== 'fixed',
+                      validation: (Rule) =>
+                        Rule.custom((value, context) => {
+                          const parent = context.parent as any
+                          if (parent?.type === 'fixed') {
+                            if (!value) return 'Cena jest wymagana dla stałej ceny'
+                            if (typeof value !== 'number' || !Number.isInteger(value))
+                              return 'Cena musi być liczbą całkowitą'
+                            if (value < 1) return 'Cena musi być większa niż 0 PLN'
+                          }
+                          return true
+                        }),
+                    },
+                    {
+                      name: 'threshold',
+                      type: 'object',
+                      title: 'Cena progowa',
+                      options: {
+                        collapsible: false,
+                        collapsed: false,
+                      },
+                      hidden: ({ parent }) => parent?.type !== 'threshold',
+                      validation: (Rule) =>
+                        Rule.custom((value, context) => {
+                          const parent = context.parent as any
+                          const objValue = value as {
+                            basePrice: number
+                            maxUnits: number
+                            additionalPrice: number
+                            singular: string
+                          }
+                          if (
+                            parent?.type === 'threshold' &&
+                            (!objValue?.basePrice || !objValue?.maxUnits || !objValue?.additionalPrice)
+                          ) {
+                            return 'Wszystkie pola są wymagane dla ceny progowej'
+                          }
+                          return true
+                        }),
+                      fields: [
+                        {
+                          name: 'basePrice',
+                          type: 'number',
+                          title: 'Cena podstawowa (PLN)',
+                          validation: (Rule) =>
+                            Rule.custom((value: number) => {
+                              if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
+                                return 'Cena musi być liczbą całkowitą'
+                              if (!!value && value < 1) return 'Cena musi być większa niż 0 PLN'
+                              return true
+                            }),
+                        },
+                        {
+                          name: 'maxUnits',
+                          type: 'number',
+                          title: 'Maksymalna liczba osób w cenie podstawowej',
+                          validation: (Rule) =>
+                            Rule.custom((value: number) => {
+                              if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
+                                return 'Maksymalna liczba osób musi być liczbą całkowitą'
+                              if (!!value && value < 1) return 'Maksymalna liczba osób musi być większa niż 0'
+                              return true
+                            }),
+                        },
+                        {
+                          name: 'additionalPrice',
+                          type: 'number',
+                          title: 'Cena za każdą dodatkową osobę (PLN)',
+                          validation: (Rule) =>
+                            Rule.custom((value: number) => {
+                              if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
+                                return 'Cena musi być liczbą całkowitą'
+                              if (!!value && value < 1) return 'Cena musi być większa niż 0 PLN'
+                              return true
+                            }),
+                        },
+                      ],
+                    },
+                  ],
+                }),
+              ],
+            },
+          ],
+        }),
+      ],
+    }),
     defineField({
       name: 'seo',
       type: 'seo',

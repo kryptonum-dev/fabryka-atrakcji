@@ -6,12 +6,17 @@ import sanityFetch from '@/src/utils/sanity.fetch'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import ActivityTemplate from './ActivityTemplate.astro'
 import HotelTemplate from './HotelTemplate.astro'
+import ExtrasTemplate from './ExtrasTemplate.astro'
 import Button from '@/src/components/ui/Button'
 import Loader from '@/src/components/ui/Loader.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 import DatePicker from '@/src/components/ui/DatePicker.astro'
 import AlertTemplate from './AlertTemplate.astro'
+import { ImageDataQuery } from '@/src/components/ui/image'
+import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
+import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
+import AddressForm from '@/src/components/cart/form'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
@@ -24,6 +29,36 @@ export async function fetchData(lang: Language) {
       heading: PortableTextValue
       paragraph: PortableTextValue
     }
+    orderAddons: {
+      transportOptions: {
+        image: any
+        pricing: {
+          type: string
+          fixedPrice: number
+          threshold: {
+            basePrice: number
+            maxUnits: number
+            additionalPrice: number
+            singular: boolean
+          }
+        }
+      }
+      addonsList: Array<{
+        _key: string
+        name: string
+        image: any
+        pricing: {
+          type: string
+          fixedPrice: number
+          threshold: {
+            basePrice: number
+            maxUnits: number
+            additionalPrice: number
+            singular: boolean
+          }
+        }
+      }>
+    }
   }>({
     query: `
       *[_type == "Cart_Page" && language == $language][0] {
@@ -33,6 +68,36 @@ export async function fetchData(lang: Language) {
         noResults {
           ${PortableTextQuery('heading')}
           ${PortableTextQuery('paragraph')}
+        },
+        orderAddons {
+          transportOptions {
+            ${ImageDataQuery('image')}
+            pricing {
+              type,
+              fixedPrice,
+              threshold {
+                basePrice,
+                maxUnits,
+                additionalPrice,
+                singular,
+              },
+            },
+          },
+          addonsList[] {
+            _key,
+            name,
+            ${ImageDataQuery('image')}
+            pricing {
+              type,
+              fixedPrice,
+              threshold {
+                basePrice,
+                maxUnits,
+                additionalPrice,
+                singular,
+              },
+            },
+          },
         },
       }
     `,
@@ -76,11 +141,41 @@ const translations = {
     activitiesPrefix: '/pl/integracje/',
     people: 'osób',
     person: 'osoba',
+    to: 'do',
     from: 'od',
+    additionalPerson: 'Każda dodatkowa osoba',
+    currency: 'zł',
     perNight: 'zł/noc za osobę',
     max: 'Maks.',
     addons: 'Dobierz dodatki',
     editAddons: 'Edytuj dodatki',
+    transportAddonName: 'Transport',
+    selectAddon: 'Wybierz',
+    showMoreExtras: 'Zobacz wszystkie dodatki',
+    selectExtrasHeading: 'Wybierz dodatki',
+    confirmAddons: 'Zatwierdź wybór',
+    allAddons: 'Wszystkie <strong>dodatki</strong>',
+    addressForm: {
+      title: 'Edytuj adres',
+      street: 'Ulica i numer*',
+      streetPlaceholder: 'np. Kwiatowa 56/23b',
+      streetRequired: 'Ulica i numer są wymagane',
+      postal: 'Kod pocztowy*',
+      postalPlaceholder: '__ - ___',
+      postalRequired: 'Kod pocztowy jest wymagany',
+      postalPattern: 'Wprowadź kod w formacie: XX-XXX',
+      city: 'Miasto*',
+      cityRequired: 'Miasto jest wymagane',
+      submit: 'Zapisz adres',
+      editButton: 'Edytuj adres',
+    },
+    transportRemoval: {
+      title: 'Czy na pewno chcesz usunąć <strong>Transport</strong>?',
+      message: 'Usunięcie transportu spowoduje również usunięcie wprowadzonego adresu.',
+      confirm: 'Tak, usuń',
+      cancel: 'Anuluj',
+      successToast: 'Transport został usunięty',
+    },
     participantExceedsMaxAlert: {
       heading: 'Ten hotel jest maksymalnie dla <strong>{maxPeople}</strong> osób',
       paragraph: 'Możesz kontynuować wycenę albo zmienić hotel, który pomieści więcej osób.',
@@ -114,10 +209,40 @@ const translations = {
     people: 'people',
     person: 'person',
     from: 'from',
+    to: 'to',
+    currency: 'PLN',
+    additionalPerson: 'Each additional person',
     perNight: 'PLN/night per person',
     max: 'Max.',
     addons: 'Add add-ons',
     editAddons: 'Edit add-ons',
+    transportAddonName: 'Transport',
+    selectAddon: 'Select',
+    showMoreExtras: 'Show all extras',
+    selectExtrasHeading: 'Select extras',
+    confirmAddons: 'Confirm selection',
+    allAddons: 'All <strong>extras</strong>',
+    addressForm: {
+      title: 'Edit address',
+      street: 'Street and number*',
+      streetPlaceholder: 'e.g. Flower 56/23b',
+      streetRequired: 'Street and number are required',
+      postal: 'Postal code*',
+      postalPlaceholder: '__ - ___',
+      postalRequired: 'Postal code is required',
+      postalPattern: 'Enter code in the format: XX-XXX',
+      city: 'City*',
+      cityRequired: 'City is required',
+      submit: 'Save address',
+      editButton: 'Edit address',
+    },
+    transportRemoval: {
+      title: 'Are you sure you want to remove <strong>Transport</strong>?',
+      message: 'Removing transport will also remove the address you entered.',
+      confirm: 'Yes, remove',
+      cancel: 'Cancel',
+      successToast: 'Transport has been removed',
+    },
     participantExceedsMaxAlert: {
       heading: 'This hotel is maxed out for <strong>{maxPeople}</strong> people',
       paragraph: 'You can continue with the quote or change the hotel to one that can accommodate more people.',
@@ -211,7 +336,13 @@ const { metadata, page } = Astro.props
             <span class="title">{t.extrasHeading} <strong>{t.optional}</strong></span>
             <span class="count">0</span>
           </h2>
-          <ul class="list"></ul>
+          <ul class="list" data-addons-data={JSON.stringify(page.orderAddons)}></ul>
+          <div class="show-more-wrapper">
+            <Button className="show-more-extras" theme="secondary">
+              {t.showMoreExtras}{' '}
+              <strong>({page.orderAddons.addonsList.length + 1})</strong>
+            </Button>
+          </div>
         </div>
         <div class="actions">
           <Button>{t.getQuote.text}</Button>
@@ -233,8 +364,39 @@ const { metadata, page } = Astro.props
   <HotelTemplate />
   <ActivityTemplate />
   <AlertTemplate />
+  <ExtrasTemplate />
   <AddonsPopup type="hotels" addons={{ hasAddons: true, addonsList: [] }} />
   <RemoveConfirmation itemId="" itemType="hotels" hasAddons={false} lang={lang} itemName="" />
+  <PopupWindow>
+    <Button slot="open" data-popup-id="extras-popup" className="hidden-trigger" id="extras-popup-trigger">Open</Button>
+    <div slot="content" class="popup-content" data-popup-id="extras-popup-container">
+      <h2><Fragment set:html={t.allAddons} /></h2>
+      <CloseButton />
+      <ul class="extras-list"></ul>
+    </div>
+  </PopupWindow>
+
+  <PopupWindow>
+    <Button slot="open" className="hidden-trigger" id="transport-address-trigger">Open</Button>
+    <div slot="content" class="popup-content address-popup">
+      <h2>{t.addressForm.title}</h2>
+      <CloseButton />
+      <AddressForm client:idle translations={t.addressForm} />
+    </div>
+  </PopupWindow>
+
+  <PopupWindow>
+    <Button slot="open" className="hidden-trigger" id="transport-remove-trigger">Open</Button>
+    <div slot="content" class="popup-content removal-confirmation">
+      <h2><Fragment set:html={t.transportRemoval.title} /></h2>
+      <CloseButton />
+      <p>{t.transportRemoval.message}</p>
+      <div class="confirmation-actions">
+        <Button theme="primary" shade="light" className="cancel-transport-remove">{t.transportRemoval.cancel}</Button>
+        <Button theme="primary" shade="dark" className="confirm-transport-remove">{t.transportRemoval.confirm}</Button>
+      </div>
+    </div>
+  </PopupWindow>
 </Layout>
 
 <style lang="scss">
@@ -559,6 +721,35 @@ const { metadata, page } = Astro.props
           border-bottom: 2px solid var(--neutral-300, #ede6de);
         }
 
+        .extras {
+          .cart-heading {
+            margin-bottom: 0.75rem;
+          }
+          .list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+          }
+
+          .show-more-wrapper {
+            margin-top: clamp(0.5rem, calc(1vw / 0.48), 1rem);
+            display: flex;
+            justify-content: center;
+            :global(> button) {
+              :global(strong) {
+                color: var(--primary-400, #74535e);
+              }
+            }
+
+            :global(> button:hover),
+            :global(> button:focus) {
+              > :global(span) strong {
+                color: var(--neutral-100) !important;
+              }
+            }
+          }
+        }
+
         .actions {
           display: flex;
           flex-direction: column;
@@ -596,9 +787,140 @@ const { metadata, page } = Astro.props
       }
     }
   }
+
+  :global(.popup-content) {
+    padding: 2.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem;
+    max-width: 68rem;
+    :global(h2) {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+      align-self: center;
+      margin-top: 0.75rem;
+    }
+
+    :global(.CloseButton) {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+    }
+
+    :global(.extras-list) {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.25rem;
+      margin-top: 1rem;
+      grid-column: 1 / 3;
+      grid-row: 2 / 3;
+    }
+  }
+
+  :global(.hidden-trigger) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  :global(.address-popup) {
+    h2 {
+      margin-bottom: 1.5rem;
+    }
+
+    .address-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 30rem;
+
+      .input-fields-row {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 1rem;
+      }
+
+      .input-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        label {
+          font-size: var(--typography-body-s, 0.75rem);
+          color: var(--primary-800);
+        }
+
+        input {
+          min-height: 2.75rem;
+          padding: 0.625rem;
+          border: 1px solid var(--neutral-400);
+          border-radius: 0.25rem;
+          background: var(--neutral-100);
+
+          &:focus {
+            border-color: var(--primary-500);
+            outline: none;
+          }
+        }
+      }
+
+      :global(button[type='submit']) {
+        margin-top: 1rem;
+        align-self: flex-start;
+      }
+    }
+  }
+
+  :global(.removal-confirmation) {
+    padding: 2rem;
+    max-width: 36rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+
+    h2 {
+      margin-bottom: 1rem;
+      color: var(--primary-800);
+      font-size: var(--typography-body-xl, 1.125rem);
+      letter-spacing: -0.03em;
+      line-height: 1.55;
+
+      :global(strong) {
+        font-weight: 700;
+      }
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      font-size: var(--typography-body-m, 0.875rem);
+      line-height: 1.7;
+      letter-spacing: -0.01em;
+    }
+
+    .confirmation-actions {
+      display: flex;
+      gap: 1rem;
+
+      :global(button) {
+        flex: 1;
+      }
+    }
+
+    @media (max-width: 459px) {
+      .confirmation-actions {
+        flex-direction: column;
+      }
+    }
+  }
 </style>
 
 <script>
+  import type { Alert } from '@/src/global/types'
   import { cartStore } from '@/src/store/cart'
   import type { AddonItem } from '@/src/store/cart'
   import {
@@ -608,7 +930,8 @@ const { metadata, page } = Astro.props
     type ExtendedHotelData,
     type ExtendedActivityData,
   } from '@/src/utils/cart'
-  import type { Alert } from '@/src/global/types'
+  import { optimizeImage } from '@/src/utils/optimize-images'
+  import { showToast } from '@/src/utils/toast'
 
   const cartElement = document.querySelector('.Cart')
   const pageLang = cartElement?.getAttribute('data-lang') || 'pl'
@@ -795,6 +1118,685 @@ const { metadata, page } = Astro.props
     cartHeadingCount.textContent = `${hotels.length + activities.length}`
   }
 
+  // Function to rebuild the extras list in real-time
+  async function refreshExtrasList(): Promise<void> {
+    // Re-get everything from the beginning to ensure correct order
+    await loadCartExtras()
+  }
+
+  // Function to handle transport selection
+  async function handleTransportToggle(item: HTMLElement, isSelected: boolean) {
+    // isSelected is the target state - if true, we're adding transport, if false, we're removing it
+
+    // If removing transport (unchecking), show confirmation popup
+    if (!isSelected) {
+      // Open confirmation popup
+      const transportRemoveTrigger = document.getElementById('transport-remove-trigger')
+
+      // Store reference to the item to remove if confirmed
+      localStorage.setItem('pending_transport_removal', item.dataset.addonId || '')
+
+      // Open the popup
+      if (transportRemoveTrigger) {
+        transportRemoveTrigger.click()
+      }
+
+      // Don't remove yet - wait for confirmation
+      return false
+    }
+
+    // If adding transport (checking), open address popup
+    const transportTrigger = document.getElementById('transport-address-trigger')
+    if (transportTrigger) {
+      // Store current item reference for the form submission handler
+      localStorage.setItem('pending_transport_item', item.dataset.addonId || '')
+
+      transportTrigger.click()
+    }
+
+    // Don't select yet - this will happen after address submission
+    return false
+  }
+
+  // Setup transport removal confirmation
+  function setupTransportRemovalConfirmation() {
+    const confirmBtn = document.querySelector('.confirm-transport-remove')
+    const cancelBtn = document.querySelector('.cancel-transport-remove')
+    const closeBtn = document.querySelector('.removal-confirmation .CloseButton')
+    const translations = JSON.parse(document.querySelector('.Cart')?.getAttribute('data-translations') || '{}')
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        const pendingId = localStorage.getItem('pending_transport_removal')
+        if (pendingId) {
+          // Find the transport item
+          const transportItem = document.querySelector(`.extra-item[data-addon-id="${pendingId}"]`) as HTMLElement
+
+          if (transportItem) {
+            // Actually remove transport
+            toggleAddon(transportItem, false)
+
+            // Remove the address data from localStorage
+            localStorage.removeItem('transport_address')
+
+            // Show toast notification with translated message
+            showToast(translations.transportRemoval.successToast, 'success')
+          }
+
+          // Remove pending ID
+          localStorage.removeItem('pending_transport_removal')
+        }
+
+        // Close the popup
+        if (closeBtn && closeBtn instanceof HTMLElement) {
+          closeBtn.click()
+        }
+      })
+    }
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        // Reset any checkbox state that might have been visually changed
+        const pendingId = localStorage.getItem('pending_transport_removal')
+        if (pendingId) {
+          const transportItems = document.querySelectorAll(`.extra-item[data-addon-id="${pendingId}"]`)
+          transportItems.forEach((item) => {
+            const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement
+            if (checkbox) {
+              checkbox.checked = true
+            }
+            item.setAttribute('data-selected', 'true')
+          })
+
+          // Remove pending ID
+          localStorage.removeItem('pending_transport_removal')
+        }
+
+        // Close the popup
+        if (closeBtn && closeBtn instanceof HTMLElement) {
+          closeBtn.click()
+        }
+      })
+    }
+  }
+
+  // Function to update transport cards with address display
+  function updateTransportCardWithAddress() {
+    const transportItems = document.querySelectorAll('.extra-item[data-addon-id="transport"]')
+    const addressData = JSON.parse(localStorage.getItem('transport_address') || '{}')
+
+    transportItems.forEach((item) => {
+      // Remove existing address display if any
+      const existingAddress = item.querySelector('[data-address-display]')
+      if (existingAddress) existingAddress.remove()
+
+      // Only add address display if transport is selected and address exists
+      const isSelected = item.getAttribute('data-selected') === 'true'
+      if (!isSelected || Object.keys(addressData).length === 0) return
+
+      // Create address display
+      const addressDisplay = document.createElement('div')
+      addressDisplay.setAttribute('data-address-display', '')
+
+      const addressText = document.createElement('p')
+      addressText.setAttribute('data-address-text', '')
+      addressText.innerHTML = `
+        <span>${addressData.street}, ${addressData.city}, (${addressData.postal})</span>
+      `
+
+      const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 17" fill="none"
+              ><path
+                fill="#F67258"
+                d="M14.128 2.205a1.835 1.835 0 0 1 0 2.596l-.33.33a3.074 3.074 0 0 1-.356-.1 3.46 3.46 0 0 1-1.312-.828 3.46 3.46 0 0 1-.827-1.312 3.09 3.09 0 0 1-.1-.355l.33-.33a1.835 1.835 0 0 1 2.595 0ZM9.719 9.21c-.27.27-.404.404-.553.52a3.058 3.058 0 0 1-.565.349c-.17.081-.35.141-.712.262l-1.906.635a.495.495 0 0 1-.626-.626l.636-1.906c.12-.361.18-.542.261-.712.096-.2.213-.39.35-.565.115-.148.25-.283.52-.552L10.4 3.337a4.467 4.467 0 0 0 1.022 1.573c.538.538 1.11.847 1.573 1.022L9.72 9.21Z"
+              ></path><path
+                fill="#F67258"
+                d="M13.69 14.025c.975-.976.975-2.548.975-5.69 0-1.033 0-1.895-.034-2.623l-4.242 4.241c-.234.235-.41.41-.608.565a4.057 4.057 0 0 1-.75.464c-.226.108-.463.186-.777.291l-1.954.652a1.495 1.495 0 0 1-1.891-1.891l.651-1.955c.105-.314.184-.55.292-.777.126-.266.282-.517.463-.75.155-.198.33-.374.565-.608l4.241-4.241c-.727-.035-1.59-.035-2.622-.035-3.143 0-4.714 0-5.69.976-.977.977-.977 2.548-.977 5.69 0 3.143 0 4.715.976 5.691.977.976 2.548.976 5.69.976 3.143 0 4.715 0 5.691-.976Z"
+              ></path></svg
+            >`
+
+      const editButton = document.createElement('button')
+      editButton.setAttribute('data-edit-address-button', '')
+      editButton.innerHTML = `<div>${editIcon} ${editIcon}</div>  <span>${t.addressForm.editButton}</span>`
+      editButton.addEventListener('click', (e) => {
+        e.stopPropagation()
+        // Open popup to edit address
+        document.getElementById('transport-address-trigger')?.click()
+      })
+
+      // Add edit button first, then address text
+      addressDisplay.appendChild(editButton)
+      addressDisplay.appendChild(addressText)
+
+      // Add to item after price info
+      item.appendChild(addressDisplay)
+    })
+  }
+
+  // Listen for the custom event from the React form
+  document.addEventListener('address-form-submitted', (event: Event) => {
+    const customEvent = event as CustomEvent
+    const data = customEvent.detail?.data
+
+    console.log('Address form submitted with data:', data)
+
+    if (!data) return
+
+    // Get pending transport item and select it
+    const pendingItemId = localStorage.getItem('pending_transport_item')
+    if (pendingItemId) {
+      const transportItem = document.querySelector(`.extra-item[data-addon-id="${pendingItemId}"]`) as HTMLElement
+      if (transportItem) {
+        toggleAddon(transportItem, true)
+      }
+      localStorage.removeItem('pending_transport_item')
+    }
+
+    // Update transport card to show address with delay
+    setTimeout(() => {
+      updateTransportCardWithAddress()
+    }, 200)
+  })
+
+  // Setup address form events
+  function setupAddressForm() {
+    // No need to do anything here as the React component handles everything
+  }
+
+  // Initialize document event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    // First initialize the participant input to ensure it has the correct value from localStorage
+    initParticipantInput()
+
+    // Setup address form
+    setupAddressForm()
+
+    // Setup extras popup events
+    setupExtrasPopupEvents()
+
+    // Setup transport removal confirmation
+    setupTransportRemovalConfirmation()
+
+    // Then load cart items and update alerts after everything is loaded
+    loadCartItems().then(() => {
+      // Give the DOM a moment to update before checking alerts
+      setTimeout(() => {
+        updateParticipantAlerts()
+        // Update transport cards with address if needed
+        updateTransportCardWithAddress()
+      }, 100)
+    })
+  })
+
+  // Function to open addons popup
+  async function openAddonsPopup(sortedAddons: Array<{ _key: string; name: string; image: any; pricing: any }>) {
+    const popupTrigger = document.getElementById('extras-popup-trigger')! as HTMLButtonElement | null
+    const extrasList = document.querySelector('.extras-list')! as HTMLElement
+
+    // Clear content
+    extrasList.innerHTML = ''
+
+    // Get the latest addon selections from localStorage
+    const currentSelectedAddons: Array<{ id: string; count?: number }> = JSON.parse(
+      localStorage.getItem('cart_order_addons') || '[]'
+    )
+
+    // Instead of creating new elements, clone the existing ones from the main list
+    for (const addon of sortedAddons) {
+      // Find existing element in the main list
+      const existingElement = document.querySelector(`.extra-item[data-addon-id="${addon._key}"]`) as HTMLElement
+
+      if (existingElement) {
+        // Clone the existing element without event listeners
+        const clonedElement = existingElement.cloneNode(true) as HTMLElement
+
+        // Update selected state if needed
+        const isSelected = currentSelectedAddons.some((item) => item.id === addon._key)
+        const checkboxElem = clonedElement.querySelector('input[type="checkbox"]') as HTMLInputElement
+        if (checkboxElem) {
+          checkboxElem.checked = isSelected
+        }
+        clonedElement.dataset.selected = isSelected.toString()
+        clonedElement.dataset.inPopup = 'true'
+
+        extrasList.appendChild(clonedElement)
+      } else {
+        // If element doesn't exist yet (not in initial 6), create a new one
+        const newIsSelected = currentSelectedAddons.some((item) => item.id === addon._key)
+        const extraElement = await renderExtra(addon, newIsSelected, true)
+        if (extraElement) {
+          extrasList.appendChild(extraElement)
+        }
+      }
+    }
+
+    // Trigger the popup
+    popupTrigger?.click()
+  }
+
+  // Modify renderExtra to handle transport special case - Fix address display insertion
+  async function renderExtra(
+    extra: {
+      _key: string
+      name: string
+      image: any
+      pricing: {
+        type: string
+        fixedPrice?: number
+        threshold?: {
+          basePrice: number
+          maxUnits: number
+          additionalPrice: number
+          singular: string
+        }
+      }
+    },
+    isSelected: boolean = false,
+    inPopup: boolean = false
+  ): Promise<HTMLElement | null> {
+    const templateElement = document.getElementById('extras-template') as HTMLTemplateElement | null
+    if (!templateElement) return null
+
+    const clone = templateElement.content.cloneNode(true) as DocumentFragment
+    const item = clone.querySelector('.extra-item') as HTMLElement
+    if (inPopup) {
+      item.dataset.inPopup = 'true'
+    }
+
+    // Set data attributes
+    item.dataset.addonId = extra._key
+    item.dataset.selected = isSelected.toString()
+
+    // Setup image
+    if (extra.image) {
+      const imgWrapper = item.querySelector('.img-wrapper')!
+      const optimizedImage = await optimizeImage({
+        image: extra.image.asset.url,
+        width: extra.image.asset.metadata.dimensions.width,
+        height: extra.image.asset.metadata.dimensions.height,
+      })
+
+      const img = document.createElement('img')
+      img.src = optimizedImage.src
+      img.srcset = optimizedImage.srcSet.attribute
+      img.sizes = ''
+      img.alt = extra.name
+      img.loading = 'lazy'
+      imgWrapper.appendChild(img)
+    }
+
+    // Set name and price
+    const nameElement = item.querySelector('.name')!
+    nameElement.textContent = extra.name
+
+    const priceElement = item.querySelector('.price')!
+    const priceDetailsElement = item.querySelector('.price-details')!
+
+    const plusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="13" fill="none"><path stroke="#F67258" stroke-linecap="round" d="M9 6.963H6m0 0H3m3 0v-3m0 3v3"/></svg>`
+
+    // Handle different pricing types
+    if (extra.pricing.type === 'fixed' && extra.pricing.fixedPrice) {
+      priceElement.innerHTML = `<strong>${extra.pricing.fixedPrice} ${t.currency}</strong>`
+      priceDetailsElement.textContent = ''
+    } else if (extra.pricing.type === 'threshold' && extra.pricing.threshold) {
+      const { basePrice, maxUnits, additionalPrice } = extra.pricing.threshold
+      priceElement.innerHTML = `<strong>${t.from} ${basePrice} ${t.currency}</strong><span>/ ${t.to} ${maxUnits} ${t.people}</span>`
+      priceDetailsElement.innerHTML = `${plusIcon} <span>${t.additionalPerson}</span><strong>${additionalPrice} ${t.currency}</strong>`
+    }
+
+    // Setup checkbox
+    const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement
+    if (checkbox) {
+      checkbox.checked = isSelected
+
+      // Add event listeners only if not in popup
+      if (!inPopup) {
+        // Special handling for transport
+        if (extra._key === 'transport') {
+          checkbox.addEventListener('change', async (e) => {
+            e.stopPropagation()
+            e.preventDefault() // Prevent default to handle manually
+
+            // Determine the target state - if checkbox is currently checked, we want to uncheck (remove)
+            // If it's unchecked, we want to check (add)
+            const targetState = checkbox.checked
+            await handleTransportToggle(item, targetState)
+          })
+
+          item.addEventListener('click', async (e) => {
+            if (e.target === checkbox || (checkbox && checkbox.contains(e.target as Node))) {
+              return
+            }
+            e.preventDefault()
+
+            // Toggle from current state - if item is selected, the target state is unselected
+            const currentState = item.dataset.selected === 'true'
+            await handleTransportToggle(item, !currentState)
+          })
+
+          item.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+
+              // Toggle from current state
+              const currentState = item.dataset.selected === 'true'
+              await handleTransportToggle(item, !currentState)
+            }
+          })
+        } else {
+          // Regular addons
+          checkbox.addEventListener('change', async (e) => {
+            e.stopPropagation()
+            await toggleAddon(item, checkbox.checked)
+          })
+
+          item.addEventListener('click', async (e) => {
+            if (e.target === checkbox || (checkbox && checkbox.contains(e.target as Node))) {
+              return
+            }
+            checkbox.checked = !checkbox.checked
+            await toggleAddon(item, checkbox.checked)
+          })
+
+          item.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              checkbox.checked = !checkbox.checked
+              await toggleAddon(item, checkbox.checked)
+            }
+          })
+        }
+      }
+    }
+
+    // If it's a transport item and is selected, add address display
+    if (extra._key === 'transport' && isSelected) {
+      const addressData = JSON.parse(localStorage.getItem('transport_address') || '{}')
+      if (Object.keys(addressData).length > 0) {
+        // Create address display
+        const addressDisplay = document.createElement('div')
+        addressDisplay.setAttribute('data-address-display', '')
+
+        const addressText = document.createElement('p')
+        addressText.setAttribute('data-address-text', '')
+        addressText.innerHTML = `
+          <span>${addressData.street}, ${addressData.city}, (${addressData.postal})</span>
+        `
+
+        const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 17" fill="none"
+              ><path
+                fill="#F67258"
+                d="M14.128 2.205a1.835 1.835 0 0 1 0 2.596l-.33.33a3.074 3.074 0 0 1-.356-.1 3.46 3.46 0 0 1-1.312-.828 3.46 3.46 0 0 1-.827-1.312 3.09 3.09 0 0 1-.1-.355l.33-.33a1.835 1.835 0 0 1 2.595 0ZM9.719 9.21c-.27.27-.404.404-.553.52a3.058 3.058 0 0 1-.565.349c-.17.081-.35.141-.712.262l-1.906.635a.495.495 0 0 1-.626-.626l.636-1.906c.12-.361.18-.542.261-.712.096-.2.213-.39.35-.565.115-.148.25-.283.52-.552L10.4 3.337a4.467 4.467 0 0 0 1.022 1.573c.538.538 1.11.847 1.573 1.022L9.72 9.21Z"
+              ></path><path
+                fill="#F67258"
+                d="M13.69 14.025c.975-.976.975-2.548.975-5.69 0-1.033 0-1.895-.034-2.623l-4.242 4.241c-.234.235-.41.41-.608.565a4.057 4.057 0 0 1-.75.464c-.226.108-.463.186-.777.291l-1.954.652a1.495 1.495 0 0 1-1.891-1.891l.651-1.955c.105-.314.184-.55.292-.777.126-.266.282-.517.463-.75.155-.198.33-.374.565-.608l4.241-4.241c-.727-.035-1.59-.035-2.622-.035-3.143 0-4.714 0-5.69.976-.977.977-.977 2.548-.977 5.69 0 3.143 0 4.715.976 5.691.977.976 2.548.976 5.69.976 3.143 0 4.715 0 5.691-.976Z"
+              ></path></svg
+            >`
+
+        const editButton = document.createElement('button')
+        editButton.setAttribute('data-edit-address-button', '')
+        editButton.innerHTML = `<div>${editIcon} ${editIcon}</div>  <span>${t.addressForm.editButton}</span>`
+        editButton.addEventListener('click', (e) => {
+          e.stopPropagation()
+          // Open popup to edit address
+          document.getElementById('transport-address-trigger')?.click()
+        })
+
+        // Add edit button first, then address text
+        addressDisplay.appendChild(editButton)
+        addressDisplay.appendChild(addressText)
+
+        // Add to item after price info
+        item.appendChild(addressDisplay)
+      }
+    }
+
+    return item
+  }
+
+  // Modify extras popup handling for transport items
+  function setupExtrasPopupEvents() {
+    const extrasList = document.querySelector('.extras-list')
+    if (!extrasList) return
+
+    extrasList.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement
+      const addonItem = target.closest('.extra-item') as HTMLElement
+
+      if (!addonItem) return
+
+      // Special handling for transport in popup
+      if (addonItem.dataset.inPopup === 'true' && addonItem.dataset.addonId === 'transport') {
+        e.preventDefault()
+        e.stopPropagation()
+
+        // Close extras popup first
+        const closeButton = document.querySelector(
+          '.popup-content[data-popup-id="extras-popup-container"] .CloseButton'
+        )
+        if (closeButton) {
+          closeButton.dispatchEvent(new Event('click'))
+        }
+
+        // Then handle transport toggle
+        setTimeout(() => {
+          const isCurrentlySelected = addonItem.dataset.selected === 'true'
+          // If currently selected, we want to remove it. If not selected, we want to add it.
+          handleTransportToggle(addonItem, !isCurrentlySelected)
+        }, 100) // Small delay to ensure extras popup closes first
+
+        return
+      }
+    })
+  }
+
+  // Modified toggleAddon to update transport address display
+  async function toggleAddon(item: HTMLElement, isSelected: boolean) {
+    // Update data attribute
+    item.dataset.selected = isSelected.toString()
+
+    // Get addon ID
+    const addonId = item.dataset.addonId
+    if (!addonId) return
+
+    // Update the checkbox to match the selected state
+    const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement
+    if (checkbox) {
+      checkbox.checked = isSelected
+    }
+
+    // Update localStorage
+    updateOrderAddons(addonId, isSelected)
+
+    // Find and update all instances of this addon (both in main list and popup)
+    document.querySelectorAll(`.extra-item[data-addon-id="${addonId}"]`).forEach((element) => {
+      element.setAttribute('data-selected', isSelected.toString())
+      const elementCheckbox = element.querySelector('input[type="checkbox"]') as HTMLInputElement
+      if (elementCheckbox) {
+        elementCheckbox.checked = isSelected
+      }
+    })
+
+    // Update show more button visibility
+    const showMoreWrapper = document.querySelector('.show-more-wrapper') as HTMLElement
+    if (showMoreWrapper) {
+      const allAddons = document.querySelectorAll('.extras .list .extra-item')
+      const selectedAddons = document.querySelectorAll('.extras .list .extra-item[data-selected="true"]')
+
+      // Show the button if not all addons are selected
+      if (selectedAddons.length < allAddons.length) {
+        showMoreWrapper.style.display = 'flex'
+      } else {
+        showMoreWrapper.style.display = 'none'
+      }
+    }
+
+    // Special handling for transport
+    if (addonId === 'transport') {
+      // If deselecting, remove address from localStorage
+      if (!isSelected) {
+        localStorage.removeItem('transport_address')
+      }
+
+      // Update address display for transport with a delay to ensure the DOM is ready
+      setTimeout(() => {
+        updateTransportCardWithAddress()
+      }, 100)
+    }
+
+    // Completely rebuild the addon list to ensure correct order
+    await refreshExtrasList()
+  }
+
+  // Function to update order addons in localStorage
+  function updateOrderAddons(addonId: string, isSelected: boolean): void {
+    let orderAddons: Array<{ id: string; count?: number }> = JSON.parse(
+      localStorage.getItem('cart_order_addons') || '[]'
+    )
+
+    if (isSelected) {
+      // Add if not already in the list
+      if (!orderAddons.some((addon) => addon.id === addonId)) {
+        orderAddons.push({ id: addonId, count: 1 })
+      }
+    } else {
+      // Remove if in the list
+      orderAddons = orderAddons.filter((addon) => addon.id !== addonId)
+    }
+
+    localStorage.setItem('cart_order_addons', JSON.stringify(orderAddons))
+
+    // Update count displayed
+    updateExtrasCount()
+
+    // Dispatch event for other components that might need to know
+    document.dispatchEvent(
+      new CustomEvent('order-addons-updated', {
+        detail: { addons: orderAddons },
+      })
+    )
+  }
+
+  // Function to update the extras count display
+  function updateExtrasCount(): void {
+    const orderAddons = JSON.parse(localStorage.getItem('cart_order_addons') || '[]')
+    const countElement = document.querySelector('.extras .count')
+    if (countElement) {
+      // Transport is no longer automatically included
+      countElement.textContent = orderAddons.length.toString()
+    }
+  }
+
+  // Function to load cart extras
+  async function loadCartExtras() {
+    const extrasList = document.querySelector('.extras .list')
+    if (!extrasList) return
+
+    // Get extras data
+    const extrasData = JSON.parse(extrasList.getAttribute('data-addons-data') || '{}')
+    const orderAddons: Array<{ id: string; count?: number }> = JSON.parse(
+      localStorage.getItem('cart_order_addons') || '[]'
+    )
+
+    // Clear list first
+    extrasList.innerHTML = ''
+
+    // Prepare arrays for selected and unselected addons
+    const selectedAddons: Array<{ _key: string; name: string; image: any; pricing: any }> = []
+    const unselectedAddons: Array<{ _key: string; name: string; image: any; pricing: any }> = []
+
+    // Create a combined list of all addons
+    const allAddons: Array<{
+      _key: string
+      name: string
+      image: any
+      pricing: {
+        type: string
+        fixedPrice?: number
+        threshold?: {
+          basePrice: number
+          maxUnits: number
+          additionalPrice: number
+          singular: string
+        }
+      }
+    }> = []
+
+    // Add transport option
+    if (extrasData.transportOptions) {
+      allAddons.push({
+        _key: 'transport',
+        name: t.transportAddonName,
+        image: extrasData.transportOptions.image,
+        pricing: extrasData.transportOptions.pricing,
+      })
+    }
+
+    // Add regular addons from Sanity
+    if (extrasData.addonsList && Array.isArray(extrasData.addonsList)) {
+      allAddons.push(...extrasData.addonsList)
+    }
+
+    // Now sort addons into selected and unselected groups
+    allAddons.forEach((addon) => {
+      const isSelected = orderAddons.some((item) => item.id === addon._key)
+      if (isSelected) {
+        selectedAddons.push(addon)
+      } else {
+        unselectedAddons.push(addon)
+      }
+    })
+
+    // First render ALL selected addons
+    for (const addon of selectedAddons) {
+      const extraElement = await renderExtra(addon, true)
+      if (extraElement) {
+        extrasList.appendChild(extraElement)
+      }
+    }
+
+    // Calculate how many unselected addons to show initially
+    // Show up to 6 total items in the initial view
+    const maxInitialAddons = 6
+    const remainingSlots = Math.max(0, maxInitialAddons - selectedAddons.length)
+
+    // Then show some unselected addons (limited number)
+    const visibleUnselectedAddons = unselectedAddons.slice(0, remainingSlots)
+    const hiddenAddons = unselectedAddons.slice(remainingSlots)
+
+    // Render visible unselected addons
+    for (const addon of visibleUnselectedAddons) {
+      const extraElement = await renderExtra(addon, false)
+      if (extraElement) {
+        extrasList.appendChild(extraElement)
+      }
+    }
+
+    // Combine all addons for the popup, with selected first
+    const sortedAddons = [...selectedAddons, ...unselectedAddons]
+
+    // Setup show more button
+    const showMoreButton = document.querySelector('.show-more-extras')
+    if (showMoreButton) {
+      showMoreButton.setAttribute('data-hidden-addons', JSON.stringify(hiddenAddons))
+
+      // Hide button if no more addons to show
+      const showMoreWrapper = document.querySelector('.show-more-wrapper')
+      if (showMoreWrapper && hiddenAddons.length === 0) {
+        if (showMoreWrapper instanceof HTMLElement) {
+          showMoreWrapper.style.display = 'none'
+        }
+      }
+
+      // Setup click event
+      showMoreButton.addEventListener('click', () => {
+        openAddonsPopup(sortedAddons)
+      })
+    }
+
+    // Update count display
+    updateExtrasCount()
+  }
+
   // Main function to load cart items
   async function loadCartItems() {
     const cartLoader = document.querySelector('[data-loader]')! as HTMLDivElement
@@ -878,6 +1880,9 @@ const { metadata, page } = Astro.props
 
       // Render the cart items
       renderCartItems(validHotels, validActivities)
+
+      // Load extras
+      loadCartExtras()
     } catch (error) {
       console.error('Error loading cart items:', error)
       cartLoader.style.display = 'none'
@@ -986,19 +1991,5 @@ const { metadata, page } = Astro.props
         }
       }
     }
-  })
-
-  // Initialize cart loading when DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
-    // First initialize the participant input to ensure it has the correct value from localStorage
-    initParticipantInput()
-
-    // Then load cart items and update alerts after everything is loaded
-    loadCartItems().then(() => {
-      // Give the DOM a moment to update before checking alerts
-      setTimeout(() => {
-        updateParticipantAlerts()
-      }, 100)
-    })
   })
 </script>

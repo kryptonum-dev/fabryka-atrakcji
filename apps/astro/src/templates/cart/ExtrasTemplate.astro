@@ -1,0 +1,310 @@
+<template id="extras-template">
+  <li class="extra-item">
+    <label class="toggle-addon" tabindex="0">
+      <input type="checkbox" tabindex="-1" class="checkbox-input" />
+      <div class="img-wrapper"></div>
+      <h3 class="name"></h3>
+      <div class="price-info">
+        <p class="price"></p>
+        <p class="price-details"></p>
+      </div>
+      <span class="checkbox">
+        <svg class="check" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path
+            d="M10 3L4.5 8.5L2 6"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </span>
+    </label>
+  </li>
+</template>
+
+<style lang="scss">
+  .extra-item {
+    background-color: var(--neutral-100, #faf7f7);
+    border-radius: 0.375rem;
+    border: 1px solid var(--neutral-300, #ede6de);
+    overflow: hidden;
+
+    .toggle-addon {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      cursor: pointer;
+      width: 100%;
+
+      &:focus-visible {
+        outline: 2px solid var(--primary-500, #74535e);
+        outline-offset: 2px;
+      }
+
+      .checkbox-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .img-wrapper {
+        aspect-ratio: 264/175.96;
+        width: 100%;
+        grid-column: 1 / 3;
+        grid-row: 1 / 2;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        :global(img) {
+          width: 100%;
+          height: 100%;
+          transition: transform 300ms var(--easing);
+        }
+      }
+
+      .name {
+        font-size: var(--typography-body-m, 0.875rem);
+        font-weight: 700;
+        color: var(--primary-800, #45051c);
+        margin-bottom: 0.25rem;
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        margin-left: 1.625rem;
+        line-height: 1.7;
+        letter-spacing: -0.03em;
+      }
+
+      .price-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.125rem;
+        grid-column: 1 / 3;
+        grid-row: 3 / 4;
+        margin: 0.75rem 1.625rem 1rem;
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+        font-size: var(--typography-body-m, 0.875rem);
+
+        :global(strong) {
+          color: var(--primary-800, #45051c);
+        }
+
+        .price {
+          :global(strong) {
+            font-size: var(--typography-body-xl, 1.125rem);
+            letter-spacing: -0.03em;
+            line-height: 1.5;
+          }
+        }
+
+        .price-details {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.125rem;
+
+          :global(svg) {
+            flex-shrink: 0;
+            margin-top: 5px;
+          }
+        }
+      }
+
+      .checkbox {
+        width: 1rem;
+        height: 1rem;
+        border: 1px solid var(--primary-400);
+        border-radius: 0.25rem;
+        display: grid;
+        place-items: center;
+        transition:
+          background-color 200ms,
+          border-color 200ms;
+        position: relative;
+        overflow: hidden;
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+        margin-right: 1.625rem;
+        margin-top: 0.325rem;
+        z-index: 2;
+
+        .check {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          z-index: 2;
+          transform: scale(0.8);
+          transition:
+            opacity 200ms,
+            transform 200ms;
+          color: var(--neutral-100, #faf7f7);
+          width: 100%;
+          height: 100%;
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-color: var(--primary-300);
+          transform: scaleY(0);
+          transform-origin: bottom;
+          transition: transform 350ms var(--easing);
+        }
+      }
+
+      &:hover {
+        .img-wrapper :global(img) {
+          transform: scale(1.2) rotate(7deg);
+        }
+        .checkbox {
+          &::after {
+            transform: scaleY(1);
+            background-color: var(--neutral-300);
+          }
+        }
+      }
+
+      &:has(.toggle-addon:focus-visible) {
+        outline: 2px solid var(--primary-800);
+        outline-offset: 2px;
+      }
+
+      .checkbox-input:checked ~ .checkbox {
+        background-color: var(--primary-500, #74535e);
+        border-color: var(--primary-500, #74535e);
+
+        .check {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        &::after {
+          transform: scaleY(1);
+          background-color: var(--primary-500);
+        }
+      }
+    }
+
+    &[data-in-popup] {
+      .toggle-addon {
+        .name {
+          margin-left: 1rem;
+        }
+
+        .price-info {
+          margin: 0.75rem 1rem 1rem;
+        }
+
+        .checkbox {
+          margin-right: 1rem;
+        }
+      }
+    }
+
+    :global([data-address-display]) {
+      padding: 0 1.625rem 1rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+      margin-top: -1rem;
+
+      :global([data-edit-address-button]) {
+        min-height: 2.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-800, #45051c);
+        font-size: var(--typography-body-m, 0.875rem);
+        font-weight: 700;
+        position: relative;
+        line-height: 1.7;
+        isolation: isolate;
+        border-radius: 0.25rem;
+        margin-left: -0.375rem;
+
+        &::before {
+          content: '';
+          position: absolute;
+          inset: 0 -6px;
+          z-index: -1;
+          background: var(--neutral-300, #ede6de);
+          transform: scale(0);
+          transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.05);
+          border-radius: inherit;
+        }
+
+        :global(div) {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 1.5rem;
+          height: 1.5rem;
+          position: relative;
+          overflow: hidden;
+
+          :global(svg) {
+            transition: transform 400ms var(--easing);
+            width: 1rem;
+            height: 1rem;
+            &:nth-of-type(2) {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform-origin: bottom;
+              transform: translate(-150%, -50%) rotate(-60deg) scale(0.7);
+            }
+          }
+        }
+
+        :global(span) {
+          transition: transform 300ms var(--easing);
+        }
+
+        &:hover {
+          :global(div) {
+            :global(svg) {
+              &:nth-of-type(1) {
+                transform: translateX(150%) rotate(60deg) scale(0.7);
+              }
+              &:nth-of-type(2) {
+                transform: translate(-50%, -50%);
+                transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+              }
+            }
+          }
+
+          :global(span) {
+            transform: translateX(-2px);
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          &::before {
+            transform: scale(1);
+          }
+        }
+      }
+
+      :global([data-address-text]) {
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+      }
+    }
+
+    &[data-in-popup] {
+      :global([data-address-display]) {
+        margin: 0 1rem 1rem;
+      }
+    }
+  }
+</style>
