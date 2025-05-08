@@ -146,7 +146,7 @@
       flex-direction: column;
       align-items: flex-start;
       margin-right: 0.5rem;
-      min-width: 16rem;
+      max-width: 18rem;
 
       .stars {
         display: flex;
@@ -164,11 +164,16 @@
         margin-bottom: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
         max-width: 18rem;
         transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
         &:hover {
           transform: translateX(2px);
         }
         &:focus:not(:focus-visible) {
-          transform: translateX(2);
+          transform: translateX(2px);
         }
       }
 
@@ -205,6 +210,7 @@
 
     .actions {
       display: flex;
+      max-width: 18rem;
       flex-direction: column;
       align-items: flex-end;
       padding: 0.5rem 0.25rem;
@@ -395,22 +401,104 @@
         transform: scale(1.25) rotate(0deg);
       }
     }
-  }
 
-  @media (max-width: 47.9375rem) {
-    .hotel-item {
+    @media (max-width: 789px) {
       .main-content {
+        grid-template-columns: auto 1fr;
+        padding: 0;
+
+        .img-wrapper {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+          width: 176px;
+          height: 100%;
+          padding: 0.25rem 1rem 0.25rem 0.25rem;
+          margin-right: 0;
+        }
+
+        .content {
+          grid-column: 2 / 3;
+          grid-row: 1 / 2;
+          padding: 0.25rem 0.25rem 0.25rem 0;
+
+          .details {
+            display: flex;
+            flex-wrap: wrap;
+
+            max-width: 25.5rem;
+          }
+        }
+
+        .actions {
+          grid-column: 1 / 3;
+          border-top: 1px solid var(--neutral-300, #ede6de);
+
+          margin-top: 0.5rem;
+          width: 100%;
+          max-width: 100%;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          justify-content: space-between;
+          grid-row: 2 / 3;
+          padding: 0 0.75rem 0.5rem;
+
+          .addon-list {
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+            justify-content: flex-start;
+            padding-right: 2rem;
+          }
+
+          .addons {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+          }
+
+          .remove {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 439px) {
+      .main-content {
+        display: flex;
         flex-direction: column;
-      }
+        padding: 0.75rem;
 
-      .img-wrapper {
-        flex: 0;
-        height: 10rem;
-      }
+        border-radius: 0.25rem;
 
-      .actions {
-        flex-direction: row;
-        padding-top: 0;
+        .img-wrapper {
+          width: 100%;
+          aspect-ratio: 328/219;
+          height: auto;
+          padding: 0;
+          max-width: 100%;
+          max-height: 100%;
+          border-radius: 0.25rem;
+          margin-bottom: 0.75rem;
+        }
+
+        .content {
+          margin: 0;
+          max-width: 100%;
+
+          .stars {
+            opacity: 0;
+            position: absolute;
+          }
+
+          .details {
+            max-width: 100%;
+            width: 100%;
+          }
+        }
+        .actions {
+          padding: 0;
+          margin-bottom: 0.125rem;
+        }
       }
     }
   }

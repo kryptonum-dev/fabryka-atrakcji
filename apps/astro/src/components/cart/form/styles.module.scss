@@ -111,6 +111,13 @@
       visibility: visible;
       transform: translateY(0);
     }
+
+    @media (max-width: 739px) {
+      &::after {
+        top: calc(100% + 0.5rem);
+        bottom: unset;
+      }
+    }
   }
 
   .row {
@@ -211,7 +218,7 @@
 
     .mapContainer {
       width: 100%;
-      height: 20rem;
+      height: clamp(14rem, calc(14vw / 0.48), 20rem);
       border-radius: 0.5rem;
       margin-bottom: 1rem;
       border: 1px solid var(--neutral-300, #ede6de);
@@ -272,6 +279,10 @@
           }
         }
       }
+    }
+    @media (max-width: 739px) {
+      top: unset;
+      bottom: 100%;
     }
   }
 }
