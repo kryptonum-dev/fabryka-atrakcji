@@ -8,7 +8,6 @@ import ActivityTemplate from './ActivityTemplate.astro'
 import HotelTemplate from './HotelTemplate.astro'
 import ExtrasTemplate from './ExtrasTemplate.astro'
 import Button from '@/src/components/ui/Button'
-import Loader from '@/src/components/ui/Loader.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 import DatePicker from '@/src/components/ui/DatePicker.astro'
@@ -17,6 +16,7 @@ import Image, { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/
 import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
 import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
 import AddressForm from '@/src/components/cart/form'
+import SkeletonLoader from '@/src/components/cart/SkeletonLoader.astro'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
@@ -26,6 +26,10 @@ export async function fetchData(lang: Language) {
     slug: string
     infoParagraph: PortableTextValue
     noResults: {
+      heading: PortableTextValue
+      paragraph: PortableTextValue
+    }
+    errorState: {
       heading: PortableTextValue
       paragraph: PortableTextValue
     }
@@ -66,6 +70,10 @@ export async function fetchData(lang: Language) {
         "slug": slug.current,
         ${PortableTextQuery('infoParagraph')}
         noResults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+        errorState {
           ${PortableTextQuery('heading')}
           ${PortableTextQuery('paragraph')}
         },
@@ -155,6 +163,20 @@ const translations = {
     selectExtrasHeading: 'Wybierz dodatki',
     confirmAddons: 'Zatwierdź wybór',
     allAddons: 'Wszystkie <strong>dodatki</strong>',
+    emptySection: {
+      hotels: {
+        heading: 'Nie wybrałeś jeszcze <strong>żadnego hotelu</strong>',
+        paragraph:
+          'Jeśli potrzebujerz dobrać <strong>hotel do wybranych integracji</strong>, wybierz hotel z naszej oferty klikając w przycisk poniżej.',
+        button: 'Przeglądaj hotele',
+      },
+      activities: {
+        heading: 'Nie wybrałeś jeszcze <strong>żadnych integracji</strong>',
+        paragraph:
+          'Jeśli potrzebujerz dobrać <strong>integracje do wybranych hoteli</strong>, wybierz integracje z naszej oferty klikając w przycisk poniżej.',
+        button: 'Przeglądaj integracje',
+      },
+    },
     addressForm: {
       transportName: 'Transport',
       formHeading: 'Skąd was odebrać?',
@@ -177,7 +199,7 @@ const translations = {
       mapTooltip: 'Otwórz mapę, aby wybrać lokalizację',
     },
     transportRemoval: {
-      title: 'Czy na pewno chcesz usunąć <strong>Transport</strong>?',
+      title: 'Czy na pewno chcesz usunąć <strong>Transport</strong> z wyceny?',
       message: 'Usunięcie transportu spowoduje również usunięcie wprowadzonego adresu.',
       confirm: 'Tak, usuń',
       cancel: 'Anuluj',
@@ -189,6 +211,16 @@ const translations = {
       cta: {
         text: 'Przeglądaj hotele',
         href: '/pl/hotele',
+      },
+    },
+    states: {
+      error: {
+        retryButton: 'Spróbuj ponownie',
+      },
+
+      empty: {
+        ctaHotels: 'Przeglądaj hotele',
+        ctaActivities: 'Przeglądaj integracje',
       },
     },
   },
@@ -229,6 +261,18 @@ const translations = {
     selectExtrasHeading: 'Select extras',
     confirmAddons: 'Confirm selection',
     allAddons: 'All <strong>extras</strong>',
+    emptySection: {
+      hotels: {
+        heading: "You don't have any hotels yet",
+        paragraph: 'Choose a hotel that best suits your trip needs.',
+        button: 'Browse hotels',
+      },
+      activities: {
+        heading: "You don't have any activities yet",
+        paragraph: 'Choose activities that will ensure a great time during your trip.',
+        button: 'Browse activities',
+      },
+    },
     addressForm: {
       transportName: 'Transport',
       formHeading: 'Where do you want to pick us up?',
@@ -251,7 +295,7 @@ const translations = {
       mapTooltip: 'Open map to select location',
     },
     transportRemoval: {
-      title: 'Are you sure you want to remove <strong>Transport</strong>?',
+      title: 'Are you sure you want to remove <strong>Transport</strong> from the quote?',
       message: 'Removing transport will also remove the address you entered.',
       confirm: 'Yes, remove',
       cancel: 'Cancel',
@@ -265,6 +309,16 @@ const translations = {
         href: '/en/hotels',
       },
     },
+    states: {
+      error: {
+        retryButton: 'Try Again',
+      },
+
+      empty: {
+        ctaHotels: 'Browse hotels',
+        ctaActivities: 'Browse activities',
+      },
+    },
   },
 } as const
 
@@ -274,19 +328,6 @@ const { metadata, page } = Astro.props
 ---
 
 <Layout {...metadata}>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-    slot="head"
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-    slot="head"></script>
-
   <section class="Cart" data-lang={lang} data-translations={JSON.stringify(translations[lang])}>
     <a href={t.back.url} class="back-link"
       ><span class="icons">
@@ -310,12 +351,30 @@ const { metadata, page } = Astro.props
       <span>{t.back.content}</span>
     </a>
     <div class="cart-container">
-      <Loader />
-      <div class="empty">
-        <PortableText value={page.noResults.heading} heading="h1" />
-        <PortableText value={page.noResults.paragraph} />
+      <!-- State: Loading -->
+      <div class="state state-loading">
+        <SkeletonLoader />
       </div>
-      <div class="items-wrapper">
+
+      <!-- State: Empty Cart -->
+      <div class="state state-empty" style="display: none;">
+        <PortableText value={page.noResults.heading} heading="h1" />
+        <PortableText value={page.noResults.paragraph} class="paragraph" />
+        <div class="cta-buttons">
+          <Button theme="primary" shade="light" href={t.hotelsPrefix}>{t.states.empty.ctaHotels}</Button>
+          <Button theme="primary" href={t.activitiesPrefix}>{t.states.empty.ctaActivities}</Button>
+        </div>
+      </div>
+
+      <!-- State: Error -->
+      <div class="state state-error" style="display: none;">
+        <PortableText value={page.errorState.heading} heading="h1" />
+        <PortableText value={page.errorState.paragraph} class="paragraph" />
+        <Button id="retry-load-cart">{t.states.error.retryButton}</Button>
+      </div>
+
+      <!-- State: Content (kept as items-wrapper for backward compatibility) -->
+      <div class="state state-content items-wrapper" style="display: none;">
         <header class="header">
           <div class="info-box">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
@@ -384,7 +443,6 @@ const { metadata, page } = Astro.props
           </p>
         </div>
       </div>
-      <div class="error-wrapper"></div>
     </div>
   </section>
 
@@ -455,9 +513,9 @@ const { metadata, page } = Astro.props
   <PopupWindow>
     <Button slot="open" className="hidden-trigger" id="transport-remove-trigger">Open</Button>
     <div slot="content" class="popup-content removal-confirmation">
-      <h2><Fragment set:html={t.transportRemoval.title} /></h2>
       <CloseButton />
-      <p>{t.transportRemoval.message}</p>
+      <p class="title"><Fragment set:html={t.transportRemoval.title} /></p>
+      <p class="message">{t.transportRemoval.message}</p>
       <div class="confirmation-actions">
         <Button theme="primary" shade="light" className="cancel-transport-remove">{t.transportRemoval.cancel}</Button>
         <Button theme="primary" shade="dark" className="confirm-transport-remove">{t.transportRemoval.confirm}</Button>
@@ -467,6 +525,8 @@ const { metadata, page } = Astro.props
 </Layout>
 
 <style lang="scss">
+  // Skeleton loader animation and base styles
+
   .Cart {
     max-width: 55.5rem;
     margin: 0 auto;
@@ -558,6 +618,10 @@ const { metadata, page } = Astro.props
       padding: clamp(1rem, calc(2.75vw / 0.48), 2.75rem) 2.75rem;
       border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
       isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
 
       &::before,
       &::after {
@@ -582,8 +646,69 @@ const { metadata, page } = Astro.props
         border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
       }
 
-      .empty {
-        display: none;
+      // State styles
+      .state {
+        width: 100%;
+      }
+
+      .state-loading {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 20rem;
+
+        .loading-message {
+          margin-top: 1rem;
+          color: var(--primary-400);
+          font-size: var(--typography-body-m, 0.875rem);
+        }
+      }
+
+      .state-empty,
+      .state-error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        padding: 2rem 0;
+
+        h1,
+        h2 {
+          margin-bottom: 1rem;
+          color: var(--primary-800);
+        }
+
+        p {
+          max-width: 30rem;
+          margin: 0 auto;
+          font-size: var(--typography-body-m, 0.875rem);
+          line-height: 1.7;
+        }
+
+        .cta-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          margin-top: 3rem;
+
+          @media (max-width: 459px) {
+            flex-direction: column;
+          }
+        }
+      }
+      .state-error {
+        :global(button) {
+          max-width: 20rem;
+          width: 100%;
+          margin: 3rem auto 0;
+
+          :global(span) {
+            margin: 0 auto;
+            padding-right: 1.75rem;
+          }
+        }
       }
 
       .items-wrapper {
@@ -796,6 +921,7 @@ const { metadata, page } = Astro.props
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem;
+            align-items: start;
           }
 
           .show-more-wrapper {
@@ -848,10 +974,6 @@ const { metadata, page } = Astro.props
           }
         }
       }
-
-      .error-wrapper {
-        display: none;
-      }
     }
   }
 
@@ -879,6 +1001,7 @@ const { metadata, page } = Astro.props
       gap: 0.25rem;
       margin-top: 1rem;
       grid-column: 1 / 3;
+      align-items: start;
       grid-row: 2 / 3;
     }
   }
@@ -986,37 +1109,48 @@ const { metadata, page } = Astro.props
   }
 
   :global(.removal-confirmation) {
-    padding: 2rem;
     max-width: 36rem;
     margin: 0 auto;
     display: flex;
+    gap: 0rem;
     flex-direction: column;
 
-    h2 {
+    :global(.CloseButton) {
+      align-self: flex-end;
       margin-bottom: 1rem;
+    }
+
+    .title {
       color: var(--primary-800);
-      font-size: var(--typography-body-xl, 1.125rem);
-      letter-spacing: -0.03em;
-      line-height: 1.55;
+      margin-bottom: 1.25rem;
+      font-size: var(--typography-body-2xl, 1.5rem);
+      line-height: 1.25;
+      letter-spacing: -0.035em;
+      text-align: center;
 
       :global(strong) {
         font-weight: 700;
       }
     }
 
-    p {
-      margin-bottom: 1.5rem;
-      font-size: var(--typography-body-m, 0.875rem);
-      line-height: 1.7;
-      letter-spacing: -0.01em;
+    .message {
+      text-align: center;
+      margin-bottom: 1.75rem;
     }
 
     .confirmation-actions {
       display: flex;
       gap: 1rem;
-
       :global(button) {
-        flex: 1;
+        max-width: 100%;
+        width: 100%;
+
+        &[data-theme='primary'] {
+          :global(span) {
+            margin: 0 auto;
+            padding-right: 1.75rem;
+          }
+        }
       }
     }
 
@@ -1046,57 +1180,25 @@ const { metadata, page } = Astro.props
   const pageLang = cartElement?.getAttribute('data-lang') || 'pl'
   const t = JSON.parse(cartElement?.getAttribute('data-translations') || '{}') as Record<string, any>
 
-  // Participant count handling
-  function initParticipantInput() {
-    const participantInput = document.getElementById('participantCount') as HTMLInputElement
-    if (!participantInput) return
+  // Helper to get current active state
+  function getActiveState(): 'loading' | 'empty' | 'error' | 'content' {
+    const states = ['loading', 'empty', 'error', 'content'] as const
 
-    // Load saved value from localStorage if available
-    const savedCount = localStorage.getItem('cart_participant_count')
-    if (savedCount) {
-      participantInput.value = savedCount
+    for (const state of states) {
+      const stateEl = document.querySelector(`.state-${state}`) as HTMLElement | null
+      if (stateEl && window.getComputedStyle(stateEl).display !== 'none') {
+        return state
+      }
     }
 
-    // Handle input changes
-    participantInput.addEventListener('input', () => {
-      // Clean input - remove non-numeric values
-      let value = participantInput.value.replace(/[^\d]/g, '')
-
-      // Ensure value is at least 1
-      if (!value || parseInt(value) < 1) {
-        value = '1'
-      }
-
-      // Update input value
-      participantInput.value = value
-
-      // Store in localStorage
-      localStorage.setItem('cart_participant_count', value)
-
-      // Update alerts when participant count changes
-      updateParticipantAlerts()
-    })
-
-    // Handle blur to format value properly
-    participantInput.addEventListener('blur', () => {
-      let value = participantInput.value
-
-      // Convert to integer
-      const intValue = parseInt(value)
-
-      // Update with parsed integer value
-      if (!isNaN(intValue)) {
-        participantInput.value = intValue.toString()
-        localStorage.setItem('cart_participant_count', intValue.toString())
-
-        // Update alerts on blur
-        updateParticipantAlerts()
-      }
-    })
+    return 'loading' // Default
   }
 
   // Function to update participant alerts based on current count
   function updateParticipantAlerts() {
+    // Only run if content state is visible
+    if (getActiveState() !== 'content') return
+
     const participantInput = document.getElementById('participantCount') as HTMLInputElement
 
     // First check if we have value in localStorage, and use that if available
@@ -1117,7 +1219,7 @@ const { metadata, page } = Astro.props
     console.log('Checking participant alerts with count:', participantCount)
 
     // Find all hotel items in the cart
-    const hotelItems = document.querySelectorAll('.hotel-item')
+    const hotelItems = document.querySelectorAll('.state-content .hotel-item')
     console.log('Found hotel items:', hotelItems.length)
 
     hotelItems.forEach((item) => {
@@ -1184,15 +1286,16 @@ const { metadata, page } = Astro.props
   // Function to render all cart items
   async function renderCartItems(hotels: ExtendedHotelData[], activities: ExtendedActivityData[]) {
     const cartContent = document.querySelector('.cart-container')! as HTMLDivElement
-    const cartHeadingCount = cartContent.querySelector('.header .cart-heading .count')! as HTMLSpanElement
+    const cartHeadingCount = document.querySelector('.state-content .header .cart-heading .count')! as HTMLSpanElement
 
     if (!cartContent) return
 
-    // Render hotels section if there are hotels
+    // Render hotels section
+    const hotelsSection = cartContent.querySelector('.hotels-section')! as HTMLDivElement
+    const hotelList = hotelsSection.querySelector('.list')! as HTMLDivElement
+    const hotelsCount = hotelsSection.querySelector('.count')! as HTMLSpanElement
+
     if (hotels && hotels.length > 0) {
-      const hotelsSection = cartContent.querySelector('.hotels-section')! as HTMLDivElement
-      const hotelList = hotelsSection.querySelector('.list')! as HTMLDivElement
-      const hotelsCount = hotelsSection.querySelector('.count')! as HTMLSpanElement
       const hotelPromises = hotels.map(async (hotel) => {
         const hotelElement = await renderHotel(hotel, t)
         return hotelElement
@@ -1204,13 +1307,18 @@ const { metadata, page } = Astro.props
         }
       })
       hotelsCount.textContent = hotels.length.toString()
+    } else if (activities && activities.length > 0) {
+      // If we have activities but no hotels, show the empty hotels alert
+      hotelsCount.textContent = '0'
+      renderEmptySectionAlert(hotelList, 'hotels')
     }
 
-    // Render activities section if there are activities
+    // Render activities section
+    const activitiesSection = cartContent.querySelector('.activities-section')! as HTMLDivElement
+    const activitiesList = activitiesSection.querySelector('.list')! as HTMLDivElement
+    const activitiesCount = activitiesSection.querySelector('.count')! as HTMLSpanElement
+
     if (activities && activities.length > 0) {
-      const activitiesSection = cartContent.querySelector('.activities-section')! as HTMLDivElement
-      const activitiesList = activitiesSection.querySelector('.list')! as HTMLDivElement
-      const activitiesCount = activitiesSection.querySelector('.count')! as HTMLSpanElement
       const activityPromises = activities.map(async (activity) => {
         const activityElement = await renderActivity(activity, t)
         return activityElement
@@ -1222,9 +1330,37 @@ const { metadata, page } = Astro.props
         }
       })
       activitiesCount.textContent = activities.length.toString()
+    } else if (hotels && hotels.length > 0) {
+      // If we have hotels but no activities, show the empty activities alert
+      activitiesCount.textContent = '0'
+      renderEmptySectionAlert(activitiesList, 'activities')
     }
 
     cartHeadingCount.textContent = `${hotels.length + activities.length}`
+  }
+
+  // Function to render empty section alerts
+  function renderEmptySectionAlert(container: HTMLElement, sectionType: 'hotels' | 'activities') {
+    const template = document.getElementById('alert-template') as HTMLTemplateElement
+    if (!template) return
+
+    const clone = template.content.cloneNode(true) as DocumentFragment
+    const alertDiv = clone.querySelector('.alert-item') as HTMLElement
+
+    const headingEl = alertDiv.querySelector('.alert-heading') as HTMLElement
+    const paragraphEl = alertDiv.querySelector('.alert-paragraph') as HTMLElement
+    const linkEl = alertDiv.querySelector('a') as HTMLAnchorElement
+    const linkElText = linkEl.querySelector('span') as HTMLElement
+
+    // Set content based on section type and translations
+    headingEl.innerHTML = t.emptySection[sectionType].heading
+    paragraphEl.innerHTML = t.emptySection[sectionType].paragraph
+
+    linkEl.href = sectionType === 'hotels' ? t.hotelsPrefix : t.activitiesPrefix
+    linkElText.innerHTML = t.emptySection[sectionType].button
+
+    // Append to container
+    container.appendChild(alertDiv)
   }
 
   // Function to rebuild the extras list in real-time
@@ -1393,10 +1529,25 @@ const { metadata, page } = Astro.props
     // Get pending transport item and select it
     const pendingItemId = localStorage.getItem('pending_transport_item')
     if (pendingItemId) {
-      const transportItem = document.querySelector(`.extra-item[data-addon-id="${pendingItemId}"]`) as HTMLElement
-      if (transportItem) {
-        toggleAddon(transportItem, true)
-      }
+      // Find all transport items (both in main list and popup)
+      const transportItems = document.querySelectorAll(
+        `.extra-item[data-addon-id="${pendingItemId}"]`
+      ) as NodeListOf<HTMLElement>
+
+      transportItems.forEach((item) => {
+        // Update the item's state
+        const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement
+        if (checkbox) {
+          checkbox.checked = true
+        }
+        item.dataset.selected = 'true'
+
+        // If this is the main list item, call toggleAddon on it
+        if (!item.dataset.inPopup) {
+          toggleAddon(item, true)
+        }
+      })
+
       localStorage.removeItem('pending_transport_item')
     }
 
@@ -1411,9 +1562,37 @@ const { metadata, page } = Astro.props
     // No need to do anything here as the React component handles everything
   }
 
+  // Setup state management and retry button
+  function setupStateManagement() {
+    // Setup retry button
+    const retryButton = document.getElementById('retry-load-cart')
+    if (retryButton) {
+      retryButton.addEventListener('click', () => {
+        showState('loading')
+        loadCartItems(true) // Pass true to indicate this is a retry
+      })
+    }
+
+    // Add navigation buttons to empty state buttons if needed
+    const emptyStateButtons = document.querySelectorAll('.state-empty .cta-buttons button') as NodeListOf<HTMLElement>
+    emptyStateButtons.forEach((btn) => {
+      if (btn.hasAttribute('href')) {
+        btn.addEventListener('click', () => {
+          const href = btn.getAttribute('href')
+          if (href) {
+            window.location.href = href
+          }
+        })
+      }
+    })
+  }
+
   // Initialize document event listeners
   document.addEventListener('DOMContentLoaded', () => {
-    // First initialize the participant input to ensure it has the correct value from localStorage
+    // Setup state management first
+    setupStateManagement()
+
+    // Initialize participant input to ensure it has the correct value from localStorage
     initParticipantInput()
 
     // Setup address form
@@ -1425,21 +1604,123 @@ const { metadata, page } = Astro.props
     // Setup transport removal confirmation
     setupTransportRemovalConfirmation()
 
-    // Then load cart items and update alerts after everything is loaded
-    loadCartItems().then(() => {
-      // Give the DOM a moment to update before checking alerts
-      setTimeout(() => {
-        updateParticipantAlerts()
-        // Update transport cards with address if needed
-        updateTransportCardWithAddress()
-      }, 100)
-    })
+    // Then load cart items
+    loadCartItems()
   })
 
-  // Function to open addons popup
-  async function openAddonsPopup(sortedAddons: Array<{ _key: string; name: string; image: any; pricing: any }>) {
-    const popupTrigger = document.getElementById('extras-popup-trigger')! as HTMLButtonElement | null
-    const extrasList = document.querySelector('.extras-list')! as HTMLElement
+  // Modified toggleAddon to update transport address display and refresh popup list
+  async function toggleAddon(item: HTMLElement, isSelected: boolean) {
+    // Update data attribute
+    item.dataset.selected = isSelected.toString()
+
+    // Get addon ID
+    const addonId = item.dataset.addonId
+    if (!addonId) return
+
+    // Update the checkbox to match the selected state
+    const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement
+    if (checkbox) {
+      checkbox.checked = isSelected
+    }
+
+    // Update localStorage
+    updateOrderAddons(addonId, isSelected)
+
+    // Find and update all instances of this addon (both in main list and popup)
+    document.querySelectorAll(`.extra-item[data-addon-id="${addonId}"]`).forEach((element) => {
+      element.setAttribute('data-selected', isSelected.toString())
+      const elementCheckbox = element.querySelector('input[type="checkbox"]') as HTMLInputElement
+      if (elementCheckbox) {
+        elementCheckbox.checked = isSelected
+      }
+    })
+
+    // Update show more button visibility
+    const showMoreWrapper = document.querySelector('.show-more-wrapper') as HTMLElement
+    if (showMoreWrapper) {
+      const allAddons = document.querySelectorAll('.extras .list .extra-item')
+      const selectedAddons = document.querySelectorAll('.extras .list .extra-item[data-selected="true"]')
+
+      // Show the button if not all addons are selected
+      if (selectedAddons.length < allAddons.length) {
+        showMoreWrapper.style.display = 'flex'
+      } else {
+        showMoreWrapper.style.display = 'none'
+      }
+    }
+
+    // Special handling for transport
+    if (addonId === 'transport') {
+      // If deselecting, remove address from localStorage
+      if (!isSelected) {
+        localStorage.removeItem('transport_address')
+      }
+
+      // Update address display for transport with a delay to ensure the DOM is ready
+      setTimeout(() => {
+        updateTransportCardWithAddress()
+      }, 100)
+    }
+
+    // Refresh the popup list if it's open
+    const popupContainer = document.querySelector(
+      '.popup-content[data-popup-id="extras-popup-container"]'
+    ) as HTMLElement
+    if (popupContainer && popupContainer.offsetParent !== null) {
+      // Check if popup is visible
+      // Get all addons data from the main list
+      const extrasData = JSON.parse(document.querySelector('.extras .list')?.getAttribute('data-addons-data') || '{}')
+
+      // Create a combined list of all addons
+      const allAddons: Array<{
+        _key: string
+        name: string
+        image: any
+        pricing: any
+      }> = []
+
+      // Add transport option
+      if (extrasData.transportOptions) {
+        allAddons.push({
+          _key: 'transport',
+          name: t.transportAddonName,
+          image: extrasData.transportOptions.image,
+          pricing: extrasData.transportOptions.pricing,
+        })
+      }
+
+      // Add regular addons from Sanity
+      if (extrasData.addonsList && Array.isArray(extrasData.addonsList)) {
+        allAddons.push(...extrasData.addonsList)
+      }
+
+      // Get current selections from localStorage
+      const currentSelectedAddons: Array<{ id: string; count?: number }> = JSON.parse(
+        localStorage.getItem('cart_order_addons') || '[]'
+      )
+
+      // Sort addons - selected first
+      const sortedAddons = [...allAddons].sort((a, b) => {
+        const aSelected = currentSelectedAddons.some((item) => item.id === a._key) ? 1 : 0
+        const bSelected = currentSelectedAddons.some((item) => item.id === b._key) ? 1 : 0
+        return bSelected - aSelected // Descending order (selected first)
+      })
+
+      // Refresh the popup without closing and reopening it
+      refreshPopupList(sortedAddons)
+    }
+
+    // Completely rebuild the addon list to ensure correct order
+    await refreshExtrasList()
+  }
+
+  // Function to refresh the popup list without closing/reopening
+  async function refreshPopupList(sortedAddons: Array<{ _key: string; name: string; image: any; pricing: any }>) {
+    const extrasList = document.querySelector('.popup-content[data-popup-id="extras-popup-container"] .extras-list')
+    if (!extrasList) return
+
+    // Save scroll position
+    const scrollPosition = extrasList.scrollTop
 
     // Clear content
     extrasList.innerHTML = ''
@@ -1449,10 +1730,12 @@ const { metadata, page } = Astro.props
       localStorage.getItem('cart_order_addons') || '[]'
     )
 
-    // Instead of creating new elements, clone the existing ones from the main list
+    // Rebuild the list with the sorted addons
     for (const addon of sortedAddons) {
       // Find existing element in the main list
-      const existingElement = document.querySelector(`.extra-item[data-addon-id="${addon._key}"]`) as HTMLElement
+      const existingElement = document.querySelector(
+        `.extra-item[data-addon-id="${addon._key}"]:not([data-in-popup="true"])`
+      ) as HTMLElement
 
       if (existingElement) {
         // Clone the existing element without event listeners
@@ -1478,8 +1761,37 @@ const { metadata, page } = Astro.props
       }
     }
 
-    // Trigger the popup
-    popupTrigger?.click()
+    // Restore scroll position
+    extrasList.scrollTop = scrollPosition
+  }
+
+  // Function to open addons popup with pre-sorted items
+  async function openAddonsPopup(sortedAddons: Array<{ _key: string; name: string; image: any; pricing: any }>) {
+    // Clear the template popup list first - this is what will be used when the popup opens
+    const popupTemplateList = document.querySelector(
+      '.popup-content[data-popup-id="extras-popup-container"] .extras-list'
+    )
+    if (popupTemplateList) {
+      popupTemplateList.innerHTML = ''
+
+      // Get current selections
+      const currentSelectedAddons = JSON.parse(localStorage.getItem('cart_order_addons') || '[]')
+
+      // Pre-populate with sorted addons
+      for (const addon of sortedAddons) {
+        const isSelected = currentSelectedAddons.some((item: any) => item.id === addon._key)
+        const extraElement = await renderExtra(addon, isSelected, true)
+        if (extraElement) {
+          popupTemplateList.appendChild(extraElement)
+        }
+      }
+    }
+
+    // Now trigger the popup - it will already have sorted content
+    const popupTrigger = document.getElementById('extras-popup-trigger')
+    if (popupTrigger) {
+      popupTrigger.click()
+    }
   }
 
   // Modify renderExtra to handle transport special case - Fix address display insertion
@@ -1673,87 +1985,111 @@ const { metadata, page } = Astro.props
 
       if (!addonItem) return
 
+      // Only handle items in the popup
+      if (addonItem.dataset.inPopup !== 'true') return
+
+      // Get checkbox element inside the addon item
+      const checkbox = addonItem.querySelector('input[type="checkbox"]') as HTMLInputElement
+      if (!checkbox) return
+
+      // Don't handle if click was on the checkbox itself (it will be handled naturally)
+      if (target === checkbox || checkbox.contains(target as Node)) return
+
+      // Get addon ID and current selection state
+      const addonId = addonItem.dataset.addonId
+      const isCurrentlySelected = addonItem.dataset.selected === 'true'
+
       // Special handling for transport in popup
-      if (addonItem.dataset.inPopup === 'true' && addonItem.dataset.addonId === 'transport') {
+      if (addonId === 'transport') {
         e.preventDefault()
         e.stopPropagation()
 
-        // Close extras popup first
-        const closeButton = document.querySelector(
-          '.popup-content[data-popup-id="extras-popup-container"] .CloseButton'
-        )
-        if (closeButton) {
-          closeButton.dispatchEvent(new Event('click'))
+        // Instead of closing the extras popup, keep it open and just open the transport form on top
+        if (!isCurrentlySelected) {
+          // Adding transport
+          localStorage.setItem('pending_transport_item', addonId)
+          document.getElementById('transport-address-trigger')?.click()
+        } else {
+          // Removing transport
+          localStorage.setItem('pending_transport_removal', addonId)
+          document.getElementById('transport-remove-trigger')?.click()
         }
+        return
+      }
 
-        // Then handle transport toggle
-        setTimeout(() => {
-          const isCurrentlySelected = addonItem.dataset.selected === 'true'
-          // If currently selected, we want to remove it. If not selected, we want to add it.
-          handleTransportToggle(addonItem, !isCurrentlySelected)
-        }, 100) // Small delay to ensure extras popup closes first
+      // Handle regular addons in popup
+      e.preventDefault()
+      e.stopPropagation()
+
+      // Toggle the checkbox visually
+      checkbox.checked = !isCurrentlySelected
+
+      // Find the corresponding addon in the main list - we need this to trigger its logic
+      const mainListAddon = document.querySelector(
+        `.extra-item[data-addon-id="${addonId}"]:not([data-in-popup="true"])`
+      ) as HTMLElement
+
+      if (mainListAddon) {
+        // Use the existing toggleAddon function with the main list item
+        await toggleAddon(mainListAddon, !isCurrentlySelected)
+      } else {
+        // If not found in main list, use the current popup item
+        await toggleAddon(addonItem, !isCurrentlySelected)
+      }
+
+      // Update the current popup item's state to match
+      addonItem.dataset.selected = (!isCurrentlySelected).toString()
+      checkbox.checked = !isCurrentlySelected
+    })
+
+    // Handle checkbox clicks directly in the popup
+    extrasList.addEventListener('change', async (e) => {
+      const target = e.target as HTMLElement
+      if (target.tagName !== 'INPUT' || (target as HTMLInputElement).type !== 'checkbox') return
+
+      const addonItem = target.closest('.extra-item') as HTMLElement
+      if (!addonItem || addonItem.dataset.inPopup !== 'true') return
+
+      const addonId = addonItem.dataset.addonId
+      const checkbox = target as HTMLInputElement
+      const isSelected = checkbox.checked
+
+      // Special handling for transport checkbox
+      if (addonId === 'transport') {
+        e.preventDefault()
+        e.stopPropagation()
+
+        // Prevent default checkbox behavior as we'll handle it ourselves
+        checkbox.checked = !isSelected // Revert the checkbox state temporarily
+
+        // Instead of closing the extras popup, keep it open and just open the transport dialogue on top
+        if (!isSelected) {
+          // If attempting to select (add) transport
+          localStorage.setItem('pending_transport_item', addonId)
+          document.getElementById('transport-address-trigger')?.click()
+        } else {
+          // If attempting to deselect (remove) transport
+          localStorage.setItem('pending_transport_removal', addonId)
+          document.getElementById('transport-remove-trigger')?.click()
+        }
 
         return
       }
-    })
-  }
 
-  // Modified toggleAddon to update transport address display
-  async function toggleAddon(item: HTMLElement, isSelected: boolean) {
-    // Update data attribute
-    item.dataset.selected = isSelected.toString()
+      // For regular addons - find the main list item
+      const mainListAddon = document.querySelector(
+        `.extra-item[data-addon-id="${addonId}"]:not([data-in-popup="true"])`
+      ) as HTMLElement
 
-    // Get addon ID
-    const addonId = item.dataset.addonId
-    if (!addonId) return
-
-    // Update the checkbox to match the selected state
-    const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement
-    if (checkbox) {
-      checkbox.checked = isSelected
-    }
-
-    // Update localStorage
-    updateOrderAddons(addonId, isSelected)
-
-    // Find and update all instances of this addon (both in main list and popup)
-    document.querySelectorAll(`.extra-item[data-addon-id="${addonId}"]`).forEach((element) => {
-      element.setAttribute('data-selected', isSelected.toString())
-      const elementCheckbox = element.querySelector('input[type="checkbox"]') as HTMLInputElement
-      if (elementCheckbox) {
-        elementCheckbox.checked = isSelected
-      }
-    })
-
-    // Update show more button visibility
-    const showMoreWrapper = document.querySelector('.show-more-wrapper') as HTMLElement
-    if (showMoreWrapper) {
-      const allAddons = document.querySelectorAll('.extras .list .extra-item')
-      const selectedAddons = document.querySelectorAll('.extras .list .extra-item[data-selected="true"]')
-
-      // Show the button if not all addons are selected
-      if (selectedAddons.length < allAddons.length) {
-        showMoreWrapper.style.display = 'flex'
+      if (mainListAddon) {
+        await toggleAddon(mainListAddon, isSelected)
       } else {
-        showMoreWrapper.style.display = 'none'
-      }
-    }
-
-    // Special handling for transport
-    if (addonId === 'transport') {
-      // If deselecting, remove address from localStorage
-      if (!isSelected) {
-        localStorage.removeItem('transport_address')
+        await toggleAddon(addonItem, isSelected)
       }
 
-      // Update address display for transport with a delay to ensure the DOM is ready
-      setTimeout(() => {
-        updateTransportCardWithAddress()
-      }, 100)
-    }
-
-    // Completely rebuild the addon list to ensure correct order
-    await refreshExtrasList()
+      // Update current popup item to match
+      addonItem.dataset.selected = isSelected.toString()
+    })
   }
 
   // Function to update order addons in localStorage
@@ -1906,66 +2242,108 @@ const { metadata, page } = Astro.props
     updateExtrasCount()
   }
 
+  // State management functions
+  function showState(state: 'loading' | 'empty' | 'error' | 'content') {
+    // Get all state elements
+    const states = document.querySelectorAll('.cart-container .state')
+
+    // Hide all states
+    states.forEach((el) => {
+      ;(el as HTMLElement).style.display = 'none'
+    })
+
+    // Show requested state
+    const stateEl = document.querySelector(`.state-${state}`) as HTMLElement | null
+    if (stateEl) {
+      stateEl.style.display = 'flex'
+    }
+  }
+
+  // Check cart before fetching
+  function checkCartBeforeFetching() {
+    const cart = cartStore.get()
+    const hasItems = cart.hotels.length > 0 || cart.activities.length > 0
+
+    if (!hasItems) {
+      // Show empty state immediately without fetching
+      showState('empty')
+      return false
+    }
+
+    // Has items, proceed with fetching
+    return true
+  }
+
   // Main function to load cart items
-  async function loadCartItems() {
-    const cartLoader = document.querySelector('[data-loader]')! as HTMLDivElement
-    const cartEmpty = document.querySelector('.empty')! as HTMLDivElement
+  async function loadCartItems(isRetry = false) {
+    if (!isRetry) {
+      // On first load, show loader and check cart
+      showState('loading')
+
+      // If cart is empty, don't proceed with fetching
+      if (!checkCartBeforeFetching()) {
+        return
+      }
+    }
 
     try {
       // Get cart data from store
       const cart = cartStore.get()
 
-      // Show empty state if cart is empty
-      if (!cart.hotels.length && !cart.activities.length) {
-        cartLoader.style.display = 'none'
-        cartEmpty.style.display = 'block'
-        return
-      }
-
       // Fetch all hotels
       const hotelPromises = cart.hotels.map(async (item) => {
-        const addonIds = item.addOns.map((addon) => addon.id)
-        const hotelData = await fetchHotelData(item.id, addonIds)
-        if (hotelData) {
-          const matchedAddons = item.addOns
-            .map((addon: AddonItem) => {
-              const fullAddon = hotelData.addons?.addonsList?.find((a: any) => a._key === addon.id)
-              return {
-                ...addon,
-                fullData: fullAddon || null,
-              }
-            })
-            .filter((addon) => addon.fullData !== null)
+        try {
+          const addonIds = item.addOns.map((addon) => addon.id)
+          const hotelData = await fetchHotelData(item.id, addonIds)
+          if (hotelData) {
+            const matchedAddons = item.addOns
+              .map((addon: AddonItem) => {
+                const fullAddon = hotelData.addons?.addonsList?.find((a: any) => a._key === addon.id)
+                return {
+                  ...addon,
+                  fullData: fullAddon || null,
+                }
+              })
+              .filter((addon) => addon.fullData !== null)
 
-          return {
-            ...hotelData,
-            cartAddons: matchedAddons,
+            return {
+              ...hotelData,
+              cartAddons: matchedAddons,
+            }
           }
+          return null
+        } catch (error) {
+          console.error(`Error fetching hotel ${item.id}:`, error)
+          return null
         }
-        return null
       })
 
       // Fetch all activities
       const activityPromises = cart.activities.map(async (item) => {
-        const addonIds = item.addOns.map((addon) => addon.id)
-        const activityData = await fetchActivityData(item.id, addonIds)
-        if (activityData) {
-          const matchedAddons = item.addOns
-            .map((addon: AddonItem) => {
-              const fullAddon = activityData.addons?.addonsList?.find((a: any) => a._key === addon.id)
-              return {
-                ...addon,
-                fullData: fullAddon || null,
-              }
-            })
-            .filter((addon) => addon.fullData !== null)
+        try {
+          const addonIds = item.addOns.map((addon) => addon.id)
+          const activityData = await fetchActivityData(item.id, addonIds)
+          if (activityData) {
+            const matchedAddons = item.addOns
+              .map((addon: AddonItem) => {
+                const fullAddon = activityData.addons?.addonsList?.find((a: any) => a._key === addon.id)
+                return {
+                  ...addon,
+                  fullData: fullAddon || null,
+                }
+              })
+              .filter((addon) => addon.fullData !== null)
 
-          return {
-            ...activityData,
-            cartAddons: matchedAddons,
+            return {
+              ...activityData,
+              cartAddons: matchedAddons,
+            }
           }
+          return null
+        } catch (error) {
+          console.error(`Error fetching activity ${item.id}:`, error)
+          return null
         }
-        return null
       })
 
       // Wait for all fetches to complete
@@ -1978,27 +2356,30 @@ const { metadata, page } = Astro.props
       console.log('Fetched hotels:', validHotels)
       console.log('Fetched activities:', validActivities)
 
-      // Hide loader when done
-      cartLoader.style.display = 'none'
-
       // If nothing was fetched successfully, show empty state
       if (validHotels.length === 0 && validActivities.length === 0) {
-        cartEmpty.style.display = 'block'
+        showState('empty')
         return
       }
 
       // Render the cart items
-      renderCartItems(validHotels, validActivities)
+      await renderCartItems(validHotels, validActivities)
 
       // Load extras
-      loadCartExtras()
+      await loadCartExtras()
+
+      // Show content state
+      showState('content')
+
+      // Update participant alerts after everything is loaded
+      setTimeout(() => {
+        updateParticipantAlerts()
+        // Update transport cards with address if needed
+        updateTransportCardWithAddress()
+      }, 100)
     } catch (error) {
       console.error('Error loading cart items:', error)
-      cartLoader.style.display = 'none'
-
-      // Create error message
-      const errorElement = document.querySelector('.error-wrapper')! as HTMLDivElement
-      errorElement.style.display = 'block'
+      showState('error')
     }
   }
 
@@ -2027,9 +2408,7 @@ const { metadata, page } = Astro.props
     if (!item) return
 
     if (detail.action === 'remove') {
-      const cartHeadingCount = document.querySelector(
-        '.cart-container .header .cart-heading .count'
-      )! as HTMLSpanElement
+      const cartHeadingCount = document.querySelector('.state-content .header .cart-heading .count')! as HTMLSpanElement
       // Animate removal and then remove from DOM
       item.classList.add('removing')
       setTimeout(() => {
@@ -2061,12 +2440,8 @@ const { metadata, page } = Astro.props
 
         // Check if cart is now empty
         if (!document.querySelector('.hotel-item') && !document.querySelector('.activity-item')) {
-          const cartEmpty = document.querySelector('.empty')
-          const itemsWrapper = document.querySelector('.items-wrapper')
-          if (cartEmpty && itemsWrapper) {
-            cartEmpty.setAttribute('style', 'display: block')
-            itemsWrapper.setAttribute('style', 'display: none')
-          }
+          // Show empty state and hide content state
+          showState('empty')
         }
       }, 300)
     } else if (detail.action === 'update') {
@@ -2101,4 +2476,53 @@ const { metadata, page } = Astro.props
       }
     }
   })
+
+  // Participant count handling
+  function initParticipantInput() {
+    const participantInput = document.getElementById('participantCount') as HTMLInputElement
+    if (!participantInput) return
+
+    // Load saved value from localStorage if available
+    const savedCount = localStorage.getItem('cart_participant_count')
+    if (savedCount) {
+      participantInput.value = savedCount
+    }
+
+    // Handle input changes
+    participantInput.addEventListener('input', () => {
+      // Clean input - remove non-numeric values
+      let value = participantInput.value.replace(/[^\d]/g, '')
+
+      // Ensure value is at least 1
+      if (!value || parseInt(value) < 1) {
+        value = '1'
+      }
+
+      // Update input value
+      participantInput.value = value
+
+      // Store in localStorage
+      localStorage.setItem('cart_participant_count', value)
+
+      // Update alerts when participant count changes
+      updateParticipantAlerts()
+    })
+
+    // Handle blur to format value properly
+    participantInput.addEventListener('blur', () => {
+      let value = participantInput.value
+
+      // Convert to integer
+      const intValue = parseInt(value)
+
+      // Update with parsed integer value
+      if (!isNaN(intValue)) {
+        participantInput.value = intValue.toString()
+        localStorage.setItem('cart_participant_count', intValue.toString())
+
+        // Update alerts on blur
+        updateParticipantAlerts()
+      }
+    })
+  }
 </script>

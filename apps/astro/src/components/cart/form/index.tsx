@@ -2,13 +2,21 @@ import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import Input from '../../ui/input'
 import styles from './styles.module.scss'
+import Button from '../../ui/Button'
 
-// Declare global Leaflet types
+// We'll dynamically import Leaflet when needed instead of static imports
+// import 'leaflet/dist/leaflet.css'
+// import L from 'leaflet'
+
+// Define Leaflet types but we'll load the actual module dynamically
 declare global {
   interface Window {
     L: any
   }
 }
+
+// Add a module-level reference to Leaflet
+let L: any = null
 
 type FormValues = {
   street: string
@@ -52,6 +60,7 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
   // Keep a reference to the original values for cancellation
   const [originalValues, setOriginalValues] = useState<Partial<FormValues>>({})
   const formInitialized = useRef(false)
+  const [leafletLoaded, setLeafletLoaded] = useState(false)
 
   // Map state
   const [isMapOpen, setIsMapOpen] = useState(false)
@@ -136,6 +145,30 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
     }
   }, [reset])
 
+  // Load Leaflet dynamically when needed
+  useEffect(() => {
+    if (isMapOpen && !leafletLoaded && !L) {
+      const loadLeaflet = async () => {
+        try {
+          // Load Leaflet CSS
+          const linkElement = document.createElement('link')
+          linkElement.rel = 'stylesheet'
+          linkElement.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+          document.head.appendChild(linkElement)
+
+          // Import Leaflet dynamically
+          const leaflet = await import('leaflet')
+          L = leaflet.default
+          setLeafletLoaded(true)
+        } catch (error) {
+          console.error('Error loading Leaflet:', error)
+        }
+      }
+
+      loadLeaflet()
+    }
+  }, [isMapOpen, leafletLoaded])
+
   // Function to get user's current position
   const getUserLocation = () => {
     return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
@@ -203,14 +236,9 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
 
     // Use the hasManualChanges flag
     if (hasManualChanges.current) {
-      console.log('Manual changes detected, updating map position...')
-
       // Try to geocode the new address
       const newPosition = await geocodeFormAddress()
       if (newPosition) {
-        console.log('Successfully geocoded new address:', newPosition)
-        console.log('newPosition', newPosition)
-
         // Update the map position and marker
         mapInstanceRef.current.setView([newPosition.lat, newPosition.lng], 15)
         markerRef.current.setLatLng([newPosition.lat, newPosition.lng])
@@ -231,7 +259,6 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
 
         return true
       } else {
-        console.log('Could not geocode manually entered address')
         // Reset the flag even if geocoding failed
         hasManualChanges.current = false
       }
@@ -291,8 +318,8 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
       return
     }
 
-    // If no map container or map is already initialized, return
-    if (!mapRef.current || mapInitializedRef.current) {
+    // If no map container, Leaflet not loaded, or map is already initialized, return
+    if (!mapRef.current || !L || !leafletLoaded || mapInitializedRef.current) {
       // If map is already initialized, check for manual changes
       if (mapInitializedRef.current && mapInstanceRef.current) {
         checkAndUpdateMapForManualChanges()
@@ -302,21 +329,21 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
 
     // Initialize map with a slight delay to ensure the container is visible
     const initMapTimer = setTimeout(async () => {
-      if (!window.L || !mapRef.current) {
+      if (!mapRef.current || !L) {
         console.error('Leaflet not loaded or container not available')
         return
       }
 
       try {
         // Create map centered on default position initially
-        const map = window.L.map(mapRef.current).setView([lastMapPosition.lat, lastMapPosition.lng], 13)
+        const map = L.map(mapRef.current).setView([lastMapPosition.lat, lastMapPosition.lng], 13)
         mapInstanceRef.current = map
         mapInitializedRef.current = true
 
-        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
 
         // Add marker for selection
-        markerRef.current = window.L.marker([lastMapPosition.lat, lastMapPosition.lng], { draggable: true }).addTo(map)
+        markerRef.current = L.marker([lastMapPosition.lat, lastMapPosition.lng], { draggable: true }).addTo(map)
 
         // Handle marker drag events
         markerRef.current.on('dragend', handleMarkerDrag)
@@ -412,6 +439,7 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
     }
   }, [
     isMapOpen,
+    leafletLoaded,
     formValues.coordinates,
     formValues.street,
     formValues.city,
@@ -613,10 +641,6 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
 
   // Toggle map popup
   const toggleMap = () => {
-    // Log if we have manual changes when opening the map
-    if (!isMapOpen) {
-      console.log('Opening map. Manual changes detected:', hasManualChanges.current)
-    }
     setIsMapOpen(!isMapOpen)
   }
 
@@ -812,9 +836,9 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
         />
       </div>
 
-      <button className={styles.submit} type="submit">
+      <Button type="submit" className={styles.submit}>
         {translations.submit}
-      </button>
+      </Button>
     </form>
   )
 }

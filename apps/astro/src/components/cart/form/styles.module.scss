@@ -274,27 +274,4 @@
       }
     }
   }
-
-  .submit {
-    margin-top: 1rem;
-    align-self: flex-start;
-    min-height: 3.5rem;
-    padding: 0 1.5rem;
-    background-color: var(--primary-600, #600d2a);
-    color: var(--neutral-100, #faf7f7);
-    font-weight: 700;
-    border: none;
-    border-radius: 2rem;
-    cursor: pointer;
-    transition: background-color 200ms;
-
-    &:hover {
-      background-color: var(--primary-700, #45051c);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--primary-800);
-      outline-offset: 2px;
-    }
-  }
 }

@@ -41,6 +41,28 @@ export default defineType({
       type: 'object',
       title: 'Brak wyników',
       group: 'content',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf',
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+    defineField({
+      name: 'errorState',
+      type: 'object',
+      title: 'Błąd podczas ładowania',
+      group: 'content',
+      validation: (Rule) => Rule.required(),
       fields: [
         defineField({
           name: 'heading',
