@@ -3,10 +3,21 @@ import { useForm } from 'react-hook-form'
 import Input from '../../ui/input'
 import styles from './styles.module.scss'
 
+// Declare global Leaflet types
+declare global {
+  interface Window {
+    L: any
+  }
+}
+
 type FormValues = {
   street: string
   postal: string
   city: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
 }
 
 type TranslationType = {
@@ -21,6 +32,11 @@ type TranslationType = {
   city: string
   cityRequired: string
   submit: string
+  pickFromMap?: string
+  searchLocation?: string
+  confirm?: string
+  cancel?: string
+  mapTooltip?: string
 }
 
 interface AddressFormProps {
@@ -29,19 +45,63 @@ interface AddressFormProps {
   translations: TranslationType
 }
 
+// Default map coordinates (Warsaw, Poland)
+const DEFAULT_COORDS = { lat: 52.2297, lng: 21.0122 }
+
 export default function AddressForm({ onSubmit, defaultValues = {}, translations }: AddressFormProps) {
   // Keep a reference to the original values for cancellation
   const [originalValues, setOriginalValues] = useState<Partial<FormValues>>({})
   const formInitialized = useRef(false)
 
+  // Map state
+  const [isMapOpen, setIsMapOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapPopupRef = useRef<HTMLDivElement>(null)
+  const mapInstanceRef = useRef<any>(null)
+  const markerRef = useRef<any>(null)
+  const [lastMapPosition, setLastMapPosition] = useState(DEFAULT_COORDS)
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false)
+  const mapInitializedRef = useRef(false)
+  const previousFormValues = useRef<Partial<FormValues>>({})
+  const hasManualChanges = useRef(false)
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
+    clearErrors,
+    trigger,
   } = useForm<FormValues>({
     defaultValues,
   })
+
+  // Watch form values for map updates
+  const formValues = watch()
+
+  // Store previous form values to detect manual changes
+  useEffect(() => {
+    // Store a copy of current form values if they're different
+    if (
+      formValues.street !== previousFormValues.current.street ||
+      formValues.city !== previousFormValues.current.city ||
+      formValues.postal !== previousFormValues.current.postal
+    ) {
+      // Only mark as manual changes if map is closed (to ignore changes from map itself)
+      if (!isMapOpen) {
+        hasManualChanges.current = true
+      }
+
+      previousFormValues.current = {
+        street: formValues.street,
+        city: formValues.city,
+        postal: formValues.postal,
+      }
+    }
+  }, [formValues.street, formValues.city, formValues.postal, isMapOpen])
 
   // Load default values from localStorage on mount
   useEffect(() => {
@@ -55,6 +115,19 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
         if (parsedAddress.street || parsedAddress.postal || parsedAddress.city) {
           setOriginalValues(parsedAddress)
           reset(parsedAddress)
+
+          // If coordinates exist, set last map position
+          if (parsedAddress.coordinates) {
+            setLastMapPosition(parsedAddress.coordinates)
+          }
+
+          // Initialize previous form values
+          previousFormValues.current = {
+            street: parsedAddress.street,
+            city: parsedAddress.city,
+            postal: parsedAddress.postal,
+          }
+
           formInitialized.current = true
         }
       }
@@ -62,6 +135,515 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
       console.error('Error loading saved address data:', error)
     }
   }, [reset])
+
+  // Function to get user's current position
+  const getUserLocation = () => {
+    return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by your browser'))
+        return
+      }
+
+      setIsRequestingLocation(true)
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setIsRequestingLocation(false)
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+        },
+        (error) => {
+          setIsRequestingLocation(false)
+          console.error('Error getting location:', error)
+          reject(error)
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      )
+    })
+  }
+
+  // Function to geocode address from form inputs
+  const geocodeFormAddress = async (addressInput?: {
+    street?: string
+    city?: string
+    postal?: string
+  }): Promise<{ lat: number; lng: number } | null> => {
+    // Use provided address or current form values
+    const address = addressInput || formValues
+
+    // Only attempt geocoding if we have at least street and city
+    if (!address.street || !address.city) return null
+
+    const query = `${address.street}, ${address.postal || ''} ${address.city}`.trim()
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+      )
+      const data = await response.json()
+
+      if (data && data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+        }
+      }
+      return null
+    } catch (error) {
+      console.error('Geocoding error:', error)
+      return null
+    }
+  }
+
+  // Check if manual address changes have been made and update map accordingly
+  const checkAndUpdateMapForManualChanges = async () => {
+    if (!mapInstanceRef.current || !markerRef.current) return
+
+    // Use the hasManualChanges flag
+    if (hasManualChanges.current) {
+      console.log('Manual changes detected, updating map position...')
+
+      // Try to geocode the new address
+      const newPosition = await geocodeFormAddress()
+      if (newPosition) {
+        console.log('Successfully geocoded new address:', newPosition)
+        console.log('newPosition', newPosition)
+
+        // Update the map position and marker
+        mapInstanceRef.current.setView([newPosition.lat, newPosition.lng], 15)
+        markerRef.current.setLatLng([newPosition.lat, newPosition.lng])
+
+        // Save coordinates to form
+        setValue('coordinates', newPosition)
+        setLastMapPosition(newPosition)
+
+        // Reset the manual changes flag
+        hasManualChanges.current = false
+
+        // Update previous form values
+        previousFormValues.current = {
+          street: formValues.street,
+          city: formValues.city,
+          postal: formValues.postal,
+        }
+
+        return true
+      } else {
+        console.log('Could not geocode manually entered address')
+        // Reset the flag even if geocoding failed
+        hasManualChanges.current = false
+      }
+    }
+
+    return false
+  }
+
+  // Cleanup map when component unmounts or map is closed
+  const cleanupMap = () => {
+    // Only cleanup if we have a map instance
+    if (mapInstanceRef.current) {
+      // Save the current position before unmounting (if marker exists)
+      if (markerRef.current) {
+        try {
+          const position = markerRef.current.getLatLng()
+          setLastMapPosition({
+            lat: position.lat,
+            lng: position.lng,
+          })
+        } catch (error) {
+          console.warn('Could not get marker position during cleanup')
+        }
+      }
+
+      // Remove event listeners
+      try {
+        if (markerRef.current) {
+          markerRef.current.off('dragend')
+          markerRef.current.remove()
+        }
+        mapInstanceRef.current.off('click')
+        mapInstanceRef.current.remove()
+      } catch (error) {
+        console.warn('Error during map cleanup:', error)
+      }
+
+      // Reset refs
+      mapInstanceRef.current = null
+      markerRef.current = null
+      mapInitializedRef.current = false
+    }
+  }
+
+  // Initialize map when popup opens
+  useEffect(() => {
+    // If map is not open, clean up and return
+    if (!isMapOpen) {
+      // Let's not clean up immediately to avoid conflicts with animation
+      if (mapInstanceRef.current) {
+        // Delay cleanup to avoid issues during transitions
+        const timer = setTimeout(() => {
+          cleanupMap()
+        }, 300)
+        return () => clearTimeout(timer)
+      }
+      return
+    }
+
+    // If no map container or map is already initialized, return
+    if (!mapRef.current || mapInitializedRef.current) {
+      // If map is already initialized, check for manual changes
+      if (mapInitializedRef.current && mapInstanceRef.current) {
+        checkAndUpdateMapForManualChanges()
+      }
+      return
+    }
+
+    // Initialize map with a slight delay to ensure the container is visible
+    const initMapTimer = setTimeout(async () => {
+      if (!window.L || !mapRef.current) {
+        console.error('Leaflet not loaded or container not available')
+        return
+      }
+
+      try {
+        // Create map centered on default position initially
+        const map = window.L.map(mapRef.current).setView([lastMapPosition.lat, lastMapPosition.lng], 13)
+        mapInstanceRef.current = map
+        mapInitializedRef.current = true
+
+        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+
+        // Add marker for selection
+        markerRef.current = window.L.marker([lastMapPosition.lat, lastMapPosition.lng], { draggable: true }).addTo(map)
+
+        // Handle marker drag events
+        markerRef.current.on('dragend', handleMarkerDrag)
+
+        // Handle map click events
+        map.on('click', handleMapClick)
+
+        // Refresh map size after rendering
+        map.invalidateSize()
+
+        // Check if we should update the map based on manual input changes
+        const manuallyUpdated = await checkAndUpdateMapForManualChanges()
+
+        // If no manual update was needed, proceed with normal initialization
+        if (!manuallyUpdated) {
+          // SCENARIO 1: If we have valid coordinates in form data, center there
+          if (formValues.coordinates) {
+            map.setView([formValues.coordinates.lat, formValues.coordinates.lng], 15)
+            markerRef.current.setLatLng([formValues.coordinates.lat, formValues.coordinates.lng])
+          }
+          // SCENARIO 2: If we have address info but no coordinates, try to geocode it
+          else if (formValues.street && formValues.city) {
+            const position = await geocodeFormAddress()
+            if (position) {
+              map.setView([position.lat, position.lng], 15)
+              markerRef.current.setLatLng([position.lat, position.lng])
+
+              // Save these coordinates
+              setValue('coordinates', position)
+              setLastMapPosition(position)
+            } else {
+              // SCENARIO 3: If geocoding fails, use last known position or try geolocation
+              tryToUseGeolocation(map)
+            }
+          }
+          // SCENARIO 3: No form values, try to get user location
+          else {
+            tryToUseGeolocation(map)
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing map:', error)
+        mapInitializedRef.current = false
+      }
+    }, 200) // Slightly longer delay to ensure DOM is ready
+
+    // Helper function for geolocation scenarios
+    const tryToUseGeolocation = async (map: any) => {
+      try {
+        const position = await getUserLocation()
+        if (!map || !markerRef.current) return
+
+        map.setView([position.lat, position.lng], 16)
+        markerRef.current.setLatLng([position.lat, position.lng])
+        setLastMapPosition(position)
+
+        // Also update coordinates in form
+        setValue('coordinates', position)
+
+        // Get address details for this location
+        const address = await reverseGeocode(position.lat, position.lng)
+        if (address) {
+          setValue('street', address.street || '', { shouldValidate: true })
+          setValue('postal', address.postal || '', { shouldValidate: true })
+          setValue('city', address.city || '', { shouldValidate: true })
+
+          if (address.street) clearErrors('street')
+          if (address.postal) clearErrors('postal')
+          if (address.city) clearErrors('city')
+
+          // Update previous form values
+          previousFormValues.current = {
+            street: address.street,
+            city: address.city,
+            postal: address.postal,
+          }
+        }
+      } catch (error) {
+        console.warn('Could not get user location:', error)
+
+        // Check if map and marker still exist
+        if (!map || !markerRef.current) return
+
+        // Fall back to last known position or default
+        map.setView([lastMapPosition.lat, lastMapPosition.lng], 13)
+        markerRef.current.setLatLng([lastMapPosition.lat, lastMapPosition.lng])
+      }
+    }
+
+    // Cleanup on effect tear-down
+    return () => {
+      clearTimeout(initMapTimer)
+    }
+  }, [
+    isMapOpen,
+    formValues.coordinates,
+    formValues.street,
+    formValues.city,
+    formValues.postal,
+    setValue,
+    clearErrors,
+    lastMapPosition,
+  ])
+
+  // Effect to handle map resize and refresh when popup is visible
+  useEffect(() => {
+    if (isMapOpen && mapInstanceRef.current) {
+      // Short delay before refresh to ensure the popup is fully visible
+      const refreshTimer = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize()
+
+          // Check if we need to update map based on manual input
+          checkAndUpdateMapForManualChanges()
+        }
+      }, 100)
+
+      return () => clearTimeout(refreshTimer)
+    }
+  }, [isMapOpen])
+
+  // Clean up the map when component unmounts
+  useEffect(() => {
+    return () => {
+      cleanupMap()
+    }
+  }, [])
+
+  // Handle marker drag to update form
+  const handleMarkerDrag = async (e: any) => {
+    if (!markerRef.current) return
+
+    try {
+      const marker = e.target
+      const position = marker.getLatLng()
+
+      // Update coordinates in form
+      setValue('coordinates', {
+        lat: position.lat,
+        lng: position.lng,
+      })
+
+      // Save current position
+      setLastMapPosition({
+        lat: position.lat,
+        lng: position.lng,
+      })
+
+      // Reverse geocode to get address
+      const address = await reverseGeocode(position.lat, position.lng)
+      if (address) {
+        // Update form fields with the new values
+        setValue('street', address.street || '', { shouldValidate: true })
+        setValue('postal', address.postal || '', { shouldValidate: true })
+        setValue('city', address.city || '', { shouldValidate: true })
+
+        // Clear any validation errors for the updated fields
+        if (address.street) clearErrors('street')
+        if (address.postal) clearErrors('postal')
+        if (address.city) clearErrors('city')
+
+        // Update previous form values
+        previousFormValues.current = {
+          street: address.street,
+          city: address.city,
+          postal: address.postal,
+        }
+
+        // Reset manual changes flag since we've updated via map
+        hasManualChanges.current = false
+      }
+    } catch (error) {
+      console.error('Error handling marker drag:', error)
+    }
+  }
+
+  // Handle map click to move marker
+  const handleMapClick = async (e: any) => {
+    if (!markerRef.current) return
+
+    try {
+      const { lat, lng } = e.latlng
+      markerRef.current.setLatLng([lat, lng])
+
+      // Update coordinates in form
+      setValue('coordinates', {
+        lat: lat,
+        lng: lng,
+      })
+
+      // Save current position
+      setLastMapPosition({ lat, lng })
+
+      // Reverse geocode to get address
+      const address = await reverseGeocode(lat, lng)
+      if (address) {
+        // Update form fields with the new values
+        setValue('street', address.street || '', { shouldValidate: true })
+        setValue('postal', address.postal || '', { shouldValidate: true })
+        setValue('city', address.city || '', { shouldValidate: true })
+
+        // Clear any validation errors for the updated fields
+        if (address.street) clearErrors('street')
+        if (address.postal) clearErrors('postal')
+        if (address.city) clearErrors('city')
+
+        // Update previous form values
+        previousFormValues.current = {
+          street: address.street,
+          city: address.city,
+          postal: address.postal,
+        }
+
+        // Reset manual changes flag since we've updated via map
+        hasManualChanges.current = false
+      }
+    } catch (error) {
+      console.error('Error handling map click:', error)
+    }
+  }
+
+  // Reverse geocoding function
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+      )
+      const data = await response.json()
+
+      return {
+        street: `${data.address.road || ''} ${data.address.house_number || ''}`.trim(),
+        postal: data.address.postcode || '',
+        city: data.address.city || data.address.town || data.address.village || '',
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error)
+      return null
+    }
+  }
+
+  // Handle search
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim() || !mapInstanceRef.current || !markerRef.current) return
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+      )
+      const data = await response.json()
+
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0]
+        const position = {
+          lat: parseFloat(lat),
+          lng: parseFloat(lon),
+        }
+
+        // Update map view and marker
+        mapInstanceRef.current.setView([position.lat, position.lng], 16)
+        markerRef.current.setLatLng([position.lat, position.lng])
+
+        // Save current position
+        setLastMapPosition(position)
+
+        // Get address details and update form
+        const address = await reverseGeocode(position.lat, position.lng)
+        if (address) {
+          setValue('street', address.street || '', { shouldValidate: true })
+          setValue('postal', address.postal || '', { shouldValidate: true })
+          setValue('city', address.city || '', { shouldValidate: true })
+          setValue('coordinates', position)
+
+          // Clear any validation errors for the updated fields
+          if (address.street) clearErrors('street')
+          if (address.postal) clearErrors('postal')
+          if (address.city) clearErrors('city')
+
+          // Update previous form values
+          previousFormValues.current = {
+            street: address.street,
+            city: address.city,
+            postal: address.postal,
+          }
+
+          // Reset manual changes flag since we've updated via map
+          hasManualChanges.current = false
+        }
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+    }
+  }
+
+  // Toggle map popup
+  const toggleMap = () => {
+    // Log if we have manual changes when opening the map
+    if (!isMapOpen) {
+      console.log('Opening map. Manual changes detected:', hasManualChanges.current)
+    }
+    setIsMapOpen(!isMapOpen)
+  }
+
+  // Handle clicks outside the map popup
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!isMapOpen) return
+
+      // Get references to the elements
+      const mapPopup = mapPopupRef.current
+      const toggleButton = document.querySelector(`.${styles.mapToggleButton}`)
+
+      // Check if click is inside map popup or on the toggle button
+      const isClickInsidePopup = mapPopup && mapPopup.contains(event.target as Node)
+      const isClickOnToggleButton = toggleButton && toggleButton.contains(event.target as Node)
+
+      // Only close if click is outside both the popup and toggle button
+      if (!isClickInsidePopup && !isClickOnToggleButton) {
+        setIsMapOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMapOpen])
 
   // Set up event listeners for popup close to reset form
   useEffect(() => {
@@ -108,6 +690,13 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
     // Save data to localStorage
     localStorage.setItem('transport_address', JSON.stringify(data))
 
+    // Update previous form values
+    previousFormValues.current = {
+      street: data.street,
+      city: data.city,
+      postal: data.postal,
+    }
+
     // Dispatch custom event for CartPage.astro to handle
     const event = new CustomEvent('address-form-submitted', {
       detail: { data },
@@ -136,14 +725,69 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
 
   return (
     <form className={styles.form} onSubmit={handleSubmit(submitHandler)}>
-      <Input
-        register={register('street', {
-          required: translations.streetRequired,
-        })}
-        label={translations.street}
-        placeholder={translations.streetPlaceholder}
-        errors={errors}
-      />
+      <div className={styles.inputWithMap}>
+        <Input
+          register={register('street', {
+            required: translations.streetRequired,
+          })}
+          label={translations.street}
+          placeholder={translations.streetPlaceholder}
+          errors={errors}
+        />
+        <button
+          type="button"
+          className={styles.mapToggleButton}
+          onClick={toggleMap}
+          title={translations.pickFromMap || 'Pick from map'}
+          aria-label={translations.pickFromMap || 'Pick from map'}
+          data-tooltip={translations.mapTooltip || 'Open map to select location'}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none">
+            <path
+              fill="#F67258"
+              d="M8.5 4.054a.5.5 0 1 0 1 0h-1Zm1-3.2a.5.5 0 0 0-1 0h1Zm-1 16a.5.5 0 1 0 1 0h-1Zm1-3.2a.5.5 0 0 0-1 0h1Zm4.3-5.3a.5.5 0 0 0 0 1v-1Zm3.2 1a.5.5 0 0 0 0-1v1Zm-16-1a.5.5 0 1 0 0 1v-1Zm3.2 1a.5.5 0 0 0 0-1v1Zm10.7-.5a5.9 5.9 0 0 1-5.9 5.9v1a6.9 6.9 0 0 0 6.9-6.9h-1Zm-5.9 5.9a5.9 5.9 0 0 1-5.9-5.9h-1a6.9 6.9 0 0 0 6.9 6.9v-1Zm-5.9-5.9a5.9 5.9 0 0 1 5.9-5.9v-1a6.9 6.9 0 0 0-6.9 6.9h1Zm5.9-5.9a5.9 5.9 0 0 1 5.9 5.9h1a6.9 6.9 0 0 0-6.9-6.9v1Zm.5 1.1v-3.2h-1v3.2h1Zm0 12.8v-3.2h-1v3.2h1Zm4.3-7.5H17v-1h-3.2v1Zm-12.8 0h3.2v-1H1v1Zm9.9-.5a1.9 1.9 0 0 1-1.9 1.9v1a2.9 2.9 0 0 0 2.9-2.9h-1Zm-1.9 1.9a1.9 1.9 0 0 1-1.9-1.9h-1a2.9 2.9 0 0 0 2.9 2.9v-1Zm-1.9-1.9c0-1.05.85-1.9 1.9-1.9v-1a2.9 2.9 0 0 0-2.9 2.9h1Zm1.9-1.9c1.05 0 1.9.85 1.9 1.9h1a2.9 2.9 0 0 0-2.9-2.9v1Z"
+            />
+          </svg>
+        </button>
+        {isMapOpen && (
+          <div className={styles.mapPickerPopup} role="dialog" aria-modal="true" ref={mapPopupRef}>
+            {isRequestingLocation && (
+              <div className={styles.locationRequest}>
+                <p>Requesting your location...</p>
+              </div>
+            )}
+            <div className={styles.mapContainer} ref={mapRef}></div>
+
+            <div className={styles.searchBox}>
+              <input
+                type="text"
+                placeholder={translations.searchLocation || 'Search for location...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+              />
+              <button type="button" onClick={handleSearch}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+                  <path
+                    fill="currentColor"
+                    fill-rule="evenodd"
+                    d="M6.667 2.333a4.333 4.333 0 1 0 0 8.667 4.333 4.333 0 0 0 0-8.667ZM1 6.667a5.667 5.667 0 1 1 11.333 0A5.667 5.667 0 0 1 1 6.667Z"
+                    clip-rule="evenodd"
+                  />
+                  <path
+                    fill="currentColor"
+                    fill-rule="evenodd"
+                    d="M10.138 10.138a.667.667 0 0 1 .943 0l3.585 3.585a.667.667 0 1 1-.943.943l-3.585-3.585a.667.667 0 0 1 0-.943Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Map popup */}
 
       <div className={styles.row} style={{ marginBottom: errors.postal ? '1.5rem' : '0' }}>
         <Input
