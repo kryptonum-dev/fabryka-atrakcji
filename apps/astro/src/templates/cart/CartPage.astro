@@ -188,6 +188,22 @@ const translations = {
         href: '/pl/hotele',
       },
     },
+    activityParticipantBelowMinAlert: {
+      heading: 'Ta integracja wymaga minimum <strong>{minPeople}</strong> osób',
+      paragraph: 'Możesz kontynuować wycenę albo dostosować liczbę uczestników.',
+      cta: {
+        text: 'Przeglądaj integracje',
+        href: '/pl/integracje',
+      },
+    },
+    activityParticipantExceedsMaxAlert: {
+      heading: 'Ta integracja jest maksymalnie dla <strong>{maxPeople}</strong> osób',
+      paragraph: 'Możesz kontynuować wycenę albo zmienić integrację, która pomieści więcej osób.',
+      cta: {
+        text: 'Przeglądaj integracje',
+        href: '/pl/integracje',
+      },
+    },
     states: {
       error: {
         retryButton: 'Spróbuj ponownie',
@@ -282,6 +298,22 @@ const translations = {
       cta: {
         text: 'Browse hotels',
         href: '/en/hotels',
+      },
+    },
+    activityParticipantBelowMinAlert: {
+      heading: 'This activity requires at least <strong>{minPeople}</strong> people',
+      paragraph: 'You can continue with the quote or adjust the number of participants.',
+      cta: {
+        text: 'Browse activities',
+        href: '/en/activities',
+      },
+    },
+    activityParticipantExceedsMaxAlert: {
+      heading: 'This activity is maxed out for <strong>{maxPeople}</strong> people',
+      paragraph: 'You can continue with the quote or change the activity to one that can accommodate more people.',
+      cta: {
+        text: 'Browse activities',
+        href: '/en/activities',
       },
     },
     states: {
@@ -1484,6 +1516,56 @@ const { metadata, page } = Astro.props
 
         // Use the exported renderAlerts function with a custom class
         renderAlerts([participantAlert], alertsList, 'participant-alert')
+      }
+    })
+
+    const activityItems = document.querySelectorAll('.state-content .activity-item')
+
+    activityItems.forEach((item) => {
+      const itemId = item.getAttribute('data-item-id')
+      const maxPeople = parseInt(item.getAttribute('data-max-people') || '0')
+      const minPeople = parseInt(item.getAttribute('data-min-people') || '0')
+
+      if (!itemId || !maxPeople || !minPeople) return
+
+      const alertsList = item.querySelector('.alerts')
+      if (!alertsList) return
+
+      // Remove any existing participant alerts
+      const existingAlerts = alertsList.querySelectorAll('.activity-participant-alert')
+      existingAlerts.forEach((alert) => alert.remove())
+
+      // If count exceeds max, add a new alert
+      if (participantCount > maxPeople) {
+        // Create a custom alert object
+        const participantAlert: Alert = {
+          heading: t.activityParticipantExceedsMaxAlert.heading.replace('{maxPeople}', String(maxPeople)),
+          paragraph: t.activityParticipantExceedsMaxAlert.paragraph.replace('{maxPeople}', String(maxPeople)),
+          cta: {
+            text: t.activityParticipantExceedsMaxAlert.cta.text,
+            internalReference: {
+              slug: t.activityParticipantExceedsMaxAlert.cta.href,
+            } as any,
+          },
+        }
+
+        // Use the exported renderAlerts function with a custom class
+        renderAlerts([participantAlert], alertsList, 'activity-participant-alert')
+      }
+
+      if (participantCount < minPeople) {
+        const participantAlert: Alert = {
+          heading: t.activityParticipantBelowMinAlert.heading.replace('{minPeople}', String(minPeople)),
+          paragraph: t.activityParticipantBelowMinAlert.paragraph.replace('{minPeople}', String(minPeople)),
+          cta: {
+            text: t.activityParticipantBelowMinAlert.cta.text,
+            internalReference: {
+              slug: t.activityParticipantBelowMinAlert.cta.href,
+            } as any,
+          },
+        }
+
+        renderAlerts([participantAlert], alertsList, 'activity-participant-alert')
       }
     })
   }

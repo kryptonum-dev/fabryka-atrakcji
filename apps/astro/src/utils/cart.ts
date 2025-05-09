@@ -132,6 +132,14 @@ function setupItemAttributes(item: CartItem, itemElement: Element) {
     itemElement.setAttribute('data-max-people', String(item.maxPeople.overnight))
   }
 
+  if ('participantsCount' in item && (item as any).participantsCount) {
+    itemElement.setAttribute('data-max-people', String((item as any).participantsCount.max))
+  }
+
+  if ('participantsCount' in item && (item as any).participantsCount) {
+    itemElement.setAttribute('data-min-people', String((item as any).participantsCount.min))
+  }
+
   if (item.addons?.hasAddons && Array.isArray(item.addons.addonsList) && item.addons.addonsList.length > 0) {
     const addonNames = item.addons.fullAddonsList?.map((addon) => ({ name: addon.name, id: addon._key }))
     itemElement.setAttribute('data-addon-names', JSON.stringify(addonNames))

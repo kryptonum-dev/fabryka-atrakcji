@@ -1046,6 +1046,7 @@ const { addons, type } = Astro.props
   import type { AddonItem as AddonItemType } from '@/src/global/types'
   import { toPlainText } from '@/src/utils/to-plain-text'
   import { optimizeImage } from '@/src/utils/optimize-images'
+  import { showToast } from '@/src/utils/toast'
 
   const popupContainer = document.querySelector('.addons-popup-container')! as HTMLDivElement
   const popupTrigger = document.querySelector('.hidden-trigger button')! as HTMLButtonElement
@@ -1674,15 +1675,14 @@ const { addons, type } = Astro.props
           const hasSelectedAddons = checkboxSelected || counterSelected
 
           if (!hasSelectedAddons) {
-            //TODO Add toast notification
-
-            alert(
+            showToast(
               popupContainer.dataset.lang === 'pl'
-                ? popupContainer.getAttribute('data-alert-pl')
-                : popupContainer.getAttribute('data-alert-en')
+                ? popupContainer.getAttribute('data-alert-pl') || ''
+                : popupContainer.getAttribute('data-alert-en') || '',
+              'error'
             )
 
-            return // Prevent navigation to cart
+            return
           }
         }
 

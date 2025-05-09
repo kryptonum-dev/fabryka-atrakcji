@@ -1217,17 +1217,16 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
       })
 
       // If has optional addons, open the popup
-      if (hasAddons) {
-        dispatchAddonsPopup({
-          itemId,
-          itemType,
-          hasAddons,
-          isEditing: false,
-          minOneAddon: false,
-          requiresAddons: false,
-          addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
-        })
-      }
+
+      dispatchAddonsPopup({
+        itemId,
+        itemType,
+        hasAddons,
+        isEditing: false,
+        minOneAddon: false,
+        requiresAddons: false,
+        addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
+      })
 
       // Update button text
       updateButtonState()
