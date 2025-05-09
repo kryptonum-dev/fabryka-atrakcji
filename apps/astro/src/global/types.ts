@@ -41,6 +41,7 @@ export type ClientFormStateTypes = {
 
 export type BaseHotelProps = {
   _id: string
+  id: string
   hotelsPage: {
     name: string
     slug: string
@@ -102,17 +103,40 @@ export type Alert = {
 
 export type BaseActivityProps = {
   _id: string
+  id: string
   name: string
   slug: string
-  imageList?: {
-    asset: {
-      url: string
-    }
-    alt?: string
-  }
-  participantsCount?: {
+  title: PortableTextValue
+  description: string
+  imageList: ImageDataProps[]
+  categories: Array<{
+    name: string
+    slug: string
+  }>
+  activityType: Array<{
+    name: string
+    slug: string
+  }>
+  participantsCount: {
     min: number
     max: number
+  }
+  duration: {
+    isFullDay: boolean
+    hours?: number
+  }
+  location: {
+    isNationwide: boolean
+    customLocation?: string
+    googleMapsLink?: string
+    isIndoor: 'indoor' | 'outdoor'
+  }
+  languages: string[]
+  popularityIndex: number
+  pricing: {
+    basePrice: number
+    maxParticipants: number
+    additionalPersonPrice: number
   }
   addons?: AddonProps
   alerts?: Alert[]
@@ -152,4 +176,21 @@ export type AddonItem = {
     }
   }
   description?: string
+}
+
+export type ExtraItem = {
+  _key: string
+  name: string
+  image: ImageDataProps
+  pricing: {
+    type: string
+    pricePerKm?: number
+    fixedPrice: number
+    threshold: {
+      basePrice: number
+      maxUnits: number
+      additionalPrice: number
+      singular: boolean
+    }
+  }
 }

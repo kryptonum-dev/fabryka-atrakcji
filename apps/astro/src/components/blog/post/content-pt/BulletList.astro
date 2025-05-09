@@ -9,21 +9,22 @@ const { node, index, ...attrs } = Astro.props
 
 <style lang="scss">
   li {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: 0.625rem;
+    padding-left: 1rem;
+    position: relative;
 
     &:not(:last-child) {
       margin-bottom: 0.75rem;
     }
 
     &::before {
+      position: absolute;
+      left: 0rem;
+      top: 0.75rem;
       content: '';
       width: 0.25rem;
       height: 0.25rem;
       border-radius: 50%;
       background-color: var(--primary-200);
-      margin-top: 0.75rem;
     }
 
     :global(ul) {

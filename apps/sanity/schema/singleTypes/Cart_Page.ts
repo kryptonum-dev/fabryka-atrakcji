@@ -124,6 +124,22 @@ export default defineType({
                   initialValue: 'fixed',
                 },
                 {
+                  name: 'pricePerKm',
+                  type: 'number',
+                  title: 'Cena za kilometr (PLN)',
+                  description:
+                    'Kwota doliczana za każdy kilometr odległości transportu niezależnie od wybranego cennika',
+                  validation: (Rule) =>
+                    Rule.custom((value) => {
+                      if (value === undefined || value === null) return 'Cena za kilometr jest wymagana'
+                      if (typeof value !== 'number' || !Number.isInteger(value))
+                        return 'Cena za kilometr musi być liczbą całkowitą'
+                      if (value < 1) return 'Cena za kilometr musi być większa niż 0 PLN'
+                      return true
+                    }),
+                  initialValue: 1, // Default to 1 PLN per km
+                },
+                {
                   name: 'fixedPrice',
                   type: 'number',
                   title: 'Cena (PLN)',

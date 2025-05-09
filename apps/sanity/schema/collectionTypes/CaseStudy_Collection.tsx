@@ -175,7 +175,7 @@ export default defineType({
     }),
     defineField({
       name: 'challenge',
-      type: 'Heading',
+      type: 'PortableText',
       title: 'Wyzwanie',
       fieldset: 'challengeSolutionWrapper',
       group: 'content',
@@ -183,7 +183,7 @@ export default defineType({
     }),
     defineField({
       name: 'solution',
-      type: 'Heading',
+      type: 'PortableText',
       title: 'Rozwiązanie',
       fieldset: 'challengeSolutionWrapper',
       group: 'content',
@@ -191,7 +191,7 @@ export default defineType({
     }),
     defineField({
       name: 'results',
-      type: 'Heading',
+      type: 'PortableText',
       title: 'Wyniki',
       fieldset: 'challengeSolutionWrapper',
       group: 'content',

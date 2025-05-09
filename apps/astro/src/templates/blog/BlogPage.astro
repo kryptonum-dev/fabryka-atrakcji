@@ -12,7 +12,7 @@ import { BlogCardQuery, type BlogCardProps } from '@/src/components/ui/BlogCard'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import BlogPageSchema, { type BlogPageSchemaProps } from '@/src/Schema/BlogPageSchema.astro'
 
-export const ITEMS_PER_PAGE = 1
+export const ITEMS_PER_PAGE = 16
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number

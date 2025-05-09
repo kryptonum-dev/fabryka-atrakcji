@@ -157,6 +157,12 @@ const blogSchema = {
     .content-body {
       max-width: 40.9375rem;
       justify-self: start;
+      margin-top: clamp(3rem, calc(3.25vw / 0.48), 3.25rem);
+
+      :global(> :first-child) {
+        margin-top: 0;
+      }
+
       :global(> :last-child) {
         margin-bottom: 0;
       }

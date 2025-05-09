@@ -29,6 +29,7 @@ type CartAddon = {
   fullData: {
     _key: string
     name: string
+    pricing: any
   }
 }
 

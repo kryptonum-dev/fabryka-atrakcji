@@ -1,0 +1,937 @@
+import type { APIRoute } from 'astro'
+import type { AddonItem, AddonProps, BaseActivityProps, BaseHotelProps, ExtraItem } from '@/src/global/types'
+
+/**
+ * Calculate the price for a hotel based on its pricing model and participant count
+ *
+ * @param hotel Hotel object with pricing information
+ * @param participantCount Number of participants
+ * @returns Object with calculated price and flags
+ */
+function calculateHotelPrice(
+  hotel: {
+    pricing: {
+      hasFixedGroupPrice?: boolean
+      groupPrice?: number
+      groupPeopleCount?: number
+      pricePerPerson: number
+    }
+    maxPeople?: {
+      overnight: number
+    }
+  },
+  participantCount: number
+) {
+  // Initialize result
+  const result = {
+    totalPrice: 0,
+    exceedsMaxPeople: false,
+    calculatedFor: participantCount,
+  }
+
+  // Check if participants exceed max people
+  let effectiveParticipantCount = participantCount
+
+  if (hotel.maxPeople?.overnight && participantCount > hotel.maxPeople.overnight) {
+    result.exceedsMaxPeople = true
+    // Use the max people count for calculation instead
+    effectiveParticipantCount = hotel.maxPeople.overnight
+    result.calculatedFor = effectiveParticipantCount
+  }
+
+  // Calculate price based on pricing model
+  if (hotel.pricing.hasFixedGroupPrice && hotel.pricing.groupPrice && hotel.pricing.groupPeopleCount) {
+    // Fixed group price + additional per person
+    if (effectiveParticipantCount <= hotel.pricing.groupPeopleCount) {
+      // Just the group price
+      result.totalPrice = hotel.pricing.groupPrice
+    } else {
+      // Group price + additional people at per-person rate
+      const additionalPeople = effectiveParticipantCount - hotel.pricing.groupPeopleCount
+      result.totalPrice = hotel.pricing.groupPrice + additionalPeople * hotel.pricing.pricePerPerson
+    }
+  } else {
+    // Simple per person pricing
+    result.totalPrice = effectiveParticipantCount * hotel.pricing.pricePerPerson
+  }
+
+  return result
+}
+
+/**
+ * Calculate the price for an activity based on its pricing model and participant count
+ *
+ * @param activity Activity object with pricing information
+ * @param participantCount Number of participants
+ * @returns Object with calculated price
+ */
+function calculateActivityPrice(
+  activity: {
+    pricing: {
+      basePrice: number
+      maxParticipants: number
+      additionalPersonPrice: number
+    }
+    participantsCount?: {
+      min: number
+      max: number
+    }
+  },
+  participantCount: number
+) {
+  // Initialize result
+  const result = {
+    totalPrice: 0,
+    exceedsMaxPeople: false,
+    calculatedFor: participantCount,
+    belowMinPeople: false,
+  }
+
+  // Check if participants are within activity limits
+  let effectiveParticipantCount = participantCount
+
+  // Check minimum participants requirement
+  if (activity.participantsCount?.min && participantCount < activity.participantsCount.min) {
+    result.belowMinPeople = true
+    // Use minimum required participants for calculation
+    effectiveParticipantCount = activity.participantsCount.min
+    result.calculatedFor = effectiveParticipantCount
+  }
+
+  // Check maximum participants limit
+  if (activity.participantsCount?.max && participantCount > activity.participantsCount.max) {
+    result.exceedsMaxPeople = true
+    // Use maximum allowed participants for calculation
+    effectiveParticipantCount = activity.participantsCount.max
+    result.calculatedFor = effectiveParticipantCount
+  }
+
+  // Calculate price based on threshold model
+  if (effectiveParticipantCount <= activity.pricing.maxParticipants) {
+    // Base price covers all participants
+    result.totalPrice = activity.pricing.basePrice
+  } else {
+    // Base price + additional per person pricing
+    const additionalPeople = effectiveParticipantCount - activity.pricing.maxParticipants
+    result.totalPrice = activity.pricing.basePrice + additionalPeople * activity.pricing.additionalPersonPrice
+  }
+
+  return result
+}
+
+/**
+ * Calculate the price for an addon based on its pricing model, count, and participant count
+ *
+ * @param addon The addon item with pricing information
+ * @param addonCount Number of units of this addon (for per_unit pricing)
+ * @param participantCount Total number of participants (for threshold pricing)
+ * @returns Object with calculated price and details
+ */
+function calculateAddonPrice(
+  addon: AddonItem,
+  addonCount: number = 1,
+  participantCount: number = 0
+): {
+  totalPrice: number
+  priceDetails: {
+    unitPrice?: number
+    units?: number
+    basePrice?: number
+    additionalUnits?: number
+    additionalUnitPrice?: number
+  }
+  pricingModel: string
+} {
+  // Default result structure
+  const result = {
+    totalPrice: 0,
+    priceDetails: {
+      unitPrice: undefined,
+      units: undefined,
+      basePrice: undefined,
+      additionalUnits: undefined,
+      additionalUnitPrice: undefined,
+    } as {
+      unitPrice?: number
+      units?: number
+      basePrice?: number
+      additionalUnits?: number
+      additionalUnitPrice?: number
+    },
+    pricingModel: addon.pricing.type,
+  }
+
+  // Calculate based on pricing type
+  switch (addon.pricing.type) {
+    // Fixed price (same price regardless of count or participants)
+    case 'fixed':
+      if (typeof addon.pricing.fixedPrice === 'number') {
+        result.totalPrice = addon.pricing.fixedPrice
+        result.priceDetails = {
+          unitPrice: addon.pricing.fixedPrice,
+          units: 1,
+        }
+      }
+      break
+
+    // Per unit pricing (like "per hour" or "per vehicle")
+    case 'per_unit':
+      if (addon.pricing.perUnit && typeof addon.pricing.perUnit.price === 'number') {
+        const unitPrice = addon.pricing.perUnit.price
+        // If the add-on has count capability, use the specified count
+        const units = addon.pricing.perUnit.hasCount ? addonCount : 1
+
+        result.totalPrice = unitPrice * units
+        result.priceDetails = {
+          unitPrice,
+          units,
+        }
+      }
+      break
+
+    // Threshold pricing (base price for X people, then additional per person)
+    case 'threshold':
+      if (addon.pricing.threshold) {
+        const { basePrice, maxUnits, additionalPrice } = addon.pricing.threshold
+
+        // Start with base price
+        result.totalPrice = basePrice
+        result.priceDetails = {
+          basePrice,
+          units: Math.min(participantCount, maxUnits),
+        }
+
+        // If participant count exceeds threshold, add additional pricing
+        if (participantCount > maxUnits) {
+          const additionalUnits = participantCount - maxUnits
+          const additionalCost = additionalUnits * additionalPrice
+
+          result.totalPrice += additionalCost
+          result.priceDetails.additionalUnits = additionalUnits
+          result.priceDetails.additionalUnitPrice = additionalPrice
+        }
+      }
+      break
+
+    // Individual pricing (custom quote needed)
+    case 'individual':
+      // For individual pricing, we can't calculate automatically
+      result.totalPrice = 0
+      result.priceDetails = {
+        unitPrice: 0,
+        units: 0,
+      }
+      break
+  }
+
+  return result
+}
+
+/**
+ * Calculate the price for a global extra item (non-transport)
+ *
+ * @param extra Extra item with pricing information
+ * @param participantCount Number of participants
+ * @returns Object with calculated price and details
+ */
+function calculateExtraPrice(
+  extra: ExtraItem & {
+    id?: string
+    count?: number
+  },
+  participantCount: number
+) {
+  // Initialize result
+  const result = {
+    totalPrice: 0,
+    priceDetails: {} as Record<string, any>,
+    pricingModel: '',
+    isTransport: false,
+  }
+
+  // Check if this is a transport item (to be handled separately)
+  if (extra.id === 'transport' || extra._key === 'transport') {
+    result.isTransport = true
+    return result
+  }
+
+  // Extract pricing information
+  const pricing = extra.pricing
+  if (!pricing) return result
+
+  // Set pricing model
+  result.pricingModel = pricing.type
+
+  // Calculate based on pricing type
+  switch (pricing.type) {
+    case 'fixed':
+      // Simple fixed price
+      if (typeof pricing.fixedPrice === 'number') {
+        result.totalPrice = pricing.fixedPrice
+        result.priceDetails = {
+          unitPrice: pricing.fixedPrice,
+          units: 1,
+        }
+      }
+      break
+
+    case 'threshold':
+      // Threshold pricing based on participant count
+      if (pricing.threshold) {
+        const { basePrice, maxUnits, additionalPrice } = pricing.threshold
+
+        // Start with base price
+        result.totalPrice = basePrice
+        result.priceDetails = {
+          basePrice,
+          maxUnits,
+          participants: participantCount,
+          calculatedFor: Math.min(participantCount, maxUnits),
+        }
+
+        // If participant count exceeds threshold, add additional pricing
+        if (participantCount > maxUnits) {
+          const additionalUnits = participantCount - maxUnits
+          const additionalCost = additionalUnits * additionalPrice
+
+          result.totalPrice += additionalCost
+          result.priceDetails.additionalUnits = additionalUnits
+          result.priceDetails.additionalUnitPrice = additionalPrice
+          result.priceDetails.additionalCost = additionalCost
+        }
+      }
+      break
+  }
+
+  return result
+}
+
+/**
+ * Geocode an address into lat/lng coordinates using OSM Nominatim.
+ *
+ * @param address Address object with street, postal, city properties
+ * @returns Promise resolving to coordinates or null if geocoding fails
+ */
+async function geocodeAddress(address: {
+  street: string
+  postal: string
+  city: string
+}): Promise<{ lat: number; lng: number } | null> {
+  // Only attempt geocoding if we have at least street and city
+  if (!address.street || !address.city) {
+    console.warn('Insufficient address information for geocoding')
+    return null
+  }
+
+  const query = `${address.street}, ${address.postal || ''} ${address.city}`.trim()
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'Fabryka-Atrakcji/1.0', // Proper user-agent as required by Nominatim
+          'Accept-Language': 'pl', // Prioritize Polish results
+        },
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`Geocoding request failed with status: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      }
+    }
+
+    console.warn('No geocoding results found for address:', query)
+    return null
+  } catch (error) {
+    console.error('Geocoding error:', error)
+    return null
+  }
+}
+
+/**
+ * Calculate distance between two points using the Haversine formula.
+ *
+ * @param lat1 Latitude of first point
+ * @param lng1 Longitude of first point
+ * @param lat2 Latitude of second point
+ * @param lng2 Longitude of second point
+ * @returns Distance in kilometers
+ */
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  // Convert degrees to radians
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180
+
+  const R = 6371 // Earth's radius in kilometers
+  const dLat = toRadians(lat2 - lat1)
+  const dLng = toRadians(lng2 - lng1)
+
+  // Haversine formula
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c
+
+  // Round to nearest kilometer
+  return Math.round(distance)
+}
+
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    // Parse the incoming request body
+    const data = await request.json()
+
+    const {
+      hotels,
+      activities,
+      extras,
+      language,
+      selectedDates,
+      participantCount,
+    }: {
+      hotels: BaseHotelProps[]
+      activities: BaseActivityProps[]
+      extras: (ExtraItem & {
+        id?: string
+        count?: number
+        address?: { street: string; postal: string; city: string; lat?: number; lng?: number }
+      })[]
+      participantCount: number
+      language: string
+      selectedDates: string[]
+    } = data
+
+    console.log(
+      `Processing quote with ${hotels.length} hotels, ${activities.length} activities, ${extras.length} extras`
+    )
+
+    // Generate a quote ID
+    const quoteId = `quote_${crypto.randomUUID()}`
+
+    // Array to store all quote items
+    const quoteItems = []
+
+    // Process transport extras if present to handle distance calculations
+    let transportExtra = extras.find((extra) => extra.id === 'transport')
+    let transportPickupCoordinates = null
+    let transportGeocodingFailed = false
+
+    if (transportExtra && transportExtra.address) {
+      console.log('Processing transport with address:', transportExtra.address)
+
+      // Get pickup coordinates from the address
+      if (transportExtra.address.lat && transportExtra.address.lng) {
+        // Coordinates already present (from map selection)
+        transportPickupCoordinates = {
+          lat: transportExtra.address.lat,
+          lng: transportExtra.address.lng,
+        }
+        console.log('Using provided coordinates:', transportPickupCoordinates)
+      } else {
+        // Need to geocode the address
+        transportPickupCoordinates = await geocodeAddress({
+          street: transportExtra.address.street,
+          postal: transportExtra.address.postal,
+          city: transportExtra.address.city,
+        })
+
+        if (transportPickupCoordinates) {
+          console.log('Successfully geocoded address to:', transportPickupCoordinates)
+          // Save the coordinates for later use
+          transportExtra.address.lat = transportPickupCoordinates.lat
+          transportExtra.address.lng = transportPickupCoordinates.lng
+        } else {
+          console.warn('Failed to geocode transport address')
+          transportGeocodingFailed = true
+        }
+      }
+    }
+
+    // Process each hotel if present
+    if (hotels && hotels.length > 0) {
+      for (const hotel of hotels) {
+        console.log(`Processing hotel: ${hotel.name}`)
+
+        // Calculate hotel base price
+        const hotelPriceResult = calculateHotelPrice(hotel, participantCount)
+
+        // Get hotel coordinates (for transport distance calculation if needed)
+        let hotelCoordinates = null
+        let hotelGeocodingFailed = false
+        let hotelHasAddress = hotel.address ? true : false
+
+        if (hotelHasAddress && hotel.address) {
+          // Try to geocode the hotel address
+          hotelCoordinates = await geocodeAddress({
+            street: hotel.address.street.replace('ul.', ''), // Remove "ul." prefix if present
+            postal: hotel.address.postalCode,
+            city: hotel.address.city,
+          })
+
+          console.log(hotelCoordinates)
+
+          if (hotelCoordinates) {
+            console.log('Hotel coordinates:', hotelCoordinates)
+          } else {
+            // Geocoding failed
+            hotelGeocodingFailed = true
+            console.warn(`Failed to geocode hotel address for: ${hotel.name}`)
+          }
+        }
+
+        // Process hotel addons if any
+        const hotelAddonsResults = []
+        if (hotel.addons && Array.isArray(hotel.addons)) {
+          for (const addon of hotel.addons) {
+            const addonPriceResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
+            hotelAddonsResults.push({
+              id: addon.id,
+              name: addon.name,
+              count: addon.count || 1,
+              pricing: addonPriceResult,
+            })
+          }
+        }
+
+        // Create hotel quote item
+        const hotelQuoteItem = {
+          type: 'hotel',
+          hotels: [
+            {
+              id: hotel._id || hotel.id,
+              name: hotel.name,
+              slug: hotel.slug,
+              pricing: {
+                ...hotelPriceResult,
+                calculatedPrice: hotelPriceResult.totalPrice,
+              },
+              addons: hotelAddonsResults,
+              coordinates: hotelCoordinates,
+            },
+          ],
+          activities: [] as any[],
+          transport: null as any,
+          extras: [] as any[], // Add empty extras array for each hotel
+        }
+
+        // Process activities for this hotel if any
+        const hotelActivitiesResults = []
+        if (activities && activities.length > 0) {
+          for (const activity of activities) {
+            console.log(`Processing activity: ${activity.name} for hotel: ${hotel.name}`)
+
+            // Calculate activity price
+            const activityPriceResult = calculateActivityPrice(activity, participantCount)
+
+            // Process activity addons if any
+            const activityAddonsResults = []
+            if (activity.addons && Array.isArray(activity.addons)) {
+              for (const addon of activity.addons) {
+                const addonPriceResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
+                activityAddonsResults.push({
+                  id: addon.id,
+                  name: addon.name,
+                  count: addon.count || 1,
+                  pricing: addonPriceResult,
+                })
+              }
+            }
+
+            hotelActivitiesResults.push({
+              id: activity._id || activity.id,
+              name: activity.name,
+              slug: activity.slug,
+              pricing: {
+                ...activityPriceResult,
+                calculatedPrice: activityPriceResult.totalPrice,
+              },
+              addons: activityAddonsResults,
+            })
+          }
+        }
+
+        // Add activities to hotel quote item
+        hotelQuoteItem.activities = hotelActivitiesResults
+
+        // Calculate transport distance from pickup to hotel if both coordinates available
+        if (transportPickupCoordinates && hotelCoordinates && transportExtra) {
+          const distance = calculateDistance(
+            transportPickupCoordinates.lat,
+            transportPickupCoordinates.lng,
+            hotelCoordinates.lat,
+            hotelCoordinates.lng
+          )
+
+          console.log(`Distance from pickup to hotel ${hotel.name}: ${distance} km`)
+
+          // Store distance for this hotel
+          hotelQuoteItem.transport = {
+            distance: distance,
+            pickupCoordinates: transportPickupCoordinates,
+            destinationCoordinates: hotelCoordinates,
+          }
+
+          // If transport has pricePerKm, calculate transport price
+          if (transportExtra.pricing && transportExtra.pricing.pricePerKm) {
+            const distancePrice = distance * transportExtra.pricing.pricePerKm
+
+            // Calculate base transport price
+            let baseTransportPrice = 0
+            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
+              baseTransportPrice = transportExtra.pricing.fixedPrice
+            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
+              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+
+              baseTransportPrice = basePrice
+
+              if (participantCount > maxUnits) {
+                const additionalPeople = participantCount - maxUnits
+                baseTransportPrice += additionalPeople * additionalPrice
+              }
+            }
+
+            hotelQuoteItem.transport.pricing = {
+              basePrice: baseTransportPrice,
+              distancePrice: distancePrice,
+              totalPrice: baseTransportPrice + distancePrice,
+              pricePerKm: transportExtra.pricing.pricePerKm,
+            }
+          }
+        } else if (transportExtra) {
+          // Handle different cases when we can't calculate proper distance
+          if (transportGeocodingFailed && hotelCoordinates) {
+            // Transport address geocoding failed but hotel coordinates are present
+            hotelQuoteItem.transport = {
+              transportAddressNotFound: true,
+              destinationCoordinates: hotelCoordinates,
+            }
+          } else if (!transportPickupCoordinates && hotelCoordinates) {
+            // No transport address provided but hotel coordinates are present
+            hotelQuoteItem.transport = {
+              noTransportAddress: true,
+              destinationCoordinates: hotelCoordinates,
+            }
+          } else if (!hotelHasAddress) {
+            // No address provided for hotel
+            hotelQuoteItem.transport = {
+              hotelNoAddress: true,
+              pickupCoordinates: transportPickupCoordinates,
+            }
+          } else if (hotelGeocodingFailed && transportPickupCoordinates) {
+            // Address provided but geocoding failed for hotel
+            hotelQuoteItem.transport = {
+              hotelAddressNotFound: true,
+              pickupCoordinates: transportPickupCoordinates,
+            }
+          } else if (hotelGeocodingFailed && transportGeocodingFailed) {
+            // Both addresses failed geocoding
+            hotelQuoteItem.transport = {
+              bothAddressesNotFound: true,
+            }
+          }
+
+          // Calculate base transport price without distance
+          if (transportExtra.pricing && hotelQuoteItem.transport) {
+            let baseTransportPrice = 0
+            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
+              baseTransportPrice = transportExtra.pricing.fixedPrice
+            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
+              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+
+              baseTransportPrice = basePrice
+
+              if (participantCount > maxUnits) {
+                const additionalPeople = participantCount - maxUnits
+                baseTransportPrice += additionalPeople * additionalPrice
+              }
+            }
+
+            hotelQuoteItem.transport.pricing = {
+              basePrice: baseTransportPrice,
+              totalPrice: baseTransportPrice,
+            }
+          }
+        }
+
+        // Add hotel item to quote items
+        quoteItems.push(hotelQuoteItem)
+      }
+    } else if (activities && activities.length > 0) {
+      // No hotels, process activities only
+      for (const activity of activities) {
+        console.log(`Processing activity without hotel: ${activity.name}`)
+
+        // Calculate activity price
+        const activityPriceResult = calculateActivityPrice(activity, participantCount)
+
+        // Process activity addons if any
+        const activityAddonsResults = []
+        if (activity.addons && Array.isArray(activity.addons)) {
+          for (const addon of activity.addons) {
+            const addonPriceResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
+            activityAddonsResults.push({
+              id: addon.id,
+              name: addon.name,
+              count: addon.count || 1,
+              pricing: addonPriceResult,
+            })
+          }
+        }
+
+        // Create activity quote item
+        const activityQuoteItem = {
+          type: 'activity',
+          hotels: [] as any[],
+          activities: [
+            {
+              id: activity._id || activity.id,
+              name: activity.name,
+              slug: activity.slug,
+              pricing: {
+                ...activityPriceResult,
+                calculatedPrice: activityPriceResult.totalPrice,
+              },
+              addons: activityAddonsResults,
+            },
+          ],
+          transport: null as any,
+          extras: [] as any[], // Add empty extras array for each activity
+        }
+
+        // Handle transport for activities (without coordinates or distance calculation)
+        if (transportExtra && transportPickupCoordinates) {
+          // Since we don't have activity coordinates, we can only add base transport price
+          activityQuoteItem.transport = {
+            activityNoAddress: true,
+            pickupCoordinates: transportPickupCoordinates,
+          }
+
+          // Calculate base transport price without distance
+          if (transportExtra.pricing) {
+            let baseTransportPrice = 0
+            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
+              baseTransportPrice = transportExtra.pricing.fixedPrice
+            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
+              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+
+              baseTransportPrice = basePrice
+
+              if (participantCount > maxUnits) {
+                const additionalPeople = participantCount - maxUnits
+                baseTransportPrice += additionalPeople * additionalPrice
+              }
+            }
+
+            if (activityQuoteItem.transport) {
+              activityQuoteItem.transport.pricing = {
+                basePrice: baseTransportPrice,
+                totalPrice: baseTransportPrice,
+              }
+            }
+          }
+        } else if (transportGeocodingFailed) {
+          // Transport address geocoding failed
+          activityQuoteItem.transport = {
+            transportAddressNotFound: true,
+          }
+
+          // Still add base transport price even when address lookup fails
+          if (transportExtra && transportExtra.pricing) {
+            let baseTransportPrice = 0
+            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
+              baseTransportPrice = transportExtra.pricing.fixedPrice
+            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
+              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+
+              baseTransportPrice = basePrice
+
+              if (participantCount > maxUnits) {
+                const additionalPeople = participantCount - maxUnits
+                baseTransportPrice += additionalPeople * additionalPrice
+              }
+            }
+
+            if (activityQuoteItem.transport) {
+              activityQuoteItem.transport.pricing = {
+                basePrice: baseTransportPrice,
+                totalPrice: baseTransportPrice,
+              }
+            }
+          }
+        } else if (transportExtra) {
+          // Transport requested but no address provided
+          activityQuoteItem.transport = {
+            noTransportAddress: true,
+          }
+
+          // Add base transport price
+          if (transportExtra.pricing) {
+            let baseTransportPrice = 0
+            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
+              baseTransportPrice = transportExtra.pricing.fixedPrice
+            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
+              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+
+              baseTransportPrice = basePrice
+
+              if (participantCount > maxUnits) {
+                const additionalPeople = participantCount - maxUnits
+                baseTransportPrice += additionalPeople * additionalPrice
+              }
+            }
+
+            if (activityQuoteItem.transport) {
+              activityQuoteItem.transport.pricing = {
+                basePrice: baseTransportPrice,
+                totalPrice: baseTransportPrice,
+              }
+            }
+          }
+        }
+
+        // Add activity item to quote items
+        quoteItems.push(activityQuoteItem)
+      }
+    }
+
+    // Process global extras that are not transport
+    if (extras && extras.length > 0) {
+      for (const extra of extras) {
+        // Skip transport as it's handled per hotel/activity
+        if (extra.id === 'transport' || extra._key === 'transport') continue
+
+        const extraPriceResult = calculateExtraPrice(extra, participantCount)
+        const extraItem = {
+          id: extra.id || extra._key,
+          name: extra.name,
+          count: extra.count || 1,
+          pricing: extraPriceResult,
+        }
+
+        // Add extra to all quote items instead of a global extras array
+        quoteItems.forEach((item) => {
+          item.extras.push({ ...extraItem })
+        })
+      }
+    }
+
+    // Calculate totals
+    let totalPrice = 0
+
+    // Sum up prices for all items
+    quoteItems.forEach((item) => {
+      if (item.type === 'hotel') {
+        // Add hotel price for all hotels in the array (typically just one)
+        if (item.hotels && item.hotels.length > 0) {
+          item.hotels.forEach((hotel: any) => {
+            // Add hotel base price
+            totalPrice += hotel.pricing.calculatedPrice || 0
+
+            // Add hotel addon prices
+            if (hotel.addons && hotel.addons.length > 0) {
+              hotel.addons.forEach((addon: any) => {
+                totalPrice += addon.pricing.totalPrice || 0
+              })
+            }
+          })
+        }
+
+        // Add activities prices
+        if (item.activities && item.activities.length > 0) {
+          item.activities.forEach((activity: any) => {
+            totalPrice += activity.pricing.calculatedPrice || 0
+
+            // Add activity addon prices
+            if (activity.addons && activity.addons.length > 0) {
+              activity.addons.forEach((addon: any) => {
+                totalPrice += addon.pricing.totalPrice || 0
+              })
+            }
+          })
+        }
+      } else if (item.type === 'activity') {
+        // Add activity prices for all activities in the array (typically just one)
+        if (item.activities && item.activities.length > 0) {
+          item.activities.forEach((activity: any) => {
+            // Add activity base price
+            totalPrice += activity.pricing.calculatedPrice || 0
+
+            // Add activity addon prices
+            if (activity.addons && activity.addons.length > 0) {
+              activity.addons.forEach((addon: any) => {
+                totalPrice += addon.pricing.totalPrice || 0
+              })
+            }
+          })
+        }
+      }
+
+      // Add transport price if applicable
+      if (item.transport && item.transport.pricing) {
+        totalPrice += item.transport.pricing.totalPrice || 0
+      }
+
+      // Add extras prices from each item
+      if (item.extras && item.extras.length > 0) {
+        item.extras.forEach((extra: any) => {
+          totalPrice += extra.pricing.totalPrice || 0
+        })
+      }
+    })
+
+    // Create final quote object
+    const quoteObject = {
+      id: quoteId,
+      createdAt: new Date().toISOString(),
+      participantCount,
+      selectedDates,
+      language,
+      items: quoteItems,
+      totalPrice: Math.round(totalPrice),
+      currency: 'PLN',
+    }
+
+    console.log('Final quote object:', JSON.stringify(quoteObject, null, 2))
+
+    // Return success response with the quote ID and quote object
+    return new Response(
+      JSON.stringify({
+        success: true,
+        quoteId,
+        quote: quoteObject,
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+  } catch (error) {
+    console.error('Error processing quote request:', error)
+
+    // Return error response
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Failed to process quote request',
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+  }
+}

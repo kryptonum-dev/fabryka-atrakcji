@@ -12,12 +12,12 @@ import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 import DatePicker from '@/src/components/ui/DatePicker.astro'
 import AlertTemplate from './AlertTemplate.astro'
-import Image, { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import Image, { ImageDataQuery } from '@/src/components/ui/image'
 import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
 import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
 import AddressForm from '@/src/components/cart/form'
 import SkeletonLoader from '@/src/components/cart/SkeletonLoader.astro'
-
+import type { ExtraItem } from '@/src/global/types'
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export async function fetchData(lang: Language) {
@@ -34,34 +34,8 @@ export async function fetchData(lang: Language) {
       paragraph: PortableTextValue
     }
     orderAddons: {
-      transportOptions: {
-        image: ImageDataProps
-        pricing: {
-          type: string
-          fixedPrice: number
-          threshold: {
-            basePrice: number
-            maxUnits: number
-            additionalPrice: number
-            singular: boolean
-          }
-        }
-      }
-      addonsList: Array<{
-        _key: string
-        name: string
-        image: ImageDataProps
-        pricing: {
-          type: string
-          fixedPrice: number
-          threshold: {
-            basePrice: number
-            maxUnits: number
-            additionalPrice: number
-            singular: boolean
-          }
-        }
-      }>
+      transportOptions: ExtraItem
+      addonsList: Array<ExtraItem>
     }
   }>({
     query: `
@@ -82,6 +56,7 @@ export async function fetchData(lang: Language) {
             ${ImageDataQuery('image')}
             pricing {
               type,
+              pricePerKm,
               fixedPrice,
               threshold {
                 basePrice,
@@ -427,7 +402,7 @@ const { metadata, page } = Astro.props
           </div>
         </div>
         <div class="actions">
-          <Button>{t.getQuote.text}</Button>
+          <Button id="get-quote-button">{t.getQuote.text}</Button>
           <p class="additional-info">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none"
               ><path
@@ -981,6 +956,36 @@ const { metadata, page } = Astro.props
               margin: 0 auto;
               padding-right: 1.75rem;
             }
+
+            &[data-loading='true'] {
+              position: relative;
+              pointer-events: none;
+
+              &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 1.25rem;
+                height: 1.25rem;
+                margin-top: -0.625rem;
+                margin-left: -0.625rem;
+                border-radius: 50%;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-top-color: white;
+                animation: spin 0.8s linear infinite;
+              }
+
+              :global(span) {
+                opacity: 0;
+              }
+            }
+          }
+
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
           }
 
           .additional-info {
@@ -1094,6 +1099,28 @@ const { metadata, page } = Astro.props
       min-height: 0;
       max-height: 32.25rem;
       overflow-y: auto;
+
+      @media (hover: hover) and (pointer: fine) {
+        padding-right: 0.125rem;
+
+        &::-webkit-scrollbar {
+          width: 0.25rem;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: var(--neutral-300, #ede6de);
+          border-radius: 16px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: var(--primary-400, #74535e);
+          border-radius: 16px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+          background: var(--primary-700, #600d2a);
+        }
+      }
     }
 
     :global(.extras-list) {
@@ -1423,16 +1450,12 @@ const { metadata, page } = Astro.props
       participantCount = parseInt(participantInput.value || '0')
     }
 
-    console.log('Checking participant alerts with count:', participantCount)
-
     // Find all hotel items in the cart
     const hotelItems = document.querySelectorAll('.state-content .hotel-item')
-    console.log('Found hotel items:', hotelItems.length)
 
     hotelItems.forEach((item) => {
       const itemId = item.getAttribute('data-item-id')
       const maxPeople = parseInt(item.getAttribute('data-max-people') || '0')
-      console.log('Hotel:', itemId, 'Max People:', maxPeople, 'Participant Count:', participantCount)
 
       if (!itemId || !maxPeople) return
 
@@ -1794,6 +1817,292 @@ const { metadata, page } = Astro.props
     })
   }
 
+  // Participant count handling
+  function initParticipantInput() {
+    const participantInput = document.getElementById('participantCount') as HTMLInputElement
+    if (!participantInput) return
+
+    // Load saved value from localStorage if available
+    const savedCount = localStorage.getItem('cart_participant_count')
+    if (savedCount) {
+      participantInput.value = savedCount
+    }
+
+    // Handle input changes
+    participantInput.addEventListener('input', () => {
+      // Clean input - remove non-numeric values
+      let value = participantInput.value.replace(/[^\d]/g, '')
+
+      // Ensure value is at least 1
+      if (!value || parseInt(value) < 1) {
+        value = '1'
+      }
+
+      // Update input value
+      participantInput.value = value
+
+      // Store in localStorage
+      localStorage.setItem('cart_participant_count', value)
+
+      // Update alerts when participant count changes
+      updateParticipantAlerts()
+    })
+
+    // Handle blur to format value properly
+    participantInput.addEventListener('blur', () => {
+      let value = participantInput.value
+
+      // Convert to integer
+      const intValue = parseInt(value)
+
+      // Update with parsed integer value
+      if (!isNaN(intValue)) {
+        participantInput.value = intValue.toString()
+        localStorage.setItem('cart_participant_count', intValue.toString())
+
+        // Update alerts on blur
+        updateParticipantAlerts()
+      }
+    })
+  }
+
+  // Setup quote request handling
+  function setupQuoteRequestHandling() {
+    const getQuoteButton = document.getElementById('get-quote-button')
+
+    if (!getQuoteButton) return
+
+    getQuoteButton.addEventListener('click', async () => {
+      try {
+        // Show loading state
+        getQuoteButton.setAttribute('data-loading', 'true')
+        getQuoteButton.setAttribute('disabled', 'true')
+
+        // Get participant count
+        const participantInput = document.getElementById('participantCount') as HTMLInputElement
+        const participantCount = parseInt(
+          participantInput?.value || localStorage.getItem('cart_participant_count') || '0'
+        )
+
+        // Get selected date(s)
+        const cartDates = localStorage.getItem('cart_dates')
+        let selectedDates: any[] = []
+        if (cartDates) {
+          try {
+            selectedDates = JSON.parse(cartDates)
+          } catch (e) {
+            console.error('Error parsing cart dates:', e)
+          }
+        }
+
+        // Get cart data
+        const cart = cartStore.get()
+
+        // Fetch complete data for hotels with pricing and addons
+        let validHotels = []
+        let validActivities = []
+
+        // If all necessary data is already in cache, use it
+        if (cachedCartData.isComplete()) {
+          console.log('Using cached data for quote generation')
+          validHotels = cachedCartData.hotels.map((hotel) => {
+            // Format the hotel data for quote
+            const addons =
+              hotel.cartAddons?.map((addon) => {
+                return {
+                  id: addon.id,
+                  name: addon.fullData?.name || 'Unknown',
+                  pricing: addon.fullData?.pricing,
+                  count: addon.count || 1,
+                }
+              }) || []
+
+            return {
+              id: hotel._id,
+              type: 'hotel',
+              name: hotel.name,
+              slug: hotel.slug,
+              pricing: hotel.pricing,
+              maxPeople: hotel.maxPeople,
+              addons,
+              address: hotel.address,
+            }
+          })
+
+          validActivities = cachedCartData.activities.map((activity) => {
+            // Format the activity data for quote
+            const addons =
+              activity.cartAddons?.map((addon) => {
+                return {
+                  id: addon.id,
+                  name: addon.fullData?.name || 'Unknown',
+                  pricing: addon.fullData?.pricing,
+                  count: addon.count || 1,
+                }
+              }) || []
+
+            return {
+              id: activity._id,
+              type: 'activity',
+              name: activity.name,
+              slug: activity.slug,
+              pricing: activity.pricing,
+              participantsCount: activity.participantsCount,
+              addons,
+            }
+          })
+        } else {
+          // If cache is not complete, fetch data (this is a backup but shouldn't happen)
+          console.log('Cache incomplete, fetching fresh data for quote')
+
+          // Fetch hotels data
+          const hotelsPromises = cart.hotels.map(async (hotelItem) => {
+            const addonIds = hotelItem.addOns.map((addon) => addon.id)
+            const hotelData = await fetchHotelData(hotelItem.id, addonIds)
+
+            if (!hotelData) return null
+
+            // Map addons with their counts from the cart
+            const addons =
+              hotelData.addons?.addonsList?.map((addon: any) => {
+                const cartAddon = hotelItem.addOns.find((a: { id: string }) => a.id === addon._key)
+                return {
+                  id: addon._key,
+                  name: addon.name,
+                  pricing: addon.pricing,
+                  count: cartAddon?.count || 1,
+                }
+              }) || []
+
+            return {
+              id: hotelItem.id,
+              type: 'hotel',
+              name: hotelData.name,
+              slug: hotelData.slug,
+              pricing: hotelData.pricing,
+              maxPeople: hotelData.maxPeople,
+              addons,
+            }
+          })
+
+          // Fetch activities data
+          const activitiesPromises = cart.activities.map(async (activityItem) => {
+            const addonIds = activityItem.addOns.map((addon) => addon.id)
+            const activityData = await fetchActivityData(activityItem.id, addonIds)
+
+            if (!activityData) return null
+
+            // Map addons with their counts from the cart
+            const addons =
+              activityData.addons?.addonsList?.map((addon: any) => {
+                const cartAddon = activityItem.addOns.find((a: { id: string }) => a.id === addon._key)
+                return {
+                  id: addon._key,
+                  name: addon.name,
+                  pricing: addon.pricing,
+                  count: cartAddon?.count || 1,
+                }
+              }) || []
+
+            return {
+              id: activityItem.id,
+              type: 'activity',
+              name: activityData.name,
+              slug: activityData.slug,
+              pricing: activityData.pricing,
+              participantsCount: activityData.participantsCount,
+              addons,
+            }
+          })
+
+          // Wait for all fetch operations to complete
+          const [hotels, activities] = await Promise.all([Promise.all(hotelsPromises), Promise.all(activitiesPromises)])
+
+          // Filter out null values (failed fetches)
+          validHotels = hotels.filter(Boolean)
+          validActivities = activities.filter(Boolean)
+        }
+
+        // Get transport address if exists
+        const transportAddress = JSON.parse(localStorage.getItem('transport_address') || 'null')
+
+        // Get extras/addons
+        const extrasIds = JSON.parse(localStorage.getItem('cart_order_addons') || '[]') as Array<{
+          id: string
+          count?: number
+        }>
+
+        // Get the extras data from the DOM that contains pricing information
+        const extrasList = document.querySelector('.extras .list')
+        const extrasData = JSON.parse(extrasList?.getAttribute('data-addons-data') || '{}')
+
+        // Map the extras with their pricing data
+        const extrasWithPricing = extrasIds.map((item: { id: string; count?: number }) => {
+          if (item.id === 'transport') {
+            return {
+              id: item.id,
+              count: item.count || 1,
+              name: t.transportAddonName,
+              pricing: extrasData.transportOptions.pricing,
+              address: transportAddress,
+            }
+          } else {
+            // Find the addon in the list
+            const addonData = extrasData.addonsList.find(
+              (addon: { _key: string; name: string; pricing: any }) => addon._key === item.id
+            )
+            return {
+              id: item.id,
+              count: item.count || 1,
+              name: addonData?.name || 'Unknown Addon',
+              pricing: addonData?.pricing || null,
+            }
+          }
+        })
+
+        // Prepare data payload
+        const quoteData = {
+          hotels: validHotels,
+          activities: validActivities,
+          participantCount,
+          selectedDates,
+          extras: extrasWithPricing,
+          language: pageLang,
+        }
+
+        console.log('Submitting quote request with data:', quoteData)
+
+        // Send data to API
+        const response = await fetch('/api/quotes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(quoteData),
+        })
+
+        const result = await response.json()
+
+        console.log(result)
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to create quote')
+        }
+
+        console.log('Quote created successfully:', result)
+
+        // Redirect to quote page
+        // window.location.href = `/${pageLang}/koszyk?id=${result.quoteId}`
+      } catch (error) {
+        console.error('Error creating quote:', error)
+        // Show error state
+        getQuoteButton.setAttribute('data-loading', 'false')
+        getQuoteButton.removeAttribute('disabled')
+        showToast('Failed to create quote. Please try again.', 'error')
+      }
+    })
+  }
+
   // Initialize document event listeners
   document.addEventListener('DOMContentLoaded', () => {
     // Setup state management first
@@ -1810,6 +2119,9 @@ const { metadata, page } = Astro.props
 
     // Setup transport removal confirmation
     setupTransportRemovalConfirmation()
+
+    // Setup quote request handling
+    setupQuoteRequestHandling()
 
     // Then load cart items
     loadCartItems()
@@ -2497,6 +2809,24 @@ const { metadata, page } = Astro.props
       // Get cart data from store
       const cart = cartStore.get()
 
+      // If all items are already cached and this is not a retry, use cached data
+      if (cachedCartData.isComplete() && !isRetry) {
+        console.log('Using cached cart data')
+        // Render items from cache
+        await renderCartItems(cachedCartData.hotels, cachedCartData.activities)
+        // Load extras
+        await loadCartExtras()
+        // Show content state
+        showState('content')
+        // Update participant alerts after everything is loaded
+        setTimeout(() => {
+          updateParticipantAlerts()
+          // Update transport cards with address if needed
+          updateTransportCardWithAddress()
+        }, 100)
+        return
+      }
+
       // Fetch all hotels
       const hotelPromises = cart.hotels.map(async (item) => {
         try {
@@ -2513,10 +2843,15 @@ const { metadata, page } = Astro.props
               })
               .filter((addon) => addon.fullData !== null)
 
-            return {
+            const enhancedHotelData = {
               ...hotelData,
               cartAddons: matchedAddons,
             }
+
+            // Update cache
+            cachedCartData.updateHotel(item.id, enhancedHotelData)
+
+            return enhancedHotelData
           }
           return null
         } catch (error) {
@@ -2541,10 +2876,15 @@ const { metadata, page } = Astro.props
               })
               .filter((addon) => addon.fullData !== null)
 
-            return {
+            const enhancedActivityData = {
               ...activityData,
               cartAddons: matchedAddons,
             }
+
+            // Update cache
+            cachedCartData.updateActivity(item.id, enhancedActivityData)
+
+            return enhancedActivityData
           }
           return null
         } catch (error) {
@@ -2560,8 +2900,8 @@ const { metadata, page } = Astro.props
       const validHotels = hotels.filter(Boolean)
       const validActivities = activities.filter(Boolean)
 
-      console.log('Fetched hotels:', validHotels)
-      console.log('Fetched activities:', validActivities)
+      // Mark cache as loaded
+      cachedCartData.isLoaded = true
 
       // If nothing was fetched successfully, show empty state
       if (validHotels.length === 0 && validActivities.length === 0) {
@@ -2625,6 +2965,13 @@ const { metadata, page } = Astro.props
         const cart = cartStore.get()
         const hasHotels = cart.hotels.length > 0
         const hasActivities = cart.activities.length > 0
+
+        // Update cache to remove the item
+        if (detail.itemType === 'hotels') {
+          cachedCartData.updateHotel(detail.itemId, null)
+        } else if (detail.itemType === 'activities') {
+          cachedCartData.updateActivity(detail.itemId, null)
+        }
 
         // Check if there are no more items of this type
         const section = document.querySelector(`.${detail.itemType}-section`)
@@ -2711,52 +3058,60 @@ const { metadata, page } = Astro.props
     }
   })
 
-  // Participant count handling
-  function initParticipantInput() {
-    const participantInput = document.getElementById('participantCount') as HTMLInputElement
-    if (!participantInput) return
+  // Cached data store for hotels and activities
+  const cachedCartData = {
+    hotels: [] as ExtendedHotelData[],
+    activities: [] as ExtendedActivityData[],
+    isLoaded: false,
 
-    // Load saved value from localStorage if available
-    const savedCount = localStorage.getItem('cart_participant_count')
-    if (savedCount) {
-      participantInput.value = savedCount
-    }
+    // Method to clear cache
+    clear() {
+      this.hotels = []
+      this.activities = []
+      this.isLoaded = false
+    },
 
-    // Handle input changes
-    participantInput.addEventListener('input', () => {
-      // Clean input - remove non-numeric values
-      let value = participantInput.value.replace(/[^\d]/g, '')
-
-      // Ensure value is at least 1
-      if (!value || parseInt(value) < 1) {
-        value = '1'
+    // Method to update a specific hotel
+    updateHotel(hotelId: string, data: ExtendedHotelData | null) {
+      if (!data) {
+        this.hotels = this.hotels.filter((h) => h._id !== hotelId)
+        return
       }
 
-      // Update input value
-      participantInput.value = value
-
-      // Store in localStorage
-      localStorage.setItem('cart_participant_count', value)
-
-      // Update alerts when participant count changes
-      updateParticipantAlerts()
-    })
-
-    // Handle blur to format value properly
-    participantInput.addEventListener('blur', () => {
-      let value = participantInput.value
-
-      // Convert to integer
-      const intValue = parseInt(value)
-
-      // Update with parsed integer value
-      if (!isNaN(intValue)) {
-        participantInput.value = intValue.toString()
-        localStorage.setItem('cart_participant_count', intValue.toString())
-
-        // Update alerts on blur
-        updateParticipantAlerts()
+      const index = this.hotels.findIndex((h) => h._id === hotelId)
+      if (index >= 0) {
+        this.hotels[index] = data
+      } else {
+        this.hotels.push(data)
       }
-    })
+    },
+
+    // Method to update a specific activity
+    updateActivity(activityId: string, data: ExtendedActivityData | null) {
+      if (!data) {
+        this.activities = this.activities.filter((a) => a._id !== activityId)
+        return
+      }
+
+      const index = this.activities.findIndex((a) => a._id === activityId)
+      if (index >= 0) {
+        this.activities[index] = data
+      } else {
+        this.activities.push(data)
+      }
+    },
+
+    // Method to check if all items in the cart are cached
+    isComplete() {
+      const cart = cartStore.get()
+
+      // Check if all hotels in cart are in cache
+      const allHotelsCached = cart.hotels.every((item) => this.hotels.some((h) => h._id === item.id))
+
+      // Check if all activities in cart are in cache
+      const allActivitiesCached = cart.activities.every((item) => this.activities.some((a) => a._id === item.id))
+
+      return allHotelsCached && allActivitiesCached
+    },
   }
 </script>

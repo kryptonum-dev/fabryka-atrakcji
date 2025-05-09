@@ -66,7 +66,7 @@ const { challenge, solution, results } = Astro.props as Props
           </svg>
         )}
         <h2>{t[index === 0 ? 'challenge' : index === 1 ? 'solution' : 'results']}</h2>
-        <PortableText value={item} />
+        <PortableText value={item} class="paragraph" />
       </div>
     ))
   }
