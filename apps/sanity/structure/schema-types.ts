@@ -45,6 +45,7 @@ import Author_Collection from '../schema/collectionTypes/Author_Collection'
 import ActivitiesType_Collection from '../schema/collectionTypes/ActivitiesType_Collection'
 import Hotels_Collection from '../schema/collectionTypes/Hotels_Collection'
 import Locations_Collection from '../schema/collectionTypes/Locations_Collection'
+import Quotes_Collection from '../schema/collectionTypes/Quotes_Collection'
 
 const collectionTypes = [
   Faq_Collection,
@@ -62,6 +63,7 @@ const collectionTypes = [
   Hotels_Collection,
   Locations_Collection,
   Amenities_Collection,
+  Quotes_Collection,
 ]
 
 // Components
@@ -76,14 +78,15 @@ import PortableText from '../schema/ui/PortableText'
 import Heading from '../schema/ui/PortableText/Heading'
 import seo from '../schema/ui/seo'
 import formPopup from '../schema/ui/formPopup'
+import quoteItem from '../schema/shared/quoteItem'
 
-const ui = [cta, seo, PortableText, Heading, formState, formPopup]
+const ui = [cta, seo, PortableText, Heading, formState, formPopup, quoteItem]
 
 export const schemaTypes = [...singleTypes, ...collectionTypes, ...components, ...ui]
 
 export const i18nTypes = [...singleTypes, ...collectionTypes]
   .map((type) => type.name)
-  .filter((name) => !['redirects'].includes(name))
+  .filter((name) => !['redirects', 'Quotes_Collection'].includes(name))
 
 export const singletonActions = new Set(['publish', 'discardChanges', 'restore'])
 export const singletonTypes = new Set(singleTypes.map((type) => type.name as string))

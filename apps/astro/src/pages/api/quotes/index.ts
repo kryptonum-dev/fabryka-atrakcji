@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro'
 import type { AddonItem, AddonProps, BaseActivityProps, BaseHotelProps, ExtraItem } from '@/src/global/types'
+import { client } from '@/src/utils/sanity.fetch'
 
 /**
  * Calculate the price for a hotel based on its pricing model and participant count
@@ -79,12 +80,22 @@ function calculateActivityPrice(
   },
   participantCount: number
 ) {
+  console.log(`Calculating price for activity`)
+  console.log(`Input - participantCount: ${participantCount}, activity pricing:`, activity.pricing)
+  console.log(`Input - participants limits:`, activity.participantsCount)
+
   // Initialize result
   const result = {
     totalPrice: 0,
     exceedsMaxPeople: false,
     calculatedFor: participantCount,
     belowMinPeople: false,
+  }
+
+  // Check if we have valid pricing data
+  if (!activity.pricing || typeof activity.pricing.basePrice !== 'number') {
+    console.error('Invalid activity pricing data:', activity.pricing)
+    return result
   }
 
   // Check if participants are within activity limits
@@ -96,6 +107,9 @@ function calculateActivityPrice(
     // Use minimum required participants for calculation
     effectiveParticipantCount = activity.participantsCount.min
     result.calculatedFor = effectiveParticipantCount
+    console.log(
+      `Below min people (${activity.participantsCount.min}), using min for calculation: ${effectiveParticipantCount}`
+    )
   }
 
   // Check maximum participants limit
@@ -104,18 +118,28 @@ function calculateActivityPrice(
     // Use maximum allowed participants for calculation
     effectiveParticipantCount = activity.participantsCount.max
     result.calculatedFor = effectiveParticipantCount
+    console.log(
+      `Exceeds max people (${activity.participantsCount.max}), using max for calculation: ${effectiveParticipantCount}`
+    )
   }
 
   // Calculate price based on threshold model
   if (effectiveParticipantCount <= activity.pricing.maxParticipants) {
     // Base price covers all participants
     result.totalPrice = activity.pricing.basePrice
+    console.log(
+      `Using base price: ${activity.pricing.basePrice} (participants: ${effectiveParticipantCount} <= maxParticipants: ${activity.pricing.maxParticipants})`
+    )
   } else {
     // Base price + additional per person pricing
     const additionalPeople = effectiveParticipantCount - activity.pricing.maxParticipants
     result.totalPrice = activity.pricing.basePrice + additionalPeople * activity.pricing.additionalPersonPrice
+    console.log(
+      `Base price: ${activity.pricing.basePrice} + additional: ${additionalPeople} people * ${activity.pricing.additionalPersonPrice} = ${result.totalPrice}`
+    )
   }
 
+  console.log(`Final activity price result:`, result)
   return result
 }
 
@@ -386,6 +410,45 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return Math.round(distance)
 }
 
+// Helper to handle date strings from DatePicker (already in YYYY-MM-DD format)
+// or convert ISO strings to Sanity date format (YYYY-MM-DD)
+const formatDateForSanity = (dateString: string): string => {
+  try {
+    // If it's already in YYYY-MM-DD format, just return it
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString
+    }
+
+    // Otherwise, parse the ISO string and format it
+    const date = new Date(dateString)
+
+    // Extract date components directly (avoids timezone issues)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0') // Add 1 because months are 0-indexed
+    const day = String(date.getDate()).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
+  } catch (e) {
+    console.error('Error formatting date:', e)
+    return new Date().toISOString().split('T')[0]
+  }
+}
+
+// Generate a unique key for Sanity array items
+const generateKey = (): string => {
+  return Math.random().toString(36).substring(2, 10)
+}
+
+// Generate a 7-character uppercase alphanumeric ID for the quote
+const generateQuoteId = (): string => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let result = ''
+  for (let i = 0; i < 7; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length))
+  }
+  return result
+}
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     // Parse the incoming request body
@@ -408,15 +471,12 @@ export const POST: APIRoute = async ({ request }) => {
       })[]
       participantCount: number
       language: string
-      selectedDates: string[]
+      selectedDates: Array<string | { start: string; end: string }>
     } = data
 
     console.log(
       `Processing quote with ${hotels.length} hotels, ${activities.length} activities, ${extras.length} extras`
     )
-
-    // Generate a quote ID
-    const quoteId = `quote_${crypto.randomUUID()}`
 
     // Array to store all quote items
     const quoteItems = []
@@ -511,17 +571,19 @@ export const POST: APIRoute = async ({ request }) => {
               id: hotel._id || hotel.id,
               name: hotel.name,
               slug: hotel.slug,
+              maxPeople: hotel.maxPeople?.overnight || 0,
               pricing: {
-                ...hotelPriceResult,
-                calculatedPrice: hotelPriceResult.totalPrice,
+                finalPrice: hotelPriceResult.totalPrice,
+                participantCount: hotelPriceResult.calculatedFor,
+                exceedsMaxPeople: hotelPriceResult.exceedsMaxPeople,
               },
               addons: hotelAddonsResults,
-              coordinates: hotelCoordinates,
             },
           ],
           activities: [] as any[],
           transport: null as any,
           extras: [] as any[], // Add empty extras array for each hotel
+          totalPrice: 0, // Will be calculated after all components are added
         }
 
         // Process activities for this hotel if any
@@ -532,6 +594,12 @@ export const POST: APIRoute = async ({ request }) => {
 
             // Calculate activity price
             const activityPriceResult = calculateActivityPrice(activity, participantCount)
+            console.log(`Activity price for ${activity.name}:`, {
+              totalPrice: activityPriceResult.totalPrice,
+              participantCount: activityPriceResult.calculatedFor,
+              exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
+              belowMinPeople: activityPriceResult.belowMinPeople,
+            })
 
             // Process activity addons if any
             const activityAddonsResults = []
@@ -551,9 +619,17 @@ export const POST: APIRoute = async ({ request }) => {
               id: activity._id || activity.id,
               name: activity.name,
               slug: activity.slug,
+              participantsCount: activity.participantsCount
+                ? {
+                    min: activity.participantsCount.min || 0,
+                    max: activity.participantsCount.max || 0,
+                  }
+                : null,
               pricing: {
-                ...activityPriceResult,
-                calculatedPrice: activityPriceResult.totalPrice,
+                finalPrice: activityPriceResult.totalPrice,
+                participantCount: activityPriceResult.calculatedFor,
+                exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
+                belowMinPeople: activityPriceResult.belowMinPeople,
               },
               addons: activityAddonsResults,
             })
@@ -673,6 +749,12 @@ export const POST: APIRoute = async ({ request }) => {
 
         // Calculate activity price
         const activityPriceResult = calculateActivityPrice(activity, participantCount)
+        console.log(`Activity price for ${activity.name}:`, {
+          totalPrice: activityPriceResult.totalPrice,
+          participantCount: activityPriceResult.calculatedFor,
+          exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
+          belowMinPeople: activityPriceResult.belowMinPeople,
+        })
 
         // Process activity addons if any
         const activityAddonsResults = []
@@ -697,16 +779,37 @@ export const POST: APIRoute = async ({ request }) => {
               id: activity._id || activity.id,
               name: activity.name,
               slug: activity.slug,
+              participantsCount: activity.participantsCount
+                ? {
+                    min: activity.participantsCount.min || 0,
+                    max: activity.participantsCount.max || 0,
+                  }
+                : null,
               pricing: {
-                ...activityPriceResult,
-                calculatedPrice: activityPriceResult.totalPrice,
+                finalPrice: activityPriceResult.totalPrice,
+                participantCount: activityPriceResult.calculatedFor,
+                exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
+                belowMinPeople: activityPriceResult.belowMinPeople,
               },
               addons: activityAddonsResults,
             },
           ],
           transport: null as any,
           extras: [] as any[], // Add empty extras array for each activity
+          totalPrice: 0, // Will be properly calculated later
         }
+
+        // Calculate activity quote item's initial price (activity + its addons)
+        let initialActivityPrice = activityPriceResult.totalPrice
+
+        // Add addon prices
+        for (const addon of activityAddonsResults) {
+          initialActivityPrice += addon.pricing.totalPrice || 0
+        }
+
+        // Set the initial total price
+        activityQuoteItem.totalPrice = initialActivityPrice
+        console.log(`Initial activity quote total price for ${activity.name}:`, initialActivityPrice)
 
         // Handle transport for activities (without coordinates or distance calculation)
         if (transportExtra && transportPickupCoordinates) {
@@ -825,98 +928,267 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // Calculate totals
-    let totalPrice = 0
+    // Function to calculate total price for a quote item
+    function calculateQuoteItemTotalPrice(quoteItem: any) {
+      let totalPrice = 0
 
-    // Sum up prices for all items
+      // Add hotel prices - check if hotels array exists and has items first
+      if (quoteItem.hotels && quoteItem.hotels.length > 0) {
+        for (const hotel of quoteItem.hotels) {
+          totalPrice += hotel.pricing?.finalPrice || 0
+
+          // Add hotel addon prices
+          if (hotel.addons && hotel.addons.length > 0) {
+            for (const addon of hotel.addons) {
+              totalPrice += addon.pricing?.totalPrice || 0
+            }
+          }
+        }
+      }
+
+      // Add activity prices - check if activities array exists and has items first
+      if (quoteItem.activities && quoteItem.activities.length > 0) {
+        for (const activity of quoteItem.activities) {
+          totalPrice += activity.pricing?.finalPrice || 0
+
+          // Add activity addon prices
+          if (activity.addons && activity.addons.length > 0) {
+            for (const addon of activity.addons) {
+              totalPrice += addon.pricing?.totalPrice || 0
+            }
+          }
+        }
+      }
+
+      // Add transport price if present
+      if (quoteItem.transport && quoteItem.transport.pricing) {
+        totalPrice += quoteItem.transport.pricing.totalPrice || 0
+      }
+
+      // Add extras prices
+      if (quoteItem.extras && quoteItem.extras.length > 0) {
+        for (const extra of quoteItem.extras) {
+          totalPrice += extra.pricing?.totalPrice || 0
+        }
+      }
+
+      // Set the calculated total price
+      quoteItem.totalPrice = totalPrice
+
+      console.log(`Total price for ${quoteItem.type} quote:`, totalPrice)
+
+      return quoteItem
+    }
+
+    // Calculate total price for each quote item
     quoteItems.forEach((item) => {
-      if (item.type === 'hotel') {
-        // Add hotel price for all hotels in the array (typically just one)
-        if (item.hotels && item.hotels.length > 0) {
-          item.hotels.forEach((hotel: any) => {
-            // Add hotel base price
-            totalPrice += hotel.pricing.calculatedPrice || 0
-
-            // Add hotel addon prices
-            if (hotel.addons && hotel.addons.length > 0) {
-              hotel.addons.forEach((addon: any) => {
-                totalPrice += addon.pricing.totalPrice || 0
-              })
-            }
-          })
-        }
-
-        // Add activities prices
-        if (item.activities && item.activities.length > 0) {
-          item.activities.forEach((activity: any) => {
-            totalPrice += activity.pricing.calculatedPrice || 0
-
-            // Add activity addon prices
-            if (activity.addons && activity.addons.length > 0) {
-              activity.addons.forEach((addon: any) => {
-                totalPrice += addon.pricing.totalPrice || 0
-              })
-            }
-          })
-        }
-      } else if (item.type === 'activity') {
-        // Add activity prices for all activities in the array (typically just one)
-        if (item.activities && item.activities.length > 0) {
-          item.activities.forEach((activity: any) => {
-            // Add activity base price
-            totalPrice += activity.pricing.calculatedPrice || 0
-
-            // Add activity addon prices
-            if (activity.addons && activity.addons.length > 0) {
-              activity.addons.forEach((addon: any) => {
-                totalPrice += addon.pricing.totalPrice || 0
-              })
-            }
-          })
-        }
-      }
-
-      // Add transport price if applicable
-      if (item.transport && item.transport.pricing) {
-        totalPrice += item.transport.pricing.totalPrice || 0
-      }
-
-      // Add extras prices from each item
-      if (item.extras && item.extras.length > 0) {
-        item.extras.forEach((extra: any) => {
-          totalPrice += extra.pricing.totalPrice || 0
-        })
-      }
+      calculateQuoteItemTotalPrice(item)
     })
 
     // Create final quote object
-    const quoteObject = {
-      id: quoteId,
+    const quoteObject: {
+      quoteId: string
+      createdAt: string
+      participantCount: number
+      selectedDates: Array<string | { start: string; end: string }>
+      language: string
+      items: any[]
+      id?: string
+    } = {
+      quoteId: generateQuoteId(),
       createdAt: new Date().toISOString(),
       participantCount,
       selectedDates,
       language,
       items: quoteItems,
-      totalPrice: Math.round(totalPrice),
-      currency: 'PLN',
     }
 
     console.log('Final quote object:', JSON.stringify(quoteObject, null, 2))
 
-    // Return success response with the quote ID and quote object
-    return new Response(
-      JSON.stringify({
-        success: true,
-        quoteId,
-        quote: quoteObject,
+    // Helper to convert booleans to strings for Sanity
+    const toBoolString = (value: any): boolean => {
+      return value === true || value === 'true' || value === 1
+    }
+
+    // Format the data for Sanity
+    const sanityQuote = {
+      _type: 'Quotes_Collection',
+      quoteId: quoteObject.quoteId,
+      createdAt: quoteObject.createdAt,
+      language: quoteObject.language,
+      participantCount: quoteObject.participantCount,
+      selectedDates: Array.isArray(quoteObject.selectedDates)
+        ? typeof quoteObject.selectedDates[0] === 'object'
+          ? quoteObject.selectedDates.map((dateObj) => {
+              const typedDateObj = dateObj as { start: string; end: string }
+              return {
+                _key: generateKey(),
+                start: formatDateForSanity(typedDateObj.start),
+                end: formatDateForSanity(typedDateObj.end),
+              }
+            })
+          : [
+              {
+                // Convert array of strings to a single date range object
+                _key: generateKey(),
+                start: formatDateForSanity(String(quoteObject.selectedDates[0] || new Date().toISOString())),
+                end: formatDateForSanity(
+                  String(quoteObject.selectedDates[quoteObject.selectedDates.length - 1] || new Date().toISOString())
+                ),
+              },
+            ]
+        : [
+            {
+              _key: generateKey(),
+              start: formatDateForSanity(new Date().toISOString()),
+              end: formatDateForSanity(new Date().toISOString()),
+            },
+          ], // Fallback
+      items: quoteObject.items.map((item) => {
+        // For activity-only quotes, ensure totalPrice is set correctly
+        if (
+          item.type === 'activity' &&
+          (!item.totalPrice || item.totalPrice === 0) &&
+          item.activities &&
+          item.activities.length > 0 &&
+          item.activities[0].pricing &&
+          item.activities[0].pricing.finalPrice
+        ) {
+          item.totalPrice = item.activities[0].pricing.finalPrice
+          console.log('Fixed missing totalPrice for activity quote:', item.totalPrice)
+        }
+
+        // Clean up undefined values or complex data structures that might cause issues with Sanity
+        return {
+          _key: generateKey(),
+          type: item.type,
+          totalPrice: item.totalPrice || 0, // Ensure totalPrice has a fallback
+          hotels: item.hotels.map((hotel: any) => ({
+            _key: generateKey(),
+            name: hotel.name,
+            slug: hotel.slug,
+            maxPeople: hotel.maxPeople || 0,
+            pricing: {
+              finalPrice: hotel.pricing.finalPrice || 0,
+              participantCount: hotel.pricing.participantCount || 0,
+              exceedsMaxPeople: toBoolString(hotel.pricing.exceedsMaxPeople),
+            },
+            addons: hotel.addons.map((addon: { name: string; count?: number; pricing: any }) => ({
+              _key: generateKey(),
+              name: addon.name,
+              count: addon.count || 1,
+              pricing: {
+                totalPrice: addon.pricing.totalPrice || 0,
+                pricingModel: addon.pricing.pricingModel || 'fixed',
+              },
+            })),
+          })),
+          activities: item.activities.map((activity: any) => ({
+            _key: generateKey(),
+            name: activity.name,
+            slug: activity.slug,
+            participantsCount: activity.participantsCount
+              ? {
+                  min: activity.participantsCount.min || 0,
+                  max: activity.participantsCount.max || 0,
+                }
+              : null,
+            pricing: {
+              finalPrice: activity.pricing.finalPrice || 0,
+              participantCount: activity.pricing.participantCount || 0,
+              exceedsMaxPeople: toBoolString(activity.pricing.exceedsMaxPeople),
+              belowMinPeople: toBoolString(activity.pricing.belowMinPeople),
+            },
+            addons: activity.addons.map((addon: { name: string; count?: number; pricing: any }) => ({
+              _key: generateKey(),
+              name: addon.name,
+              count: addon.count || 1,
+              pricing: {
+                totalPrice: addon.pricing.totalPrice || 0,
+                pricingModel: addon.pricing.pricingModel || 'fixed',
+              },
+            })),
+          })),
+          transport: item.transport
+            ? {
+                distance: item.transport.distance || 0,
+                pricing: item.transport.pricing
+                  ? {
+                      basePrice: item.transport.pricing.basePrice || 0,
+                      distancePrice: item.transport.pricing.distancePrice || 0,
+                      totalPrice: item.transport.pricing.totalPrice || 0,
+                      pricePerKm: item.transport.pricing.pricePerKm || 0,
+                    }
+                  : null,
+                transportAddressNotFound: toBoolString(item.transport.transportAddressNotFound),
+                noTransportAddress: toBoolString(item.transport.noTransportAddress),
+                hotelNoAddress: toBoolString(item.transport.hotelNoAddress),
+                hotelAddressNotFound: toBoolString(item.transport.hotelAddressNotFound),
+                bothAddressesNotFound: toBoolString(item.transport.bothAddressesNotFound),
+                activityNoAddress: toBoolString(item.transport.activityNoAddress),
+              }
+            : null,
+          extras: item.extras.map((extra: any) => ({
+            _key: generateKey(),
+            name: extra.name,
+            count: extra.count || 1,
+            pricing: {
+              totalPrice: extra.pricing.totalPrice || 0,
+              pricingModel: extra.pricing.pricingModel || 'fixed',
+              isTransport: toBoolString(extra.pricing.isTransport),
+            },
+          })),
+        }
       }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+    }
+
+    try {
+      // Save to Sanity using the existing client
+      console.log(sanityQuote)
+      const savedQuote = await client.create(sanityQuote)
+
+      console.log(savedQuote)
+
+      // Add the Sanity document ID to the quote object
+      quoteObject.id = savedQuote._id
+
+      // Return success response with the Sanity document ID
+      return new Response(
+        JSON.stringify({
+          success: true,
+          quoteId: quoteObject.quoteId,
+          quote: quoteObject,
+          sanityId: savedQuote._id,
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+    } catch (sanityError) {
+      console.error('Error saving quote to Sanity:', sanityError)
+
+      // Return failure response indicating Sanity error
+      return new Response(
+        JSON.stringify({
+          success: false,
+          quote: quoteObject,
+          error: 'Failed to save quote to Sanity',
+          errorDetails:
+            typeof sanityError === 'object'
+              ? (sanityError as Error).message || JSON.stringify(sanityError)
+              : 'Unknown error',
+        }),
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+    }
   } catch (error) {
     console.error('Error processing quote request:', error)
 

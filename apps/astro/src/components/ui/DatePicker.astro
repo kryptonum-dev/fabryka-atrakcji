@@ -984,7 +984,7 @@ const days = dayNames[lang]
 
   function formatDateRange(start: string, end: string | null): string {
     const formatDateStr = (dateStr: string): string => {
-      const date = new Date(dateStr)
+      const date = parseDateString(dateStr)
       return `${date.getDate()} ${monthShortcuts[date.getMonth()]}`
     }
 
@@ -1431,13 +1431,14 @@ const days = dayNames[lang]
 
     if (editingDateIndex >= 0) {
       if (tempRange.start && tempRange.end) {
+        // Store dates in a timezone-safe format (YYYY-MM-DD)
         dates[editingDateIndex] = {
-          start: tempRange.start.toISOString(),
-          end: tempRange.end.toISOString(),
+          start: formatDateForStorage(tempRange.start),
+          end: formatDateForStorage(tempRange.end),
         }
       } else if (tempRange.start) {
         dates[editingDateIndex] = {
-          start: tempRange.start.toISOString(),
+          start: formatDateForStorage(tempRange.start),
           end: null,
         }
       }
@@ -1446,12 +1447,12 @@ const days = dayNames[lang]
     } else {
       if (tempRange.start && tempRange.end) {
         dates.push({
-          start: tempRange.start.toISOString(),
-          end: tempRange.end.toISOString(),
+          start: formatDateForStorage(tempRange.start),
+          end: formatDateForStorage(tempRange.end),
         })
       } else if (tempRange.start) {
         dates.push({
-          start: tempRange.start.toISOString(),
+          start: formatDateForStorage(tempRange.start),
           end: null,
         })
       }
@@ -1469,6 +1470,14 @@ const days = dayNames[lang]
     document.dispatchEvent(event)
   }
 
+  // Helper function to format date objects for storage in a timezone-safe way
+  function formatDateForStorage(date: Date): string {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   function editDate(index: number): void {
     if (index < 0 || index >= dates.length) return
 
@@ -1476,13 +1485,13 @@ const days = dayNames[lang]
     const dateRange = dates[index]
 
     tempRange = {
-      start: dateRange.start ? new Date(dateRange.start) : null,
-      end: dateRange.end ? new Date(dateRange.end) : null,
+      start: dateRange.start ? parseDateString(dateRange.start) : null,
+      end: dateRange.end ? parseDateString(dateRange.end) : null,
     }
 
     // Set current month to the month of the start date
     if (dateRange.start) {
-      currentMonth = new Date(dateRange.start)
+      currentMonth = parseDateString(dateRange.start)
     }
 
     // Show the popup
@@ -1494,6 +1503,19 @@ const days = dayNames[lang]
 
     // Update the calendar UI to reflect the selected dates
     highlightSelectedDates()
+  }
+
+  // Helper function to parse date strings back to Date objects
+  function parseDateString(dateStr: string): Date {
+    // Handle both YYYY-MM-DD format and ISO string format for backward compatibility
+    if (dateStr.includes('T')) {
+      // It's an ISO string from previous implementation
+      return new Date(dateStr)
+    } else {
+      // It's our new YYYY-MM-DD format
+      const [year, month, day] = dateStr.split('-').map(Number)
+      return new Date(year, month - 1, day) // month is 0-indexed in Date constructor
+    }
   }
 
   function deleteDate(index: number): void {
