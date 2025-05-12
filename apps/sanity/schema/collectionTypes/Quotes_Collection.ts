@@ -51,6 +51,7 @@ export default defineType({
       name: 'language',
       title: 'Język',
       type: 'string',
+      readOnly: true,
       options: {
         list: [
           { title: 'Polski', value: 'pl' },
@@ -64,11 +65,13 @@ export default defineType({
       name: 'participantCount',
       title: 'Liczba uczestników',
       type: 'number',
+      readOnly: true,
     }),
     defineField({
       name: 'selectedDates',
       title: 'Wybrane daty',
       type: 'array',
+      readOnly: true,
       of: [
         {
           type: 'object',
@@ -77,11 +80,13 @@ export default defineType({
               name: 'start',
               title: 'Data rozpoczęcia',
               type: 'date',
+              readOnly: true,
             }),
             defineField({
               name: 'end',
               title: 'Data zakończenia',
               type: 'date',
+              readOnly: true,
             }),
           ],
           preview: {
@@ -103,6 +108,7 @@ export default defineType({
       name: 'items',
       title: 'Elementy wyceny',
       type: 'array',
+      readOnly: true,
       of: [{ type: 'quoteItem' }],
     }),
   ],

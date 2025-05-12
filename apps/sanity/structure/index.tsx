@@ -2,26 +2,16 @@ import { BookOpen, FileArchive, Handshake, Hotel, House, HouseIcon, Receipt, Set
 import type { StructureResolver } from 'sanity/structure'
 import { createCollection } from '../utils/create-collection'
 import { createSingleton } from '../utils/create-singleton'
+import { PricingSummaryView } from '../views/PricingSummaryView'
+
 export const structure: StructureResolver = (S) =>
   S.list()
     .id('root')
     .title('Content')
     .items([
       createSingleton({ S, name: 'Index_Page' }),
-      S.divider(),
       createCollection(S, 'Pages_Collection'),
-      S.listItem()
-        .title('Realizacje')
-        .icon(FileArchive)
-        .child(
-          S.list()
-            .title('Realizacje')
-            .items([
-              createSingleton({ S, name: 'CaseStudy_Page' }),
-              createCollection(S, 'CaseStudy_Collection'),
-              createCollection(S, 'CaseStudyCategory_Collection'),
-            ])
-        ),
+      S.divider(),
       S.listItem()
         .title('Integracje')
         .icon(Handshake)
@@ -51,9 +41,34 @@ export const structure: StructureResolver = (S) =>
             ])
         ),
       S.listItem()
+        .title('Realizacje')
+        .icon(FileArchive)
+        .child(
+          S.list()
+            .title('Realizacje')
+            .items([
+              createSingleton({ S, name: 'CaseStudy_Page' }),
+              createCollection(S, 'CaseStudy_Collection'),
+              createCollection(S, 'CaseStudyCategory_Collection'),
+            ])
+        ),
+      S.listItem()
         .title('Wyceny')
         .icon(Receipt)
-        .child(S.documentTypeList('Quotes_Collection').title('Wyceny').filter('_type == "Quotes_Collection"')),
+        .child(
+          S.documentTypeList('Quotes_Collection')
+            .title('Wyceny')
+            .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+            .child((documentId) =>
+              S.document()
+                .documentId(documentId)
+                .schemaType('Quotes_Collection')
+                .views([
+                  S.view.form().title('Dane podstawowe'),
+                  S.view.component(PricingSummaryView).title('Podsumowanie cenowe'),
+                ])
+            )
+        ),
       S.listItem()
         .title('Blog')
         .icon(BookOpen)

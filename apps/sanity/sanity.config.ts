@@ -9,7 +9,8 @@ import { Logo } from './schema/ui/logo'
 import { structure } from './structure'
 import { LANGUAGES } from './structure/languages'
 import { i18nTypes, schemaTypes, singletonActions, singletonTypes } from './structure/schema-types'
-import { embeddingsIndexDashboard, embeddingsIndexReferenceInput } from '@sanity/embeddings-index-ui'
+import { embeddingsIndexDashboard } from '@sanity/embeddings-index-ui'
+
 export default defineConfig({
   name: STUDIO_HOST,
   title: TITLE,
@@ -46,9 +47,25 @@ export default defineConfig({
   },
 
   document: {
-    actions: (input, context) =>
-      singletonTypes.has(context.schemaType)
-        ? input.filter(({ action }) => action && singletonActions.has(action))
-        : input,
+    actions: (input, context) => {
+      // For singleton types
+      if (singletonTypes.has(context.schemaType)) {
+        return input.filter(({ action }) => action && singletonActions.has(action))
+      }
+
+      // For Quotes_Collection - allow only viewing, deleting and custom actions
+      if (context.schemaType === 'Quotes_Collection') {
+        return input.filter(({ action }) => {
+          // Allow custom actions (they don't have a standard action type)
+          if (!action) return true
+
+          // Allow only specific built-in actions
+          return action === 'delete' || action === 'restore'
+        })
+      }
+
+      // For all other types
+      return input
+    },
   },
 })
