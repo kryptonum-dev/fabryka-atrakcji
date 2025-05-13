@@ -2,12 +2,16 @@
 import CaseStudyCard from '../components/ui/CaseStudyCard.astro'
 import CategoryBlock, { CategoryBlockQuery } from '../components/ui/CategoryBlock.astro'
 import { ImageDataQuery, type ImageDataProps } from '../components/ui/image'
-import { type Language } from '../global/languages'
+import { getLangFromPath, type Language } from '../global/languages'
 import sanityFetch from '../utils/sanity.fetch'
 import Button from '../components/ui/Button'
 import CartLink from '../components/ui/CartLink.astro'
 
-const language = (Astro.props.lang as Language) || 'pl'
+type Props = {
+  minify?: boolean
+}
+
+const language = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
 const translations = {
   pl: {
@@ -26,6 +30,7 @@ const translations = {
     skipLink: 'Przejdź do treści głównej',
     openMenu: 'Menu',
     closeMenu: 'Zamknij menu',
+    minify: 'Otrzymaj wycenę bez spamu i nachalnej sprzedaży',
   },
   en: {
     activities: 'Team activities',
@@ -43,6 +48,7 @@ const translations = {
     skipLink: 'Skip to main content',
     openMenu: 'Menu',
     closeMenu: 'Close menu',
+    minify: 'Get the estimate without spam and aggressive sales',
   },
 }
 const t = translations[language]
@@ -79,11 +85,13 @@ const data = await sanityFetch<{
 `,
   params: { language },
 })
+
+const { minify = false } = Astro.props as Props
 ---
 
 <a class="skip-link" href="#main">{t.skipLink}</a>
 
-<header class="header" data-element="LayoutHeader">
+<header class="header" data-element="LayoutHeader" data-minify={minify}>
   <div class="container">
     <button class="open-menu">
       <span class="box">
@@ -189,142 +197,175 @@ const data = await sanityFetch<{
         ></svg
       ></a
     >
-    <nav class="navigation">
-      <div class="item" data-tab="activities">
-        <button type="button" class="item-button"
-          ><span>{t.activities}</span><div class="svg-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
-              ><path
-                d="m9.969 4.75-3.5 3-3.5-3"
-                stroke="#74535E"
-                stroke-width="1.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path></svg
-            ><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
-              ><path
-                d="m9.969 4.75-3.5 3-3.5-3"
-                stroke="#74535E"
-                stroke-width="1.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path></svg
-            >
-          </div>
-        </button>
-        <div class="item-expand">
-          <div>
-            <a href={t.activitiesUrl} class="show-all">
-              <span class="wrapper">
-                <span class="box">
-                  <span class="svg-box">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
-                      ><path
-                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
-                        stroke="#F67258"
-                        stroke-width="1.5"
-                        stroke-linecap="round"></path></svg
-                    ><svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
-                      ><path
-                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
-                        stroke="#F67258"
-                        stroke-width="1.5"
-                        stroke-linecap="round"></path></svg
-                    >
-                  </span><span class="scale"></span></span
-                >
-
-                <span class="text">{t.showActivitiesLg}</span></span
-              ></a
-            >
-            <nav class="list">
-              {
-                data.highlightedActivities.map((activity) => (
-                  <CategoryBlock
-                    {...activity}
-                    imageConfig={{
-                      sizes:
-                        '(max-width: 41.1875rem) 76px, (max-width: 56.1875rem) 124px, (max-width: 79.3215rem) 23vw, 212px',
-                      loading: 'lazy',
-                      fetchPriority: 'auto',
-                    }}
+    {
+      !minify && (
+        <nav class="navigation">
+          <div class="item" data-tab="activities">
+            <button type="button" class="item-button">
+              <span>{t.activities}</span>
+              <div class="svg-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none">
+                  <path
+                    d="m9.969 4.75-3.5 3-3.5-3"
+                    stroke="#74535E"
+                    stroke-width="1.25"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                   />
-                ))
-              }
-            </nav>
-            <Button theme="primary" text={t.showActivitiesSm} href={t.activitiesUrl} />
-          </div>
-        </div>
-      </div>
-      <a class="nav-link" href={t.hotelsUrl}>{t.hotels}</a>
-      <div class="item" data-tab="case-study">
-        <button class="item-button"
-          ><span>{t.caseStudies}</span><span class="svg-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
-              ><path
-                d="m9.969 4.75-3.5 3-3.5-3"
-                stroke="#74535E"
-                stroke-width="1.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path></svg
-            ><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none"
-              ><path
-                d="m9.969 4.75-3.5 3-3.5-3"
-                stroke="#74535E"
-                stroke-width="1.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path></svg
-            >
-          </span>
-        </button>
-        <div class="item-expand">
-          <div>
-            <a href={t.caseStudiesUrl} class="show-all">
-              <span class="wrapper">
-                <span class="box">
-                  <span class="svg-box">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
-                      ><path
-                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
-                        stroke="#F67258"
-                        stroke-width="1.5"
-                        stroke-linecap="round"></path></svg
-                    ><svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
-                      ><path
-                        d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
-                        stroke="#F67258"
-                        stroke-width="1.5"
-                        stroke-linecap="round"></path></svg
-                    >
-                  </span><span class="scale"></span></span
-                >
-
-                <span class="text">{t.showCaseStudiesLg}</span></span
-              ></a
-            >
-            <nav class="list">
-              {
-                data.highlightedCaseStudies.map(({ slug, primaryImage, secondaryImage, name }) => (
-                  <CaseStudyCard
-                    title={name}
-                    primaryImage={{
-                      src: primaryImage,
-                      loading: 'lazy',
-                    }}
-                    secondaryImage={{
-                      src: secondaryImage,
-                      loading: 'lazy',
-                    }}
-                    imageSizes="(max-width: 41.1875rem) 88px, (max-width: 56.1875rem) 45vw, (max-width: 79.3215rem) 23vw, 204px"
-                    slug={slug}
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none">
+                  <path
+                    d="m9.969 4.75-3.5 3-3.5-3"
+                    stroke="#74535E"
+                    stroke-width="1.25"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                   />
-                ))
-              }
-            </nav>
-            <Button theme="primary" text={t.showCaseStudiesSm} href={t.caseStudiesUrl} />
+                </svg>
+              </div>
+            </button>
+            <div class="item-expand">
+              <div>
+                <a href={t.activitiesUrl} class="show-all">
+                  <span class="wrapper">
+                    <span class="box">
+                      <span class="svg-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none">
+                          <path
+                            d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                            stroke="#F67258"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none">
+                          <path
+                            d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                            stroke="#F67258"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                      </span>
+                      <span class="scale" />
+                    </span>
+
+                    <span class="text">{t.showActivitiesLg}</span>
+                  </span>
+                </a>
+                <nav class="list">
+                  {data.highlightedActivities.map((activity) => (
+                    <CategoryBlock
+                      {...activity}
+                      imageConfig={{
+                        sizes:
+                          '(max-width: 41.1875rem) 76px, (max-width: 56.1875rem) 124px, (max-width: 79.3215rem) 23vw, 212px',
+                        loading: 'lazy',
+                        fetchPriority: 'auto',
+                      }}
+                    />
+                  ))}
+                </nav>
+                <Button theme="primary" text={t.showActivitiesSm} href={t.activitiesUrl} />
+              </div>
+            </div>
           </div>
+          <a class="nav-link" href={t.hotelsUrl}>
+            {t.hotels}
+          </a>
+          <div class="item" data-tab="case-study">
+            <button class="item-button">
+              <span>{t.caseStudies}</span>
+              <span class="svg-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none">
+                  <path
+                    d="m9.969 4.75-3.5 3-3.5-3"
+                    stroke="#74535E"
+                    stroke-width="1.25"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none">
+                  <path
+                    d="m9.969 4.75-3.5 3-3.5-3"
+                    stroke="#74535E"
+                    stroke-width="1.25"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+            </button>
+            <div class="item-expand">
+              <div>
+                <a href={t.caseStudiesUrl} class="show-all">
+                  <span class="wrapper">
+                    <span class="box">
+                      <span class="svg-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none">
+                          <path
+                            d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                            stroke="#F67258"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none">
+                          <path
+                            d="M4.164 10.5h10.833m-4.166-5 4.41 4.41a.833.833 0 0 1 0 1.18l-4.41 4.41"
+                            stroke="#F67258"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                      </span>
+                      <span class="scale" />
+                    </span>
+
+                    <span class="text">{t.showCaseStudiesLg}</span>
+                  </span>
+                </a>
+                <nav class="list">
+                  {data.highlightedCaseStudies.map(({ slug, primaryImage, secondaryImage, name }) => (
+                    <CaseStudyCard
+                      title={name}
+                      primaryImage={{
+                        src: primaryImage,
+                        loading: 'lazy',
+                      }}
+                      secondaryImage={{
+                        src: secondaryImage,
+                        loading: 'lazy',
+                      }}
+                      imageSizes="(max-width: 41.1875rem) 88px, (max-width: 56.1875rem) 45vw, (max-width: 79.3215rem) 23vw, 204px"
+                      slug={slug}
+                    />
+                  ))}
+                </nav>
+                <Button theme="primary" text={t.showCaseStudiesSm} href={t.caseStudiesUrl} />
+              </div>
+            </div>
+          </div>
+          <CartLink inverted />
+        </nav>
+      )
+    }
+    {
+      minify && (
+        <div class="minify">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" fill="none">
+            <path
+              fill="#F67258"
+              fill-rule="evenodd"
+              d="M13.3 7A5.833 5.833 0 1 1 1.633 7a5.833 5.833 0 0 1 11.666 0ZM9.816 5.232c.171.171.171.448 0 .619L6.901 8.768a.437.437 0 0 1-.62 0L5.116 7.6a.438.438 0 0 1 .619-.619l.857.858 1.304-1.304 1.303-1.304c.171-.17.448-.17.62 0Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <p>{t.minify}</p>
         </div>
-      </div>
-      <CartLink inverted />
-    </nav>
+      )
+    }
     <CartLink />
     <div class="overlay" data-variant="desktop" aria-hidden="true"></div>
     <div class="overlay" data-variant="mobile" aria-hidden="true"></div>
@@ -1119,6 +1160,22 @@ const data = await sanityFetch<{
         }
       }
 
+      .minify {
+        display: flex;
+        align-items: flex-start;
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+        gap: 0.5rem;
+        max-width: clamp(17rem, calc(21vw / 0.48), 21rem);
+        padding: 0.5rem 0;
+
+        svg {
+          margin-top: 4px;
+          flex-shrink: 0;
+        }
+      }
+
       .nav-link {
         position: relative;
         isolation: isolate;
@@ -1185,105 +1242,137 @@ const data = await sanityFetch<{
     @media (max-width: 41.1875rem) {
       padding-left: clamp(0.4375rem, calc(0.75vw / 0.48), 0.75rem);
       padding-right: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
-      .container {
-        position: relative;
-        .logo {
-          position: absolute;
-          bottom: 0.0625rem;
-          left: 50%;
-          z-index: 5;
-          transform: translateX(-50%);
-        }
-        .open-menu {
-          display: flex;
-        }
-        .navigation {
-          position: fixed;
-          top: 0;
-          left: 0;
-          z-index: 250;
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
-          gap: 0.75rem;
-          width: 100%;
-          max-width: clamp(18.5rem, calc(30.75vw / 0.48), 25rem);
-          height: 100vh;
-          padding: 4rem 1rem 2rem;
-          overflow-y: auto;
-          border-right: 0.125rem solid;
-          border-image: linear-gradient(0deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
-          background: var(--neutral-200, #f5f1ec);
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          transform: translateX(-50%);
-          opacity: 0;
-          visibility: hidden;
-          transition:
-            opacity 100ms,
-            visibility 100ms,
-            transform 250ms var(--easing);
 
-          .nav-link {
-            &::before {
-              width: 100%;
-              transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
-            }
-          }
-
-          :global(.cart) {
-            display: flex;
-            gap: 0.5rem;
-            padding-top: 0.25rem;
-            border-top: 0.0625rem solid var(--neutral-300, #ede6de);
-            margin-top: 1.25rem;
-          }
-        }
+      &[data-minify='true'] {
       }
-      &[data-mobile-open='true'] {
+      &[data-minify='false'] {
         .container {
+          position: relative;
           .logo {
-            z-index: -1;
+            position: absolute;
+            bottom: 0.0625rem;
+            left: 50%;
+            z-index: 5;
+            transform: translateX(-50%);
           }
-
-          :global(.cart) {
-            z-index: -1;
-          }
-
           .open-menu {
-            z-index: 300;
-            .box {
-              span {
-                transform: scale(0);
-              }
-              svg {
-                transform: translate(-50%, -50%) rotate(0deg) scale(1);
-              }
-            }
-            .text {
-              span {
-                &:nth-of-type(1) {
-                  transform: translate(280%, -50%);
-                }
-                &:nth-of-type(2) {
-                  transform: translateX(0%);
-                  transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
-                }
+            display: flex;
+          }
+          .navigation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 250;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+            width: 100%;
+            max-width: clamp(18.5rem, calc(30.75vw / 0.48), 25rem);
+            height: 100vh;
+            padding: 4rem 1rem 2rem;
+            overflow-y: auto;
+            border-right: 0.125rem solid;
+            border-image: linear-gradient(0deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+            background: var(--neutral-200, #f5f1ec);
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            transform: translateX(-50%);
+            opacity: 0;
+            visibility: hidden;
+            transition:
+              opacity 100ms,
+              visibility 100ms,
+              transform 250ms var(--easing);
+
+            .nav-link {
+              &::before {
+                width: 100%;
+                transition: transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
               }
             }
 
-            &:hover {
+            :global(.cart) {
+              display: flex;
+              gap: 0.5rem;
+              padding-top: 0.25rem;
+              border-top: 0.0625rem solid var(--neutral-300, #ede6de);
+              margin-top: 1.25rem;
+            }
+          }
+        }
+        &[data-mobile-open='true'] {
+          .container {
+            .logo {
+              z-index: -1;
+            }
+
+            :global(.cart) {
+              z-index: -1;
+            }
+
+            .open-menu {
+              z-index: 300;
               .box {
                 span {
                   transform: scale(0);
                 }
+                svg {
+                  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+                }
+              }
+              .text {
+                span {
+                  &:nth-of-type(1) {
+                    transform: translate(280%, -50%);
+                  }
+                  &:nth-of-type(2) {
+                    transform: translateX(0%);
+                    transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
+                  }
+                }
+              }
+
+              &:hover {
+                .box {
+                  span {
+                    transform: scale(0);
+                  }
+                }
               }
             }
+            .navigation {
+              transform: translateX(0);
+              opacity: 1;
+              visibility: visible;
+            }
           }
-          .navigation {
-            transform: translateX(0);
-            opacity: 1;
-            visibility: visible;
+        }
+      }
+    }
+    @media (max-width: 34.3125rem) {
+      &[data-minify='true'] {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        .container {
+          grid-template-columns: repeat(2, auto);
+          display: grid;
+          justify-content: space-between;
+          row-gap: 0.25rem;
+
+          .logo {
+            grid-column: 1 / 2;
+            justify-self: start;
+          }
+          :global(.cart) {
+            grid-column: 2 / 3;
+            justify-self: end;
+          }
+          .minify {
+            max-width: 18rem;
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+            padding: 0;
           }
         }
       }

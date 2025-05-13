@@ -209,6 +209,13 @@ body {
   letter-spacing: -0.02em;
   background-color: var(--neutral-100, #faf7f7);
   color: var(--primary-400, #74535e);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+
+  footer {
+    margin-top: auto !important;
+  }
 }
 
 .max-width {

@@ -53,6 +53,7 @@ export const translations = {
     },
   },
 }
+export const languages = ['pl', 'en'] as const
 
 export const langPrefixes = {
   pl: '/pl/',

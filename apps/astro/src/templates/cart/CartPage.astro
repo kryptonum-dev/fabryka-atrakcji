@@ -19,6 +19,7 @@ import SkeletonLoader from '@/src/components/cart/SkeletonLoader.astro'
 import type { ExtraItem } from '@/src/global/types'
 import QuoteCartLayout from '@/src/layouts/QuoteCartLayout.astro'
 import AdditionalInfoBlock from '@/src/components/cart/AdditionalInfoBlock.astro'
+import Loader from '@/src/components/ui/Loader.astro'
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export async function fetchData(lang: Language) {
@@ -139,6 +140,8 @@ const translations = {
     selectExtrasHeading: 'Wybierz dodatki',
     confirmAddons: 'Zatwierdź wybór',
     allAddons: 'Wszystkie <strong>dodatki</strong>',
+    missingParticipants: 'Podaj liczbę uczestników przed wysłaniem wyceny',
+    missingDates: 'Musisz wybrać co najmniej jeden termin',
     emptySection: {
       hotels: {
         heading: 'Nie wybrałeś jeszcze <strong>żadnego hotelu</strong>',
@@ -209,7 +212,11 @@ const translations = {
       error: {
         retryButton: 'Spróbuj ponownie',
       },
-
+      submitError: {
+        heading: 'Nie udało nam się stworzyć <strong>twojej wyceny</strong>',
+        paragraph: 'Wystąpił błąd podczas tworzenia wyceny. Spróbuj ponownie ponownie lub skontaktuj się z nami.',
+        returnButton: 'Wróć do koszyka',
+      },
       empty: {
         ctaHotels: 'Przeglądaj hotele',
         ctaActivities: 'Przeglądaj integracje',
@@ -244,6 +251,8 @@ const translations = {
     currency: 'PLN',
     additionalPerson: 'Each additional person',
     perNight: 'PLN/night per person',
+    missingParticipants: 'Enter the number of participants before sending the quote',
+    missingDates: 'You must select at least one date',
     max: 'Max.',
     addons: 'Add add-ons',
     editAddons: 'Edit add-ons',
@@ -321,7 +330,11 @@ const translations = {
       error: {
         retryButton: 'Try Again',
       },
-
+      submitError: {
+        heading: 'Failed to create quote',
+        paragraph: 'There was an error while creating your quote. Please try again or contact us.',
+        returnButton: 'Return to Cart',
+      },
       empty: {
         ctaHotels: 'Browse hotels',
         ctaActivities: 'Browse activities',
@@ -365,6 +378,18 @@ const { metadata, page } = Astro.props
       <Button id="retry-load-cart">{t.states.error.retryButton}</Button>
     </div>
 
+    <div class="state state-submit-loading" style="display: none;">
+      <Loader />
+    </div>
+
+    <div class="state state-submit-error" style="display: none;">
+      <h1><Fragment set:html={t.states.submitError?.heading} /></h1>
+      <p class="paragraph">
+        <Fragment set:html={t.states.submitError?.paragraph} />
+      </p>
+      <Button id="return-to-cart">{t.states.submitError?.returnButton}</Button>
+    </div>
+
     <div class="state state-content items-wrapper" style="display: none;">
       <header class="header">
         <AdditionalInfoBlock additionalInfo={page.infoParagraph} />
@@ -379,7 +404,14 @@ const { metadata, page } = Astro.props
             </label>
             <div class="input-box">
               <div class="gradient"></div>
-              <input type="number" id="participantCount" class="participant-input" min="1" step="1" value="50" />
+              <input
+                type="number"
+                id="participantCount"
+                class="participant-input"
+                min="1"
+                step="1"
+                placeholder={lang === 'pl' ? 'Dodaj wartość' : 'Add value'}
+              />
             </div>
           </div>
           <DatePicker lang={lang} />
@@ -523,6 +555,7 @@ const { metadata, page } = Astro.props
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      position: relative;
 
       // State styles
       .state {
@@ -543,8 +576,16 @@ const { metadata, page } = Astro.props
         }
       }
 
+      .state-submit-loading {
+        :global(> div) {
+          background-color: transparent;
+          backdrop-filter: blur(0px);
+        }
+      }
+
       .state-empty,
-      .state-error {
+      .state-error,
+      .state-submit-error {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -561,8 +602,6 @@ const { metadata, page } = Astro.props
         p {
           max-width: 30rem;
           margin: 0 auto;
-          font-size: var(--typography-body-m, 0.875rem);
-          line-height: 1.7;
 
           :global(strong) {
             color: var(--primary-800);
@@ -576,7 +615,7 @@ const { metadata, page } = Astro.props
           gap: 1rem;
           margin-top: 3rem;
 
-          @media (max-width: 459px) {
+          @media (max-width: 28.6875rem) {
             flex-direction: column;
             max-width: 100%;
             width: 100%;
@@ -592,11 +631,12 @@ const { metadata, page } = Astro.props
           }
         }
 
-        @media (max-width: 459px) {
+        @media (max-width: 28.6875rem) {
           text-align: start;
         }
       }
-      .state-error {
+      .state-error,
+      .state-submit-error {
         :global(button) {
           max-width: 20rem;
           width: 100%;
@@ -607,7 +647,7 @@ const { metadata, page } = Astro.props
             padding-right: 1.75rem;
           }
 
-          @media (max-width: 459px) {
+          @media (max-width: 28.6875rem) {
             max-width: 100%;
           }
         }
@@ -700,7 +740,7 @@ const { metadata, page } = Astro.props
                   min-height: 2.5rem;
                   padding: 0.625rem;
                   color: var(--primary-800, #45051c);
-                  font-size: 1rem;
+                  font-size: var(--typography-body-m, 0.875rem);
                   line-height: 1.4;
                   border-radius: 0.25rem;
                   border: none;
@@ -719,6 +759,10 @@ const { metadata, page } = Astro.props
                   /* Firefox */
                   &[type='number'] {
                     -moz-appearance: textfield;
+                  }
+                  &::placeholder {
+                    font-size: var(--typography-body-m, 0.875rem);
+                    color: var(--primary-400, #74535e);
                   }
                 }
 
@@ -890,13 +934,13 @@ const { metadata, page } = Astro.props
       }
     }
 
-    @media (max-width: 918px) {
+    @media (max-width: 57.375rem) {
       .back-link {
         margin-left: 2rem;
       }
     }
 
-    @media (max-width: 799px) {
+    @media (max-width: 49.9375rem) {
       .cart-container {
         padding-left: clamp(0.5rem, calc(2.75vw / 0.48), 2.75rem);
         padding-right: clamp(0.5rem, calc(2.75vw / 0.48), 2.75rem);
@@ -911,7 +955,7 @@ const { metadata, page } = Astro.props
       }
     }
 
-    @media (max-width: 519px) {
+    @media (max-width: 32.4375rem) {
       .cart-container .items-wrapper .header {
         .inputs {
           flex-direction: column;
@@ -923,7 +967,7 @@ const { metadata, page } = Astro.props
       }
     }
 
-    @media (max-width: 469px) {
+    @media (max-width: 29.3125rem) {
       .back-link {
         margin-left: 1rem;
       }
@@ -1016,20 +1060,17 @@ const { metadata, page } = Astro.props
       overflow-y: auto;
     }
 
-    @media (max-width: 799px) {
+    @media (max-width: 49.9375rem) {
       :global(.extras-list) {
         display: flex;
         flex-direction: column;
       }
     }
 
-    @media (max-width: 499px) {
+    @media (max-width: 31.1875rem) {
       padding: 1.5rem var(--pageMargin) 0;
       width: 100vw !important;
     }
-  }
-
-  @media (max-width: 749px) {
   }
 
   :global(.hidden-trigger) {
@@ -1134,7 +1175,7 @@ const { metadata, page } = Astro.props
         }
       }
     }
-    @media (max-width: 869px) {
+    @media (max-width: 54.3125rem) {
       .transport-box {
         grid-column: 1/4;
         grid-row: 2/3;
@@ -1181,7 +1222,7 @@ const { metadata, page } = Astro.props
       }
     }
 
-    @media (max-width: 739px) {
+    @media (max-width: 46.1875rem) {
       padding: 1.5rem;
       h2 {
         grid-column: 1/2;
@@ -1202,7 +1243,7 @@ const { metadata, page } = Astro.props
 
         .price-info {
           margin-top: 0.5rem;
-          border-top: 1px solid var(--neutral-300, #ede6de);
+          border-top: 0.0625rem solid var(--neutral-300, #ede6de);
           padding-top: 0.5rem;
           grid-column: 1/3;
           grid-row: 2/3;
@@ -1215,7 +1256,7 @@ const { metadata, page } = Astro.props
       }
     }
 
-    @media (max-width: 499px) {
+    @media (max-width: 31.1875rem) {
       padding: 1.5rem var(--pageMargin);
     }
   }
@@ -1266,7 +1307,7 @@ const { metadata, page } = Astro.props
       }
     }
 
-    @media (max-width: 499px) {
+    @media (max-width: 31.1875rem) {
       padding: 1.5rem var(--pageMargin);
 
       :global(.CloseButton) {
@@ -1768,14 +1809,19 @@ const { metadata, page } = Astro.props
 
       // Ensure value is at least 1
       if (!value || parseInt(value) < 1) {
-        value = '1'
+        value = value || '' // Keep empty if it was empty
       }
 
       // Update input value
       participantInput.value = value
 
-      // Store in localStorage
-      localStorage.setItem('cart_participant_count', value)
+      // Only store in localStorage if we have a value
+      if (value) {
+        localStorage.setItem('cart_participant_count', value)
+      } else {
+        // If the field was cleared, remove from localStorage
+        localStorage.removeItem('cart_participant_count')
+      }
 
       // Update alerts when participant count changes
       updateParticipantAlerts()
@@ -1785,16 +1831,18 @@ const { metadata, page } = Astro.props
     participantInput.addEventListener('blur', () => {
       let value = participantInput.value
 
-      // Convert to integer
-      const intValue = parseInt(value)
+      if (value) {
+        // Convert to integer
+        const intValue = parseInt(value)
 
-      // Update with parsed integer value
-      if (!isNaN(intValue)) {
-        participantInput.value = intValue.toString()
-        localStorage.setItem('cart_participant_count', intValue.toString())
+        // Update with parsed integer value
+        if (!isNaN(intValue)) {
+          participantInput.value = intValue.toString()
+          localStorage.setItem('cart_participant_count', intValue.toString())
 
-        // Update alerts on blur
-        updateParticipantAlerts()
+          // Update alerts on blur
+          updateParticipantAlerts()
+        }
       }
     })
   }
@@ -1802,21 +1850,18 @@ const { metadata, page } = Astro.props
   // Setup quote request handling
   function setupQuoteRequestHandling() {
     const getQuoteButton = document.getElementById('get-quote-button')
+    const returnToCartButton = document.getElementById('return-to-cart')
+
+    if (returnToCartButton) {
+      returnToCartButton.addEventListener('click', () => {
+        showState('content')
+      })
+    }
 
     if (!getQuoteButton) return
 
     getQuoteButton.addEventListener('click', async () => {
       try {
-        // Show loading state
-        getQuoteButton.setAttribute('data-loading', 'true')
-        getQuoteButton.setAttribute('disabled', 'true')
-
-        // Get participant count
-        const participantInput = document.getElementById('participantCount') as HTMLInputElement
-        const participantCount = parseInt(
-          participantInput?.value || localStorage.getItem('cart_participant_count') || '0'
-        )
-
         // Get selected date(s)
         const cartDates = localStorage.getItem('cart_dates')
         let selectedDates: any[] = []
@@ -1827,6 +1872,32 @@ const { metadata, page } = Astro.props
             console.error('Error parsing cart dates:', e)
           }
         }
+
+        // Validate that at least one date is selected
+        if (!selectedDates || selectedDates.length === 0) {
+          // Show error toast if no dates selected
+          showToast(t.missingDates, 'error')
+          return // Stop execution, don't proceed with API call
+        }
+
+        // Get participant count and validate
+        const participantInput = document.getElementById('participantCount') as HTMLInputElement
+        const participantCount = participantInput?.value ? parseInt(participantInput.value) : 0
+
+        // Validate that participant count is not empty
+        if (!participantCount) {
+          showToast(t.missingParticipants, 'error')
+          return
+        }
+
+        // Scroll to top immediately when clicking submit
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        })
+
+        // Show submit-loading state
+        showState('submit-loading')
 
         // Get cart data
         const cart = cartStore.get()
@@ -2005,6 +2076,9 @@ const { metadata, page } = Astro.props
 
         console.log('Submitting quote request with data:', quoteData)
 
+        // Add artificial delay for testing
+        await new Promise((resolve) => setTimeout(resolve, 200))
+
         // Send data to API
         const response = await fetch('/api/quotes', {
           method: 'POST',
@@ -2028,10 +2102,9 @@ const { metadata, page } = Astro.props
         window.location.href = `/${pageLang}/koszyk?id=${result.quoteId}`
       } catch (error) {
         console.error('Error creating quote:', error)
-        // Show error state
-        getQuoteButton.setAttribute('data-loading', 'false')
-        getQuoteButton.removeAttribute('disabled')
-        showToast('Failed to create quote. Please try again.', 'error')
+
+        // Show submit-error state
+        showState('submit-error')
       }
     })
   }
@@ -2695,7 +2768,7 @@ const { metadata, page } = Astro.props
   }
 
   // State management functions
-  function showState(state: 'loading' | 'empty' | 'error' | 'content') {
+  function showState(state: 'loading' | 'empty' | 'error' | 'content' | 'submit-loading' | 'submit-error') {
     // Get all state elements
     const states = document.querySelectorAll('.cart-container .state')
 
@@ -2709,6 +2782,12 @@ const { metadata, page } = Astro.props
     if (stateEl) {
       stateEl.style.display = 'flex'
     }
+
+    // Scroll to top of the page smoothly
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
   }
 
   // Check cart before fetching

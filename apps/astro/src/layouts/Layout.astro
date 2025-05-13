@@ -7,9 +7,11 @@ import Footer from './Footer.astro'
 import Header from './Header.astro'
 import Toast from '../components/ui/Toast.astro'
 import type { Language } from '../global/languages'
-type Props = HeadProps
+type Props = HeadProps & {
+  minify?: boolean
+}
 
-const { ...props } = Astro.props
+const { minify = false, ...props } = Astro.props as Props
 
 const lang = (Astro.params.lang as Language) || 'pl'
 ---
@@ -22,11 +24,11 @@ const lang = (Astro.params.lang as Language) || 'pl'
     <slot name="head" />
   </head>
   <body>
-    <Header />
+    <Header minify={minify} />
     <main id="main">
       <slot />
     </main>
-    <Footer lang={lang} />
+    <Footer lang={lang} minify={minify} />
     <Toast />
   </body>
 </html>

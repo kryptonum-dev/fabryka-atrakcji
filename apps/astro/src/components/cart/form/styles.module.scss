@@ -112,7 +112,7 @@
       transform: translateY(0);
     }
 
-    @media (max-width: 739px) {
+    @media (max-width: 46.1875rem) {
       &::after {
         top: calc(100% + 0.5rem);
         bottom: unset;
@@ -280,7 +280,7 @@
         }
       }
     }
-    @media (max-width: 739px) {
+    @media (max-width: 46.1875rem) {
       top: unset;
       bottom: 100%;
     }

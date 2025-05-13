@@ -1,6 +1,6 @@
 ---
 import BreadcrumbsSchema from '@/src/Schema/BreadcrumbsSchema.astro';
-import { translations, type Language, getLangFromPath } from '../global/languages';
+import { translations, type Language, getLangFromPath, languages } from '../global/languages';
 
 
 type Props = {
@@ -13,7 +13,8 @@ type Props = {
 
 const { data = [], firstItemType } = Astro.props;
 
-const lang = getLangFromPath(Astro.url.pathname) as Language || 'pl'
+const lang = languages.includes(getLangFromPath(Astro.url.pathname) as Language) ? getLangFromPath(Astro.url.pathname) as Language : 'pl'
+
 const t = translations[lang]
 
 const breadcrumbsData = [

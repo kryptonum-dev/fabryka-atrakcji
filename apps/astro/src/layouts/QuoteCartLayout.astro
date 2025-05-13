@@ -8,14 +8,15 @@ interface Props {
     text: string
     url: string
   }
+  minify?: boolean
   class?: string
   [key: string]: any // Allow for additional custom attributes
 }
 
-const { metadata, backLink, class: className, ...rest } = Astro.props
+const { metadata, backLink, class: className, minify = false, ...rest } = Astro.props
 ---
 
-<Layout {...metadata}>
+<Layout minify={minify} {...metadata}>
   <section class:list={['QuoteCartWrapper', className]} {...rest}>
     <a href={backLink.url} class="back-link">
       <span class="icons">
@@ -158,19 +159,17 @@ const { metadata, backLink, class: className, ...rest } = Astro.props
       }
     }
 
-    @media (max-width: 918px) {
+    @media (max-width: 57.375rem) {
       .back-link {
         margin-left: 2rem;
       }
     }
 
-    @media (max-width: 469px) {
+    @media (max-width: 29.3125rem) {
       .back-link {
         margin-left: 1rem;
       }
       .container {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
         background-color: var(--neutral-200);
 
         &::after,

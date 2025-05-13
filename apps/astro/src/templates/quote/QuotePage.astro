@@ -290,6 +290,7 @@ const t = translations[lang]
 ---
 
 <QuoteCartLayout
+  minify
   metadata={metadata}
   class="Quote"
   backLink={{
@@ -437,8 +438,6 @@ const t = translations[lang]
           position: relative;
 
           .dates-wrapper {
-            position: relative;
-
             .single-date {
               display: flex;
               align-items: center;
@@ -446,8 +445,6 @@ const t = translations[lang]
             }
 
             .multiple-dates {
-              position: relative;
-
               .visible-date {
                 display: flex;
                 align-items: center;
@@ -588,11 +585,11 @@ const t = translations[lang]
       }
     }
 
-    @media (max-width: 469px) {
+    @media (max-width: 47.9375rem) {
       padding-top: clamp(1rem, calc(2vw / 0.48), 3rem);
 
       .quote-container {
-        padding: clamp(1rem, calc(1.5vw / 0.48), 1.5rem) clamp(0.5rem, calc(1vw / 0.48), 1rem);
+        padding: clamp(0rem, calc(1.5vw / 0.48), 1.5rem) clamp(0.5rem, calc(1vw / 0.48), 1rem);
 
         .quote-details {
           grid-template-columns: repeat(2, 1fr);
