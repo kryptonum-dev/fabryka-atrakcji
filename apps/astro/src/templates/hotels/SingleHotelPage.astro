@@ -27,6 +27,7 @@ import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 import type { BaseHotelProps } from '@/src/global/types'
+import Image, { Image_Query } from '@/src/components/ui/content-pt/shared/Image.astro'
 
 export type SingleHotelProps = BaseHotelProps & {
   hotelsPage: {
@@ -107,7 +108,7 @@ export async function fetchData(slug: string, lang: Language) {
         },
         additionalInfo
       },
-      ${ContentPT_Query([Faq_Query, Testimonials_Query, Amenities_Query, Location_Query, StayingRules_Query, Checklist_Query, BlocksWithImage_Query, ImageWithHeadingAndText_Query, RowsWithIcons_Query, Timeline_Query, NextSteps_Query])}
+      ${ContentPT_Query([Faq_Query, Image_Query, Testimonials_Query, Amenities_Query, Location_Query, StayingRules_Query, Checklist_Query, BlocksWithImage_Query, ImageWithHeadingAndText_Query, RowsWithIcons_Query, Timeline_Query, NextSteps_Query])}
       ${Components_Query}
     }
   `,
@@ -170,6 +171,7 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
           RowsWithIcons,
           Timeline,
           NextSteps,
+          Image,
         }}
       />
     </div>

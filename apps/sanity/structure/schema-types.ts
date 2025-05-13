@@ -12,6 +12,7 @@ import TermsAndConditions_Page from '../schema/singleTypes/legal/TermsAndConditi
 import PrivacyPolicy_Page from '../schema/singleTypes/legal/PrivacyPolicy_Page'
 import Hotels_Page from '../schema/singleTypes/Hotels_Page'
 import Cart_Page from '../schema/singleTypes/Cart_Page'
+import Quote_Page from '../schema/singleTypes/Quote_Page'
 
 const singleTypes = [
   global,
@@ -27,6 +28,7 @@ const singleTypes = [
   PrivacyPolicy_Page,
   Hotels_Page,
   Cart_Page,
+  Quote_Page,
 ]
 
 // Collections Types

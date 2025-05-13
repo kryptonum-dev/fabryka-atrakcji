@@ -2,6 +2,19 @@ import type { APIRoute } from 'astro'
 import type { AddonItem, AddonProps, BaseActivityProps, BaseHotelProps, ExtraItem } from '@/src/global/types'
 import { client } from '@/src/utils/sanity.fetch'
 
+// Define QuoteItem interface to fix TypeScript errors
+interface QuoteItem {
+  type: string
+  _type?: string
+  _key?: string
+  hotels?: Array<any>
+  activities?: Array<any>
+  transport?: any
+  extras?: Array<any>
+  totalPrice: number
+  totalNettoPrice?: number
+}
+
 /**
  * Calculate the price for a hotel based on its pricing model and participant count
  *
@@ -25,7 +38,8 @@ function calculateHotelPrice(
 ) {
   // Initialize result
   const result = {
-    totalPrice: 0,
+    bruttoPrice: 0,
+    nettoPrice: 0,
     exceedsMaxPeople: false,
     calculatedFor: participantCount,
   }
@@ -45,16 +59,19 @@ function calculateHotelPrice(
     // Fixed group price + additional per person
     if (effectiveParticipantCount <= hotel.pricing.groupPeopleCount) {
       // Just the group price
-      result.totalPrice = hotel.pricing.groupPrice
+      result.bruttoPrice = hotel.pricing.groupPrice
     } else {
       // Group price + additional people at per-person rate
       const additionalPeople = effectiveParticipantCount - hotel.pricing.groupPeopleCount
-      result.totalPrice = hotel.pricing.groupPrice + additionalPeople * hotel.pricing.pricePerPerson
+      result.bruttoPrice = hotel.pricing.groupPrice + additionalPeople * hotel.pricing.pricePerPerson
     }
   } else {
     // Simple per person pricing
-    result.totalPrice = effectiveParticipantCount * hotel.pricing.pricePerPerson
+    result.bruttoPrice = effectiveParticipantCount * hotel.pricing.pricePerPerson
   }
+
+  // Calculate netto price (brutto / 1.23)
+  result.nettoPrice = Math.round(result.bruttoPrice / 1.23)
 
   return result
 }
@@ -86,7 +103,8 @@ function calculateActivityPrice(
 
   // Initialize result
   const result = {
-    totalPrice: 0,
+    bruttoPrice: 0,
+    nettoPrice: 0,
     exceedsMaxPeople: false,
     calculatedFor: participantCount,
     belowMinPeople: false,
@@ -126,18 +144,21 @@ function calculateActivityPrice(
   // Calculate price based on threshold model
   if (effectiveParticipantCount <= activity.pricing.maxParticipants) {
     // Base price covers all participants
-    result.totalPrice = activity.pricing.basePrice
+    result.bruttoPrice = activity.pricing.basePrice
     console.log(
       `Using base price: ${activity.pricing.basePrice} (participants: ${effectiveParticipantCount} <= maxParticipants: ${activity.pricing.maxParticipants})`
     )
   } else {
     // Base price + additional per person pricing
     const additionalPeople = effectiveParticipantCount - activity.pricing.maxParticipants
-    result.totalPrice = activity.pricing.basePrice + additionalPeople * activity.pricing.additionalPersonPrice
+    result.bruttoPrice = activity.pricing.basePrice + additionalPeople * activity.pricing.additionalPersonPrice
     console.log(
-      `Base price: ${activity.pricing.basePrice} + additional: ${additionalPeople} people * ${activity.pricing.additionalPersonPrice} = ${result.totalPrice}`
+      `Base price: ${activity.pricing.basePrice} + additional: ${additionalPeople} people * ${activity.pricing.additionalPersonPrice} = ${result.bruttoPrice}`
     )
   }
+
+  // Calculate netto price (brutto / 1.23)
+  result.nettoPrice = Math.round(result.bruttoPrice / 1.23)
 
   console.log(`Final activity price result:`, result)
   return result
@@ -156,7 +177,8 @@ function calculateAddonPrice(
   addonCount: number = 1,
   participantCount: number = 0
 ): {
-  totalPrice: number
+  bruttoPrice: number
+  nettoPrice: number
   priceDetails: {
     unitPrice?: number
     units?: number
@@ -168,7 +190,8 @@ function calculateAddonPrice(
 } {
   // Default result structure
   const result = {
-    totalPrice: 0,
+    bruttoPrice: 0,
+    nettoPrice: 0,
     priceDetails: {
       unitPrice: undefined,
       units: undefined,
@@ -190,7 +213,7 @@ function calculateAddonPrice(
     // Fixed price (same price regardless of count or participants)
     case 'fixed':
       if (typeof addon.pricing.fixedPrice === 'number') {
-        result.totalPrice = addon.pricing.fixedPrice
+        result.bruttoPrice = addon.pricing.fixedPrice
         result.priceDetails = {
           unitPrice: addon.pricing.fixedPrice,
           units: 1,
@@ -205,7 +228,7 @@ function calculateAddonPrice(
         // If the add-on has count capability, use the specified count
         const units = addon.pricing.perUnit.hasCount ? addonCount : 1
 
-        result.totalPrice = unitPrice * units
+        result.bruttoPrice = unitPrice * units
         result.priceDetails = {
           unitPrice,
           units,
@@ -219,7 +242,7 @@ function calculateAddonPrice(
         const { basePrice, maxUnits, additionalPrice } = addon.pricing.threshold
 
         // Start with base price
-        result.totalPrice = basePrice
+        result.bruttoPrice = basePrice
         result.priceDetails = {
           basePrice,
           units: Math.min(participantCount, maxUnits),
@@ -230,7 +253,7 @@ function calculateAddonPrice(
           const additionalUnits = participantCount - maxUnits
           const additionalCost = additionalUnits * additionalPrice
 
-          result.totalPrice += additionalCost
+          result.bruttoPrice += additionalCost
           result.priceDetails.additionalUnits = additionalUnits
           result.priceDetails.additionalUnitPrice = additionalPrice
         }
@@ -240,13 +263,16 @@ function calculateAddonPrice(
     // Individual pricing (custom quote needed)
     case 'individual':
       // For individual pricing, we can't calculate automatically
-      result.totalPrice = 0
+      result.bruttoPrice = 0
       result.priceDetails = {
         unitPrice: 0,
         units: 0,
       }
       break
   }
+
+  // Calculate netto price (brutto / 1.23)
+  result.nettoPrice = Math.round(result.bruttoPrice / 1.23)
 
   return result
 }
@@ -268,6 +294,7 @@ function calculateExtraPrice(
   // Initialize result
   const result = {
     totalPrice: 0,
+    nettoTotalPrice: 0,
     priceDetails: {} as Record<string, any>,
     pricingModel: '',
     isTransport: false,
@@ -326,6 +353,9 @@ function calculateExtraPrice(
       }
       break
   }
+
+  // Calculate nettoTotalPrice directly from totalPrice
+  result.nettoTotalPrice = Math.round(result.totalPrice / 1.23)
 
   return result
 }
@@ -553,12 +583,12 @@ export const POST: APIRoute = async ({ request }) => {
         const hotelAddonsResults = []
         if (hotel.addons && Array.isArray(hotel.addons)) {
           for (const addon of hotel.addons) {
-            const addonPriceResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
+            const addonResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
             hotelAddonsResults.push({
               id: addon.id,
               name: addon.name,
               count: addon.count || 1,
-              pricing: addonPriceResult,
+              pricing: addonResult,
             })
           }
         }
@@ -573,7 +603,8 @@ export const POST: APIRoute = async ({ request }) => {
               slug: hotel.slug,
               maxPeople: hotel.maxPeople?.overnight || 0,
               pricing: {
-                finalPrice: hotelPriceResult.totalPrice,
+                finalPrice: hotelPriceResult.bruttoPrice,
+                nettoFinalPrice: hotelPriceResult.nettoPrice,
                 participantCount: hotelPriceResult.calculatedFor,
                 exceedsMaxPeople: hotelPriceResult.exceedsMaxPeople,
               },
@@ -595,7 +626,7 @@ export const POST: APIRoute = async ({ request }) => {
             // Calculate activity price
             const activityPriceResult = calculateActivityPrice(activity, participantCount)
             console.log(`Activity price for ${activity.name}:`, {
-              totalPrice: activityPriceResult.totalPrice,
+              totalPrice: activityPriceResult.bruttoPrice,
               participantCount: activityPriceResult.calculatedFor,
               exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
               belowMinPeople: activityPriceResult.belowMinPeople,
@@ -605,12 +636,12 @@ export const POST: APIRoute = async ({ request }) => {
             const activityAddonsResults = []
             if (activity.addons && Array.isArray(activity.addons)) {
               for (const addon of activity.addons) {
-                const addonPriceResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
+                const addonResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
                 activityAddonsResults.push({
                   id: addon.id,
                   name: addon.name,
                   count: addon.count || 1,
-                  pricing: addonPriceResult,
+                  pricing: addonResult,
                 })
               }
             }
@@ -626,7 +657,8 @@ export const POST: APIRoute = async ({ request }) => {
                   }
                 : null,
               pricing: {
-                finalPrice: activityPriceResult.totalPrice,
+                finalPrice: activityPriceResult.bruttoPrice,
+                nettoFinalPrice: activityPriceResult.nettoPrice,
                 participantCount: activityPriceResult.calculatedFor,
                 exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
                 belowMinPeople: activityPriceResult.belowMinPeople,
@@ -676,10 +708,14 @@ export const POST: APIRoute = async ({ request }) => {
               }
             }
 
+            const totalPrice = baseTransportPrice + distancePrice
+            const nettoPrice = Math.round(totalPrice / 1.23)
+
             hotelQuoteItem.transport.pricing = {
               basePrice: baseTransportPrice,
               distancePrice: distancePrice,
-              totalPrice: baseTransportPrice + distancePrice,
+              totalPrice: totalPrice,
+              nettoTotalPrice: nettoPrice,
               pricePerKm: transportExtra.pricing.pricePerKm,
             }
           }
@@ -732,9 +768,12 @@ export const POST: APIRoute = async ({ request }) => {
               }
             }
 
+            const nettoPrice = Math.round(baseTransportPrice / 1.23)
+
             hotelQuoteItem.transport.pricing = {
               basePrice: baseTransportPrice,
               totalPrice: baseTransportPrice,
+              nettoTotalPrice: nettoPrice,
             }
           }
         }
@@ -750,7 +789,7 @@ export const POST: APIRoute = async ({ request }) => {
         // Calculate activity price
         const activityPriceResult = calculateActivityPrice(activity, participantCount)
         console.log(`Activity price for ${activity.name}:`, {
-          totalPrice: activityPriceResult.totalPrice,
+          totalPrice: activityPriceResult.bruttoPrice,
           participantCount: activityPriceResult.calculatedFor,
           exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
           belowMinPeople: activityPriceResult.belowMinPeople,
@@ -760,12 +799,12 @@ export const POST: APIRoute = async ({ request }) => {
         const activityAddonsResults = []
         if (activity.addons && Array.isArray(activity.addons)) {
           for (const addon of activity.addons) {
-            const addonPriceResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
+            const addonResult = calculateAddonPrice(addon, addon.count || 1, participantCount)
             activityAddonsResults.push({
               id: addon.id,
               name: addon.name,
               count: addon.count || 1,
-              pricing: addonPriceResult,
+              pricing: addonResult,
             })
           }
         }
@@ -786,7 +825,8 @@ export const POST: APIRoute = async ({ request }) => {
                   }
                 : null,
               pricing: {
-                finalPrice: activityPriceResult.totalPrice,
+                finalPrice: activityPriceResult.bruttoPrice,
+                nettoFinalPrice: activityPriceResult.nettoPrice,
                 participantCount: activityPriceResult.calculatedFor,
                 exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
                 belowMinPeople: activityPriceResult.belowMinPeople,
@@ -800,11 +840,11 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // Calculate activity quote item's initial price (activity + its addons)
-        let initialActivityPrice = activityPriceResult.totalPrice
+        let initialActivityPrice = activityPriceResult.bruttoPrice
 
         // Add addon prices
         for (const addon of activityAddonsResults) {
-          initialActivityPrice += addon.pricing.totalPrice || 0
+          initialActivityPrice += addon.pricing.bruttoPrice || 0
         }
 
         // Set the initial total price
@@ -819,7 +859,7 @@ export const POST: APIRoute = async ({ request }) => {
             pickupCoordinates: transportPickupCoordinates,
           }
 
-          // Calculate base transport price without distance
+          // Add base transport price
           if (transportExtra.pricing) {
             let baseTransportPrice = 0
             if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
@@ -835,10 +875,13 @@ export const POST: APIRoute = async ({ request }) => {
               }
             }
 
+            const nettoPrice = Math.round(baseTransportPrice / 1.23)
+
             if (activityQuoteItem.transport) {
               activityQuoteItem.transport.pricing = {
                 basePrice: baseTransportPrice,
                 totalPrice: baseTransportPrice,
+                nettoTotalPrice: nettoPrice,
               }
             }
           }
@@ -864,10 +907,13 @@ export const POST: APIRoute = async ({ request }) => {
               }
             }
 
+            const nettoPrice = Math.round(baseTransportPrice / 1.23)
+
             if (activityQuoteItem.transport) {
               activityQuoteItem.transport.pricing = {
                 basePrice: baseTransportPrice,
                 totalPrice: baseTransportPrice,
+                nettoTotalPrice: nettoPrice,
               }
             }
           }
@@ -929,18 +975,21 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Function to calculate total price for a quote item
-    function calculateQuoteItemTotalPrice(quoteItem: any) {
+    function calculateQuoteItemTotalPrice(quoteItem: QuoteItem) {
       let totalPrice = 0
+      let totalNettoPrice = 0
 
       // Add hotel prices - check if hotels array exists and has items first
       if (quoteItem.hotels && quoteItem.hotels.length > 0) {
         for (const hotel of quoteItem.hotels) {
           totalPrice += hotel.pricing?.finalPrice || 0
+          totalNettoPrice += hotel.pricing?.nettoFinalPrice || 0
 
           // Add hotel addon prices
           if (hotel.addons && hotel.addons.length > 0) {
             for (const addon of hotel.addons) {
-              totalPrice += addon.pricing?.totalPrice || 0
+              totalPrice += addon.pricing?.bruttoPrice || addon.pricing?.totalPrice || 0
+              totalNettoPrice += addon.pricing?.nettoPrice || addon.pricing?.nettoTotalPrice || 0
             }
           }
         }
@@ -950,11 +999,13 @@ export const POST: APIRoute = async ({ request }) => {
       if (quoteItem.activities && quoteItem.activities.length > 0) {
         for (const activity of quoteItem.activities) {
           totalPrice += activity.pricing?.finalPrice || 0
+          totalNettoPrice += activity.pricing?.nettoFinalPrice || 0
 
           // Add activity addon prices
           if (activity.addons && activity.addons.length > 0) {
             for (const addon of activity.addons) {
-              totalPrice += addon.pricing?.totalPrice || 0
+              totalPrice += addon.pricing?.bruttoPrice || addon.pricing?.totalPrice || 0
+              totalNettoPrice += addon.pricing?.nettoPrice || addon.pricing?.nettoTotalPrice || 0
             }
           }
         }
@@ -963,19 +1014,27 @@ export const POST: APIRoute = async ({ request }) => {
       // Add transport price if present
       if (quoteItem.transport && quoteItem.transport.pricing) {
         totalPrice += quoteItem.transport.pricing.totalPrice || 0
+        totalNettoPrice += quoteItem.transport.pricing.nettoTotalPrice || 0
       }
 
       // Add extras prices
       if (quoteItem.extras && quoteItem.extras.length > 0) {
         for (const extra of quoteItem.extras) {
           totalPrice += extra.pricing?.totalPrice || 0
+          totalNettoPrice += extra.pricing?.nettoTotalPrice || 0
         }
       }
 
       // Set the calculated total price
       quoteItem.totalPrice = totalPrice
 
-      console.log(`Total price for ${quoteItem.type} quote:`, totalPrice)
+      // Instead of adding up individual netto prices which can lead to inconsistencies,
+      // calculate the netto price directly from the total brutto price
+      quoteItem.totalNettoPrice = Math.round(totalPrice / 1.23)
+
+      console.log(
+        `Total price for ${quoteItem.type} quote: ${totalPrice} (brutto), ${quoteItem.totalNettoPrice} (netto)`
+      )
 
       return quoteItem
     }
@@ -1063,6 +1122,7 @@ export const POST: APIRoute = async ({ request }) => {
           _key: generateKey(),
           type: item.type,
           totalPrice: item.totalPrice || 0, // Ensure totalPrice has a fallback
+          totalNettoPrice: item.totalNettoPrice || 0, // Add the netto price
           hotels: item.hotels.map((hotel: any) => ({
             _key: generateKey(),
             name: hotel.name,
@@ -1070,6 +1130,7 @@ export const POST: APIRoute = async ({ request }) => {
             maxPeople: hotel.maxPeople || 0,
             pricing: {
               finalPrice: hotel.pricing.finalPrice || 0,
+              nettoFinalPrice: hotel.pricing.nettoFinalPrice || 0,
               participantCount: hotel.pricing.participantCount || 0,
               exceedsMaxPeople: toBoolString(hotel.pricing.exceedsMaxPeople),
             },
@@ -1078,7 +1139,8 @@ export const POST: APIRoute = async ({ request }) => {
               name: addon.name,
               count: addon.count || 1,
               pricing: {
-                totalPrice: addon.pricing.totalPrice || 0,
+                totalPrice: addon.pricing.bruttoPrice || addon.pricing.totalPrice || 0,
+                nettoTotalPrice: addon.pricing.nettoPrice || addon.pricing.nettoTotalPrice || 0,
                 pricingModel: addon.pricing.pricingModel || 'fixed',
               },
             })),
@@ -1095,6 +1157,7 @@ export const POST: APIRoute = async ({ request }) => {
               : null,
             pricing: {
               finalPrice: activity.pricing.finalPrice || 0,
+              nettoFinalPrice: activity.pricing.nettoFinalPrice || 0,
               participantCount: activity.pricing.participantCount || 0,
               exceedsMaxPeople: toBoolString(activity.pricing.exceedsMaxPeople),
               belowMinPeople: toBoolString(activity.pricing.belowMinPeople),
@@ -1104,7 +1167,8 @@ export const POST: APIRoute = async ({ request }) => {
               name: addon.name,
               count: addon.count || 1,
               pricing: {
-                totalPrice: addon.pricing.totalPrice || 0,
+                totalPrice: addon.pricing.bruttoPrice || addon.pricing.totalPrice || 0,
+                nettoTotalPrice: addon.pricing.nettoPrice || addon.pricing.nettoTotalPrice || 0,
                 pricingModel: addon.pricing.pricingModel || 'fixed',
               },
             })),
@@ -1117,6 +1181,7 @@ export const POST: APIRoute = async ({ request }) => {
                       basePrice: item.transport.pricing.basePrice || 0,
                       distancePrice: item.transport.pricing.distancePrice || 0,
                       totalPrice: item.transport.pricing.totalPrice || 0,
+                      nettoTotalPrice: Math.round((item.transport.pricing.totalPrice || 0) / 1.23),
                       pricePerKm: item.transport.pricing.pricePerKm || 0,
                     }
                   : null,
@@ -1133,7 +1198,8 @@ export const POST: APIRoute = async ({ request }) => {
             name: extra.name,
             count: extra.count || 1,
             pricing: {
-              totalPrice: extra.pricing.totalPrice || 0,
+              totalPrice: extra.pricing.totalPrice || extra.pricing.bruttoPrice || 0,
+              nettoTotalPrice: extra.pricing.nettoTotalPrice || extra.pricing.nettoPrice || 0,
               pricingModel: extra.pricing.pricingModel || 'fixed',
               isTransport: toBoolString(extra.pricing.isTransport),
             },

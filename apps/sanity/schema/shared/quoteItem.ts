@@ -1,5 +1,5 @@
 import { defineType, defineField } from 'sanity'
-import { Hotel, Users, Bus, PlusCircle, Router, Package, Receipt } from 'lucide-react'
+import { Hotel, Users, Bus, PlusCircle, Package, Receipt } from 'lucide-react'
 
 export default defineType({
   name: 'quoteItem',
@@ -130,9 +130,15 @@ export default defineType({
     }),
     defineField({
       name: 'totalPrice',
-      title: 'Cena całkowita (PLN)',
+      title: 'Cena całkowita brutto (PLN)',
       type: 'number',
-      description: 'Suma wszystkich usług w złotych polskich',
+      description: 'Suma wszystkich usług w złotych polskich (brutto)',
+    }),
+    defineField({
+      name: 'totalNettoPrice',
+      title: 'Cena całkowita netto (PLN)',
+      type: 'number',
+      description: 'Suma wszystkich usług w złotych polskich (netto)',
     }),
     defineField({
       name: 'hotels',
@@ -216,9 +222,15 @@ export default defineType({
               fields: [
                 defineField({
                   name: 'finalPrice',
-                  title: 'Cena finalna (PLN)',
+                  title: 'Cena finalna brutto (PLN)',
                   type: 'number',
-                  description: 'Ostateczna cena w złotych polskich',
+                  description: 'Ostateczna cena brutto w złotych polskich',
+                }),
+                defineField({
+                  name: 'nettoFinalPrice',
+                  title: 'Cena finalna netto (PLN)',
+                  type: 'number',
+                  description: 'Ostateczna cena netto w złotych polskich',
                 }),
                 defineField({
                   name: 'participantCount',
@@ -286,9 +298,15 @@ export default defineType({
                       fields: [
                         defineField({
                           name: 'totalPrice',
-                          title: 'Cena całkowita (PLN)',
+                          title: 'Cena całkowita brutto (PLN)',
                           type: 'number',
-                          description: 'Wartość w złotych polskich',
+                          description: 'Wartość brutto w złotych polskich',
+                        }),
+                        defineField({
+                          name: 'nettoTotalPrice',
+                          title: 'Cena całkowita netto (PLN)',
+                          type: 'number',
+                          description: 'Wartość netto w złotych polskich',
                         }),
                         defineField({
                           name: 'pricingModel',
@@ -420,9 +438,15 @@ export default defineType({
               fields: [
                 defineField({
                   name: 'finalPrice',
-                  title: 'Cena finalna (PLN)',
+                  title: 'Cena finalna brutto (PLN)',
                   type: 'number',
-                  description: 'Ostateczna cena w złotych polskich',
+                  description: 'Ostateczna cena brutto w złotych polskich',
+                }),
+                defineField({
+                  name: 'nettoFinalPrice',
+                  title: 'Cena finalna netto (PLN)',
+                  type: 'number',
+                  description: 'Ostateczna cena netto w złotych polskich',
                 }),
                 defineField({
                   name: 'participantCount',
@@ -495,9 +519,15 @@ export default defineType({
                       fields: [
                         defineField({
                           name: 'totalPrice',
-                          title: 'Cena całkowita (PLN)',
+                          title: 'Cena całkowita brutto (PLN)',
                           type: 'number',
-                          description: 'Wartość w złotych polskich',
+                          description: 'Wartość brutto w złotych polskich',
+                        }),
+                        defineField({
+                          name: 'nettoTotalPrice',
+                          title: 'Cena całkowita netto (PLN)',
+                          type: 'number',
+                          description: 'Wartość netto w złotych polskich',
                         }),
                         defineField({
                           name: 'pricingModel',
@@ -599,9 +629,15 @@ export default defineType({
             }),
             defineField({
               name: 'totalPrice',
-              title: 'Cena całkowita (PLN)',
+              title: 'Cena całkowita brutto (PLN)',
               type: 'number',
-              description: 'Wartość w złotych polskich',
+              description: 'Wartość brutto w złotych polskich',
+            }),
+            defineField({
+              name: 'nettoTotalPrice',
+              title: 'Cena całkowita netto (PLN)',
+              type: 'number',
+              description: 'Wartość netto w złotych polskich',
             }),
             defineField({
               name: 'pricePerKm',
@@ -616,25 +652,25 @@ export default defineType({
           name: 'transportAddressNotFound',
           title: 'Nie znaleziono adresu odbioru',
           type: 'boolean',
-          hidden: true,
+          hidden: ({ value }) => !value,
         }),
         defineField({
           name: 'noTransportAddress',
           title: 'Brak adresu odbioru',
           type: 'boolean',
-          hidden: true,
+          hidden: ({ value }) => !value,
         }),
         defineField({
           name: 'hotelNoAddress',
           title: 'Hotel bez adresu',
           type: 'boolean',
-          hidden: true,
+          hidden: ({ value }) => !value,
         }),
         defineField({
           name: 'hotelAddressNotFound',
           title: 'Nie znaleziono adresu hotelu',
           type: 'boolean',
-          hidden: true,
+          hidden: ({ value }) => !value,
         }),
         defineField({
           name: 'bothAddressesNotFound',
@@ -703,9 +739,15 @@ export default defineType({
               fields: [
                 defineField({
                   name: 'totalPrice',
-                  title: 'Cena całkowita (PLN)',
+                  title: 'Cena całkowita brutto (PLN)',
                   type: 'number',
-                  description: 'Wartość w złotych polskich',
+                  description: 'Wartość brutto w złotych polskich',
+                }),
+                defineField({
+                  name: 'nettoTotalPrice',
+                  title: 'Cena całkowita netto (PLN)',
+                  type: 'number',
+                  description: 'Wartość netto w złotych polskich',
                 }),
                 defineField({
                   name: 'pricingModel',
