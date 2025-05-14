@@ -40,6 +40,7 @@ const t = translations[language]
         fill="currentColor"></path></svg
     >
   </div>
+  <div class="count-badge cart-count-badge" style="display: none;" data-inverted={inverted}></div>
   {!inverted && <span>{t.cart}</span>}
 </a>
 
@@ -88,6 +89,28 @@ const t = translations[language]
       padding-top: 1px;
     }
 
+    .count-badge {
+      position: absolute;
+      bottom: 0.625rem;
+      left: 0.625rem;
+      width: 0.625rem;
+      height: 0.625rem;
+      border-radius: 50%;
+      background-color: var(--primary-600, #db2a50);
+      color: var(--neutral-100, #faf7f7);
+      display: grid;
+      place-items: center;
+      font-size: 0.5rem;
+      line-height: 1;
+      pointer-events: none;
+      z-index: 2;
+
+      &[data-inverted='true'] {
+        bottom: 0.5rem;
+        left: 3.375rem;
+      }
+    }
+
     &:hover {
       color: var(--primary-600);
       .icon {
@@ -110,3 +133,37 @@ const t = translations[language]
     }
   }
 </style>
+
+<script>
+  // Function to update all cart badges
+  function updateCartBadges() {
+    const cartDataStr = localStorage.getItem('cart')
+
+    if (!cartDataStr) return
+
+    try {
+      const cartData = JSON.parse(cartDataStr)
+      const itemCount = cartData.hotels.length + cartData.activities.length
+
+      // Get all cart badge elements
+      const badges = document.querySelectorAll('.cart-count-badge')
+
+      badges.forEach((badge) => {
+        if (itemCount > 0) {
+          badge.textContent = itemCount.toString()
+          ;(badge as HTMLElement).style.display = 'grid'
+        } else {
+          ;(badge as HTMLElement).style.display = 'none'
+        }
+      })
+    } catch (error) {
+      console.error('Error updating cart badges:', error)
+    }
+  }
+
+  // Update badges when page loads
+  document.addEventListener('DOMContentLoaded', updateCartBadges)
+
+  // Update badges when cart changes
+  document.addEventListener('cart-updated', updateCartBadges)
+</script>

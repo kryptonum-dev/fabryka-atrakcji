@@ -5,8 +5,6 @@ import { isPreviewDeployment } from './is-preview-deployment'
 const PROJECT_ID = import.meta.env.SANITY_PROJECT_ID || process?.env?.SANITY_PROJECT_ID || ''
 const SANITY_API_TOKEN = import.meta.env.SANITY_API_TOKEN || process?.env?.SANITY_API_TOKEN || ''
 
-console.log(SANITY_API_TOKEN)
-
 if (isPreviewDeployment && !SANITY_API_TOKEN) {
   console.warn('\x1b[33m%s\x1b[0m', 'The `SANITY_API_TOKEN` environment variable is required.')
 }

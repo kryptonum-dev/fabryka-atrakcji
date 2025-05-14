@@ -13,7 +13,7 @@ import PrivacyPolicy_Page from '../schema/singleTypes/legal/PrivacyPolicy_Page'
 import Hotels_Page from '../schema/singleTypes/Hotels_Page'
 import Cart_Page from '../schema/singleTypes/Cart_Page'
 import Quote_Page from '../schema/singleTypes/Quote_Page'
-
+import ThankYouPage from '../schema/singleTypes/ThankYouPage'
 const singleTypes = [
   global,
   redirects,
@@ -29,6 +29,7 @@ const singleTypes = [
   Hotels_Page,
   Cart_Page,
   Quote_Page,
+  ThankYouPage,
 ]
 
 // Collections Types

@@ -29,13 +29,52 @@ export default defineType({
       group: 'content',
     }),
     defineField({
+      name: 'form',
+      type: 'object',
+      title: 'Formularz wyceny',
+      group: 'content',
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek formularza',
+        }),
+        defineField({
+          name: 'mailerliteGroupId',
+          type: 'string',
+          title: 'ID grupy MailerLite dla newslettera',
+          description: 'Opcjonalne. Jeśli nie podano, opcja newslettera nie będzie wyświetlana.',
+        }),
+        defineField({
+          name: 'error',
+          type: 'object',
+          title: 'Błąd formularza',
+          fields: [
+            defineField({
+              name: 'heading',
+              type: 'Heading',
+              title: 'Nagłówek',
+            }),
+            defineField({
+              name: 'paragraph',
+              type: 'PortableText',
+              title: 'Paragraf',
+            }),
+            defineField({
+              name: 'button',
+              type: 'string',
+              title: 'Tekst przycisku',
+            }),
+          ],
+        }),
+      ],
+    }),
+    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',
       group: 'seo',
     }),
-
-    // Contact form fields will be added later as mentioned
   ],
   groups: [
     {

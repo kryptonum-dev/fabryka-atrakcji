@@ -2,6 +2,7 @@ import { TextIcon } from '@sanity/icons'
 import { defineField } from 'sanity'
 import { sectionPreview } from '../../../../../utils/section-preview'
 import { toPlainText } from '../../../../../utils/to-plain-text'
+import { MessageCircleQuestion } from 'lucide-react'
 
 const name = 'Faq'
 const title = 'Pytania i odpowiedzi'
@@ -45,20 +46,34 @@ export default defineField({
       name: 'questions',
       type: 'array',
       title: 'Pytania i odpowiedzi',
-      validation: (Rule) => Rule.required().min(2).error('Musisz wybrać minimum 2 pytania'),
+      validation: (Rule) => Rule.required().min(2).error('Musisz dodać minimum 2 pytania'),
       of: [
         {
-          type: 'reference',
-          to: [{ type: 'Faq_Collection' }],
-          options: {
-            disableNew: true,
-            filter: ({ parent, document }) => {
-              const language = (document as { language?: string })?.language
-              const selectedIds =
-                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'question',
+              type: 'Heading',
+              title: 'Pytanie',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'answer',
+              type: 'PortableText',
+              title: 'Odpowiedź',
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+          preview: {
+            select: {
+              question: 'question',
+              answer: 'answer',
+            },
+            prepare({ question, answer }) {
               return {
-                filter: '!(_id in $selectedIds) && !(_id in path("drafts.**")) && language == $lang',
-                params: { selectedIds, lang: language },
+                title: toPlainText(question),
+                subtitle: toPlainText(answer),
+                icon: MessageCircleQuestion,
               }
             },
           },

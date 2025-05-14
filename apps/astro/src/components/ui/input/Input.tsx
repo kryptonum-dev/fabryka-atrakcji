@@ -25,6 +25,34 @@ type Props = {
 export default function Input({ register, label, additonalInfo, isTextarea, phone, errors, ...props }: Props) {
   const Element = isTextarea ? Textarea : 'input'
 
+  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow: backspace, delete, tab, escape, arrow keys, home, end
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'Tab' ||
+      e.key === 'Escape' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.key === 'Home' ||
+      e.key === 'End' ||
+      // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+      ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'c' || e.key === 'v' || e.key === 'x'))
+    ) {
+      return
+    }
+
+    // Allow: + key (for international format)
+    if (e.key === '+') return
+
+    // Ensure that it is a number and stop the keypress if not
+    if (!/[0-9]/.test(e.key)) {
+      e.preventDefault()
+    }
+  }
+
   return (
     <label className={styles.Input} data-is-phone={phone?.isPhone}>
       <div className={styles.wrapper}>
@@ -40,7 +68,16 @@ export default function Input({ register, label, additonalInfo, isTextarea, phon
             name={register.name}
             rules={phone.rules}
             control={phone.control}
-            render={({ field }) => <PhoneInput {...props} {...field} defaultCountry="pl" />}
+            render={({ field }) => (
+              <PhoneInput
+                {...props}
+                {...field}
+                defaultCountry="pl"
+                inputProps={{
+                  onKeyDown: handlePhoneKeyDown,
+                }}
+              />
+            )}
           />
         ) : (
           <Element {...register} {...props} aria-invalid={!!errors[register.name]} />

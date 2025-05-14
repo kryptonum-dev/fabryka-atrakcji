@@ -106,6 +106,7 @@ const rulesArray = Object.entries(node.rulesList)
     svg: getSvg(key),
     order: orderMap[key as keyof typeof orderMap] || 999,
   }))
+  .filter((rule) => rule.value)
   .sort((a, b) => a.order - b.order)
 ---
 

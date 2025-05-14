@@ -546,6 +546,7 @@ const { metadata, page } = Astro.props
 
   .Cart {
     padding: clamp(1rem, calc(3vw / 0.48), 4rem) 0 clamp(2rem, calc(4vw / 0.48), 4rem);
+    scroll-behavior: unset;
 
     .cart-container {
       min-height: 30rem;
@@ -1393,8 +1394,6 @@ const { metadata, page } = Astro.props
 
       // If count exceeds max, add a new alert
       if (participantCount > maxPeople) {
-        console.log('Adding alert for hotel:', itemId, 'max:', maxPeople, 'count:', participantCount)
-
         // Create a custom alert object
         const participantAlert: Alert = {
           heading: t.participantExceedsMaxAlert.heading.replace('{maxPeople}', String(maxPeople)),
@@ -1726,8 +1725,6 @@ const { metadata, page } = Astro.props
     const customEvent = event as CustomEvent
     const data = customEvent.detail?.data
 
-    console.log('Address form submitted with data:', data)
-
     if (!data) return
 
     // Get pending transport item and select it
@@ -1893,7 +1890,7 @@ const { metadata, page } = Astro.props
         // Scroll to top immediately when clicking submit
         window.scrollTo({
           top: 0,
-          behavior: 'smooth',
+          behavior: 'instant',
         })
 
         // Show submit-loading state
@@ -1908,7 +1905,6 @@ const { metadata, page } = Astro.props
 
         // If all necessary data is already in cache, use it
         if (cachedCartData.isComplete()) {
-          console.log('Using cached data for quote generation')
           validHotels = cachedCartData.hotels.map((hotel) => {
             // Format the hotel data for quote
             const addons =
@@ -1957,7 +1953,6 @@ const { metadata, page } = Astro.props
           })
         } else {
           // If cache is not complete, fetch data (this is a backup but shouldn't happen)
-          console.log('Cache incomplete, fetching fresh data for quote')
 
           // Fetch hotels data
           const hotelsPromises = cart.hotels.map(async (hotelItem) => {
@@ -2074,8 +2069,6 @@ const { metadata, page } = Astro.props
           language: pageLang,
         }
 
-        console.log('Submitting quote request with data:', quoteData)
-
         // Add artificial delay for testing
         await new Promise((resolve) => setTimeout(resolve, 200))
 
@@ -2090,13 +2083,9 @@ const { metadata, page } = Astro.props
 
         const result = await response.json()
 
-        console.log(result)
-
         if (!result.success) {
           throw new Error(result.error || 'Failed to create quote')
         }
-
-        console.log('Quote created successfully:', result)
 
         // Redirect to quote page
         window.location.href = `/${pageLang}/koszyk?id=${result.quoteId}`
@@ -2786,7 +2775,7 @@ const { metadata, page } = Astro.props
     // Scroll to top of the page smoothly
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: 'instant',
     })
   }
 
@@ -2823,7 +2812,6 @@ const { metadata, page } = Astro.props
 
       // If all items are already cached and this is not a retry, use cached data
       if (cachedCartData.isComplete() && !isRetry) {
-        console.log('Using cached cart data')
         // Render items from cache
         await renderCartItems(cachedCartData.hotels, cachedCartData.activities)
         // Load extras

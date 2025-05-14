@@ -102,6 +102,7 @@ const translations = {
     activityAlertMax: 'Wycena atrakcji dla',
     person: 'osób',
     whole: 'całość',
+    individualPricing: 'Wycena indywidualna',
   },
   en: {
     additionalPerson: 'Each additional person',
@@ -122,6 +123,7 @@ const translations = {
     activityAlertMax: 'Activity quote for',
     person: 'people',
     whole: 'whole',
+    individualPricing: 'Individual pricing',
   },
 }
 
@@ -166,7 +168,12 @@ const formattedPrice = formatCurrency(totalPrice, lang)
 ---
 
 <details class="quote-accordion" data-index={index} data-expanded={isFirst ? 'true' : 'false'} open={isFirst}>
-  <summary class="accordion-summary">
+  <summary
+    class="accordion-summary"
+    data-has-alert={(hasHotels && item.hotels?.some((hotel) => hotel.pricing.exceedsMaxPeople)) ||
+      (hasActivities &&
+        item.activities?.some((activity) => activity.pricing.exceedsMaxPeople || activity.pricing.belowMinPeople))}
+  >
     <h3 class="accordion-title">{accordionTitle}</h3>
     {
       hasHotels && item.hotels?.some((hotel) => hotel.pricing.exceedsMaxPeople) && (
@@ -284,7 +291,9 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                               data-brutto-price={addon.pricing.totalPrice}
                               data-netto-price={addon.pricing.nettoTotalPrice}
                             >
-                              {formatCurrency(addon.pricing.totalPrice, lang)}
+                              {addon.pricing.pricingModel === 'individual'
+                                ? t.individualPricing
+                                : formatCurrency(addon.pricing.totalPrice, lang)}
                             </span>
                           </div>
                         </li>
@@ -395,7 +404,9 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                               data-brutto-price={addon.pricing.totalPrice}
                               data-netto-price={addon.pricing.nettoTotalPrice}
                             >
-                              {formatCurrency(addon.pricing.totalPrice, lang)}
+                              {addon.pricing.pricingModel === 'individual'
+                                ? t.individualPricing
+                                : formatCurrency(addon.pricing.totalPrice, lang)}
                             </span>
                           </div>
                         </li>
@@ -498,7 +509,9 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                   data-brutto-price={extra.pricing.totalPrice}
                   data-netto-price={extra.pricing.nettoTotalPrice}
                 >
-                  {formatCurrency(extra.pricing.totalPrice, lang)}
+                  {extra.pricing.pricingModel === 'individual'
+                    ? t.individualPricing
+                    : formatCurrency(extra.pricing.totalPrice, lang)}
                 </span>
               </div>
             </li>
@@ -680,10 +693,10 @@ const formattedPrice = formatCurrency(totalPrice, lang)
               &.item-transport {
                 display: flex;
                 flex-wrap: wrap;
+                column-gap: 0.375rem;
               }
 
               .distance {
-                margin-left: 0.375rem;
                 color: var(--primary-400, #74535e);
                 font-size: var(--typography-body-m, 0.875rem);
                 line-height: 1.7;
@@ -889,6 +902,12 @@ const formattedPrice = formatCurrency(totalPrice, lang)
 
           .text {
             margin-top: 3px;
+          }
+        }
+
+        &[data-has-alert='true'] {
+          .pricing-row {
+            grid-row: 3/4;
           }
         }
       }

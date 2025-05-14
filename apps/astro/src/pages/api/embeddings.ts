@@ -57,6 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
         },
         body: JSON.stringify({
           query: searchQuery,
+          maxResults: 50,
           filter: {
             _type: [collectionType],
           },

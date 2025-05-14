@@ -9,7 +9,7 @@ import sanityFetch from '@/src/utils/sanity.fetch'
 export const Faq_Query = `
   _type == "Faq" => {
     ${PortableTextQuery('heading')}
-    questions[] -> {
+    questions[] {
       ${PortableTextQuery('question')}
       ${PortableTextQuery('answer')}
     },

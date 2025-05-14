@@ -97,10 +97,6 @@ function calculateActivityPrice(
   },
   participantCount: number
 ) {
-  console.log(`Calculating price for activity`)
-  console.log(`Input - participantCount: ${participantCount}, activity pricing:`, activity.pricing)
-  console.log(`Input - participants limits:`, activity.participantsCount)
-
   // Initialize result
   const result = {
     bruttoPrice: 0,
@@ -125,9 +121,6 @@ function calculateActivityPrice(
     // Use minimum required participants for calculation
     effectiveParticipantCount = activity.participantsCount.min
     result.calculatedFor = effectiveParticipantCount
-    console.log(
-      `Below min people (${activity.participantsCount.min}), using min for calculation: ${effectiveParticipantCount}`
-    )
   }
 
   // Check maximum participants limit
@@ -136,31 +129,21 @@ function calculateActivityPrice(
     // Use maximum allowed participants for calculation
     effectiveParticipantCount = activity.participantsCount.max
     result.calculatedFor = effectiveParticipantCount
-    console.log(
-      `Exceeds max people (${activity.participantsCount.max}), using max for calculation: ${effectiveParticipantCount}`
-    )
   }
 
   // Calculate price based on threshold model
   if (effectiveParticipantCount <= activity.pricing.maxParticipants) {
     // Base price covers all participants
     result.bruttoPrice = activity.pricing.basePrice
-    console.log(
-      `Using base price: ${activity.pricing.basePrice} (participants: ${effectiveParticipantCount} <= maxParticipants: ${activity.pricing.maxParticipants})`
-    )
   } else {
     // Base price + additional per person pricing
     const additionalPeople = effectiveParticipantCount - activity.pricing.maxParticipants
     result.bruttoPrice = activity.pricing.basePrice + additionalPeople * activity.pricing.additionalPersonPrice
-    console.log(
-      `Base price: ${activity.pricing.basePrice} + additional: ${additionalPeople} people * ${activity.pricing.additionalPersonPrice} = ${result.bruttoPrice}`
-    )
   }
 
   // Calculate netto price (brutto / 1.23)
   result.nettoPrice = Math.round(result.bruttoPrice / 1.23)
 
-  console.log(`Final activity price result:`, result)
   return result
 }
 
@@ -504,10 +487,6 @@ export const POST: APIRoute = async ({ request }) => {
       selectedDates: Array<string | { start: string; end: string }>
     } = data
 
-    console.log(
-      `Processing quote with ${hotels.length} hotels, ${activities.length} activities, ${extras.length} extras`
-    )
-
     // Array to store all quote items
     const quoteItems = []
 
@@ -517,8 +496,6 @@ export const POST: APIRoute = async ({ request }) => {
     let transportGeocodingFailed = false
 
     if (transportExtra && transportExtra.address) {
-      console.log('Processing transport with address:', transportExtra.address)
-
       // Get pickup coordinates from the address
       if (transportExtra.address.lat && transportExtra.address.lng) {
         // Coordinates already present (from map selection)
@@ -526,7 +503,6 @@ export const POST: APIRoute = async ({ request }) => {
           lat: transportExtra.address.lat,
           lng: transportExtra.address.lng,
         }
-        console.log('Using provided coordinates:', transportPickupCoordinates)
       } else {
         // Need to geocode the address
         transportPickupCoordinates = await geocodeAddress({
@@ -536,12 +512,10 @@ export const POST: APIRoute = async ({ request }) => {
         })
 
         if (transportPickupCoordinates) {
-          console.log('Successfully geocoded address to:', transportPickupCoordinates)
           // Save the coordinates for later use
           transportExtra.address.lat = transportPickupCoordinates.lat
           transportExtra.address.lng = transportPickupCoordinates.lng
         } else {
-          console.warn('Failed to geocode transport address')
           transportGeocodingFailed = true
         }
       }
@@ -550,8 +524,6 @@ export const POST: APIRoute = async ({ request }) => {
     // Process each hotel if present
     if (hotels && hotels.length > 0) {
       for (const hotel of hotels) {
-        console.log(`Processing hotel: ${hotel.name}`)
-
         // Calculate hotel base price
         const hotelPriceResult = calculateHotelPrice(hotel, participantCount)
 
@@ -568,11 +540,7 @@ export const POST: APIRoute = async ({ request }) => {
             city: hotel.address.city,
           })
 
-          console.log(hotelCoordinates)
-
-          if (hotelCoordinates) {
-            console.log('Hotel coordinates:', hotelCoordinates)
-          } else {
+          if (!hotelCoordinates) {
             // Geocoding failed
             hotelGeocodingFailed = true
             console.warn(`Failed to geocode hotel address for: ${hotel.name}`)
@@ -621,16 +589,8 @@ export const POST: APIRoute = async ({ request }) => {
         const hotelActivitiesResults = []
         if (activities && activities.length > 0) {
           for (const activity of activities) {
-            console.log(`Processing activity: ${activity.name} for hotel: ${hotel.name}`)
-
             // Calculate activity price
             const activityPriceResult = calculateActivityPrice(activity, participantCount)
-            console.log(`Activity price for ${activity.name}:`, {
-              totalPrice: activityPriceResult.bruttoPrice,
-              participantCount: activityPriceResult.calculatedFor,
-              exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
-              belowMinPeople: activityPriceResult.belowMinPeople,
-            })
 
             // Process activity addons if any
             const activityAddonsResults = []
@@ -679,8 +639,6 @@ export const POST: APIRoute = async ({ request }) => {
             hotelCoordinates.lat,
             hotelCoordinates.lng
           )
-
-          console.log(`Distance from pickup to hotel ${hotel.name}: ${distance} km`)
 
           // Store distance for this hotel
           hotelQuoteItem.transport = {
@@ -784,16 +742,8 @@ export const POST: APIRoute = async ({ request }) => {
     } else if (activities && activities.length > 0) {
       // No hotels, process activities only
       for (const activity of activities) {
-        console.log(`Processing activity without hotel: ${activity.name}`)
-
         // Calculate activity price
         const activityPriceResult = calculateActivityPrice(activity, participantCount)
-        console.log(`Activity price for ${activity.name}:`, {
-          totalPrice: activityPriceResult.bruttoPrice,
-          participantCount: activityPriceResult.calculatedFor,
-          exceedsMaxPeople: activityPriceResult.exceedsMaxPeople,
-          belowMinPeople: activityPriceResult.belowMinPeople,
-        })
 
         // Process activity addons if any
         const activityAddonsResults = []
@@ -849,7 +799,6 @@ export const POST: APIRoute = async ({ request }) => {
 
         // Set the initial total price
         activityQuoteItem.totalPrice = initialActivityPrice
-        console.log(`Initial activity quote total price for ${activity.name}:`, initialActivityPrice)
 
         // Handle transport for activities (without coordinates or distance calculation)
         if (transportExtra && transportPickupCoordinates) {
@@ -1032,10 +981,6 @@ export const POST: APIRoute = async ({ request }) => {
       // calculate the netto price directly from the total brutto price
       quoteItem.totalNettoPrice = Math.round(totalPrice / 1.23)
 
-      console.log(
-        `Total price for ${quoteItem.type} quote: ${totalPrice} (brutto), ${quoteItem.totalNettoPrice} (netto)`
-      )
-
       return quoteItem
     }
 
@@ -1061,8 +1006,6 @@ export const POST: APIRoute = async ({ request }) => {
       language,
       items: quoteItems,
     }
-
-    console.log('Final quote object:', JSON.stringify(quoteObject, null, 2))
 
     // Helper to convert booleans to strings for Sanity
     const toBoolString = (value: any): boolean => {
@@ -1114,7 +1057,6 @@ export const POST: APIRoute = async ({ request }) => {
           item.activities[0].pricing.finalPrice
         ) {
           item.totalPrice = item.activities[0].pricing.finalPrice
-          console.log('Fixed missing totalPrice for activity quote:', item.totalPrice)
         }
 
         // Clean up undefined values or complex data structures that might cause issues with Sanity
@@ -1210,10 +1152,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     try {
       // Save to Sanity using the existing client
-      console.log(sanityQuote)
       const savedQuote = await client.create(sanityQuote)
-
-      console.log(savedQuote)
 
       // Add the Sanity document ID to the quote object
       quoteObject.id = savedQuote._id
@@ -1234,8 +1173,6 @@ export const POST: APIRoute = async ({ request }) => {
         }
       )
     } catch (sanityError) {
-      console.error('Error saving quote to Sanity:', sanityError)
-
       // Return failure response indicating Sanity error
       return new Response(
         JSON.stringify({

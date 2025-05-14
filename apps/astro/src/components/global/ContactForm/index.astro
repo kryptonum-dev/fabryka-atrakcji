@@ -318,13 +318,13 @@ const clientFormStates = {
         &:has(.text a:hover) > .icon {
           transform: scale(1.05);
           svg {
-            animation: ContactForm-ring-low 700ms var(--easing) infinite alternate;
+            animation: ring-low 700ms var(--easing) infinite alternate;
           }
         }
         &:has(.text a:focus:not(:focus-visible)) > .icon {
           transform: scale(1.1);
           svg {
-            animation: ContactForm-ring-high 600ms var(--easing) infinite alternate;
+            animation: ring-high 600ms var(--easing) infinite alternate;
           }
         }
       }
@@ -332,13 +332,13 @@ const clientFormStates = {
         &:has(.text a:hover) > .icon {
           transform: scale(1.05);
           svg {
-            animation: ContactForm-email-notification 1800ms var(--easing) infinite;
+            animation: email-notification 1800ms var(--easing) infinite;
           }
         }
         &:has(.text a:focus:not(:focus-visible)) > .icon {
           transform: scale(1.1);
           svg {
-            animation: ContactForm-email-notification-high 1400ms var(--easing) infinite;
+            animation: email-notification-high 1400ms var(--easing) infinite;
           }
         }
       }
@@ -412,76 +412,6 @@ const clientFormStates = {
         background: none;
         border-radius: 0;
       }
-    }
-  }
-  @keyframes ContactForm-ring-low {
-    0% {
-      transform: rotate(0deg);
-    }
-    25% {
-      transform: rotate(6deg);
-    }
-    50% {
-      transform: rotate(-6deg);
-    }
-    75% {
-      transform: rotate(6deg);
-    }
-    100% {
-      transform: rotate(0deg);
-    }
-  }
-  @keyframes ContactForm-ring-high {
-    0% {
-      transform: rotate(0deg);
-    }
-    25% {
-      transform: rotate(12deg);
-    }
-    50% {
-      transform: rotate(-12deg);
-    }
-    75% {
-      transform: rotate(12deg);
-    }
-    100% {
-      transform: rotate(0deg);
-    }
-  }
-  @keyframes ContactForm-email-notification {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    10%,
-    30%,
-    50% {
-      transform: translateY(-0.125rem);
-    }
-    20%,
-    40% {
-      transform: translateY(0);
-    }
-    60% {
-      transform: translateY(0);
-    }
-  }
-  @keyframes ContactForm-email-notification-high {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    10%,
-    30%,
-    50% {
-      transform: translateY(-0.1875rem);
-    }
-    20%,
-    40% {
-      transform: translateY(0);
-    }
-    60% {
-      transform: translateY(0);
     }
   }
 </style>
