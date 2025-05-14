@@ -1233,6 +1233,17 @@ const { addons, type } = Astro.props
           },
         })
       )
+
+      // Also dispatch a specific event for addons confirmation to trigger badge updates
+      document.dispatchEvent(
+        new CustomEvent('addons-popup-confirmed', {
+          detail: {
+            itemId,
+            itemType,
+            addons: selectedAddons,
+          },
+        })
+      )
     }
   }
 

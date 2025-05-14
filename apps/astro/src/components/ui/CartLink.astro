@@ -104,10 +104,16 @@ const t = translations[language]
       line-height: 1;
       pointer-events: none;
       z-index: 2;
+      transform: scale(0);
+      transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
 
       &[data-inverted='true'] {
         bottom: 0.5rem;
         left: 3.375rem;
+      }
+
+      &.show {
+        transform: scale(1);
       }
     }
 
@@ -136,7 +142,7 @@ const t = translations[language]
 
 <script>
   // Function to update all cart badges
-  function updateCartBadges() {
+  function updateCartBadges(shouldAnimate = false) {
     const cartDataStr = localStorage.getItem('cart')
 
     if (!cartDataStr) return
@@ -151,9 +157,35 @@ const t = translations[language]
       badges.forEach((badge) => {
         if (itemCount > 0) {
           badge.textContent = itemCount.toString()
-          ;(badge as HTMLElement).style.display = 'grid'
+
+          // Show the badge (without animation for initial page load)
+          if ((badge as HTMLElement).style.display === 'none') {
+            ;(badge as HTMLElement).style.display = 'grid'
+
+            // Only animate if explicitly requested (for first item added)
+            if (shouldAnimate) {
+              setTimeout(() => {
+                badge.classList.add('show')
+              }, 10)
+            } else {
+              // On page load, show the badge immediately without animation
+              badge.classList.add('show')
+            }
+          }
         } else {
-          ;(badge as HTMLElement).style.display = 'none'
+          // If count is 0, animate only when explicitly requested (when last item is removed)
+          if (shouldAnimate) {
+            badge.classList.remove('show')
+
+            // After animation completes, hide the element
+            setTimeout(() => {
+              ;(badge as HTMLElement).style.display = 'none'
+            }, 300)
+          } else {
+            // No animation needed, just hide
+            badge.classList.remove('show')
+            ;(badge as HTMLElement).style.display = 'none'
+          }
         }
       })
     } catch (error) {
@@ -161,9 +193,80 @@ const t = translations[language]
     }
   }
 
-  // Update badges when page loads
-  document.addEventListener('DOMContentLoaded', updateCartBadges)
+  // Track current cart state to detect changes
+  let previousCartItemCount = 0
 
-  // Update badges when cart changes
-  document.addEventListener('cart-updated', updateCartBadges)
+  // Function to check if animation should be triggered
+  function shouldAnimateCartBadge() {
+    const cartDataStr = localStorage.getItem('cart')
+    if (!cartDataStr) return false
+
+    try {
+      const cartData = JSON.parse(cartDataStr)
+      const currentItemCount = cartData.hotels.length + cartData.activities.length
+
+      // Should animate when:
+      // 1. Going from 0 to any number (first item added)
+      // 2. Going from any number to 0 (last item removed)
+      const shouldAnimate =
+        (previousCartItemCount === 0 && currentItemCount > 0) || (previousCartItemCount > 0 && currentItemCount === 0)
+
+      // Update previous count for next comparison
+      previousCartItemCount = currentItemCount
+
+      return shouldAnimate
+    } catch (error) {
+      console.error('Error checking cart state:', error)
+      return false
+    }
+  }
+
+  // Initialize cart badges on page load (without animation)
+  document.addEventListener('DOMContentLoaded', () => {
+    // Initialize previous count
+    try {
+      const cartDataStr = localStorage.getItem('cart')
+      if (cartDataStr) {
+        const cartData = JSON.parse(cartDataStr)
+        previousCartItemCount = cartData.hotels.length + cartData.activities.length
+      }
+    } catch (error) {
+      console.error('Error initializing cart badges:', error)
+      previousCartItemCount = 0
+    }
+
+    // Update badges without animation
+    updateCartBadges(false)
+  })
+
+  // Listen for cart-updated event (dispatched when items are added/removed)
+  document.addEventListener('cart-updated', () => {
+    // Check if we should animate
+    const animate = shouldAnimateCartBadge()
+    updateCartBadges(animate)
+  })
+
+  // Listen for addons-popup-confirmed event (when addons are confirmed)
+  document.addEventListener('addons-popup-confirmed', () => {
+    // Check if we should animate
+    const animate = shouldAnimateCartBadge()
+    updateCartBadges(animate)
+  })
+
+  // Check for existing cart data immediately in case DOM is already loaded
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    // Initialize previous count
+    try {
+      const cartDataStr = localStorage.getItem('cart')
+      if (cartDataStr) {
+        const cartData = JSON.parse(cartDataStr)
+        previousCartItemCount = cartData.hotels.length + cartData.activities.length
+      }
+    } catch (error) {
+      console.error('Error initializing cart badges:', error)
+      previousCartItemCount = 0
+    }
+
+    updateCartBadges(false)
+  }
 </script>

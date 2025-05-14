@@ -856,6 +856,17 @@ const translationsJson = JSON.stringify(translations)
         // Update sidebar state and height
         updateSidebarState()
         setTimeout(updateWrapperHeight, 0)
+
+        // Dispatch addons-popup-confirmed event for the badge animation
+        document.dispatchEvent(
+          new CustomEvent('addons-popup-confirmed', {
+            detail: {
+              itemId,
+              itemType,
+              addons: [],
+            },
+          })
+        )
       }
 
       // Always open popup - it will show either addons interface or confirmation

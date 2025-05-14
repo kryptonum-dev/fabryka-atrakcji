@@ -1217,7 +1217,6 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
       })
 
       // If has optional addons, open the popup
-
       dispatchAddonsPopup({
         itemId,
         itemType,
@@ -1233,6 +1232,17 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 
       // Dispatch cart update event
       dispatchCartUpdate(itemId, itemType, 'add')
+
+      // Also dispatch addons-popup-confirmed event for the badge animation
+      document.dispatchEvent(
+        new CustomEvent('addons-popup-confirmed', {
+          detail: {
+            itemId,
+            itemType,
+            addons: [],
+          },
+        })
+      )
     }
   })
 
