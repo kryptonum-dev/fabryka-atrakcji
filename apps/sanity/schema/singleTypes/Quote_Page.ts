@@ -29,6 +29,25 @@ export default defineType({
       group: 'content',
     }),
     defineField({
+      name: 'quoteRecipients',
+      type: 'array',
+      title: 'Odbiorcy wyceny',
+      description: 'Adresy email, na które będą wysyłane wyceny. Przynajmniej jeden adres jest wymagany.',
+      group: 'content',
+      of: [
+        {
+          type: 'string',
+          validation: (Rule) =>
+            Rule.custom((email: string | undefined) => {
+              if (!email) return 'Email jest wymagany'
+              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
+              return emailRegex.test(email) ? true : 'Nieprawidłowy format adresu email'
+            }),
+        },
+      ],
+      validation: (Rule) => Rule.required().min(1),
+    }),
+    defineField({
       name: 'form',
       type: 'object',
       title: 'Formularz wyceny',

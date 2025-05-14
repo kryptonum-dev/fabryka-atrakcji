@@ -19,10 +19,17 @@ type QuoteFormProps = {
   translations: Record<string, string>
   quoteId: string
   mailerliteGroupId?: string
+  quoteRecipients: string[]
   quote?: any
 }
 
-export default function QuoteForm({ translations, quoteId, mailerliteGroupId, quote }: QuoteFormProps) {
+export default function QuoteForm({
+  translations,
+  quoteId,
+  mailerliteGroupId,
+  quoteRecipients,
+  quote,
+}: QuoteFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const {
     register,
@@ -63,6 +70,7 @@ export default function QuoteForm({ translations, quoteId, mailerliteGroupId, qu
         legal: data.legal,
         newsletter: data.newsletter,
         quoteId: quoteId,
+        quoteRecipients: quoteRecipients,
         lang: translations.thankYouUrl.includes('/en/') ? 'en' : 'pl',
         quote: quote,
       }

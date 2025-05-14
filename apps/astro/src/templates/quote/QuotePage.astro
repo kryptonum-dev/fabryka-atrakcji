@@ -206,6 +206,7 @@ export async function fetchData(lang: Language) {
     name: string
     additionalInfo: PortableTextValue
     slug: string
+    quoteRecipients: string[]
     form: {
       heading: PortableTextValue
       mailerliteGroupId?: string
@@ -221,6 +222,7 @@ export async function fetchData(lang: Language) {
         name,
         "slug": slug.current,
         ${PortableTextQuery('additionalInfo')}
+        quoteRecipients,
         form{
           ${PortableTextQuery('heading')}
           mailerliteGroupId,
@@ -477,6 +479,7 @@ const t = translations[lang]
           translations={t.form as any}
           quoteId={quote.quoteId}
           mailerliteGroupId={page.form.mailerliteGroupId}
+          quoteRecipients={page.quoteRecipients}
           quote={quote}
         />
         <div class="form-benefits">

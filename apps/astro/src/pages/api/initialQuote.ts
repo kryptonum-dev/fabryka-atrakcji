@@ -381,16 +381,18 @@ type Props = {
   legal: boolean
   newsletter: boolean
   quoteId: string
+  quoteRecipients: string[]
   lang: string
   quote: any
 }
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email, phone, additionalInfo, legal, newsletter, quoteId, lang, quote } = (await request.json()) as Props
+    const { email, phone, additionalInfo, legal, newsletter, quoteId, quoteRecipients, lang, quote } =
+      (await request.json()) as Props
 
     // Validate required fields
-    if (!REGEX.email.test(email) || !legal || !quoteId) {
+    if (!REGEX.email.test(email) || !legal || !quoteId || !quoteRecipients?.length) {
       return new Response(JSON.stringify({ message: 'Missing required fields', success: false }), { status: 400 })
     }
 
@@ -419,7 +421,7 @@ export const POST: APIRoute = async ({ request }) => {
       },
       body: JSON.stringify({
         from: `Zapytanie o wycenę <wycena@send.fabryka-atrakcji.com>`,
-        to: 'oliwier@kryptonum.eu',
+        to: quoteRecipients,
         reply_to: email,
         subject: `Nowe zapytanie o wycenę (ID: ${quoteId})`,
         html: quoteTemplate({
