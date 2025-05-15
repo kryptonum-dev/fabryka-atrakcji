@@ -93,6 +93,51 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'analytics',
+      title: 'Analytika',
+      group: 'analytics',
+      type: 'object',
+      options: { collapsible: true, collapsed: false },
+      description: 'Skonfiguruj analitykę strony. Pozostaw pola puste, aby wyłączyć śledzenie.',
+      fields: [
+        defineField({
+          name: 'gtm_id',
+          type: 'string',
+          title: 'Google Tag Manager ID',
+          description:
+            'Format: GTM-XXXXXX. ID kontenera do zarządzania narzędziami analitycznymi (GA4, Facebook Pixel, etc.).',
+          validation: (Rule) =>
+            Rule.custom((value) => {
+              if (!value) return true
+              if (!/^GTM-[A-Za-z0-9]{6,8}$/.test(value)) {
+                return 'Nieprawidłowy format ID GTM. Powinien być w formacie GTM-XXXXXXXX, gdzie X to litera lub cyfra.'
+              }
+              return true
+            }),
+        }),
+        defineField({
+          name: 'meta_pixel_id',
+          type: 'string',
+          title: 'ID Meta (Facebook) Pixel',
+          description: 'Format: XXXXXXXXXX. Używane do śledzenia Meta Pixel i API konwersji.',
+          validation: (Rule) =>
+            Rule.custom((value) => {
+              if (!value) return true
+              if (!/^\d{15}$/.test(value)) {
+                return 'Nieprawidłowy format ID Meta Pixel. Powinien to być 15-cyfrowy numer.'
+              }
+              return true
+            }),
+        }),
+        defineField({
+          name: 'meta_conversion_token',
+          type: 'string',
+          title: 'Token API konwersji Meta',
+          description: 'Secret token for server-side Meta Conversion API tracking.',
+        }),
+      ],
+    }),
+    defineField({
       name: 'googleData',
       type: 'object',
       title: 'Dane z Google',

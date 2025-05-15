@@ -316,7 +316,9 @@ const OpenHoursText = getOpenHours({
           <a href={t.termsOfServiceUrl} class="annotation-link">
             {t.termsOfService}
           </a>
-          <button class="annotation-link">{t.cookiePolicy}</button>
+          <button class="annotation-link" id="reset-cookie-consent">
+            {t.cookiePolicy}
+          </button>
         </div>
       )
     }
