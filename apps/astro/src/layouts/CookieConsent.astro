@@ -121,7 +121,7 @@ const groups = [
   >
   </iframe>
 </noscript>
-<aside class="cookie-consent" aria-hidden="false">
+<aside class="cookie-consent" aria-hidden="true">
   <section class="content">
     <header class="header">
       <div data-header-initial>
@@ -143,7 +143,7 @@ const groups = [
         </p>
       </div>
     </header>
-    <div class="settings" style="display: none" data-lenis-prevent>
+    <div class="settings" style="display: none">
       {
         groups.map(({ id, name, description, subGroups }) => (
           <div class="group" data-group={id}>
@@ -521,7 +521,7 @@ const groups = [
   function setCookie(name, value, days = 1) {
     const date = new Date(Date.now() + 86400000 * days)
     const expires = days ? `; expires=${date.toUTCString()}` : ''
-    document.cookie = `${name}=${encodeURIComponent(value)}${expires}; SameSite=Strict`
+    document.cookie = `${name}=${encodeURIComponent(value)}${expires}; SameSite=Strict; path=/pl`
   }
   function setConsent(consent) {
     const consentMode = {
@@ -635,19 +635,34 @@ const groups = [
 
   document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('reset-cookie-consent')?.addEventListener('click', () => {
-      document.cookie = 'cookie-consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
-      gtag('consent', 'default', {
-        functionality_storage: 'denied',
-        security_storage: 'denied',
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-        analytics_storage: 'denied',
-        personalization_storage: 'denied',
-        conversion_api: 'denied',
-        advanced_matching: 'denied',
-      })
+      const currentConsent = JSON.parse(getCookie('cookie-consent'))
+
+      // Show cookie consent banner
       cookieConsentElement.setAttribute('aria-hidden', 'false')
+      cookieConsentElement.style.display = 'grid'
+
+      // Toggle header views
+      cookieConsentElement.querySelector('.header [data-header-initial]').style.display = 'none'
+      cookieConsentElement.querySelector('.header [data-header-settings]').style.removeProperty('display')
+
+      // Show settings panel
+      cookieConsentElement.querySelector('.settings').style.removeProperty('display')
+      isPreferencesOpen = true
+
+      // Map consent states to checkboxes
+      const consentMap = {
+        necessary: true, // Always true
+        analytics: 'analytics_storage',
+        preferences: 'personalization_storage',
+        marketing: 'ad_storage',
+        conversion_api: 'conversion_api',
+        advanced_matching: 'advanced_matching',
+      }
+
+      Object.entries(consentMap).forEach(([inputId, consentKey]) => {
+        const input = cookieConsentElement.querySelector(`input[id="${inputId}"]`)
+        input.checked = consentKey === true ? true : currentConsent[consentKey] === 'granted'
+      })
     })
   })
 </script>
