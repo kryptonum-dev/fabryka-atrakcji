@@ -4,11 +4,11 @@ import Button, { ButtonDataQuery, type ButtonDataProps } from '../../ui/Button'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
 import Carousel from './Carousel'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 import { BlogCardQuery, type BlogCardProps } from '../../ui/BlogCard'
 import type { GetImageResult } from 'astro'
 
-const lang = (Astro.params.lang as Language) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 export const HighlightedBlogPosts_Query = `
   _type == "HighlightedBlogPosts" => {
@@ -60,7 +60,7 @@ const clientBlogPosts = await Promise.all(
       <PortableText value={subHeading} class="subHeading" />
       <PortableText value={paragraph} class="paragraph" />
     </header>
-    <Carousel client:idle blogPosts={clientBlogPosts as unknown as (BlogCardProps & { image: GetImageResult })[]}
+    <Carousel client:load blogPosts={clientBlogPosts as unknown as (BlogCardProps & { image: GetImageResult })[]}
       ><Button {...cta} /></Carousel
     >
   </div>

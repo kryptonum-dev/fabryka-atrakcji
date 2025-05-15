@@ -151,7 +151,7 @@ const { index, sectionId, list } = Astro.props
   document.querySelectorAll('.TextBlocksGrid').forEach((section) => {
     const wrapper = section.querySelector('.wrapper') as HTMLElement
     const button = section.querySelector('button[data-toggle]') as HTMLButtonElement
-    const buttonText = button.querySelector('span') as HTMLSpanElement
+    const buttonText = button?.querySelector('span') as HTMLSpanElement
     const hasToggle = (section as HTMLElement).dataset.hasToggle === 'true'
 
     if (!hasToggle) return

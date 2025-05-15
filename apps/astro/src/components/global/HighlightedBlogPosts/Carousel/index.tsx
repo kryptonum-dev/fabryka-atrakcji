@@ -1,6 +1,6 @@
 import ArrowButton from '@/src/components/ui/ArrowButton'
 import type { BlogCardProps } from '@/src/components/ui/BlogCard'
-import { ReactBlogCard } from '@/src/components/ui/BlogCard'
+import ReactBlogCard from '@/src/components/ui/BlogCard/Card'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import styles from './carousel.module.scss'

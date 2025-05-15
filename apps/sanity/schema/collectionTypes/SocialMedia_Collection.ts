@@ -58,7 +58,7 @@ export default defineType({
       type: 'text',
       title: 'Tekst ikony',
       validation: (Rule) => Rule.required(),
-      hidden: true,
+      // hidden: true,
     }),
   ],
   preview: {
