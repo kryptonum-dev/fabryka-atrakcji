@@ -333,17 +333,11 @@ const { metadata, page } = Astro.props
               animation-delay: 1100ms;
             }
 
-            &::before,
             &::after {
               position: absolute;
               z-index: -1;
               inset: 0.125rem;
               content: '';
-              background: var(--neutral-100, #faf7f7);
-              border-radius: 0.6rem;
-            }
-
-            &::after {
               z-index: -2;
               inset: 0;
               background: conic-gradient(
@@ -369,15 +363,18 @@ const { metadata, page } = Astro.props
               font-weight: 700;
               line-height: 1.7;
               border-radius: clamp(8px, calc(12vw / 7.68), 12px);
+              background-color: var(--neutral-100);
+              border-radius: 0.6rem;
 
               :global(svg),
               span {
                 transition: transform 300ms var(--easing);
+                z-index: 2;
               }
 
               &::before {
                 position: absolute;
-                z-index: -1;
+                z-index: 1;
                 content: '';
                 width: 120%;
                 aspect-ratio: 1;

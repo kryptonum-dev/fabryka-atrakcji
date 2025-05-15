@@ -69,7 +69,7 @@ const phone = await sanityFetch<{
 const { index, sectionId, heading, questions, paragraph, subheading, formPopup } = Astro.props
 ---
 
-<FaqSchema questions={questions} slot="head" />
+<FaqSchema questions={questions} />
 <section class="Faq" id={sectionId}>
   <div class="container">
     <header class="header">

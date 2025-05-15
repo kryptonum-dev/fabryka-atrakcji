@@ -94,7 +94,7 @@ $gradient-conic: conic-gradient(
     &[data-shade='light'] {
       background-color: var(--neutral-100, #faf7f7);
       position: relative;
-      min-height: 2.8125rem;
+      min-height: 2.875rem;
 
       &::before {
         content: '';
@@ -118,7 +118,8 @@ $gradient-conic: conic-gradient(
         color: var(--primary-800, #45051c);
       }
       .box {
-        padding: 1.5px;
+        padding: 2px;
+
         &::before {
           background-color: var(--neutral-200, #f5f1ec);
         }

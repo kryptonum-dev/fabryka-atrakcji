@@ -129,14 +129,28 @@ const stepBlockSvg = await Promise.all(
               <ul class="blocks">
                 {blocks.map((block, blockIndex) => (
                   <li class="block" data-type={block._type}>
-                    {block._type === 'ctaBlock' && <Button {...block.cta} />}
-                    {block._type === 'imageBlock' && (
-                      <div class="image-block">
-                        <Fragment set:html={stepBlockSvg[stepIndex][blockIndex]} />
-                        <span>{block.textIconBlock.text}</span>
-                      </div>
+                    {block._type === 'ctaBlock' && (
+                      <>
+                        <a
+                          href={block.cta.href}
+                          aria-hidden="true"
+                          tabindex="-1"
+                          class="block-link"
+                          aria-label={String(block.cta.text)}
+                        />
+                        <Button {...block.cta} />
+                        <PortableText value={block.text} class="text" />
+                      </>
                     )}
-                    <PortableText value={block.text} class="text" />
+                    {block._type === 'imageBlock' && (
+                      <>
+                        <div class="image-block">
+                          <Fragment set:html={stepBlockSvg[stepIndex][blockIndex]} />
+                          <span>{block.textIconBlock.text}</span>
+                        </div>
+                        <PortableText value={block.text} class="text" />
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -431,8 +445,25 @@ const stepBlockSvg = await Promise.all(
               background: var(--neutral-200, #f5f1ec);
               &[data-type='ctaBlock'] {
                 padding: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+                position: relative;
+                transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+
+                &:hover {
+                  transform: translateY(-4px);
+                }
+
                 a {
-                  margin-bottom: 1rem;
+                  &:first-of-type {
+                    position: absolute;
+                    inset: 0;
+                    z-index: 1;
+                    margin-bottom: 0;
+                  }
+
+                  &:last-of-type {
+                    margin-bottom: 1rem;
+                    z-index: 2;
+                  }
                 }
               }
 

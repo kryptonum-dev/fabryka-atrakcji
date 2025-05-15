@@ -8,11 +8,17 @@ const translations = {
     postal: 'Adres pocztowy',
     email: 'Mailowo na adres',
     tel: 'Telefonicznie',
+    mapLabel: 'Otwórz w Google Maps',
+    phoneLabel: 'Zadzwoń do nas',
+    emailLabel: 'Wyślij wiadomość',
   },
   en: {
     postal: 'Postal address',
     email: 'Email',
     tel: 'Phone',
+    mapLabel: 'Open in Google Maps',
+    phoneLabel: 'Call us',
+    emailLabel: 'Send us an email',
   },
 }
 
@@ -40,17 +46,9 @@ const { node } = Astro.props
 ---
 
 <section class="ContactInfo">
-  <div class="box">
+  <a href={node.googleMapsLink || '#'} target="_blank" rel="noopener noreferrer" class="box" aria-label={t.mapLabel}>
     <p>{t.postal}</p>
-    {
-      node.googleMapsLink ? (
-        <a href={node.googleMapsLink} target="_blank" rel="noopener noreferrer">
-          {node.physicalAddress}
-        </a>
-      ) : (
-        <span>{node.physicalAddress}</span>
-      )
-    }
+    <span>{node.physicalAddress}</span>
     <div class="icon">
       <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
         ><path
@@ -63,11 +61,10 @@ const { node } = Astro.props
           clip-rule="evenodd"></path></svg
       >
     </div>
-  </div>
-  <div class="box">
+  </a>
+  <a href={`tel:${node.tel}`} class="box" aria-label={t.phoneLabel}>
     <p>{t.tel}</p>
-    <a href={`tel:${node.tel}`}>{node.tel}</a>
-
+    <span>{node.tel}</span>
     <div class="icon">
       <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
         ><path
@@ -76,10 +73,10 @@ const { node } = Astro.props
         ></path></svg
       >
     </div>
-  </div>
-  <div class="box">
+  </a>
+  <a href={`mailto:${node.email}`} class="box" aria-label={t.emailLabel}>
     <p>{t.email}</p>
-    <a href={`mailto:${node.email}`}>{node.email}</a>
+    <span>{node.email}</span>
     <div class="icon">
       <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
         <path
@@ -103,7 +100,7 @@ const { node } = Astro.props
           fill="#F67258"></path>
       </svg>
     </div>
-  </div>
+  </a>
 </section>
 
 <style lang="scss">
@@ -128,20 +125,12 @@ const { node } = Astro.props
         font-size: var(--typography-body-m, 0.875rem);
       }
 
-      a,
       span {
         margin-bottom: 0.5rem;
         letter-spacing: -0.02em;
         color: var(--primary-800, #45051c);
         font-size: var(--typography-body-m, 0.875rem);
         font-weight: 700;
-      }
-
-      a {
-        position: relative;
-        justify-self: start;
-        max-width: fit-content;
-        transition: transform 250ms var(--easing);
       }
 
       .icon {
@@ -157,13 +146,13 @@ const { node } = Astro.props
     }
 
     .box:nth-child(1) {
-      &:has(a:hover) > .icon {
+      &:hover > .icon {
         transform: scale(1.05);
         svg {
           animation: ContactInfo-pin-bounce 700ms var(--easing) infinite alternate;
         }
       }
-      &:has(a:focus:not(:focus-visible)) > .icon {
+      &:focus:not(:focus-visible) > .icon {
         transform: scale(1.1);
         svg {
           animation: ContactInfo-pin-bounce-high 600ms var(--easing) infinite alternate;
@@ -172,13 +161,13 @@ const { node } = Astro.props
     }
 
     .box:nth-child(2) {
-      &:has(a:hover) > .icon {
+      &:hover > .icon {
         transform: scale(1.05);
         svg {
           animation: ContactInfo-ring-low 700ms var(--easing) infinite alternate;
         }
       }
-      &:has(a:focus:not(:focus-visible)) > .icon {
+      &:focus:not(:focus-visible) > .icon {
         transform: scale(1.1);
         svg {
           animation: ContactInfo-ring-high 600ms var(--easing) infinite alternate;
@@ -187,13 +176,13 @@ const { node } = Astro.props
     }
 
     .box:nth-child(3) {
-      &:has(a:hover) > .icon {
+      &:hover > .icon {
         transform: scale(1.05);
         svg {
           animation: ContactInfo-email-notification 1800ms var(--easing) infinite;
         }
       }
-      &:has(a:focus:not(:focus-visible)) > .icon {
+      &:focus:not(:focus-visible) > .icon {
         transform: scale(1.1);
         svg {
           animation: ContactInfo-email-notification-high 1400ms var(--easing) infinite;
@@ -214,7 +203,6 @@ const { node } = Astro.props
           grid-row: 1/2;
         }
 
-        a,
         span {
           grid-column: 1/2;
           grid-row: 2/3;

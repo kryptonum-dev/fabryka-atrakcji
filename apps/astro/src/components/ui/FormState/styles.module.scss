@@ -71,17 +71,10 @@
       padding: 0.125rem;
       transition: transform 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-      &::before,
       &::after {
         position: absolute;
-        z-index: -1;
         inset: 0.125rem;
         content: '';
-        background: var(--neutral-100, #faf7f7);
-        border-radius: 0.625rem;
-      }
-
-      &::after {
         z-index: -2;
         inset: 0;
         background: conic-gradient(
@@ -107,10 +100,14 @@
         font-weight: 700;
         line-height: 1.7;
         border-radius: clamp(8px, calc(12vw / 7.68), 12px);
+        background-color: var(--neutral-100);
+        border-radius: 0.6rem;
 
-        :global(svg),
+        div,
+        svg,
         span {
           transition: transform 300ms var(--easing);
+          z-index: 2;
         }
 
         &::before {
@@ -123,6 +120,7 @@
           border-radius: 50%;
           transform: scale(0);
           transition: transform 450ms var(--easing);
+          z-index: 1;
         }
 
         &:hover {

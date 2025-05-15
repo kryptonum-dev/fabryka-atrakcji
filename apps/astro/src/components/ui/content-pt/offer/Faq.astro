@@ -5,6 +5,7 @@ import FaqForm from '../../FaqForm/index.astro'
 import { getLangFromPath, type Language } from '@/src/global/languages'
 import type { FormStateTypes } from '@/src/global/types'
 import sanityFetch from '@/src/utils/sanity.fetch'
+import FaqSchema from '@/src/Schema/FaqSchema.astro'
 
 export const Faq_Query = `
   _type == "Faq" => {
@@ -73,6 +74,7 @@ const { node } = Astro.props as Props
 const language = (Astro.params.lang as Language) || 'pl'
 ---
 
+<FaqSchema questions={node.questions} />
 <section class="Faq" id="faq-section-marker">
   <div class="max-width container">
     <header class="header">
