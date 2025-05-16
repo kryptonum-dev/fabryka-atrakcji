@@ -10,7 +10,12 @@ import FaqSchema from '@/src/Schema/FaqSchema.astro'
 export const Faq_Query = `
   _type == "Faq" => {
     ${PortableTextQuery('heading')}
+    faqType,
     questions[] {
+      ${PortableTextQuery('question')}
+      ${PortableTextQuery('answer')}
+    },
+    globalQuestions[] -> {
       ${PortableTextQuery('question')}
       ${PortableTextQuery('answer')}
     },
@@ -54,7 +59,12 @@ const phone = await sanityFetch<{
 type Props = {
   node: {
     heading: PortableTextValue
+    faqType: string
     questions: {
+      question: PortableTextValue
+      answer: PortableTextValue
+    }[]
+    globalQuestions: {
       question: PortableTextValue
       answer: PortableTextValue
     }[]
@@ -72,9 +82,11 @@ type Props = {
 
 const { node } = Astro.props as Props
 const language = (Astro.params.lang as Language) || 'pl'
+
+const questions = node.faqType === 'global' ? node.globalQuestions : node.questions
 ---
 
-<FaqSchema questions={node.questions} />
+<FaqSchema questions={questions} />
 <section class="Faq" id="faq-section-marker">
   <div class="max-width container">
     <header class="header">
@@ -82,7 +94,7 @@ const language = (Astro.params.lang as Language) || 'pl'
     </header>
     <div class="questions">
       {
-        node.questions.map(({ question, answer }: { question: PortableTextValue; answer: PortableTextValue }) => (
+        questions.map(({ question, answer }: { question: PortableTextValue; answer: PortableTextValue }) => (
           <Accordion question={question} answer={answer} open={false} />
         ))
       }

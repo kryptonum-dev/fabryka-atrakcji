@@ -43,10 +43,33 @@ export default defineField({
       ],
     }),
     defineField({
+      name: 'faqType',
+      type: 'string',
+      title: 'Typ pytań FAQ',
+      description: 'Wybierz, czy chcesz użyć pytań lokalnych (tylko dla tej podstrony) czy globalnych (z kolekcji FAQ)',
+      options: {
+        list: [
+          { title: 'Lokalne', value: 'scoped' },
+          { title: 'Globalne', value: 'global' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'scoped',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: 'questions',
       type: 'array',
-      title: 'Pytania i odpowiedzi',
-      validation: (Rule) => Rule.required().min(2).error('Musisz dodać minimum 2 pytania'),
+      title: 'Lokalne pytania i odpowiedzi',
+      description: 'Dodaj pytania i odpowiedzi, które będą widoczne tylko na tej podstronie',
+      hidden: ({ parent }) => parent?.faqType !== 'scoped',
+      validation: (Rule) =>
+        Rule.custom((value, context: any) => {
+          if (context.parent?.faqType === 'scoped' && (!value || value.length < 2)) {
+            return 'Musisz dodać minimum 2 pytania'
+          }
+          return true
+        }),
       of: [
         {
           type: 'object',
@@ -74,6 +97,38 @@ export default defineField({
                 title: toPlainText(question),
                 subtitle: toPlainText(answer),
                 icon: MessageCircleQuestion,
+              }
+            },
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: 'globalQuestions',
+      type: 'array',
+      title: 'Globalne pytania i odpowiedzi',
+      description: 'Wybierz pytania z kolekcji FAQ, które będą wyświetlane na tej podstronie',
+      hidden: ({ parent }) => parent?.faqType !== 'global',
+      validation: (Rule) =>
+        Rule.custom((value, context: any) => {
+          if (context.parent?.faqType === 'global' && (!value || value.length < 2)) {
+            return 'Musisz dodać minimum 2 pytania'
+          }
+          return true
+        }),
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'Faq_Collection' }],
+          options: {
+            disableNew: false,
+            filter: ({ parent, document }) => {
+              const language = (document as { language?: string })?.language
+              const selectedIds =
+                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
+              return {
+                filter: '!(_id in $selectedIds) && !(_id in path("drafts.**")) && language == $lang',
+                params: { selectedIds, lang: language },
               }
             },
           },
@@ -141,10 +196,12 @@ export default defineField({
   preview: {
     select: {
       heading: 'heading',
+      faqType: 'faqType',
     },
-    prepare({ heading }) {
+    prepare({ heading, faqType }) {
+      const faqTypeText = faqType === 'global' ? ' (Globalne)' : ' (Lokalne)'
       return {
-        title,
+        title: title + faqTypeText,
         subtitle: toPlainText(heading),
         icon,
       }
