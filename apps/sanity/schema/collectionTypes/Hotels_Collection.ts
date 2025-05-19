@@ -27,6 +27,9 @@ export default defineType({
   name: 'Hotels_Collection',
   type: 'document',
   title,
+  options: {
+    documentPreview: true,
+  },
   icon,
   groups: [
     {

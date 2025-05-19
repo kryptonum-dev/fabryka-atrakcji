@@ -22,6 +22,9 @@ export default defineType({
   name: 'Activities_Collection',
   type: 'document',
   title,
+  options: {
+    documentPreview: true,
+  },
   icon,
   groups: [
     {
