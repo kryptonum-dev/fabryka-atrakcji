@@ -2,7 +2,7 @@
 import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
 import imageToInlineSvg from '@/utils/image-to-inline-svg'
-import AnimatedHeading from '@/components/ui/AnimatedHeading.astro'
+import AnimatedHeading from '@/components/ui/AnimatedHeading.astro' 
 
 export const CardSteps_Query = `
   _type == "CardSteps" => {
@@ -145,7 +145,7 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
     {
       steps.map((step) => (
         <li class="step">
-          {step.optional && <span class="optional">(opcjonlane)</span>}
+          {step.optional && <span class="optional">(opcjonalne)</span>}
           {step._type == 'imagesCard' && (
             <div class="images">
               <Image {...step.firstImage} sizes={stepImagesSizes} />
