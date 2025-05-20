@@ -15,6 +15,11 @@ import Listing, { Listing_Query, type ListingProps } from '@/src/components/acti
 import SearchBar from '@/src/components/ui/SearchBar.astro'
 import { NoSearchResults_Query, type NoSearchResultsProps } from '@/src/components/activites/NoSearchResults.astro'
 import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
+import { ButtonDataQuery } from '@/src/components/ui/Button'
+import { ImageDataQuery } from '@/src/components/ui/image'
+import ActivitiesCarousel, {
+  type Props as ActivitiesCarouselProps,
+} from '@/src/components/global/ActivitiesCarousel/index.astro'
 
 export const ITEMS_PER_PAGE = 8
 
@@ -23,6 +28,7 @@ type BasePageProps = {
   slug: string
   heading: PortableTextValue
   components: ComponentsProps
+  activitiesCarousel: ActivitiesCarouselProps
 }
 
 type SearchPageProps = BasePageProps & ActivitiesListingProps & NoSearchResultsProps
@@ -88,6 +94,23 @@ export async function fetchData(lang: Language, pageNumber: number, searchParams
         ${NoSearchResults_Query}
         ${searchQuery ? ActivitiesListing_Query(orderClause) : Listing_Query}
         ${Components_Query}
+        activitiesCarousel {
+          "labelIcon": labelIcon.asset->url,
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+          ${ButtonDataQuery('ctas[]')}
+          activities[]->{
+            name,
+            ${ImageDataQuery('imageList[0]')}
+            description,
+              participantsCount{
+                min,
+                max,
+              },
+            "slug": slug.current,
+            _createdAt,
+          },
+        },
       }
     `,
     params: {
@@ -161,6 +184,8 @@ const isRegularPage = (page: SearchPageProps | RegularPageProps): page is Regula
 const totalPages = isSearchPage(page)
   ? Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
   : Math.ceil(page.totalItems / ITEMS_PER_PAGE)
+
+console.log(page.activitiesCarousel)
 ---
 
 <Layout {...metadata}>
@@ -201,6 +226,7 @@ const totalPages = isSearchPage(page)
               listing={page.listing}
               currentPage={currentPage}
             />
+            <ActivitiesCarousel {...page.activitiesCarousel} />
             <Components data={page.components} hasPreviousSections />
           </>
         )

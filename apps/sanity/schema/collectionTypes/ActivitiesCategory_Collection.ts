@@ -1,6 +1,6 @@
-import {Handshake} from 'lucide-react'
-import {defineField, defineType} from 'sanity'
-import {defineSlugForDocument} from '../../utils/define-slug-for-document'
+import { Handshake } from 'lucide-react'
+import { defineField, defineType } from 'sanity'
+import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 
 const name = 'ActivitiesCategory_Collection'
 const title = 'Kategorie integracji'
@@ -71,11 +71,6 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'components',
-      type: 'components',
-      title: 'Komponenty podstrony',
-    }),
-    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',
@@ -86,7 +81,7 @@ export default defineType({
       name: 'name',
       slug: 'slug.current',
     },
-    prepare: ({name, slug}) => ({
+    prepare: ({ name, slug }) => ({
       title: name,
       subtitle: slug,
       icon,

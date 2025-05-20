@@ -1,4 +1,4 @@
-import { BookOpen, FileArchive, Handshake, Hotel, House, HouseIcon, Receipt, Settings2 } from 'lucide-react'
+import { BookOpen, FileArchive, Handshake, Hotel, House, HouseIcon, Receipt, Settings2, Users2Icon } from 'lucide-react'
 import type { StructureResolver } from 'sanity/structure'
 import { createCollection } from '../utils/create-collection'
 import { createSingleton } from '../utils/create-singleton'
@@ -95,7 +95,14 @@ export const structure: StructureResolver = (S) =>
               createSingleton({ S, name: 'navbar' }),
               createSingleton({ S, name: 'footer' }),
               createSingleton({ S, name: 'global' }),
-              createCollection(S, 'SocialMedia_Collection'),
+              S.listItem()
+                .title('Media społecznościowe')
+                .icon(Users2Icon)
+                .child(
+                  S.documentTypeList('SocialMedia_Collection')
+                    .title('Media społecznościowe')
+                    .child((documentId) => S.document().documentId(documentId).schemaType('SocialMedia_Collection'))
+                ),
               createSingleton({ S, name: 'Cart_Page' }),
               createSingleton({ S, name: 'Quote_Page' }),
               createSingleton({ S, name: 'ThankYouPage' }),

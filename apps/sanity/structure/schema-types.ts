@@ -82,8 +82,9 @@ import Heading from '../schema/ui/PortableText/Heading'
 import seo from '../schema/ui/seo'
 import formPopup from '../schema/ui/formPopup'
 import quoteItem from '../schema/shared/quoteItem'
+import ActivitiesCarousel from '../schema/components/ActivitiesCarousel'
 
-const ui = [cta, seo, PortableText, Heading, formState, formPopup, quoteItem]
+const ui = [cta, seo, PortableText, Heading, formState, formPopup, quoteItem, ActivitiesCarousel]
 
 export const schemaTypes = [...singleTypes, ...collectionTypes, ...components, ...ui]
 

@@ -67,5 +67,12 @@ export default defineConfig({
       // For all other types
       return input
     },
+    newDocumentOptions: (prev, { creationContext }) => {
+      const { type, schemaType } = creationContext
+      if (type === 'structure' && (schemaType == 'SocialMedia_Collection' || schemaType == 'Quotes_Collection')) {
+        return []
+      }
+      return prev
+    },
   },
 })

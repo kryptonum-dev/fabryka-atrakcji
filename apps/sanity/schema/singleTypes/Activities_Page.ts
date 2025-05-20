@@ -44,6 +44,20 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'activitiesCarousel',
+      type: 'ActivitiesCarousel',
+      title: 'Wyróżnione integracje',
+      description: 'Wyróżnione integracje wyświetlają się pod listą kategorii integracji',
+      group: 'content',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'components',
+      type: 'components',
+      title: 'Komponenty podstrony (opcjonalne)',
+      group: 'content',
+    }),
+    defineField({
       name: 'noResults',
       type: 'object',
       title: 'Brak wyników wyszukiwania',
@@ -93,13 +107,6 @@ export default defineType({
         }),
       ],
     }),
-    defineField({
-      name: 'components',
-      type: 'components',
-      title: 'Komponenty podstrony (opcjonalne)',
-      group: 'content',
-    }),
-
     defineField({
       name: 'seo',
       type: 'seo',

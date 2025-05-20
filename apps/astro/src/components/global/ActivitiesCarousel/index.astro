@@ -27,7 +27,7 @@ export const ActivitiesCarousel_Query = `
   },
 `
 
-type Props = {
+export type Props = {
   index: number
   sectionId?: string
   labelIcon?: string
@@ -46,6 +46,8 @@ type Props = {
     _createdAt: string
   }[]
 }
+
+console.log('hi')
 
 const { index, sectionId, labelIcon, heading, paragraph, ctas, activities } = Astro.props
 

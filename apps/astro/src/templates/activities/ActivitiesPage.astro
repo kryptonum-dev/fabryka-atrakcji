@@ -40,8 +40,8 @@ export async function fetchData(
         description: {
           long: string
         }
-        components: ComponentsProps
       }
+      components: ComponentsProps
     } & ListingProps
   >({
     query: `
@@ -56,9 +56,9 @@ export async function fetchData(
           description{
             long,
           },
-          ${Components_Query}
         },
         ${Listing_Query(orderClause)}
+        ${Components_Query}
       }
     `,
     params: {
@@ -181,8 +181,5 @@ const breadcrumbs = [
     priceRange={page.priceRange}
     noResults={page.noResults}
   />
-  <Components
-    data={page.listing.length > 0 ? page.selectedCategory.components : page.noResults.components}
-    hasPreviousSections
-  />
+  <Components data={page.listing.length > 0 ? page.components : page.noResults.components} hasPreviousSections />
 </Layout>

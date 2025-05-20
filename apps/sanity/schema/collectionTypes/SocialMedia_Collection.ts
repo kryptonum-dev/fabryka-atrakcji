@@ -1,6 +1,5 @@
-import { Book, Users2Icon } from 'lucide-react'
+import { Users2Icon } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
-import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { isValidUrl } from '../../utils/is-valid-url'
 
 const name = 'SocialMedia_Collection'
