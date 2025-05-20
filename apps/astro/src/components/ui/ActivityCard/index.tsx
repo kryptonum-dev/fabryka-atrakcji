@@ -28,6 +28,7 @@ export type ActivityCardProps = {
   }
   slug: string
   _createdAt: string
+  headingLevel?: 'h2' | 'h3' | 'h4'
 }
 
 export default function ActivityCard({
@@ -38,11 +39,14 @@ export default function ActivityCard({
   _createdAt,
   clientImage,
   children,
+  headingLevel,
 }: ActivityCardProps & {
   children?: React.ReactNode
   clientImage?: { image: GetImageResult; fetchPriority: 'high' | 'auto'; loading: 'eager' | 'lazy'; sizes: string }
 }) {
   const isRecent = new Date(_createdAt) > new Date(Date.now() - 1000 * 60 * 60 * 24 * 14)
+
+  const Heading = headingLevel || 'h3'
 
   return (
     <article className={styles['ActivityCard']}>
@@ -86,7 +90,7 @@ export default function ActivityCard({
           </div>
         </div>
         <div className={styles.heading}>
-          <h3>{name}</h3>
+          <Heading>{name}</Heading>
           <span aria-hidden>{name}</span>
         </div>
         {description && <p>{description}</p>}

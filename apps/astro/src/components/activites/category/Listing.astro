@@ -493,7 +493,7 @@ const getActivitiesCount = () => {
       <>
         <div class="list">
           {listing.map((item, index) => (
-            <ActivityCard {...item}>
+            <ActivityCard headingLevel="h2" {...item}>
               {
                 <Image
                   {...item.imageList[0]}
