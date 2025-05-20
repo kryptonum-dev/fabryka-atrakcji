@@ -118,14 +118,16 @@ const t = translations[lang]
 
     .search-button {
       position: absolute;
-      right: 0.625rem;
-      top: 1.25rem;
-      transform: translateY(-50%);
+      right: 0;
+      top: 0;
       color: var(--neutral-500);
       transition: transform 250ms var(--easing);
-
+      aspect-ratio: 1;
+      height: 100%;
+      display: grid;
+      place-items: center;
       &:hover {
-        transform: translateY(-50%) scale(1.1) rotate(10deg);
+        transform: translateY(-0.125rem) scale(1.05) rotate(7deg);
       }
     }
 

@@ -12,9 +12,11 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
 const translations = {
   pl: {
     prefix: '/pl/blog/',
+    linkLabel: 'Przejdź do artykułu',
   },
   en: {
     prefix: '/en/blog/',
+    linkLabel: 'Go to article',
   },
 }
 
@@ -23,7 +25,7 @@ const t = translations[lang]
 
 <section class="BlogHero max-width">
   <article>
-    <a href={`${t.prefix}${slug.split('/').pop()}`} class="background-link"></a>
+    <a href={`${t.prefix}${slug.split('/').pop()}`} aria-label={t.linkLabel} class="background-link"></a>
     <Image
       {...image}
       sizes="(max-width: 37.4375rem) 94vw, (max-width: 56.1875rem) 83vw, (max-width: 69.3125rem) 768px, (max-width: 85.375rem) 50vw, 659px"

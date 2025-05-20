@@ -24,7 +24,7 @@ const { index, sectionId, list } = Astro.props
 ---
 
 <section class="TextBlocksGrid" id={sectionId} data-has-toggle={list.length > 6}>
-  <div class="wrapper" aria-expanded="false">
+  <div class="wrapper">
     <ul class="list">
       {
         list.map(({ heading, paragraph }, listIndex) => (
