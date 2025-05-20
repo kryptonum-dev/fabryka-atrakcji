@@ -93,6 +93,16 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'newsletterPdf',
+      type: 'file',
+      title: 'PDF dla Newslettera',
+      group: 'newsletter',
+      options: {
+        accept: 'application/pdf',
+      },
+      description: 'Plik PDF do udostępnienia dla subskrybentów newslettera',
+    }),
+    defineField({
       name: 'analytics',
       title: 'Analytika',
       group: 'analytics',
@@ -303,6 +313,11 @@ export default defineType({
       name: 'contact',
       title: 'Dane kontaktowe',
       icon: UsersIcon,
+    },
+    {
+      name: 'newsletter',
+      title: 'Newsletter',
+      icon: CommentIcon,
     },
     {
       name: 'analytics',
