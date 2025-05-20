@@ -24,7 +24,7 @@ export default function Loader({
   if (!isLoading) return null
 
   return (
-    <div className={styles['Loader']} data-loader aria-label={t.loading}>
+    <div className={styles['Loader']} role="status" aria-label={t.loading}>
       {!hasFinishedLoading && (
         <svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="5.45455" cy="5.45455" r="5.45455" transform="matrix(1 0 0 -1 14.547 40)" fill="#F67258"></circle>
