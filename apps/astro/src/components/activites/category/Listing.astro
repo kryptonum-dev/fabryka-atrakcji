@@ -20,6 +20,7 @@ type Props = {
   listing: ActivityCardProps[]
   currentPage: number
   currentCategory: string | null
+  selectedCategory?: string | null
   participantRangeCounts: {
     range1_30: number
     range31_80: number
@@ -269,6 +270,7 @@ const {
   durationCounts,
   priceRange,
   noResults,
+  selectedCategory,
 } = Astro.props
 
 const params = Astro.url.searchParams
@@ -444,7 +446,12 @@ const getActivitiesCount = () => {
 }
 ---
 
-<section class="Listing max-width" data-no-results={totalActivitiesByCategory === 0} data-mobile-open="false">
+<section
+  class="Listing max-width"
+  data-no-results={totalActivitiesByCategory === 0}
+  data-mobile-open="false"
+  data-category-name={selectedCategory || currentCategory}
+>
   {
     (heading || description) && (
       <header class="header">

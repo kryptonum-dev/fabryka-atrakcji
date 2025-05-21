@@ -169,6 +169,7 @@ const breadcrumbs = [
   </Fragment>
   <Breadcrumbs data={breadcrumbs} firstItemType="ActivitiesListing" />
   <Listing
+    selectedCategory={page.selectedCategory.name}
     heading={page.selectedCategory.heading}
     description={page.selectedCategory.description.long}
     totalActivitiesByCategory={page.totalActivitiesByCategory}
@@ -194,8 +195,7 @@ const breadcrumbs = [
     if (!activityItems.length) return
 
     // Get category information
-    const categoryName =
-      document.querySelector('.breadcrumb-item:nth-last-child(2)')?.textContent?.trim() || 'All Activities'
+    const categoryName = (document.querySelector('.Listing') as HTMLElement)?.dataset.categoryName || ''
 
     // Create array of items for tracking
     const items = Array.from(activityItems)
