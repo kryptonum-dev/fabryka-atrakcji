@@ -4,7 +4,7 @@ import type { APIRoute } from 'astro'
 export const GET: APIRoute = async ({ params, request, redirect }) => {
   const { filename } = params
   const url = new URL(request.url)
-  const subscriberEmail = url.searchParams.get('id')
+  const subscriberId = url.searchParams.get('id')
 
   try {
     // 1. Get PDF data and allowed groups from Sanity
@@ -27,8 +27,8 @@ export const GET: APIRoute = async ({ params, request, redirect }) => {
       return redirect('/404')
     }
 
-    // 3. If groups are restricted but no subscriber email is provided, redirect to 404
-    if (document.allowedGroups && document.allowedGroups.length > 0 && !subscriberEmail) {
+    // 3. If groups are restricted but no subscriber ID is provided, redirect to 404
+    if (document.allowedGroups && document.allowedGroups.length > 0 && !subscriberId) {
       return redirect('/404')
     }
 
@@ -38,8 +38,8 @@ export const GET: APIRoute = async ({ params, request, redirect }) => {
     }
 
     // 5. Validate subscriber against allowed groups
-    const isAuthorized = await validateSubscriberByEmail(
-      subscriberEmail!,
+    const isAuthorized = await validateSubscriberById(
+      subscriberId!,
       document.allowedGroups.map((group) => group.toString().slice(0, -1))
     )
 
@@ -71,8 +71,8 @@ async function servePdf(url: string) {
   })
 }
 
-// Helper function to validate subscriber by email
-async function validateSubscriberByEmail(email: string, allowedGroups: string[]): Promise<boolean> {
+// Helper function to validate subscriber by UUID
+async function validateSubscriberById(newsletterId: string, allowedGroups: string[]): Promise<boolean> {
   try {
     const MAILERLITE_API_KEY = import.meta.env.MAILERLITE_API_KEY || process.env.MAILERLITE_API_KEY
 
@@ -81,10 +81,18 @@ async function validateSubscriberByEmail(email: string, allowedGroups: string[])
       return false
     }
 
-    // Get subscriber info by email
-    const subscriberResponse = await fetch(
-      `https://api.mailerlite.com/api/v2/subscribers/${encodeURIComponent(email)}`,
+    // Check UUID format (basic validation)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(newsletterId)) {
+      console.error('Invalid newsletter ID format')
+      return false
+    }
+
+    // Search for subscribers with custom field
+    const searchResponse = await fetch(
+      `https://api.mailerlite.com/api/v2/subscribers?limit=1&fields[newsletter_id]=${encodeURIComponent(newsletterId)}`,
       {
+        method: 'GET',
         headers: {
           'X-MailerLite-ApiKey': MAILERLITE_API_KEY,
           'Content-Type': 'application/json',
@@ -92,12 +100,22 @@ async function validateSubscriberByEmail(email: string, allowedGroups: string[])
       }
     )
 
-    if (!subscriberResponse.ok) {
-      console.log('Subscriber not found or API error')
+    if (!searchResponse.ok) {
+      console.log('Failed to search subscribers', await searchResponse.text())
       return false
     }
 
-    const subscriber = await subscriberResponse.json()
+    const subscribers = await searchResponse.json()
+
+    // Find subscriber with matching newsletter_id
+    const subscriber = subscribers.find(
+      (sub: any) => sub.fields && sub.fields.find((k: any) => k.key === 'newsletter_id').value === newsletterId
+    )
+
+    if (!subscriber) {
+      console.log('Subscriber with provided ID not found')
+      return false
+    }
 
     // Check if subscriber is active
     if (subscriber.type !== 'active') {
@@ -107,7 +125,7 @@ async function validateSubscriberByEmail(email: string, allowedGroups: string[])
 
     // Get groups this subscriber belongs to
     const groupsResponse = await fetch(
-      `https://api.mailerlite.com/api/v2/subscribers/${encodeURIComponent(email)}/groups`,
+      `https://api.mailerlite.com/api/v2/subscribers/${encodeURIComponent(subscriber.email)}/groups`,
       {
         headers: {
           'X-MailerLite-ApiKey': MAILERLITE_API_KEY,
@@ -117,13 +135,11 @@ async function validateSubscriberByEmail(email: string, allowedGroups: string[])
     )
 
     if (!groupsResponse.ok) {
-      console.log('Failed to fetch subscriber groups')
+      console.log('Failed to fetch subscriber groups', await groupsResponse.text())
       return false
     }
 
     const subscriberGroups = await groupsResponse.json()
-
-    console.log(subscriberGroups)
 
     // Check if subscriber belongs to any of the allowed groups
     return subscriberGroups.some((group: any) => allowedGroups.includes(group.id.toString().slice(0, -1)))
