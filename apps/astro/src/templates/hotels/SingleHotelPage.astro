@@ -295,3 +295,32 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
     }
   }
 </style>
+
+<script>
+  import { trackEvent } from '@/src/utils/track-event'
+
+  // Track hotel view event
+  document.addEventListener('DOMContentLoaded', () => {
+    // Get hotel information
+    const hotelId = (document.querySelector('.Hero') as HTMLElement)?.dataset.id || ''
+    const hotelName = (document.querySelector('.Hero') as HTMLElement)?.dataset.name || ''
+
+    // Track view_item event
+    trackEvent({
+      event_name: 'view_item',
+      meta: {
+        content_name: document.title,
+      },
+      ecommerce: {
+        items: [
+          {
+            item_id: hotelId,
+            item_name: hotelName,
+            item_category: 'hotel',
+          },
+        ],
+        currency: 'PLN',
+      },
+    })
+  })
+</script>
