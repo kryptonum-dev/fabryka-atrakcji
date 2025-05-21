@@ -8,6 +8,7 @@ import { useState } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
+import { trackEvent } from '@/src/utils/track-event'
 
 export default function Form({
   lang = 'pl',
@@ -44,6 +45,17 @@ export default function Form({
       if (response.ok && responseData.success) {
         setStatus({ sending: false, success: true })
         reset()
+
+        trackEvent({
+          user_data: {
+            email: data.email,
+            phone: data.phone || undefined,
+          },
+          meta: {
+            event_name: 'lead',
+            content_name: 'Contact Form Submission',
+          },
+        })
       } else {
         setStatus({ sending: false, success: false })
       }
