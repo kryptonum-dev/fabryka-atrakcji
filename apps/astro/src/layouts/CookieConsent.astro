@@ -509,28 +509,10 @@ const groups = [
 </style>
 
 <script is:inline define:vars={{ GTM_ID }}>
-  import { trackEvent } from '../utils/track-event'
-
   window.dataLayer = window.dataLayer || []
   function gtag() {
     window.dataLayer.push(arguments)
   }
-
-  function trackPageView() {
-    trackEvent('page_view', {
-      page_title: document.title,
-      page_location: window.location.href,
-      google_analytics: {
-        event_name: 'page_view',
-        content_name: document.title,
-      },
-      meta: {
-        event_name: 'page_view',
-        content_name: document.title,
-      },
-    })
-  }
-
   function getCookie(name) {
     const cookies = document.cookie.split(';').map((cookie) => cookie.trim())
     const cookie = cookies.find((cookie) => cookie.startsWith(`${name}=`))
@@ -565,6 +547,8 @@ const groups = [
 
     // Dispatch an event that consent has been updated
     document.dispatchEvent(new CustomEvent('consent-updated'))
+
+    trackPageView()
   }
 
   const cookieConsentElement = document.querySelector('.cookie-consent')
@@ -579,6 +563,39 @@ const groups = [
   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer',GTM_ID);
+
+  // Function to track page view
+  function trackPageView() {
+    // Send to server-side tracking
+    const event_time = Math.floor(Date.now() / 1000)
+    const event_id = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+    const url = window.location.href
+
+    // Push to dataLayer for GTM
+    dataLayer.push({
+      event: 'page_view',
+      content_name: document.title,
+      page_location: url,
+      page_title: document.title,
+      event_id,
+    })
+
+    try {
+      fetch('/api/analytics/meta-conversion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_name: 'page_view',
+          content_name: document.title,
+          url,
+          event_id,
+          event_time,
+        }),
+      }).catch((error) => console.warn('Failed to track page view:', error))
+    } catch (error) {
+      console.warn('Error tracking page view:', error)
+    }
+  }
 
   if (getCookie('cookie-consent') === null) {
     gtag('consent', 'default', {
@@ -595,6 +612,7 @@ const groups = [
     cookieConsentElement.setAttribute('aria-hidden', 'false')
   } else {
     gtag('consent', 'default', JSON.parse(getCookie('cookie-consent')))
+
     trackPageView()
   }
 
@@ -653,13 +671,6 @@ const groups = [
         marketingSwitch.checked = true
       }
     })
-  })
-
-  document.addEventListener('consent-updated', () => {
-    const consentStatus = getCookie('cookie-consent')
-    if (consentStatus) {
-      trackPageView()
-    }
   })
 
   document.addEventListener('DOMContentLoaded', function () {

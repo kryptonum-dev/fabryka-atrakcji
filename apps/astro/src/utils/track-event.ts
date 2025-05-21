@@ -6,11 +6,6 @@ type Props = {
     name?: string
     phone?: string
   }
-  event_name: string
-  google_analytics?: {
-    event_name: string
-    content_name: string
-  }
   meta?: {
     event_name: string
     content_name: string
@@ -32,9 +27,8 @@ type Props = {
  * @param {Object} [params.meta] - Meta tracking configuration
  * @param {string} params.meta.event_name - Name of the event to track
  * @param {string} params.meta.content_name - Name of the content associated with the event
- * @param {Object} [params.google_analytics] - Google Analytics tracking configuration
  */
-export async function trackEvent({ user_data, meta, google_analytics, event_name }: Props) {
+export async function trackEvent({ user_data, meta }: Props) {
   const event_time = {
     milliseconds: Date.now(),
     seconds: Math.floor(Date.now() / 1000),
@@ -42,21 +36,21 @@ export async function trackEvent({ user_data, meta, google_analytics, event_name
   const event_id = `${event_time.milliseconds}_${Math.random().toString(36).substring(2, 15)}`
   const url = window.location.href
 
-  try {
-    // Push to dataLayer for GTM
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({
-      event: event_name,
-      event_id,
-      event_time: event_time.seconds,
-      meta: meta,
-      google_analytics: google_analytics,
-      ...(user_data && { user_data }),
-    })
-  } catch (error) {
-    console.warn('Failed to push to dataLayer:', error)
-  }
   if (meta) {
+    try {
+      // Push to dataLayer for GTM
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({
+        event: meta.event_name,
+        content_name: meta.content_name,
+        event_id,
+        event_time: event_time.seconds,
+        ...(user_data && { user_data }),
+      })
+    } catch (error) {
+      console.warn('Failed to push to dataLayer:', error)
+    }
+
     try {
       // Send to Meta Conversion API
       const payload: MetaConversionProps = {
