@@ -371,12 +371,16 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
   // Track activity view event
   document.addEventListener('DOMContentLoaded', () => {
     // Get activity information
-    const activityId = (document.querySelector('.Hero') as HTMLElement)?.dataset.id || ''
-    const activityName = (document.querySelector('.Hero') as HTMLElement)?.dataset.name || ''
+    const activityId = document.querySelector('[data-item-id]')?.getAttribute('data-item-id') || ''
+    const activityName = document.querySelector('h1')?.textContent?.trim() || document.title
 
     // Get activity category if available
-    const categoryElement = document.querySelector('.activity-category-details')
+    const categoryElement = document.querySelector('.breadcrumb-item:nth-child(1)')
     const category = categoryElement?.textContent?.trim() || 'Activity'
+
+    // Get activity type if available
+    const activityTypeElement = document.querySelector('.activity-type')
+    const activityType = activityTypeElement?.textContent?.trim() || ''
 
     // Track view_item event
     trackEvent({
@@ -390,6 +394,7 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
             item_id: activityId,
             item_name: activityName,
             item_category: category,
+            item_variant: activityType,
           },
         ],
         currency: 'PLN',

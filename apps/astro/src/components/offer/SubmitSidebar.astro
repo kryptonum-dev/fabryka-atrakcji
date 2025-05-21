@@ -659,6 +659,7 @@ const translationsJson = JSON.stringify(translations)
 <script>
   import { addToCart, isInCart } from '@/src/store/cart'
   import { dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
+  import { trackAddToCart } from '@/src/utils/track-event'
 
   const sidebar = document.getElementById('submit-sidebar')!
   const addToCartButton = document.querySelector('.add-to-cart-button')!
@@ -674,6 +675,7 @@ const translationsJson = JSON.stringify(translations)
   const itemId = sidebar.dataset.id
   const itemType = sidebar.dataset.type as 'hotels' | 'activities'
   const hasAddons = sidebar.dataset.hasAddons === 'true'
+  const itemName = sidebar.dataset.name || ''
 
   // Check if viewport width is below 1089px
   const isMobileView = () => window.innerWidth <= 1089
@@ -853,6 +855,9 @@ const translationsJson = JSON.stringify(translations)
           addOns: [],
         })
 
+        // Track the add to cart event
+        trackAddToCart(itemId, itemType, itemName)
+
         // Update sidebar state and height
         updateSidebarState()
         setTimeout(updateWrapperHeight, 0)
@@ -878,6 +883,7 @@ const translationsJson = JSON.stringify(translations)
         minOneAddon: sidebar.dataset.minOneAddon === 'true',
         requiresAddons,
         addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
+        name: itemName,
       })
 
       // Only update sidebar state if item was not added (will be updated by addon selection)
@@ -902,6 +908,7 @@ const translationsJson = JSON.stringify(translations)
           requiresAddons,
           addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
           minOneAddon: sidebar.dataset.minOneAddon === 'true',
+          name: itemName,
         })
       }
     })

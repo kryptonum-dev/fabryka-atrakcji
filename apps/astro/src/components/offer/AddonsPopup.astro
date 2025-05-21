@@ -1047,6 +1047,7 @@ const { addons, type } = Astro.props
   import { toPlainText } from '@/src/utils/to-plain-text'
   import { optimizeImage } from '@/src/utils/optimize-images'
   import { showToast } from '@/src/utils/toast'
+  import { trackAddToCart } from '@/src/utils/track-event'
 
   const popupContainer = document.querySelector('.addons-popup-container')! as HTMLDivElement
   const popupTrigger = document.querySelector('.hidden-trigger button')! as HTMLButtonElement
@@ -1131,6 +1132,7 @@ const { addons, type } = Astro.props
     const itemId = popupContainer.dataset.itemId
     const itemType = popupContainer.dataset.itemType as CartItemType
     const requiresAddons = popupContainer.dataset.requiresInitialAddons === 'true'
+    const itemName = popupContainer.dataset.name || document.title
 
     if (itemId && itemType) {
       // Collect selected addons
@@ -1207,6 +1209,9 @@ const { addons, type } = Astro.props
               type: itemType,
               addOns: selectedAddons,
             })
+
+            // Track the add to cart event with addons
+            trackAddToCart(itemId, itemType, itemName, selectedAddons)
           } else {
             // Just update the addons
             updateCartAddons(itemId, itemType, selectedAddons)
@@ -1287,86 +1292,88 @@ const { addons, type } = Astro.props
   }
 
   // Listen for addon popup events
-  listenToAddonsPopup(async ({ itemId, itemType, isEditing, minOneAddon, requiresAddons, addonsChoice, addonData }) => {
-    if (itemId && itemType) {
-      popupContainer.dataset.itemId = itemId
-      popupContainer.dataset.itemType = itemType
-      popupContainer.dataset.requiredAddons = minOneAddon ? 'true' : 'false'
-      popupContainer.dataset.requiresInitialAddons = requiresAddons ? 'true' : 'false'
-      popupContainer.dataset.addonsChoice = addonsChoice || 'unlimited'
+  listenToAddonsPopup(
+    async ({ itemId, itemType, isEditing, minOneAddon, requiresAddons, addonsChoice, addonData, name }) => {
+      if (itemId && itemType) {
+        popupContainer.dataset.itemId = itemId
+        popupContainer.dataset.itemType = itemType
+        popupContainer.dataset.requiredAddons = minOneAddon ? 'true' : 'false'
+        popupContainer.dataset.requiresInitialAddons = requiresAddons ? 'true' : 'false'
+        popupContainer.dataset.addonsChoice = addonsChoice || 'unlimited'
+        popupContainer.dataset.name = name || ''
 
-      // If addonData is present, we're opening from the cart page
-      const isInCartPage = !!addonData
-      popupContainer.dataset.isInCartPage = isInCartPage ? 'true' : 'false'
+        // If addonData is present, we're opening from the cart page
+        const isInCartPage = !!addonData
+        popupContainer.dataset.isInCartPage = isInCartPage ? 'true' : 'false'
 
-      // If addonData was provided from the cart, update the popup content
-      if (addonData) {
-        const addonsWrapper = document.querySelector('.addons-wrapper')
+        // If addonData was provided from the cart, update the popup content
+        if (addonData) {
+          const addonsWrapper = document.querySelector('.addons-wrapper')
 
-        if (addonsWrapper) {
-          // Set data attribute for styling
-          addonsWrapper.setAttribute('data-has-addons', addonData.hasAddons ? 'true' : 'false')
+          if (addonsWrapper) {
+            // Set data attribute for styling
+            addonsWrapper.setAttribute('data-has-addons', addonData.hasAddons ? 'true' : 'false')
 
-          if (addonData.hasAddons) {
-            // Create heading
-            const headingEl = addonsWrapper.querySelector('.heading') as HTMLElement
-            headingEl.textContent = toPlainText(addonData.heading)
+            if (addonData.hasAddons) {
+              // Create heading
+              const headingEl = addonsWrapper.querySelector('.heading') as HTMLElement
+              headingEl.textContent = toPlainText(addonData.heading)
 
-            // Clear and recreate addons list
-            const addonsListEl = addonsWrapper.querySelector('.addons-list') as HTMLElement
-            if (addonsListEl) {
-              addonsListEl.innerHTML = '' // Clear existing content
-              addonsListEl.setAttribute('data-layout', addonData.addonsLayout || 'vertical')
+              // Clear and recreate addons list
+              const addonsListEl = addonsWrapper.querySelector('.addons-list') as HTMLElement
+              if (addonsListEl) {
+                addonsListEl.innerHTML = '' // Clear existing content
+                addonsListEl.setAttribute('data-layout', addonData.addonsLayout || 'vertical')
 
-              // Create each addon item
-              if (addonData.fullAddonsList && addonData.fullAddonsList.length > 0) {
-                addonData.fullAddonsList?.forEach(async (addon: AddonItemType) => {
-                  const hasCounter =
-                    addon.pricing.type === 'per_unit' &&
-                    addon.pricing.perUnit?.hasCount &&
-                    addonData.addonsChoice !== 'limited'
+                // Create each addon item
+                if (addonData.fullAddonsList && addonData.fullAddonsList.length > 0) {
+                  addonData.fullAddonsList?.forEach(async (addon: AddonItemType) => {
+                    const hasCounter =
+                      addon.pricing.type === 'per_unit' &&
+                      addon.pricing.perUnit?.hasCount &&
+                      addonData.addonsChoice !== 'limited'
 
-                  const addonItem = document.createElement('label')
-                  addonItem.className = `addon-item ${addonData.addonsChoice === 'limited' ? 'single-selection' : ''} ${hasCounter ? 'counter-only' : ''}`
-                  addonItem.setAttribute('data-has-description', addon.description ? 'true' : 'false')
-                  addonItem.setAttribute('data-addon-key', addon._key)
-                  addonItem.setAttribute('data-has-counter', hasCounter ? 'true' : 'false')
-                  addonItem.setAttribute('data-has-image', addon.image ? 'true' : 'false')
+                    const addonItem = document.createElement('label')
+                    addonItem.className = `addon-item ${addonData.addonsChoice === 'limited' ? 'single-selection' : ''} ${hasCounter ? 'counter-only' : ''}`
+                    addonItem.setAttribute('data-has-description', addon.description ? 'true' : 'false')
+                    addonItem.setAttribute('data-addon-key', addon._key)
+                    addonItem.setAttribute('data-has-counter', hasCounter ? 'true' : 'false')
+                    addonItem.setAttribute('data-has-image', addon.image ? 'true' : 'false')
 
-                  // Add image if applicable
-                  if (addonData.addonsLayout === 'horizontal' && addonData.addonsHaveImage && addon.image) {
-                    const imgSizes = popupContainer.dataset.imgSizes!
-                    const optimizedImage = await optimizeImage({
-                      image: addon.image.asset.url,
-                      width: addon.image.asset.metadata.dimensions.width,
-                      height: addon.image.asset.metadata.dimensions.height,
-                    })
-                    const img = document.createElement('img')
-                    img.src = optimizedImage.src
-                    img.srcset = optimizedImage.srcSet.attribute
-                    img.sizes = imgSizes
-                    img.alt = addon.name
-                    addonItem.appendChild(img)
-                  }
+                    // Add image if applicable
+                    if (addonData.addonsLayout === 'horizontal' && addonData.addonsHaveImage && addon.image) {
+                      const imgSizes = popupContainer.dataset.imgSizes!
+                      const optimizedImage = await optimizeImage({
+                        image: addon.image.asset.url,
+                        width: addon.image.asset.metadata.dimensions.width,
+                        height: addon.image.asset.metadata.dimensions.height,
+                      })
+                      const img = document.createElement('img')
+                      img.src = optimizedImage.src
+                      img.srcset = optimizedImage.srcSet.attribute
+                      img.sizes = imgSizes
+                      img.alt = addon.name
+                      addonItem.appendChild(img)
+                    }
 
-                  // Add checkbox/radio or counter
-                  if (!hasCounter) {
-                    const input = document.createElement('input')
-                    input.type = addonData.addonsChoice === 'limited' ? 'radio' : 'checkbox'
-                    input.name = 'addon-selection'
-                    input.setAttribute('data-addon-key', addon._key)
-                    input.required = addonData.minOneAddon || false
-                    addonItem.appendChild(input)
+                    // Add checkbox/radio or counter
+                    if (!hasCounter) {
+                      const input = document.createElement('input')
+                      input.type = addonData.addonsChoice === 'limited' ? 'radio' : 'checkbox'
+                      input.name = 'addon-selection'
+                      input.setAttribute('data-addon-key', addon._key)
+                      input.required = addonData.minOneAddon || false
+                      addonItem.appendChild(input)
 
-                    const checkbox = document.createElement('div')
-                    checkbox.className = 'checkbox-custom'
-                    checkbox.innerHTML = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M4.66602 9.1L6.76125 11.5L11.9993 5.5" stroke="#FAF7F7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-                    addonItem.appendChild(checkbox)
-                  } else {
-                    // Add quantity control
-                    const quantityControl = document.createElement('div')
-                    quantityControl.className = 'quantity-control'
-                    quantityControl.innerHTML = `
+                      const checkbox = document.createElement('div')
+                      checkbox.className = 'checkbox-custom'
+                      checkbox.innerHTML = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none"><path d="M4.66602 9.1L6.76125 11.5L11.9993 5.5" stroke="#FAF7F7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+                      addonItem.appendChild(checkbox)
+                    } else {
+                      // Add quantity control
+                      const quantityControl = document.createElement('div')
+                      quantityControl.className = 'quantity-control'
+                      quantityControl.innerHTML = `
                       <input type="number" min="0" value="0" data-quantity-for="${addon._key}" class="quantity-input">
                       <button type="button" class="quantity-decrease">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
@@ -1379,35 +1386,35 @@ const { addons, type } = Astro.props
                         </svg>
                       </button>
                     `
-                    addonItem.appendChild(quantityControl)
-                  }
+                      addonItem.appendChild(quantityControl)
+                    }
 
-                  // Add name
-                  const nameSpan = document.createElement('span')
-                  nameSpan.className = 'addon-name'
-                  nameSpan.textContent = addon.name
-                  addonItem.appendChild(nameSpan)
+                    // Add name
+                    const nameSpan = document.createElement('span')
+                    nameSpan.className = 'addon-name'
+                    nameSpan.textContent = addon.name
+                    addonItem.appendChild(nameSpan)
 
-                  // Add description if available
-                  if (addon.description) {
-                    const descP = document.createElement('p')
-                    descP.className = 'addon-description'
-                    descP.textContent = addon.description
-                    addonItem.appendChild(descP)
-                  }
+                    // Add description if available
+                    if (addon.description) {
+                      const descP = document.createElement('p')
+                      descP.className = 'addon-description'
+                      descP.textContent = addon.description
+                      addonItem.appendChild(descP)
+                    }
 
-                  // Add price info
-                  const priceDiv = document.createElement('div')
-                  priceDiv.className = 'addon-price'
-                  priceDiv.setAttribute('data-pricing', addon.pricing.type)
+                    // Add price info
+                    const priceDiv = document.createElement('div')
+                    priceDiv.className = 'addon-price'
+                    priceDiv.setAttribute('data-pricing', addon.pricing.type)
 
-                  // Render price based on type
-                  if (addon.pricing.type === 'fixed') {
-                    priceDiv.innerHTML = `<strong>${addon.pricing.fixedPrice} ${t.currency}</strong>`
-                  } else if (addon.pricing.type === 'per_unit') {
-                    priceDiv.innerHTML = `<span><strong>${addon.pricing.perUnit?.price} ${t.currency}</strong>/${addon.pricing.perUnit?.singular}</span>`
-                  } else if (addon.pricing.type === 'threshold') {
-                    priceDiv.innerHTML = `
+                    // Render price based on type
+                    if (addon.pricing.type === 'fixed') {
+                      priceDiv.innerHTML = `<strong>${addon.pricing.fixedPrice} ${t.currency}</strong>`
+                    } else if (addon.pricing.type === 'per_unit') {
+                      priceDiv.innerHTML = `<span><strong>${addon.pricing.perUnit?.price} ${t.currency}</strong>/${addon.pricing.perUnit?.singular}</span>`
+                    } else if (addon.pricing.type === 'threshold') {
+                      priceDiv.innerHTML = `
                       <span>
                         <span>
                           <strong>${addon.pricing.threshold?.basePrice} ${t.currency}</strong>/${t.upTo} ${addon.pricing.threshold?.maxUnits} ${addon.pricing.threshold?.singular}
@@ -1420,90 +1427,91 @@ const { addons, type } = Astro.props
                         </span>
                       </span>
                     `
-                  } else if (addon.pricing.type === 'individual') {
-                    priceDiv.innerHTML = `<strong>${t.individualQuote}</strong>`
-                  }
+                    } else if (addon.pricing.type === 'individual') {
+                      priceDiv.innerHTML = `<strong>${t.individualQuote}</strong>`
+                    }
 
-                  addonItem.appendChild(priceDiv)
-                  addonsListEl.appendChild(addonItem)
-                })
+                    addonItem.appendChild(priceDiv)
+                    addonsListEl.appendChild(addonItem)
+                  })
+                }
               }
             }
           }
         }
-      }
 
-      // Remove existing event listeners before setting up new ones
-      removeEventListeners()
+        // Remove existing event listeners before setting up new ones
+        removeEventListeners()
 
-      // Set up input change listeners
-      setTimeout(() => {
-        setupAddonEventListeners()
-      }, 200)
+        // Set up input change listeners
+        setTimeout(() => {
+          setupAddonEventListeners()
+        }, 200)
 
-      // Reset all quantity inputs to 0 and uncheck all checkboxes/radio buttons
-      setTimeout(() => {
-        document
-          .querySelectorAll('.addons-popup input[type="checkbox"], .addons-popup input[type="radio"]')
-          .forEach((input) => {
-            ;(input as HTMLInputElement).checked = false
-            input.removeAttribute('data-was-checked')
-            const label = input.closest('.addon-item')
-            if (label) {
-              label.setAttribute('data-selected', 'false')
-            }
-            // Remove animation class from checkbox custom
-            const checkboxCustom = input.nextElementSibling as HTMLElement
-            if (checkboxCustom) {
-              checkboxCustom.classList.remove('animate')
-            }
+        // Reset all quantity inputs to 0 and uncheck all checkboxes/radio buttons
+        setTimeout(() => {
+          document
+            .querySelectorAll('.addons-popup input[type="checkbox"], .addons-popup input[type="radio"]')
+            .forEach((input) => {
+              ;(input as HTMLInputElement).checked = false
+              input.removeAttribute('data-was-checked')
+              const label = input.closest('.addon-item')
+              if (label) {
+                label.setAttribute('data-selected', 'false')
+              }
+              // Remove animation class from checkbox custom
+              const checkboxCustom = input.nextElementSibling as HTMLElement
+              if (checkboxCustom) {
+                checkboxCustom.classList.remove('animate')
+              }
+            })
+
+          document.querySelectorAll('.quantity-input').forEach((input) => {
+            ;(input as HTMLInputElement).value = '0'
           })
 
-        document.querySelectorAll('.quantity-input').forEach((input) => {
-          ;(input as HTMLInputElement).value = '0'
-        })
+          // Reset counter-only items
+          document.querySelectorAll('.addon-item[data-has-counter="true"]').forEach((item) => {
+            item.setAttribute('data-selected', 'false')
+          })
 
-        // Reset counter-only items
-        document.querySelectorAll('.addon-item[data-has-counter="true"]').forEach((item) => {
-          item.setAttribute('data-selected', 'false')
-        })
-
-        // If editing, load current addons after resetting
-        if (isEditing && isInCart(itemId, itemType)) {
-          const cartItem = getCartItem(itemId, itemType)
-          if (cartItem) {
-            const addons = Array.isArray(cartItem.addOns) ? cartItem.addOns : []
-            preSelectAddons(addons)
+          // If editing, load current addons after resetting
+          if (isEditing && isInCart(itemId, itemType)) {
+            const cartItem = getCartItem(itemId, itemType)
+            if (cartItem) {
+              const addons = Array.isArray(cartItem.addOns) ? cartItem.addOns : []
+              preSelectAddons(addons)
+            }
           }
-        }
-      }, 100)
+        }, 100)
 
-      // Trigger the popup to open
-      popupTrigger.click()
+        // Trigger the popup to open
+        popupTrigger.click()
 
-      // Focus management - wait for popup to be visible
-      setTimeout(() => {
-        // Check if there are addons
-        const hasAddonsInPopup = document.querySelector('.addons-list')
+        // Focus management - wait for popup to be visible
+        setTimeout(() => {
+          // Check if there are addons
+          const hasAddonsInPopup = document.querySelector('.addons-list')
 
-        if (hasAddonsInPopup) {
-          // Find first focusable addon input
-          const firstInput = document.querySelector(
-            '.addons-popup input[type="checkbox"], .addons-popup input[type="radio"], .addons-popup .quantity-input'
-          ) as HTMLElement
-          if (firstInput) {
-            firstInput.focus()
+          if (hasAddonsInPopup) {
+            // Find first focusable addon input
+            const firstInput = document.querySelector(
+              '.addons-popup input[type="checkbox"], .addons-popup input[type="radio"], .addons-popup .quantity-input'
+            ) as HTMLElement
+            if (firstInput) {
+              firstInput.focus()
+            }
+          } else {
+            // If no addons, focus on the first button
+            const firstButton = document.querySelector('.addons-popup button.continue-browsing') as HTMLElement
+            if (firstButton) {
+              firstButton.focus()
+            }
           }
-        } else {
-          // If no addons, focus on the first button
-          const firstButton = document.querySelector('.addons-popup button.continue-browsing') as HTMLElement
-          if (firstButton) {
-            firstButton.focus()
-          }
-        }
-      }, 200) // Wait for popup animation
+        }, 200) // Wait for popup animation
+      }
     }
-  })
+  )
 
   // Helper function to set up event listeners for addon inputs
   function setupAddonEventListeners() {

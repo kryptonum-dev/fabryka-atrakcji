@@ -113,6 +113,48 @@ export async function trackEvent({ event_name, user_data, meta, ecommerce }: Pro
   }
 }
 
+/**
+ * Helper function specifically for tracking add_to_cart events
+ *
+ * @param {string} itemId - The ID of the item being added to cart
+ * @param {string} itemType - The type of item ('hotels' or 'activities')
+ * @param {string} itemName - The name of the item
+ * @param {Array} addons - Optional array of addons selected with the item
+ */
+export function trackAddToCart(
+  itemId: string,
+  itemType: 'hotels' | 'activities',
+  itemName: string,
+  addons: any[] = []
+) {
+  // Get item category based on type
+  const category = itemType === 'hotels' ? 'hotel' : 'activity'
+
+  // Track the event
+  trackEvent({
+    event_name: 'add_to_cart',
+    meta: {
+      content_name: document.title,
+      // For Meta, use standard add_to_cart event name
+      event_name: 'AddToCart',
+    },
+    ecommerce: {
+      items: [
+        {
+          item_id: itemId,
+          item_name: itemName,
+          item_category: category,
+          quantity: 1,
+        },
+      ],
+      currency: 'PLN',
+      // Include addon information if available
+      addons_count: addons.length,
+      has_addons: addons.length > 0,
+    },
+  })
+}
+
 // Declare global dataLayer
 declare global {
   interface Window {

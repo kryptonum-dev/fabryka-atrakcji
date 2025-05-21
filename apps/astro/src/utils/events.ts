@@ -17,6 +17,7 @@ interface AddonsPopupDetail {
   requiresAddons: boolean
   addonsChoice: string
   addonData?: any // Optional addon data for dynamic rendering
+  name?: string // Optional name of the item
 }
 
 interface CartUpdateDetail {
@@ -56,6 +57,7 @@ export function dispatchAddonsPopup({
   requiresAddons,
   addonsChoice,
   addonData,
+  name,
 }: AddonsPopupDetail) {
   document.dispatchEvent(
     new CustomEvent('open-addons-popup', {
@@ -68,6 +70,7 @@ export function dispatchAddonsPopup({
         requiresAddons,
         addonsChoice,
         addonData,
+        name,
       },
       bubbles: true,
     })

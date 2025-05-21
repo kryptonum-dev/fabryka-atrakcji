@@ -1150,6 +1150,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 <script>
   import { addToCart, isInCart } from '@/src/store/cart'
   import { dispatchCartUpdate, dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
+  import { trackAddToCart } from '@/src/utils/track-event'
 
   // Get references to the hero section and button
   const heroSection = document.querySelector('.Hero')! as HTMLElement
@@ -1161,6 +1162,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   const hasAddons = heroSection.dataset.hasAddons === 'true'
   const requiresAddons = hasAddons && heroSection.dataset.minOneAddon === 'true'
   const translations = JSON.parse(heroSection.getAttribute('data-text') || '{}')
+  const itemName = heroSection.dataset.name || ''
 
   // Function to update the button text based on cart state
   function updateButtonState() {
@@ -1208,6 +1210,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         minOneAddon: heroSection.dataset.minOneAddon === 'true',
         requiresAddons,
         addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
+        name: itemName,
       })
     } else {
       // Add to cart immediately if no addons required
@@ -1216,6 +1219,9 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         type: itemType,
         addOns: [],
       })
+
+      // Track the add to cart event
+      trackAddToCart(itemId, itemType, itemName)
 
       // If has optional addons, open the popup
       dispatchAddonsPopup({
@@ -1226,6 +1232,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         minOneAddon: false,
         requiresAddons: false,
         addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
+        name: itemName,
       })
 
       // Update button text
