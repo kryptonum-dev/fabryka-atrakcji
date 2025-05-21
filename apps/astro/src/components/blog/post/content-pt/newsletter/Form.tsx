@@ -8,6 +8,7 @@ import { useState } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '@/components/ui/FormState'
 import Loader from '@/components/ui/Loader'
+import { trackEvent } from '@/src/utils/track-event'
 
 export default function Form({
   lang = 'pl',
@@ -41,6 +42,17 @@ export default function Form({
     if (isSuccess) {
       setStatus({ sending: false, success: true })
       reset()
+
+      // Track subscribe event
+      trackEvent({
+        user_data: {
+          email: data.email,
+        },
+        meta: {
+          event_name: 'subscribe',
+          content_name: 'Blog Newsletter Subscription',
+        },
+      })
     } else {
       setStatus({ sending: false, success: false })
     }
@@ -55,6 +67,17 @@ export default function Form({
     //   if (response.ok && responseData.success) {
     //     setStatus({ sending: false, success: true })
     //     reset()
+    //
+    //     // Track subscribe event
+    //     trackEvent({
+    //       user_data: {
+    //         email: data.email
+    //       },
+    //       meta: {
+    //         event_name: 'subscribe',
+    //         content_name: 'Blog Newsletter Subscription'
+    //       }
+    //     })
     //   } else {
     //     setStatus({ sending: false, success: false })
     //   }

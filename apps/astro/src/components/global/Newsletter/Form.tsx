@@ -8,6 +8,7 @@ import { useState, useEffect } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
+import { trackEvent } from '@/src/utils/track-event'
 
 export default function Form({
   lang = 'pl',
@@ -50,6 +51,17 @@ export default function Form({
       if (response.ok && responseData.success) {
         updateStatus({ sending: false, success: true })
         reset()
+
+        // Track subscribe event
+        trackEvent({
+          user_data: {
+            email: data.email,
+          },
+          meta: {
+            event_name: 'subscribe',
+            content_name: 'Global Newsletter Subscription',
+          },
+        })
       } else {
         updateStatus({ sending: false, success: false })
       }

@@ -89,6 +89,7 @@ export async function sendMetaConversion(request: Request, data: MetaConversionP
         event_time: data.event_time,
         action_source: 'website',
         user_data,
+        referer_url: referer,
         custom_data: {
           content_name: data.content_name,
           ...data.custom_parameters,
