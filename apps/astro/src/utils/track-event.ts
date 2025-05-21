@@ -1,14 +1,30 @@
 import type { MetaConversionProps } from '../pages/api/analytics/meta-conversion'
 
+type Item = {
+  item_id: string
+  item_name: string
+  item_category?: string
+  price?: number
+  quantity?: number
+  [key: string]: any
+}
+
 type Props = {
+  event_name: string // Required top-level parameter for all tracking
   user_data?: {
     email?: string
     name?: string
     phone?: string
   }
   meta?: {
-    event_name: string
-    content_name: string
+    event_name?: string // Optional, override for Meta (if different from GTM)
+    content_name: string // Required for Meta tracking
+  }
+  ecommerce?: {
+    items: Item[]
+    currency?: string
+    value?: number
+    [key: string]: any
   }
 }
 
@@ -20,15 +36,18 @@ type Props = {
  * event ID for deduplication.
  *
  * @param {Object} params - The tracking parameters
+ * @param {string} params.event_name - Required name of the event to track (for GTM/GA4)
  * @param {Object} [params.user_data] - Optional user data for personalized tracking
  * @param {string} [params.user_data.email] - User's email address
  * @param {string} [params.user_data.name] - User's name
  * @param {string} [params.user_data.phone] - User's phone number
- * @param {Object} [params.meta] - Meta tracking configuration
- * @param {string} params.meta.event_name - Name of the event to track
- * @param {string} params.meta.content_name - Name of the content associated with the event
+ * @param {Object} [params.meta] - Meta-specific tracking configuration
+ * @param {string} [params.meta.event_name] - Override event name for Meta (if different from GTM)
+ * @param {string} params.meta.content_name - Content name for Meta tracking
+ * @param {Object} [params.ecommerce] - E-commerce data for product tracking
+ * @param {Array} [params.ecommerce.items] - Array of products being viewed or interacted with
  */
-export async function trackEvent({ user_data, meta }: Props) {
+export async function trackEvent({ event_name, user_data, meta, ecommerce }: Props) {
   const event_time = {
     milliseconds: Date.now(),
     seconds: Math.floor(Date.now() / 1000),
@@ -36,25 +55,30 @@ export async function trackEvent({ user_data, meta }: Props) {
   const event_id = `${event_time.milliseconds}_${Math.random().toString(36).substring(2, 15)}`
   const url = window.location.href
 
-  if (meta) {
-    try {
-      // Push to dataLayer for GTM
-      window.dataLayer = window.dataLayer || []
-      window.dataLayer.push({
-        event: meta.event_name,
-        content_name: meta.content_name,
-        event_id,
-        event_time: event_time.seconds,
-        ...(user_data && { user_data }),
-      })
-    } catch (error) {
-      console.warn('Failed to push to dataLayer:', error)
-    }
+  try {
+    // Push to dataLayer for GTM
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: event_name,
+      // Include meta_content_name only if meta object is provided
+      ...(meta?.content_name && { meta_content_name: meta.content_name }),
+      event_id,
+      event_time: event_time.seconds,
+      ...(user_data && { user_data }),
+      ...(ecommerce && { ecommerce }),
+    })
+  } catch (error) {
+    console.warn('Failed to push to dataLayer:', error)
+  }
 
+  // Only send to Meta Conversion API if we have the required meta configuration
+  if (meta?.content_name) {
     try {
-      // Send to Meta Conversion API
+      // For Meta, use override event_name if provided, otherwise fall back to main event_name
+      const metaEventName = meta.event_name || event_name
+
       const payload: MetaConversionProps = {
-        event_name: meta.event_name,
+        event_name: metaEventName,
         content_name: meta.content_name,
         url,
         event_id,
@@ -62,6 +86,16 @@ export async function trackEvent({ user_data, meta }: Props) {
         ...(user_data?.name && { name: user_data.name }),
         ...(user_data?.email && { email: user_data.email }),
         ...(user_data?.phone && { phone: user_data.phone }),
+        // Add basic product info for Meta if available
+        ...(ecommerce?.items && {
+          custom_parameters: {
+            content_ids: ecommerce.items.map((item) => item.item_id),
+            content_category: ecommerce.items[0]?.item_category,
+            content_type: 'product',
+            currency: ecommerce.currency || 'PLN',
+            value: ecommerce.value,
+          },
+        }),
       }
 
       const response = await fetch('/api/analytics/meta-conversion', {

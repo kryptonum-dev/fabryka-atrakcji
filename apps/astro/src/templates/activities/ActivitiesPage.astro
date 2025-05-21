@@ -183,3 +183,72 @@ const breadcrumbs = [
   />
   <Components data={page.listing.length > 0 ? page.components : page.noResults.components} hasPreviousSections />
 </Layout>
+
+<script>
+  import { trackEvent } from '@/src/utils/track-event'
+
+  // Track activities list view
+  document.addEventListener('DOMContentLoaded', () => {
+    // Get activity items from the page
+    const activityItems = document.querySelectorAll('.activity-item') as NodeListOf<HTMLElement>
+    if (!activityItems.length) return
+
+    // Get category information
+    const categoryName =
+      document.querySelector('.breadcrumb-item:nth-last-child(2)')?.textContent?.trim() || 'All Activities'
+
+    // Create array of items for tracking
+    const items = Array.from(activityItems)
+      .slice(0, 10)
+      .map((activity, index) => {
+        const activityId = activity.dataset.itemId || ''
+        const activityName = activity.querySelector('.title')?.textContent?.trim() || ''
+        let price = 0
+
+        // Try to extract price information
+        const priceElement = activity.querySelector('.price strong')
+        if (priceElement) {
+          // Extract only numbers from the price text
+          const priceText = priceElement.textContent?.trim() || ''
+          const priceMatch = priceText.match(/\d+/)
+          if (priceMatch) {
+            price = parseInt(priceMatch[0], 10)
+          }
+        }
+
+        // Activity specific metrics
+        const minParticipants = parseInt(activity.dataset.minParticipants || '0', 10)
+        const maxParticipants = parseInt(activity.dataset.maxParticipants || '0', 10)
+        const duration = activity.querySelector('.duration')?.textContent?.trim() || ''
+        const activityType = activity.dataset.activityType || ''
+
+        return {
+          item_id: activityId,
+          item_name: activityName,
+          item_category: 'activity',
+          item_category2: activityType,
+          price: price,
+          index: index,
+          min_participants: minParticipants,
+          max_participants: maxParticipants,
+          duration: duration,
+        }
+      })
+
+    // Track the event if we have items
+    if (items.length > 0) {
+      trackEvent({
+        event_name: 'view_item_list',
+        meta: {
+          content_name: document.title,
+        },
+        ecommerce: {
+          items: items,
+          currency: 'PLN',
+          item_list_name: categoryName,
+          item_list_id: document.location.pathname,
+        },
+      })
+    }
+  })
+</script>

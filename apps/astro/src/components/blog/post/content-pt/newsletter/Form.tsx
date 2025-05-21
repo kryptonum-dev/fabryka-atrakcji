@@ -45,11 +45,11 @@ export default function Form({
 
       // Track subscribe event
       trackEvent({
+        event_name: 'subscribe',
         user_data: {
           email: data.email,
         },
         meta: {
-          event_name: 'subscribe',
           content_name: 'Blog Newsletter Subscription',
         },
       })

@@ -47,12 +47,12 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
 
         // Track lead event
         trackEvent({
+          event_name: 'lead',
           user_data: {
             email: data.email,
             phone: data.phone || undefined,
           },
           meta: {
-            event_name: 'lead',
             content_name: 'Contact Form Submission',
           },
         })

@@ -47,12 +47,12 @@ export default function Form({
         reset()
 
         trackEvent({
+          event_name: 'lead',
           user_data: {
             email: data.email,
             phone: data.phone || undefined,
           },
           meta: {
-            event_name: 'lead',
             content_name: 'Contact Form Submission',
           },
         })
