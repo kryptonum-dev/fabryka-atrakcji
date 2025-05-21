@@ -48,6 +48,7 @@ export async function sendMetaConversion(request: Request, data: MetaConversionP
 
   // Check consent
   const cookie_consent = JSON.parse(getCookie('cookie-consent', request.headers) || '{}')
+  console.log(cookie_consent)
   if (cookie_consent.conversion_api !== 'granted') {
     throw new Error('Conversion API tracking not permitted by user')
   }
@@ -125,7 +126,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const data = (await request.json()) as MetaConversionProps
 
-    await sendMetaConversion(request, data)
+    // await sendMetaConversion(request, data)
 
     return new Response(
       JSON.stringify({

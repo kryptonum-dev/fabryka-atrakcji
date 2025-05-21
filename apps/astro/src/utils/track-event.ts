@@ -93,7 +93,7 @@ export async function trackEvent({ event_name, user_data, meta, ecommerce }: Pro
             content_category: ecommerce.items[0]?.item_category,
             content_type: 'product',
             currency: ecommerce.currency || 'PLN',
-            value: ecommerce.value,
+            ...(ecommerce.value && { value: ecommerce.value }),
           },
         }),
       }

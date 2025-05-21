@@ -521,7 +521,7 @@ const groups = [
   function setCookie(name, value, days = 1) {
     const date = new Date(Date.now() + 86400000 * days)
     const expires = days ? `; expires=${date.toUTCString()}` : ''
-    document.cookie = `${name}=${encodeURIComponent(value)}${expires}; SameSite=Strict;`
+    document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Strict;`
   }
   function setConsent(consent) {
     const consentMode = {
@@ -567,7 +567,7 @@ const groups = [
   // Function to track page view
   function trackPageView() {
     // Send to server-side tracking
-    const event_time = Math.floor(Date.now() / 1000)
+    // const event_time = Math.floor(Date.now() / 1000)
     const event_id = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
     const url = window.location.href
 
@@ -581,17 +581,17 @@ const groups = [
     })
 
     try {
-      fetch('/api/analytics/meta-conversion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          event_name: 'page_view',
-          content_name: document.title,
-          url,
-          event_id,
-          event_time,
-        }),
-      }).catch((error) => console.warn('Failed to track page view:', error))
+      // fetch('/api/analytics/meta-conversion', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     event_name: 'page_view',
+      //     content_name: document.title,
+      //     url,
+      //     event_id,
+      //     event_time,
+      //   }),
+      // }).catch((error) => console.warn('Failed to track page view:', error))
     } catch (error) {
       console.warn('Error tracking page view:', error)
     }

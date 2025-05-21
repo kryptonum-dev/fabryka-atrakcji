@@ -252,47 +252,22 @@ console.log(page.activitiesCarousel)
     // Track search results (similar to activities listing)
     function trackSearchResults() {
       // Get activity items from the page (activities in search results)
-      const activityItems = document.querySelectorAll('.activity-item') as NodeListOf<HTMLElement>
+      const activityItems = document.querySelectorAll('[data-activity-card]') as NodeListOf<HTMLElement>
       if (!activityItems.length) return
 
       // Create array of items for tracking
       const items = Array.from(activityItems)
         .slice(0, 10)
-        .map((activity, index) => {
-          const activityId = activity.dataset.itemId || ''
-          const activityName = activity.querySelector('.title')?.textContent?.trim() || ''
-          let price = 0
-
-          // Try to extract price information
-          const priceElement = activity.querySelector('.price strong')
-          if (priceElement) {
-            // Extract only numbers from the price text
-            const priceText = priceElement.textContent?.trim() || ''
-            const priceMatch = priceText.match(/\d+/)
-            if (priceMatch) {
-              price = parseInt(priceMatch[0], 10)
-            }
-          }
-
-          // Activity specific metrics
-          const minParticipants = parseInt(activity.dataset.minParticipants || '0', 10)
-          const maxParticipants = parseInt(activity.dataset.maxParticipants || '0', 10)
-          const duration = activity.querySelector('.duration')?.textContent?.trim() || ''
-          const activityType = activity.dataset.activityType || ''
+        .map((activity) => {
+          const activityName = activity.dataset.activityName || ''
+          const activityId = activity.dataset.activityId || ''
 
           return {
-            item_id: activityId,
             item_name: activityName,
             item_category: 'activity',
-            item_category2: activityType,
-            price: price,
-            index: index,
-            min_participants: minParticipants,
-            max_participants: maxParticipants,
-            duration: duration,
+            item_id: activityId,
           }
         })
-
       // Track the event if we have items
       if (items.length > 0) {
         trackEvent({
@@ -313,27 +288,21 @@ console.log(page.activitiesCarousel)
     // Track categories listing
     function trackCategories() {
       // Get category items from the page
-      const categoryItems = document.querySelectorAll('.category-item') as NodeListOf<HTMLElement>
+      const categoryItems = document
+        .querySelector('.Listing')
+        ?.querySelectorAll('.CategoryBlock') as NodeListOf<HTMLElement>
+
       if (!categoryItems.length) return
 
       // Create array of items for tracking
-      const items = Array.from(categoryItems).map((category, index) => {
+      const items = Array.from(categoryItems).map((category) => {
+        const categoryName = category.querySelector('.title .text')?.textContent?.trim() || ''
         const categoryId = category.dataset.categoryId || ''
-        const categoryName = category.querySelector('.title')?.textContent?.trim() || ''
-        const categoryImage = category.querySelector('img')?.src || ''
-
-        // Count of activities in this category if available
-        const countText = category.querySelector('.count')?.textContent?.trim() || ''
-        const countMatch = countText.match(/\d+/)
-        const activityCount = countMatch ? parseInt(countMatch[0], 10) : 0
 
         return {
-          item_id: categoryId,
           item_name: categoryName,
           item_category: 'activity_category',
-          index: index,
-          activity_count: activityCount,
-          image_url: categoryImage,
+          item_id: categoryId,
         }
       })
 

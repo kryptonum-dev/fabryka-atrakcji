@@ -160,42 +160,23 @@ const breadcrumbs = [
   // Track hotels list view
   document.addEventListener('DOMContentLoaded', () => {
     // Get hotel items from the page
-    const hotelItems = document.querySelectorAll('.hotel-item') as NodeListOf<HTMLElement>
+    const hotelItems = document.querySelectorAll('.HotelCard') as NodeListOf<HTMLElement>
     if (!hotelItems.length) return
 
     // Create array of items for tracking
     const items = Array.from(hotelItems)
       .slice(0, 10)
-      .map((hotel, index) => {
-        const hotelId = hotel.dataset.itemId || ''
+      .map((hotel) => {
         const hotelName = hotel.querySelector('.title')?.textContent?.trim() || ''
-        let price = 0
-
-        // Try to extract price information
-        const priceElement = hotel.querySelector('.price strong')
-        if (priceElement) {
-          // Extract only numbers from the price text
-          const priceText = priceElement.textContent?.trim() || ''
-          const priceMatch = priceText.match(/\d+/)
-          if (priceMatch) {
-            price = parseInt(priceMatch[0], 10)
-          }
-        }
-
-        // Get hotel location if available
-        const location = hotel.querySelector('.location')?.textContent?.trim() || ''
+        const hotelId = hotel.dataset.id || ''
 
         return {
-          item_id: hotelId,
           item_name: hotelName,
           item_category: 'hotel',
-          price: price,
-          index: index,
-          location: location,
+          item_id: hotelId,
         }
       })
 
-    // Track the event if we have items
     if (items.length > 0) {
       trackEvent({
         event_name: 'view_item_list',

@@ -20,6 +20,7 @@ export const ActivityCardQuery = `
 
 export type ActivityCardProps = {
   name: string
+  _id: string
   imageList: ImageDataProps[]
   description?: string
   participantsCount: {
@@ -40,6 +41,7 @@ export default function ActivityCard({
   clientImage,
   children,
   headingLevel,
+  _id,
 }: ActivityCardProps & {
   children?: React.ReactNode
   clientImage?: { image: GetImageResult; fetchPriority: 'high' | 'auto'; loading: 'eager' | 'lazy'; sizes: string }
@@ -49,7 +51,7 @@ export default function ActivityCard({
   const Heading = headingLevel || 'h3'
 
   return (
-    <article className={styles['ActivityCard']}>
+    <article className={styles['ActivityCard']} data-activity-card data-activity-name={name} data-activity-id={_id}>
       <a href={slug || '/'}>
         <div className={styles.imgWrapper}>
           {isRecent && (
