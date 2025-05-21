@@ -103,6 +103,15 @@ export default defineType({
       description: 'Plik PDF do udostępnienia dla subskrybentów newslettera',
     }),
     defineField({
+      name: 'newsletterPdfGroups',
+      type: 'array',
+      title: 'Grupy z dostępem do PDF',
+      description:
+        'Lista ID grup z MailerLite, które mają dostęp do pliku PDF. Pozostaw puste, aby umożliwić dostęp wszystkim.',
+      of: [{ type: 'string' }],
+      group: 'newsletter',
+    }),
+    defineField({
       name: 'analytics',
       title: 'Analytika',
       group: 'analytics',

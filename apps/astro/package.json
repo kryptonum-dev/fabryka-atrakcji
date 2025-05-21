@@ -19,6 +19,7 @@
     "astro": "^5.3.1",
     "astro-portabletext": "^0.11.1",
     "embla-carousel-react": "^8.5.2",
+    "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
     "nanostores": "^1.0.1",
     "react-hook-form": "^7.54.2",
@@ -27,18 +28,19 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "@types/jsonwebtoken": "^9.0.9",
     "@typescript-eslint/parser": "^8.25.0",
+    "autoprefixer": "^10.4.20",
+    "cssnano": "^7.0.6",
     "eslint": "^9.21.0",
     "eslint-plugin-astro": "^1.3.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "sass": "^1.85.1",
-    "typescript": "^5.7.3",
-    "autoprefixer": "^10.4.20",
-    "cssnano": "^7.0.6",
-    "prettier-plugin-astro": "^0.14.1",
     "postcss-combine-media-query": "^1.0.1",
     "postcss-import": "^16.1.0",
-    "postcss-mixins": "^11.0.3"
+    "postcss-mixins": "^11.0.3",
+    "prettier-plugin-astro": "^0.14.1",
+    "sass": "^1.85.1",
+    "typescript": "^5.7.3"
   },
   "overrides": {
     "react": "bun:@preact/compat@latest",
