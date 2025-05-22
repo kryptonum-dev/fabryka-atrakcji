@@ -7,9 +7,13 @@ import sanityFetch from '../utils/sanity.fetch'
 
 const lang = getLangFromPath(Astro.url.pathname)
 
-const { GTM_ID, MEASUREMENT_ID, privacyPolicySlug } = await sanityFetch<{
+const {
+  GTM_ID,
+  Measurement_ID: MEASUREMENT_ID,
+  privacyPolicySlug,
+} = await sanityFetch<{
   GTM_ID: string
-  MEASUREMENT_ID: string
+  Measurement_ID: string
   privacyPolicySlug: string
 }>({
   query: `
