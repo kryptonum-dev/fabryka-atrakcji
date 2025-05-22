@@ -47,7 +47,7 @@ export default function Form({
         reset()
 
         trackEvent({
-          event_name: 'lead',
+          event_name: 'contact',
           user_data: {
             email: data.email,
             phone: data.phone || undefined,
