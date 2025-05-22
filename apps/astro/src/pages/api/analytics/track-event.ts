@@ -67,25 +67,24 @@ export async function trackEvent({ user_data, meta, ga }: Props) {
         name: user_data?.name,
         email: user_data?.email,
         phone: user_data?.phone,
-        ...(meta?.params && { custom_event_params: meta.params }),
+        ...(meta?.params && { custom_event_params: { ...meta.params, test_event_code: 'TEST81705' } }),
       }
-      //   const response = await fetch('/api/analytics/meta-conversion', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify(payload),
-      //   })
+      const response = await fetch('/api/analytics/meta-conversion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-      //   if (!response.ok) console.warn('Meta conversion event failed: Unable to process conversion event')
+      if (!response.ok) console.warn('Meta conversion event failed: Unable to process conversion event')
     } catch {
       console.warn('Failed to send Meta conversion event')
     }
   }
   if (ga && typeof window.gtag === 'function') {
     try {
-      // Direct to GA4 approach - specify the Measurement ID
       window.gtag('event', ga.event_name, {
         ...(ga.params || {}),
-        send_to: 'G-344E26ZD3G', // Replace with your actual GA4 Measurement ID variable
+        send_to: 'G-344E26ZD3G',
       })
     } catch (e) {
       console.warn(`Failed to track GA4 event "${ga.event_name}"`, e)
