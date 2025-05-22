@@ -50,7 +50,7 @@ export default function Form({
           event_name: 'contact',
           user_data: {
             email: data.email,
-            phone: data.phone || undefined,
+            phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
           },
           meta: {
             content_name: 'Contact Form Submission',

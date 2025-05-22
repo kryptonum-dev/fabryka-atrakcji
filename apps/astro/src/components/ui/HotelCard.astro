@@ -117,9 +117,10 @@ const getVoivodeship = (voivodeship: string) => {
       return voivodeship
   }
 }
+
 ---
 
-<article class="HotelCard" data-variant={variant} data-id={_id}>
+<article class="HotelCard" data-variant={variant} data-id={_id} data-pricing={pricing?.pricePerPerson || 200}>
   <div class="wrapper">
     <a href={slug} class="background" aira-label={t.button}></a>
     <div class="content">

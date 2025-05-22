@@ -166,14 +166,17 @@ const breadcrumbs = [
     // Create array of items for tracking
     const items = Array.from(hotelItems)
       .slice(0, 10)
-      .map((hotel) => {
+      .map((hotel, index) => {
         const hotelName = hotel.querySelector('.title')?.textContent?.trim() || ''
         const hotelId = hotel.dataset.id || ''
+        const hotelPricing = hotel.dataset.pricing || 200
 
         return {
           item_name: hotelName,
           item_category: 'hotel',
           item_id: hotelId,
+          item_price: hotelPricing,
+          index,
         }
       })
 

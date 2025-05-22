@@ -139,7 +139,7 @@ export default function QuoteForm({
         event_name: 'lead',
         user_data: {
           email: data.email,
-          phone: data.phone || undefined,
+          phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
         },
         meta: {
           event_name: 'Lead',
