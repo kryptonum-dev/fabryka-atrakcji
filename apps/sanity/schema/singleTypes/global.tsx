@@ -135,6 +135,13 @@ export default defineType({
             }),
         }),
         defineField({
+          name: 'measurement_id',
+          type: 'string',
+          title: 'Google Analytics Measurement ID',
+          description: 'Format: G-XXXXXXXXXX. Używane do śledzenia Google Analytics.',
+          validation: (Rule) => Rule.required().error('Google Analytics Measurement ID jest wymagane'),
+        }),
+        defineField({
           name: 'meta_pixel_id',
           type: 'string',
           title: 'ID Meta (Facebook) Pixel',
