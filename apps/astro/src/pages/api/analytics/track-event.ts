@@ -45,18 +45,14 @@ export async function trackEvent({ user_data, meta, ga }: Props) {
 
   if (meta) {
     try {
-      if (typeof window.fbq !== 'undefined') {
-        window.fbq(
-          'track',
-          meta.event_name,
-          {
-            content_name: meta.content_name,
-            ...(user_data?.email && { email: user_data.email }),
-            ...(user_data?.name && { name: user_data.name }),
-            ...(user_data?.phone && { phone: user_data.phone }),
-          },
-          { eventID: event_id }
-        )
+      if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+        // Build event parameters by combining content_name and custom params if provided
+        const eventParams = {
+          ...(meta?.content_name ? { content_name: meta.content_name } : {}),
+          ...(meta?.params || {}),
+        }
+
+        window.fbq('track', meta.event_name, eventParams, { eventID: event_id })
       }
     } catch {
       console.warn('Failed to track client-side fbq function')
