@@ -205,6 +205,12 @@ export default defineType({
               type: 'string',
             }),
             defineField({
+              name: 'itemId',
+              title: 'ID',
+              type: 'string',
+              hidden: true,
+            }),
+            defineField({
               name: 'slug',
               title: 'Slug',
               type: 'string',
@@ -285,6 +291,12 @@ export default defineType({
                       name: 'name',
                       title: 'Nazwa',
                       type: 'string',
+                    }),
+                    defineField({
+                      name: 'itemId',
+                      title: 'ID',
+                      type: 'string',
+                      hidden: true,
                     }),
                     defineField({
                       name: 'count',
@@ -410,6 +422,12 @@ export default defineType({
               type: 'string',
             }),
             defineField({
+              name: 'itemId',
+              title: 'ID',
+              type: 'string',
+              // hidden: true,
+            }),
+            defineField({
               name: 'slug',
               title: 'Slug',
               type: 'string',
@@ -506,6 +524,12 @@ export default defineType({
                       name: 'name',
                       title: 'Nazwa',
                       type: 'string',
+                    }),
+                    defineField({
+                      name: 'itemId',
+                      title: 'ID',
+                      type: 'string',
+                      // hidden: true,
                     }),
                     defineField({
                       name: 'count',
@@ -605,6 +629,12 @@ export default defineType({
           name: 'distance',
           title: 'Dystans (km)',
           type: 'number',
+        }),
+        defineField({
+          name: 'itemId',
+          title: 'ID',
+          type: 'string',
+          hidden: true,
         }),
         defineField({
           name: 'pricing',
@@ -727,6 +757,13 @@ export default defineType({
               title: 'Nazwa',
               type: 'string',
             }),
+            defineField({
+              name: 'itemId',
+              title: 'ID',
+              type: 'string',
+              hidden: true,
+            }),
+
             defineField({
               name: 'count',
               title: 'Ilość',

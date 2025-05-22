@@ -15,8 +15,10 @@ import Button from '@/src/components/ui/Button/Button'
 import { getOpenHours } from '@/src/utils/get-open-hours'
 
 type AddonType = {
+  id: string
   name: string
   count: number
+  itemId: string
   pricing: {
     totalPrice: number
     nettoTotalPrice: number
@@ -26,6 +28,8 @@ type AddonType = {
 }
 
 type HotelType = {
+  itemId: string
+  id: string
   name: string
   slug: string
   maxPeople: number
@@ -39,6 +43,8 @@ type HotelType = {
 }
 
 type ActivityType = {
+  id: string
+  itemId: string
   name: string
   slug: string
   participantsCount: {
@@ -56,6 +62,8 @@ type ActivityType = {
 }
 
 type TransportType = {
+  id: string
+  itemId: string
   distance: number
   pricing: {
     basePrice: number
@@ -108,12 +116,16 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
           end
         },
         items[] {
+          id,
+          itemId,
           _type,
           _key,
           type,
           totalPrice,
           totalNettoPrice,
           hotels[] {
+            id,
+            itemId,
             name,
             slug,
             maxPeople,
@@ -124,6 +136,8 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
               exceedsMaxPeople
             },
             addons[] {
+              id,
+              itemId,
               name,
               count,
               pricing {
@@ -135,6 +149,8 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
             }
           },
           activities[] {
+            id,
+            itemId,
             name,
             slug,
             participantsCount {
@@ -149,6 +165,8 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
               belowMinPeople
             },
             addons[] {
+              id,
+              itemId,
               name,
               count,
               pricing {
@@ -160,6 +178,8 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
             }
           },
           transport {
+            id,
+            itemId,
             distance,
             pricing {
               basePrice,
@@ -176,6 +196,8 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
             activityNoAddress
           },
           extras[] {
+            id,
+            itemId,
             name,
             count,
             pricing {

@@ -1335,6 +1335,7 @@ const { metadata, page } = Astro.props
   } from '@/src/utils/cart'
   import { optimizeImage } from '@/src/utils/optimize-images'
   import { showToast } from '@/src/utils/toast'
+  import { trackEvent } from '@/src/utils/track-event'
 
   const cartElement = document.querySelector('.Cart')
   const pageLang = cartElement?.getAttribute('data-lang') || 'pl'
@@ -1887,6 +1888,24 @@ const { metadata, page } = Astro.props
           return
         }
 
+        // Track begin_checkout event
+        const { items, totalValue, itemCount } = getCartItemsForTracking()
+
+        trackEvent({
+          event_name: 'begin_checkout',
+          meta: {
+            event_name: 'InitiateCheckout',
+            content_name: document.title,
+          },
+          ecommerce: {
+            items: items,
+            currency: 'PLN',
+            value: totalValue,
+            num_items: itemCount,
+            participant_count: participantCount,
+          },
+        })
+
         // Scroll to top immediately when clicking submit
         window.scrollTo({
           top: 0,
@@ -2118,9 +2137,104 @@ const { metadata, page } = Astro.props
     // Setup quote request handling
     setupQuoteRequestHandling()
 
+    // Track cart view once when the cart loads
+    document.addEventListener('cart-loaded', () => {
+      const cart = cartStore.get()
+
+      // Only track if cart has items
+      if (cart.hotels.length > 0 || cart.activities.length > 0) {
+        const { items } = getCartItemsForTracking()
+
+        // Track the view_cart event
+        trackEvent({
+          event_name: 'view_cart',
+          meta: {
+            content_name: document.title,
+          },
+          ecommerce: {
+            items: items,
+            currency: 'PLN',
+          },
+        })
+      }
+    })
+
     // Then load cart items
     loadCartItems()
   })
+
+  // Helper function to get cart items for tracking events
+  function getCartItemsForTracking() {
+    const items: any[] = []
+
+    // Add hotels to tracking
+    cachedCartData.hotels.forEach((hotel) => {
+      items.push({
+        item_id: hotel._id,
+        item_name: hotel.name,
+        item_category: 'hotel',
+        price: hotel.pricing?.pricePerPerson,
+        quantity: 1,
+      })
+    })
+
+    // Add activities to tracking
+    cachedCartData.activities.forEach((activity) => {
+      items.push({
+        item_id: activity._id,
+        item_name: activity.name,
+        item_category: 'activity',
+        price: activity.pricing?.basePrice,
+        quantity: 1,
+      })
+    })
+
+    // Add extras to tracking
+    const extrasIds = JSON.parse(localStorage.getItem('cart_order_addons') || '[]')
+    if (extrasIds.length > 0) {
+      const extrasList = document.querySelector('.extras .list')
+      if (extrasList) {
+        const extrasData = JSON.parse(extrasList.getAttribute('data-addons-data') || '{}')
+
+        extrasIds.forEach((item: { id: string; count?: number }) => {
+          if (item.id === 'transport') {
+            items.push({
+              item_id: 'transport',
+              item_name: t.transportAddonName,
+              item_category: 'extra',
+              quantity: item.count || 1,
+            })
+          } else {
+            const addonData = extrasData.addonsList.find(
+              (addon: { _key: string; name: string }) => addon._key === item.id
+            )
+            if (addonData) {
+              items.push({
+                item_id: addonData._key,
+                item_name: addonData.name,
+                item_category: 'extra',
+                quantity: item.count || 1,
+              })
+            }
+          }
+        })
+      }
+    }
+
+    // Calculate total value
+    let totalValue = 0
+    items.forEach((item) => {
+      if (item.price && item.quantity) {
+        totalValue += item.price * item.quantity
+      }
+    })
+
+    return {
+      items,
+      totalValue: totalValue > 0 ? totalValue : undefined,
+      itemCount: items.length,
+    }
+  }
 
   // Modified toggleAddon to update transport address display and refresh popup list
   async function toggleAddon(item: HTMLElement, isSelected: boolean) {
@@ -2823,6 +2937,11 @@ const { metadata, page } = Astro.props
           updateParticipantAlerts()
           // Update transport cards with address if needed
           updateTransportCardWithAddress()
+
+          // Dispatch cart-loaded event after everything is ready
+          if (!isRetry) {
+            document.dispatchEvent(new CustomEvent('cart-loaded'))
+          }
         }, 100)
         return
       }
@@ -2923,6 +3042,11 @@ const { metadata, page } = Astro.props
         updateParticipantAlerts()
         // Update transport cards with address if needed
         updateTransportCardWithAddress()
+
+        // Dispatch cart-loaded event after everything is ready
+        if (!isRetry) {
+          document.dispatchEvent(new CustomEvent('cart-loaded'))
+        }
       }, 100)
     } catch (error) {
       console.error('Error loading cart items:', error)

@@ -566,7 +566,7 @@ export const POST: APIRoute = async ({ request }) => {
           type: 'hotel',
           hotels: [
             {
-              id: hotel._id || hotel.id,
+              itemId: hotel._id || hotel.id,
               name: hotel.name,
               slug: hotel.slug,
               maxPeople: hotel.maxPeople?.overnight || 0,
@@ -607,7 +607,7 @@ export const POST: APIRoute = async ({ request }) => {
             }
 
             hotelActivitiesResults.push({
-              id: activity._id || activity.id,
+              itemId: activity._id || activity.id,
               name: activity.name,
               slug: activity.slug,
               participantsCount: activity.participantsCount
@@ -642,6 +642,7 @@ export const POST: APIRoute = async ({ request }) => {
 
           // Store distance for this hotel
           hotelQuoteItem.transport = {
+            itemId: 'transport',
             distance: distance,
             pickupCoordinates: transportPickupCoordinates,
             destinationCoordinates: hotelCoordinates,
@@ -682,30 +683,35 @@ export const POST: APIRoute = async ({ request }) => {
           if (transportGeocodingFailed && hotelCoordinates) {
             // Transport address geocoding failed but hotel coordinates are present
             hotelQuoteItem.transport = {
+              id: 'transport',
               transportAddressNotFound: true,
               destinationCoordinates: hotelCoordinates,
             }
           } else if (!transportPickupCoordinates && hotelCoordinates) {
             // No transport address provided but hotel coordinates are present
             hotelQuoteItem.transport = {
+              id: 'transport',
               noTransportAddress: true,
               destinationCoordinates: hotelCoordinates,
             }
           } else if (!hotelHasAddress) {
             // No address provided for hotel
             hotelQuoteItem.transport = {
+              itemId: 'transport',
               hotelNoAddress: true,
               pickupCoordinates: transportPickupCoordinates,
             }
           } else if (hotelGeocodingFailed && transportPickupCoordinates) {
             // Address provided but geocoding failed for hotel
             hotelQuoteItem.transport = {
+              itemId: 'transport',
               hotelAddressNotFound: true,
               pickupCoordinates: transportPickupCoordinates,
             }
           } else if (hotelGeocodingFailed && transportGeocodingFailed) {
             // Both addresses failed geocoding
             hotelQuoteItem.transport = {
+              itemId: 'transport',
               bothAddressesNotFound: true,
             }
           }
@@ -765,7 +771,7 @@ export const POST: APIRoute = async ({ request }) => {
           hotels: [] as any[],
           activities: [
             {
-              id: activity._id || activity.id,
+              itemId: activity._id || activity.id,
               name: activity.name,
               slug: activity.slug,
               participantsCount: activity.participantsCount
@@ -804,6 +810,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (transportExtra && transportPickupCoordinates) {
           // Since we don't have activity coordinates, we can only add base transport price
           activityQuoteItem.transport = {
+            itemId: 'transport',
             activityNoAddress: true,
             pickupCoordinates: transportPickupCoordinates,
           }
@@ -837,6 +844,7 @@ export const POST: APIRoute = async ({ request }) => {
         } else if (transportGeocodingFailed) {
           // Transport address geocoding failed
           activityQuoteItem.transport = {
+            itemId: 'transport',
             transportAddressNotFound: true,
           }
 
@@ -869,6 +877,7 @@ export const POST: APIRoute = async ({ request }) => {
         } else if (transportExtra) {
           // Transport requested but no address provided
           activityQuoteItem.transport = {
+            itemId: 'transport',
             noTransportAddress: true,
           }
 
@@ -910,7 +919,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const extraPriceResult = calculateExtraPrice(extra, participantCount)
         const extraItem = {
-          id: extra.id || extra._key,
+          itemId: extra.id || extra._key,
           name: extra.name,
           count: extra.count || 1,
           pricing: extraPriceResult,
@@ -1067,6 +1076,7 @@ export const POST: APIRoute = async ({ request }) => {
           totalNettoPrice: item.totalNettoPrice || 0, // Add the netto price
           hotels: item.hotels.map((hotel: any) => ({
             _key: generateKey(),
+            itemId: hotel.itemId,
             name: hotel.name,
             slug: hotel.slug,
             maxPeople: hotel.maxPeople || 0,
@@ -1089,6 +1099,7 @@ export const POST: APIRoute = async ({ request }) => {
           })),
           activities: item.activities.map((activity: any) => ({
             _key: generateKey(),
+            itemId: activity.itemId,
             name: activity.name,
             slug: activity.slug,
             participantsCount: activity.participantsCount
@@ -1129,6 +1140,7 @@ export const POST: APIRoute = async ({ request }) => {
                   : null,
                 transportAddressNotFound: toBoolString(item.transport.transportAddressNotFound),
                 noTransportAddress: toBoolString(item.transport.noTransportAddress),
+                itemId: item.transport.itemId,
                 hotelNoAddress: toBoolString(item.transport.hotelNoAddress),
                 hotelAddressNotFound: toBoolString(item.transport.hotelAddressNotFound),
                 bothAddressesNotFound: toBoolString(item.transport.bothAddressesNotFound),
@@ -1138,6 +1150,7 @@ export const POST: APIRoute = async ({ request }) => {
           extras: item.extras.map((extra: any) => ({
             _key: generateKey(),
             name: extra.name,
+            itemId: extra.itemId,
             count: extra.count || 1,
             pricing: {
               totalPrice: extra.pricing.totalPrice || extra.pricing.bruttoPrice || 0,

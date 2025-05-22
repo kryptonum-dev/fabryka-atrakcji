@@ -184,8 +184,6 @@ const isRegularPage = (page: SearchPageProps | RegularPageProps): page is Regula
 const totalPages = isSearchPage(page)
   ? Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
   : Math.ceil(page.totalItems / ITEMS_PER_PAGE)
-
-console.log(page.activitiesCarousel)
 ---
 
 <Layout {...metadata}>

@@ -30,8 +30,6 @@ export const POST: APIRoute = async ({ request }) => {
     // Generate a new newsletter_id only if the subscriber doesn't already have one
     const newsletter_id = existingSubscriber?.newsletter_id || generateUUID()
 
-    console.log(newsletter_id)
-
     // Add the subscriber to the group with the newsletter_id custom field
     const res = await fetch(`https://api.mailerlite.com/api/v2/groups/${group_id}/subscribers`, {
       method: 'POST',
@@ -48,15 +46,12 @@ export const POST: APIRoute = async ({ request }) => {
       }),
     })
 
-    console.log(res)
-
     if (res.status !== 200) {
       return new Response(JSON.stringify({ message: 'Something went wrong', success: false }), { status: 400 })
     }
 
     const data = await res.json()
 
-    console.log(data)
     return new Response(
       JSON.stringify({
         message: 'Successfully subscribed',
