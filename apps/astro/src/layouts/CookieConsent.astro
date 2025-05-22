@@ -522,7 +522,11 @@ const groups = [
   window.gtag = function () {
     window.dataLayer.push(arguments)
   }
-  gtag('config', MEASUREMENT_ID)
+  gtag('config', MEASUREMENT_ID, {
+    send_page_view: true,
+    transport_type: 'beacon',
+    groups: 'default',
+  })
   function getCookie(name) {
     const cookies = document.cookie.split(';').map((cookie) => cookie.trim())
     const cookie = cookies.find((cookie) => cookie.startsWith(`${name}=`))
