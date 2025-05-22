@@ -86,8 +86,11 @@ export async function trackEvent({ user_data, meta, ga }: Props) {
   }
   if (ga && typeof window.gtag === 'function') {
     try {
-      // Send the event with parameters passed directly to gtag
-      window.gtag('event', ga.event_name, ga.params || {})
+      // Direct to GA4 approach - specify the Measurement ID
+      window.gtag('event', ga.event_name, {
+        ...(ga.params || {}),
+        send_to: 'G-344E26ZD3G', // Replace with your actual GA4 Measurement ID variable
+      })
     } catch (e) {
       console.warn(`Failed to track GA4 event "${ga.event_name}"`, e)
     }
