@@ -86,7 +86,6 @@ export async function trackEvent({ user_data, meta, ga }: Props) {
   }
   if (ga && typeof window.gtag === 'function') {
     try {
-      console.log('hej')
       // Send the event with parameters passed directly to gtag
       window.gtag('event', ga.event_name, ga.params || {})
     } catch (e) {

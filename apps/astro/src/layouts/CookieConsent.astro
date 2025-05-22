@@ -519,7 +519,7 @@ const groups = [
 
 <script is:inline define:vars={{ GTM_ID, MEASUREMENT_ID }}>
   window.dataLayer = window.dataLayer || []
-  function gtag() {
+  window.gtag = function () {
     window.dataLayer.push(arguments)
   }
   gtag('config', MEASUREMENT_ID)
