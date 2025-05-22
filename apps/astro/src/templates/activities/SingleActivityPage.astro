@@ -379,8 +379,6 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
     const category = categoryElement?.textContent?.trim() || 'Activity'
 
     // Get activity type if available
-    const activityTypeElement = document.querySelector('.activity-type')
-    const activityType = activityTypeElement?.textContent?.trim() || ''
 
     // Track view_item event
     trackEvent({
@@ -394,7 +392,6 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
             item_id: activityId,
             item_name: activityName,
             item_category: category,
-            item_variant: activityType,
           },
         ],
         currency: 'PLN',

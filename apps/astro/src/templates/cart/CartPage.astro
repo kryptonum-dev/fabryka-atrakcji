@@ -1889,7 +1889,7 @@ const { metadata, page } = Astro.props
         }
 
         // Track begin_checkout event
-        const { items, totalValue, itemCount } = getCartItemsForTracking()
+        const { items, itemCount } = getCartItemsForTracking()
 
         trackEvent({
           event_name: 'begin_checkout',
@@ -1900,7 +1900,6 @@ const { metadata, page } = Astro.props
           ecommerce: {
             items: items,
             currency: 'PLN',
-            value: totalValue,
             num_items: itemCount,
             participant_count: participantCount,
           },
@@ -2173,8 +2172,6 @@ const { metadata, page } = Astro.props
         item_id: hotel._id,
         item_name: hotel.name,
         item_category: 'hotel',
-        price: hotel.pricing?.pricePerPerson,
-        quantity: 1,
       })
     })
 
@@ -2184,8 +2181,6 @@ const { metadata, page } = Astro.props
         item_id: activity._id,
         item_name: activity.name,
         item_category: 'activity',
-        price: activity.pricing?.basePrice,
-        quantity: 1,
       })
     })
 
@@ -2202,7 +2197,6 @@ const { metadata, page } = Astro.props
               item_id: 'transport',
               item_name: t.transportAddonName,
               item_category: 'extra',
-              quantity: item.count || 1,
             })
           } else {
             const addonData = extrasData.addonsList.find(
@@ -2213,7 +2207,6 @@ const { metadata, page } = Astro.props
                 item_id: addonData._key,
                 item_name: addonData.name,
                 item_category: 'extra',
-                quantity: item.count || 1,
               })
             }
           }
@@ -2221,17 +2214,8 @@ const { metadata, page } = Astro.props
       }
     }
 
-    // Calculate total value
-    let totalValue = 0
-    items.forEach((item) => {
-      if (item.price && item.quantity) {
-        totalValue += item.price * item.quantity
-      }
-    })
-
     return {
       items,
-      totalValue: totalValue > 0 ? totalValue : undefined,
       itemCount: items.length,
     }
   }

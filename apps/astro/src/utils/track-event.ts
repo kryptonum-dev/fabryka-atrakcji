@@ -4,8 +4,6 @@ type Item = {
   item_id: string
   item_name: string
   item_category?: string
-  price?: number
-  quantity?: number
   [key: string]: any
 }
 
@@ -144,7 +142,6 @@ export function trackAddToCart(
           item_id: itemId,
           item_name: itemName,
           item_category: category,
-          quantity: 1,
         },
       ],
       currency: 'PLN',

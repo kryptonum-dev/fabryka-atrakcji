@@ -33,8 +33,6 @@ function formatQuoteItemsForTracking(quote: any) {
   // Process all quote items
   if (quote.items && Array.isArray(quote.items)) {
     quote.items.forEach((item: any) => {
-      // Log to debug IDs
-
       // Add hotels to tracking
       if (item.hotels && Array.isArray(item.hotels)) {
         item.hotels.forEach((hotel: any) => {
@@ -42,8 +40,6 @@ function formatQuoteItemsForTracking(quote: any) {
             item_id: hotel.itemId,
             item_name: hotel.name,
             item_category: 'hotel',
-            price: hotel.pricing?.finalPrice,
-            quantity: 1,
           })
         })
       }
@@ -55,8 +51,6 @@ function formatQuoteItemsForTracking(quote: any) {
             item_id: activity.itemId,
             item_name: activity.name,
             item_category: 'activity',
-            price: activity.pricing?.finalPrice,
-            quantity: 1,
           })
         })
       }
@@ -68,8 +62,6 @@ function formatQuoteItemsForTracking(quote: any) {
             item_id: extra.itemId,
             item_name: extra.name,
             item_category: 'extra',
-            price: extra.pricing?.totalPrice,
-            quantity: extra.count || 1,
           })
         })
       }
@@ -80,31 +72,12 @@ function formatQuoteItemsForTracking(quote: any) {
           item_id: item.transport.itemId,
           item_name: 'Transport',
           item_category: 'transport',
-          price: item.transport.pricing?.totalPrice,
-          quantity: 1,
         })
       }
     })
   }
 
   return items
-}
-
-// Helper to calculate total value from quote
-function calculateTotalQuoteValue(quote: any) {
-  if (!quote) return undefined
-
-  let totalValue = 0
-
-  if (quote.items && Array.isArray(quote.items)) {
-    quote.items.forEach((item: any) => {
-      if (item.totalPrice) {
-        totalValue += item.totalPrice
-      }
-    })
-  }
-
-  return totalValue > 0 ? totalValue : undefined
 }
 
 export default function QuoteForm({
@@ -161,7 +134,6 @@ export default function QuoteForm({
 
       // Track lead event before sending data
       const items = formatQuoteItemsForTracking(quote)
-      const totalValue = calculateTotalQuoteValue(quote)
 
       trackEvent({
         event_name: 'lead',
@@ -176,7 +148,6 @@ export default function QuoteForm({
         ecommerce: {
           items: items,
           currency: 'PLN',
-          value: totalValue,
           quote_id: quoteId,
           lead_type: 'quote',
           participant_count: quote?.participantCount,
