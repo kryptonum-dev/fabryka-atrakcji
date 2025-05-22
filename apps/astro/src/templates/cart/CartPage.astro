@@ -1335,7 +1335,7 @@ const { metadata, page } = Astro.props
   } from '@/src/utils/cart'
   import { optimizeImage } from '@/src/utils/optimize-images'
   import { showToast } from '@/src/utils/toast'
-  import { trackEvent } from '@/src/utils/track-event'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
   const cartElement = document.querySelector('.Cart')
   const pageLang = cartElement?.getAttribute('data-lang') || 'pl'
@@ -1889,19 +1889,28 @@ const { metadata, page } = Astro.props
         }
 
         // Track begin_checkout event
-        const { items, itemCount } = getCartItemsForTracking()
+        const items = getCartItemsForTracking()
 
         trackEvent({
-          event_name: 'begin_checkout',
+          ga: {
+            event_name: 'begin_checkout',
+            params: {
+              currency: 'PLN',
+              value: items
+                .filter((item) => item.item_category === 'hotel' || item.item_category === 'activity')
+                .reduce((acc, item) => acc + item.item_price, 0),
+              items: items.map((item) => ({
+                item_id: item.item_id,
+                item_name: item.item_name,
+              })),
+            },
+          },
           meta: {
             event_name: 'InitiateCheckout',
             content_name: document.title,
-          },
-          ecommerce: {
-            items: items,
-            currency: 'PLN',
-            num_items: itemCount,
-            participant_count: participantCount,
+            params: {
+              content_ids: items.map((item) => item.item_id),
+            },
           },
         })
 
@@ -2142,17 +2151,29 @@ const { metadata, page } = Astro.props
 
       // Only track if cart has items
       if (cart.hotels.length > 0 || cart.activities.length > 0) {
-        const { items } = getCartItemsForTracking()
+        const items = getCartItemsForTracking()
 
         // Track the view_cart event
         trackEvent({
-          event_name: 'view_cart',
-          meta: {
-            content_name: document.title,
+          ga: {
+            event_name: 'view_cart',
+            params: {
+              currency: 'PLN',
+              value: items
+                .filter((item) => item.item_category === 'hotel' || item.item_category === 'activity')
+                .reduce((acc, item) => acc + item.item_price, 0),
+              items: items.map((item) => ({
+                item_id: item.item_id,
+                item_name: item.item_name,
+              })),
+            },
           },
-          ecommerce: {
-            items: items,
-            currency: 'PLN',
+          meta: {
+            event_name: 'ViewCart',
+            content_name: document.title,
+            params: {
+              content_ids: items.map((item) => item.item_id),
+            },
           },
         })
       }
@@ -2171,6 +2192,7 @@ const { metadata, page } = Astro.props
       items.push({
         item_id: hotel._id,
         item_name: hotel.name,
+        item_price: hotel.pricing?.pricePerPerson,
         item_category: 'hotel',
       })
     })
@@ -2180,6 +2202,7 @@ const { metadata, page } = Astro.props
       items.push({
         item_id: activity._id,
         item_name: activity.name,
+        item_price: activity.pricing?.additionalPersonPrice,
         item_category: 'activity',
       })
     })
@@ -2196,6 +2219,7 @@ const { metadata, page } = Astro.props
             items.push({
               item_id: 'transport',
               item_name: t.transportAddonName,
+              item_price: extrasData.transportOptions.pricing,
               item_category: 'extra',
             })
           } else {
@@ -2206,6 +2230,7 @@ const { metadata, page } = Astro.props
               items.push({
                 item_id: addonData._key,
                 item_name: addonData.name,
+                item_price: addonData.pricing,
                 item_category: 'extra',
               })
             }
@@ -2214,10 +2239,7 @@ const { metadata, page } = Astro.props
       }
     }
 
-    return {
-      items,
-      itemCount: items.length,
-    }
+    return items
   }
 
   // Modified toggleAddon to update transport address display and refresh popup list

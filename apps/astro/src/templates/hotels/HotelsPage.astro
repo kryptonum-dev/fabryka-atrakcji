@@ -155,7 +155,7 @@ const breadcrumbs = [
 </Layout>
 
 <script>
-  import { trackEvent } from '@/src/utils/track-event'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
   // Track hotels list view
   document.addEventListener('DOMContentLoaded', () => {
@@ -173,7 +173,6 @@ const breadcrumbs = [
 
         return {
           item_name: hotelName,
-          item_category: 'hotel',
           item_id: hotelId,
           item_price: hotelPricing,
           index,
@@ -182,14 +181,13 @@ const breadcrumbs = [
 
     if (items.length > 0) {
       trackEvent({
-        event_name: 'view_item_list',
-        meta: {
-          content_name: document.title,
-        },
-        ecommerce: {
-          items: items,
-          currency: 'PLN',
-          item_list_name: 'Hotels Listing',
+        ga: {
+          event_name: 'view_item_list',
+          params: {
+            items: items,
+            currency: 'PLN',
+            item_list_name: 'Hotels Listing',
+          },
         },
       })
     }

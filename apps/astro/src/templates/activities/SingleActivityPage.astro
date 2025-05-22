@@ -366,35 +366,38 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 </style>
 
 <script>
-  import { trackEvent } from '@/src/utils/track-event'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
   // Track activity view event
   document.addEventListener('DOMContentLoaded', () => {
-    // Get activity information
-    const activityId = document.querySelector('[data-item-id]')?.getAttribute('data-item-id') || ''
-    const activityName = document.querySelector('h1')?.textContent?.trim() || document.title
-
-    // Get activity category if available
-    const categoryElement = document.querySelector('.breadcrumb-item:nth-child(1)')
-    const category = categoryElement?.textContent?.trim() || 'Activity'
-
+    // Get activity information\
+    const containerEl = document.querySelector('.Hero') as HTMLElement
+    const activityId = containerEl?.getAttribute('data-id') || ''
+    const activityName = containerEl?.getAttribute('data-name') || ''
+    const price = containerEl?.getAttribute('data-price') || 0
     // Get activity type if available
 
     // Track view_item event
     trackEvent({
-      event_name: 'view_item',
-      meta: {
-        content_name: document.title,
+      ga: {
+        event_name: 'view_item',
+        params: {
+          currency: 'PLN',
+          value: price,
+          items: [
+            {
+              item_id: activityId,
+              item_name: activityName,
+            },
+          ],
+        },
       },
-      ecommerce: {
-        items: [
-          {
-            item_id: activityId,
-            item_name: activityName,
-            item_category: category,
-          },
-        ],
-        currency: 'PLN',
+      meta: {
+        event_name: 'ViewContent',
+        content_name: document.title,
+        params: {
+          content_ids: [activityId],
+        },
       },
     })
   })

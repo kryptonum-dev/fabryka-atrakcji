@@ -6,7 +6,7 @@ import { REGEX } from '@/src/global/constants'
 import styles from './styles.module.scss'
 import Button from '../../ui/Button'
 import { cartStore } from '@/src/store/cart'
-import { trackEvent } from '@/src/utils/track-event'
+import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
 type FormData = {
   email: string
@@ -22,62 +22,6 @@ type QuoteFormProps = {
   mailerliteGroupId?: string
   quoteRecipients: string[]
   quote?: any
-}
-
-// Helper function to format quote items for tracking
-function formatQuoteItemsForTracking(quote: any) {
-  if (!quote) return []
-
-  const items: any[] = []
-
-  // Process all quote items
-  if (quote.items && Array.isArray(quote.items)) {
-    quote.items.forEach((item: any) => {
-      // Add hotels to tracking
-      if (item.hotels && Array.isArray(item.hotels)) {
-        item.hotels.forEach((hotel: any) => {
-          items.push({
-            item_id: hotel.itemId,
-            item_name: hotel.name,
-            item_category: 'hotel',
-          })
-        })
-      }
-
-      // Add activities to tracking
-      if (item.activities && Array.isArray(item.activities)) {
-        item.activities.forEach((activity: any) => {
-          items.push({
-            item_id: activity.itemId,
-            item_name: activity.name,
-            item_category: 'activity',
-          })
-        })
-      }
-
-      // Add extras if available
-      if (item.extras && Array.isArray(item.extras)) {
-        item.extras.forEach((extra: any) => {
-          items.push({
-            item_id: extra.itemId,
-            item_name: extra.name,
-            item_category: 'extra',
-          })
-        })
-      }
-
-      // Add transport if available
-      if (item.transport && item.transport.itemId) {
-        items.push({
-          item_id: item.transport.itemId,
-          item_name: 'Transport',
-          item_category: 'transport',
-        })
-      }
-    })
-  }
-
-  return items
 }
 
 export default function QuoteForm({
@@ -132,25 +76,17 @@ export default function QuoteForm({
         quote: quote,
       }
 
-      // Track lead event before sending data
-      const items = formatQuoteItemsForTracking(quote)
-
       trackEvent({
-        event_name: 'lead',
-        user_data: {
-          email: data.email,
-          phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
+        ga: {
+          event_name: 'lead',
         },
         meta: {
           event_name: 'Lead',
           content_name: 'Quote Request Form',
         },
-        ecommerce: {
-          items: items,
-          currency: 'PLN',
-          quote_id: quoteId,
-          lead_type: 'quote',
-          participant_count: quote?.participantCount,
+        user_data: {
+          email: data.email,
+          phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
         },
       })
 

@@ -152,7 +152,8 @@ function getParticipantsText(participants: number, lang: Language) {
 }
 
 const props = Astro.props as HeroProps
-const { title, description, imageList, _type, addons, _id, name } = props
+const { title, description, imageList, _type, addons, _id, name, pricing } = props
+const pricePerPerson = (pricing as any)?.additionalPersonPrice || (pricing as any)?.pricePerPerson
 
 const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
           <mask id="path-1-inside-1_6107_29788" fill="white">
@@ -174,6 +175,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   data-addons-choice={addons?.addonsChoice || 'unlimited'}
   data-lang={lang}
   data-name={name}
+  data-price={pricePerPerson}
   data-text={JSON.stringify({
     addToCart: t.getPrice,
     removeFromCart: t.removeFromQuote,
@@ -1150,7 +1152,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 <script>
   import { addToCart, isInCart } from '@/src/store/cart'
   import { dispatchCartUpdate, dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
-  import { trackAddToCart } from '@/src/utils/track-event'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
   // Get references to the hero section and button
   const heroSection = document.querySelector('.Hero')! as HTMLElement
@@ -1196,7 +1198,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
     if (!itemId || !itemType) return
 
     const inCart = isInCart(itemId, itemType)
-
+    const itemPrice = heroSection.dataset.price || 200
     if (inCart) return
 
     // If item has addons and requires them, open the addons popup
@@ -1221,8 +1223,29 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
       })
 
       // Track the add to cart event
-      trackAddToCart(itemId, itemType, itemName)
 
+      trackEvent({
+        ga: {
+          event_name: 'add_to_cart',
+          params: {
+            currency: 'PLN',
+            value: itemPrice,
+            items: [
+              {
+                item_id: itemId,
+                item_name: itemName,
+              },
+            ],
+          },
+        },
+        meta: {
+          event_name: 'AddToCart',
+          content_name: itemName,
+          params: {
+            content_ids: [itemId],
+          },
+        },
+      })
       // If has optional addons, open the popup
       dispatchAddonsPopup({
         itemId,

@@ -29,6 +29,9 @@ export type ActivityCardProps = {
   }
   slug: string
   _createdAt: string
+  pricing: {
+    additionalPersonPrice: number
+  }
   headingLevel?: 'h2' | 'h3' | 'h4'
 }
 
@@ -42,6 +45,7 @@ export default function ActivityCard({
   children,
   headingLevel,
   _id,
+  pricing,
 }: ActivityCardProps & {
   children?: React.ReactNode
   clientImage?: { image: GetImageResult; fetchPriority: 'high' | 'auto'; loading: 'eager' | 'lazy'; sizes: string }
@@ -51,7 +55,13 @@ export default function ActivityCard({
   const Heading = headingLevel || 'h3'
 
   return (
-    <article className={styles['ActivityCard']} data-activity-card data-activity-name={name} data-activity-id={_id}>
+    <article
+      className={styles['ActivityCard']}
+      data-activity-card
+      data-activity-name={name}
+      data-pricing={pricing.additionalPersonPrice}
+      data-activity-id={_id}
+    >
       <a href={slug || '/'}>
         <div className={styles.imgWrapper}>
           {isRecent && (

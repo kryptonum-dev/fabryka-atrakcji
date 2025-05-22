@@ -297,29 +297,37 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 </style>
 
 <script>
-  import { trackEvent } from '@/src/utils/track-event'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
   // Track hotel view event
   document.addEventListener('DOMContentLoaded', () => {
     // Get hotel information
-    const hotelId = (document.querySelector('.Hero') as HTMLElement)?.dataset.id || ''
-    const hotelName = (document.querySelector('.Hero') as HTMLElement)?.dataset.name || ''
+    const containerEl = document.querySelector('.Hero') as HTMLElement
+    const hotelId = containerEl?.dataset.id || ''
+    const hotelName = containerEl?.dataset.name || ''
+    const price = containerEl?.getAttribute('data-price') || 0
 
     // Track view_item event
     trackEvent({
-      event_name: 'view_item',
-      meta: {
-        content_name: document.title,
+      ga: {
+        event_name: 'view_item',
+        params: {
+          currency: 'PLN',
+          value: price,
+          items: [
+            {
+              item_id: hotelId,
+              item_name: hotelName,
+            },
+          ],
+        },
       },
-      ecommerce: {
-        items: [
-          {
-            item_id: hotelId,
-            item_name: hotelName,
-            item_category: 'hotel',
-          },
-        ],
-        currency: 'PLN',
+      meta: {
+        event_name: 'ViewContent',
+        content_name: document.title,
+        params: {
+          content_ids: [hotelId],
+        },
       },
     })
   })

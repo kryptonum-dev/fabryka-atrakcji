@@ -1047,7 +1047,7 @@ const { addons, type } = Astro.props
   import { toPlainText } from '@/src/utils/to-plain-text'
   import { optimizeImage } from '@/src/utils/optimize-images'
   import { showToast } from '@/src/utils/toast'
-  import { trackAddToCart } from '@/src/utils/track-event'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
   const popupContainer = document.querySelector('.addons-popup-container')! as HTMLDivElement
   const popupTrigger = document.querySelector('.hidden-trigger button')! as HTMLButtonElement
@@ -1133,6 +1133,7 @@ const { addons, type } = Astro.props
     const itemType = popupContainer.dataset.itemType as CartItemType
     const requiresAddons = popupContainer.dataset.requiresInitialAddons === 'true'
     const itemName = popupContainer.dataset.name || document.title
+    const itemPrice = document.querySelector('.Hero')?.getAttribute('data-price') || 200
 
     if (itemId && itemType) {
       // Collect selected addons
@@ -1211,7 +1212,28 @@ const { addons, type } = Astro.props
             })
 
             // Track the add to cart event with addons
-            trackAddToCart(itemId, itemType, itemName, selectedAddons)
+            trackEvent({
+              ga: {
+                event_name: 'add_to_cart',
+                params: {
+                  currency: 'PLN',
+                  value: itemPrice,
+                  items: [
+                    {
+                      item_id: itemId,
+                      item_name: itemName,
+                    },
+                  ],
+                },
+              },
+              meta: {
+                event_name: 'AddToCart',
+                content_name: itemName,
+                params: {
+                  content_ids: [itemId],
+                },
+              },
+            })
           } else {
             // Just update the addons
             updateCartAddons(itemId, itemType, selectedAddons)

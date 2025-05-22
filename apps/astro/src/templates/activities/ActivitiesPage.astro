@@ -186,7 +186,7 @@ const breadcrumbs = [
 </Layout>
 
 <script>
-  import { trackEvent } from '@/src/utils/track-event'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
   // Track activities list view
   document.addEventListener('DOMContentLoaded', () => {
@@ -200,29 +200,29 @@ const breadcrumbs = [
     // Create array of items for tracking
     const items = Array.from(activityItems)
       .slice(0, 10)
-      .map((activity) => {
+      .map((activity, index) => {
         const activityName = activity.dataset.activityName || ''
         const activityId = activity.dataset.activityId || ''
+        const pricing = activity.dataset.pricing || 200
 
         return {
           item_name: activityName,
-          item_category: 'activity',
           item_id: activityId,
+          item_price: pricing,
+          index,
         }
       })
 
     // Track the event if we have items
     if (items.length > 0) {
       trackEvent({
-        event_name: 'view_item_list',
-        meta: {
-          content_name: document.title,
-        },
-        ecommerce: {
-          items: items,
-          currency: 'PLN',
-          item_list_name: categoryName,
-          item_list_id: document.location.pathname,
+        ga: {
+          event_name: 'view_item_list',
+          params: {
+            items: items,
+            currency: 'PLN',
+            item_list_name: categoryName,
+          },
         },
       })
     }

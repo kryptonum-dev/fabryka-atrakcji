@@ -657,9 +657,9 @@ const translationsJson = JSON.stringify(translations)
 </style>
 
 <script>
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
   import { addToCart, isInCart } from '@/src/store/cart'
   import { dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
-  import { trackAddToCart } from '@/src/utils/track-event'
 
   const sidebar = document.getElementById('submit-sidebar')!
   const addToCartButton = document.querySelector('.add-to-cart-button')!
@@ -845,6 +845,7 @@ const translationsJson = JSON.stringify(translations)
   addToCartButton.addEventListener('click', () => {
     if (itemId && itemType) {
       const requiresAddons = sidebar.dataset.hasAddons === 'true' && sidebar.dataset.minOneAddon === 'true'
+      const itemPrice = document.querySelector('.Hero')?.getAttribute('data-price') || 200
 
       // If the item requires addons, DON'T add to cart immediately
       if (!requiresAddons) {
@@ -856,8 +857,28 @@ const translationsJson = JSON.stringify(translations)
         })
 
         // Track the add to cart event
-        trackAddToCart(itemId, itemType, itemName)
-
+        trackEvent({
+          ga: {
+            event_name: 'add_to_cart',
+            params: {
+              currency: 'PLN',
+              value: itemPrice,
+              items: [
+                {
+                  item_id: itemId,
+                  item_name: itemName,
+                },
+              ],
+            },
+          },
+          meta: {
+            event_name: 'AddToCart',
+            content_name: itemName,
+            params: {
+              content_ids: [itemId],
+            },
+          },
+        })
         // Update sidebar state and height
         updateSidebarState()
         setTimeout(updateWrapperHeight, 0)

@@ -547,8 +547,6 @@ const groups = [
 
     // Dispatch an event that consent has been updated
     document.dispatchEvent(new CustomEvent('consent-updated'))
-
-    trackPageView()
   }
 
   const cookieConsentElement = document.querySelector('.cookie-consent')
@@ -563,39 +561,6 @@ const groups = [
   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer',GTM_ID);
-
-  // Function to track page view
-  function trackPageView() {
-    // Send to server-side tracking
-    // const event_time = Math.floor(Date.now() / 1000)
-    const event_id = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
-    const url = window.location.href
-
-    // Push to dataLayer for GTM
-    dataLayer.push({
-      event: 'page_view',
-      meta_content_name: document.title,
-      page_location: url,
-      page_title: document.title,
-      event_id,
-    })
-
-    try {
-      // fetch('/api/analytics/meta-conversion', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     event_name: 'page_view',
-      //     content_name: document.title,
-      //     url,
-      //     event_id,
-      //     event_time,
-      //   }),
-      // }).catch((error) => console.warn('Failed to track page view:', error))
-    } catch (error) {
-      console.warn('Error tracking page view:', error)
-    }
-  }
 
   if (getCookie('cookie-consent') === null) {
     gtag('consent', 'default', {
@@ -612,8 +577,6 @@ const groups = [
     cookieConsentElement.setAttribute('aria-hidden', 'false')
   } else {
     gtag('consent', 'default', JSON.parse(getCookie('cookie-consent')))
-
-    trackPageView()
   }
 
   acceptAllButton.addEventListener('click', () => {

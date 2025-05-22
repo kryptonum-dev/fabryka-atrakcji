@@ -8,7 +8,7 @@ import { useState, useEffect } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
-import { trackEvent } from '@/src/utils/track-event'
+import { trackEvent } from '@/src/pages/api/analytics/track-event'
 
 export default function Form({
   lang = 'pl',
@@ -54,11 +54,14 @@ export default function Form({
 
         // Track subscribe event
         trackEvent({
-          event_name: 'subscribe',
           user_data: {
             email: data.email,
           },
+          ga: {
+            event_name: 'lead',
+          },
           meta: {
+            event_name: 'Lead',
             content_name: 'Global Newsletter Subscription',
           },
         })

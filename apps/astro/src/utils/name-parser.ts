@@ -1,21 +1,22 @@
 /**
- * Extracts the first name from a full name string
- * Used for tracking and personalization purposes
- *
- * @param fullName - The full name string to parse
- * @returns The first name or the original string if parsing fails
+ * Extracts the first name from a full name
+ * Works with simple first name or first and last name formats
+ * @param name The full name
+ * @returns The extracted first name
  */
-export function getFirstName(fullName: string): string {
-  if (!fullName) return ''
+export function getFirstName(name: string): string {
+  if (!name) return ''
+  const nameParts = name.trim().split(/\s+/)
+  return nameParts[0]
+}
 
-  try {
-    // Trim and split by whitespace
-    const nameParts = fullName.trim().split(/\s+/)
-
-    // Return the first part as the first name
-    return nameParts[0] || fullName
-  } catch (error) {
-    console.error('Error parsing name:', error)
-    return fullName
-  }
+/**
+ * Extracts the last name from a full name
+ * @param name The full name
+ * @returns The extracted last name or empty string if only one name part exists
+ */
+export function getLastName(name: string): string {
+  if (!name) return ''
+  const nameParts = name.trim().split(/\s+/)
+  return nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''
 }
