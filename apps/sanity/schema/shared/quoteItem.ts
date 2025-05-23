@@ -637,6 +637,21 @@ export default defineType({
           hidden: true,
         }),
         defineField({
+          name: 'peoplePerBus',
+          title: 'Liczba osób w autobusie',
+          type: 'number',
+        }),
+        defineField({
+          name: 'numberOfBuses',
+          title: 'Liczba autobusów',
+          type: 'number',
+        }),
+        defineField({
+          name: 'maxKilometers',
+          title: 'Maksymalny dystans w cenie podstawowej (km)',
+          type: 'number',
+        }),
+        defineField({
           name: 'pricing',
           title: 'Cennik',
           type: 'object',
@@ -713,6 +728,44 @@ export default defineType({
           title: 'Integracja bez adresu',
           type: 'boolean',
           hidden: true,
+        }),
+        // NEW: Activity address-specific fields
+        defineField({
+          name: 'activityAddressNotFound',
+          title: 'Nie znaleziono adresu integracji',
+          type: 'boolean',
+          hidden: ({ value }) => !value,
+        }),
+        defineField({
+          name: 'userSelectedActivityAddressNotFound',
+          title: 'Nie znaleziono adresu wybranego przez użytkownika dla integracji',
+          type: 'boolean',
+          hidden: ({ value }) => !value,
+        }),
+        defineField({
+          name: 'nationwideActivityNoUserAddress',
+          title: 'Integracja ogólnopolska bez adresu użytkownika',
+          type: 'boolean',
+          hidden: ({ value }) => !value,
+        }),
+        defineField({
+          name: 'activityAddressSource',
+          title: 'Źródło adresu integracji',
+          type: 'string',
+          options: {
+            list: [
+              { title: 'Adres dedykowany integracji', value: 'dedicated' },
+              { title: 'Adres wybrany przez użytkownika', value: 'user_selected' },
+              { title: 'Brak adresu', value: 'none' },
+            ],
+          },
+          hidden: ({ value }) => !value || value === 'none',
+        }),
+        defineField({
+          name: 'usingUserSelectedAddress',
+          title: 'Używa adresu wybranego przez użytkownika',
+          type: 'boolean',
+          hidden: ({ value }) => !value,
         }),
       ],
     }),

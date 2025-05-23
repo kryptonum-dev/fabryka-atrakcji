@@ -2,10 +2,11 @@
 import PortableText, { type PortableTextValue } from '../ui/portable-text'
 
 export type Props = {
-  additionalInfo: PortableTextValue
+  additionalInfo?: PortableTextValue
+  text?: string
 }
 
-const { additionalInfo } = Astro.props
+const { additionalInfo, text } = Astro.props
 ---
 
 <div class="additional-info-block">
@@ -16,7 +17,7 @@ const { additionalInfo } = Astro.props
       d="M14.67 8A6.667 6.667 0 1 1 1.335 8a6.667 6.667 0 0 1 13.333 0Zm-6.667 3.834a.5.5 0 0 0 .5-.5v-4a.5.5 0 1 0-1 0v4a.5.5 0 0 0 .5.5Zm0-7.167a.667.667 0 1 1 0 1.333.667.667 0 0 1 0-1.333Z"
       clip-rule="evenodd"></path></svg
   >
-  <PortableText value={additionalInfo} />
+  {additionalInfo ? <PortableText value={additionalInfo} /> : text ? <p set:html={text} /> : null}
 </div>
 
 <style lang="scss">

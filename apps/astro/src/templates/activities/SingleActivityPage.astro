@@ -56,7 +56,12 @@ export type SingleActivityProps = {
   }
   location: {
     isNationwide: boolean
-    customLocation?: string
+    address?: {
+      street: string
+      postalCode: string
+      city: string
+      voivodeship: string
+    }
     googleMapsLink?: string
     isIndoor: 'indoor' | 'outdoor'
   }
@@ -141,7 +146,12 @@ export async function fetchData(slug: string, lang: Language) {
       },
       location{
         isNationwide,
-        customLocation,
+        address{
+          street,
+          postalCode,
+          city,
+          voivodeship
+        },
         googleMapsLink,
         isIndoor
       },

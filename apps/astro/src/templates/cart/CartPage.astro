@@ -15,6 +15,7 @@ import Image, { ImageDataQuery } from '@/src/components/ui/image'
 import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
 import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
 import AddressForm from '@/src/components/cart/form'
+import ActivityAddressForm from '@/src/components/cart/form/ActivityAddressForm'
 import SkeletonLoader from '@/src/components/cart/SkeletonLoader.astro'
 import type { ExtraItem } from '@/src/global/types'
 import QuoteCartLayout from '@/src/layouts/QuoteCartLayout.astro'
@@ -36,7 +37,14 @@ export async function fetchData(lang: Language) {
       paragraph: PortableTextValue
     }
     orderAddons: {
-      transportOptions: ExtraItem
+      transportOptions: ExtraItem & {
+        pricing: {
+          basePrice: number
+          maxKilometers: number
+          pricePerKm: number
+          maxPeoplePerBus: number
+        }
+      }
       addonsList: Array<ExtraItem>
     }
   }>({
@@ -57,15 +65,10 @@ export async function fetchData(lang: Language) {
           transportOptions {
             ${ImageDataQuery('image')}
             pricing {
-              type,
+              basePrice,
+              maxKilometers,
               pricePerKm,
-              fixedPrice,
-              threshold {
-                basePrice,
-                maxUnits,
-                additionalPrice,
-                singular,
-              },
+              maxPeoplePerBus,
             },
           },
           addonsList[] {
@@ -129,6 +132,7 @@ const translations = {
     to: 'do',
     from: 'od',
     additionalPerson: 'Każda dodatkowa osoba',
+    additionalKilometer: 'Każdy dodatkowy kilometr',
     currency: 'zł',
     perNight: 'zł/noc za osobę',
     max: 'Maks.',
@@ -169,6 +173,10 @@ const translations = {
       postalPattern: 'Wprowadź kod w formacie: XX-XXX',
       city: 'Miasto*',
       cityRequired: 'Miasto jest wymagane',
+      peoplePerBus: 'Ile osób w autobusie?*',
+      peoplePerBusPlaceholder: 'Wprowadź liczbę',
+      peoplePerBusRequired: 'Liczba osób w autobusie jest wymagana',
+      peoplePerBusMax: 'Nie można przekroczyć liczby uczestników',
       submit: 'Zapisz adres',
       editButton: 'Edytuj adres',
       pickFromMap: 'Wybierz z mapy',
@@ -176,13 +184,19 @@ const translations = {
       confirm: 'Zatwierdź',
       cancel: 'Anuluj',
       mapTooltip: 'Otwórz mapę, aby wybrać lokalizację',
+      busCapacityInfo:
+        'Jeden autobus może przewieźć maksymalnie **{maxPeoplePerBus} osób**. Przekroczenie tej liczby wymaga dodatkowego autobusu, co zwiększy koszt transportu proporcjonalnie.',
     },
+    missingParticipantsForTransport: 'Najpierw podaj liczbę uczestników, aby dodać transport',
     transportRemoval: {
       title: 'Czy na pewno chcesz usunąć <strong>Transport</strong> z wyceny?',
       message: 'Usunięcie transportu spowoduje również usunięcie wprowadzonego adresu.',
       confirm: 'Tak, usuń',
       cancel: 'Anuluj',
       successToast: 'Transport został usunięty',
+    },
+    transportAutoAdjustment: {
+      notification: 'Liczba osób w autobusie została automatycznie dostosowana do {newCount} (liczba uczestników)',
     },
     participantExceedsMaxAlert: {
       heading: 'Ten hotel jest maksymalnie dla <strong>{maxPeople}</strong> osób',
@@ -222,6 +236,25 @@ const translations = {
         ctaActivities: 'Przeglądaj integracje',
       },
     },
+    activityAddressForm: {
+      title: 'Wybierz <strong>lokalizację integracji</strong>',
+      formHeading: 'Gdzie ma odbyć się integracja?',
+      street: 'Ulica i numer*',
+      streetPlaceholder: 'np. Kwiatowa 56/23b',
+      streetRequired: 'Ulica i numer są wymagane',
+      postal: 'Kod pocztowy*',
+      postalPlaceholder: '__ - ___',
+      postalRequired: 'Kod pocztowy jest wymagany',
+      postalPattern: 'Wprowadź kod w formacie: XX-XXX',
+      city: 'Miasto*',
+      cityRequired: 'Miasto jest wymagane',
+      submit: 'Zatwierdź lokalizację',
+      pickFromMap: 'Wybierz z mapy',
+      searchLocation: 'Szukaj lokalizacji',
+      confirm: 'Zatwierdź',
+      cancel: 'Anuluj',
+      mapTooltip: 'Otwórz mapę, aby wybrać lokalizację',
+    },
   },
   en: {
     back: {
@@ -250,6 +283,7 @@ const translations = {
     to: 'to',
     currency: 'PLN',
     additionalPerson: 'Each additional person',
+    additionalKilometer: 'Each additional kilometer',
     perNight: 'PLN/night per person',
     missingParticipants: 'Enter the number of participants before sending the quote',
     missingDates: 'You must select at least one date',
@@ -287,6 +321,10 @@ const translations = {
       postalPattern: 'Enter code in the format: XX-XXX',
       city: 'City*',
       cityRequired: 'City is required',
+      peoplePerBus: 'How many people per bus?*',
+      peoplePerBusPlaceholder: 'Enter number',
+      peoplePerBusRequired: 'Number of people per bus is required',
+      peoplePerBusMax: 'Cannot exceed number of participants',
       submit: 'Save address',
       editButton: 'Edit address',
       pickFromMap: 'Pick from map',
@@ -294,13 +332,20 @@ const translations = {
       confirm: 'Confirm',
       cancel: 'Cancel',
       mapTooltip: 'Open map to select location',
+      busCapacityInfo:
+        'One bus can transport a maximum of **{maxPeoplePerBus} people**. Exceeding this number requires an additional bus, which will increase transport costs proportionally.',
     },
+    missingParticipantsForTransport: 'First enter the number of participants to add transport',
     transportRemoval: {
       title: 'Are you sure you want to remove <strong>Transport</strong> from the quote?',
       message: 'Removing transport will also remove the address you entered.',
       confirm: 'Yes, remove',
       cancel: 'Cancel',
       successToast: 'Transport has been removed',
+    },
+    transportAutoAdjustment: {
+      notification:
+        'The number of people in the bus has been automatically adjusted to {newCount} (number of participants)',
     },
     participantExceedsMaxAlert: {
       heading: 'This hotel is maxed out for <strong>{maxPeople}</strong> people',
@@ -339,6 +384,25 @@ const translations = {
         ctaHotels: 'Browse hotels',
         ctaActivities: 'Browse activities',
       },
+    },
+    activityAddressForm: {
+      title: 'Select <strong>activity location</strong>',
+      formHeading: 'Where should the activity take place?',
+      street: 'Street and number*',
+      streetPlaceholder: 'e.g. Flower 56/23b',
+      streetRequired: 'Street and number are required',
+      postal: 'Postal code*',
+      postalPlaceholder: '__ - ___',
+      postalRequired: 'Postal code is required',
+      postalPattern: 'Enter code in the format: XX-XXX',
+      city: 'City*',
+      cityRequired: 'City is required',
+      submit: 'Confirm location',
+      pickFromMap: 'Pick from map',
+      searchLocation: 'Search location',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      mapTooltip: 'Open map to select location',
     },
   },
 } as const
@@ -483,44 +547,52 @@ const { metadata, page } = Astro.props
   <Button slot="open" className="hidden-trigger" id="transport-address-trigger">Open</Button>
   <div slot="content" class="popup-content address-popup">
     <h2><Fragment set:html={t.addressForm.title} /></h2>
+    <CloseButton />
+
+    <AdditionalInfoBlock
+      text={t.addressForm.busCapacityInfo
+        .replace('{maxPeoplePerBus}', page.orderAddons.transportOptions.pricing.maxPeoplePerBus.toString())
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+    />
+
     <div class="transport-box">
       <Image {...page.orderAddons.transportOptions.image} sizes="100vw" />
       <h3>{t.addressForm.transportName}</h3>
       <div class="price-info">
         <p class="price">
           {
-            page.orderAddons.transportOptions.pricing.type === 'threshold' ? (
+            page.orderAddons.transportOptions.pricing.maxKilometers ? (
               <>
                 <strong>
-                  {t.from} {page.orderAddons.transportOptions.pricing.threshold.basePrice} {t.currency}
+                  {t.from} {page.orderAddons.transportOptions.pricing.basePrice} {t.currency}
                 </strong>
                 <span>
-                  / {t.to} {page.orderAddons.transportOptions.pricing.threshold.maxUnits} {t.people}
+                  / {t.to} {page.orderAddons.transportOptions.pricing.maxKilometers} km
                 </span>
               </>
             ) : (
               <strong>
-                {page.orderAddons.transportOptions.pricing.fixedPrice} ${t.currency}
+                {page.orderAddons.transportOptions.pricing.basePrice} {t.currency}
               </strong>
             )
           }
         </p>
         {
-          page.orderAddons.transportOptions.pricing.type === 'threshold' && (
+          page.orderAddons.transportOptions.pricing.maxKilometers && (
             <p class="price-details">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="13" fill="none">
                 <path stroke="#F67258" stroke-linecap="round" d="M9 6.963H6m0 0H3m3 0v-3m0 3v3" />
               </svg>
-              <span>{t.additionalPerson}</span>
+              <span>{t.additionalKilometer}</span>
               <strong>
-                {page.orderAddons.transportOptions.pricing.threshold.additionalPrice} {t.currency}
+                {page.orderAddons.transportOptions.pricing.pricePerKm} {t.currency}
               </strong>
             </p>
           )
         }
       </div>
     </div>
-    <CloseButton />
+
     <div class="address-form-wrapper">
       <p class="address-form-heading">{t.addressForm.formHeading}</p>
       <AddressForm client:idle translations={t.addressForm} />
@@ -537,6 +609,19 @@ const { metadata, page } = Astro.props
     <div class="confirmation-actions">
       <Button theme="primary" shade="light" className="cancel-transport-remove">{t.transportRemoval.cancel}</Button>
       <Button theme="primary" shade="dark" className="confirm-transport-remove">{t.transportRemoval.confirm}</Button>
+    </div>
+  </div>
+</PopupWindow>
+
+<PopupWindow>
+  <Button slot="open" className="hidden-trigger" id="activity-address-trigger">Open</Button>
+  <div slot="content" class="popup-content activity-address-popup">
+    <h2><Fragment set:html={t.activityAddressForm.title} /></h2>
+    <CloseButton />
+
+    <div class="activity-address-form-wrapper">
+      <p class="activity-form-heading">{t.activityAddressForm.formHeading}</p>
+      <ActivityAddressForm client:idle translations={t.activityAddressForm} />
     </div>
   </div>
 </PopupWindow>
@@ -1103,9 +1188,15 @@ const { metadata, page } = Astro.props
       grid-row: 1/2;
     }
 
+    :global(.additional-info-block) {
+      grid-column: 1/-1;
+      grid-row: 2/3;
+      margin-bottom: 0;
+    }
+
     .address-form-wrapper {
       grid-column: 2/4;
-      grid-row: 2/3;
+      grid-row: 3/4;
       max-width: 26.25rem;
 
       .address-form-heading {
@@ -1119,7 +1210,7 @@ const { metadata, page } = Astro.props
 
     .transport-box {
       grid-column: 1/2;
-      grid-row: 2/3;
+      grid-row: 3/4;
       max-width: 15.125rem;
       display: grid;
       overflow: hidden;
@@ -1179,7 +1270,7 @@ const { metadata, page } = Astro.props
     @media (max-width: 54.3125rem) {
       .transport-box {
         grid-column: 1/4;
-        grid-row: 2/3;
+        grid-row: 3/4;
         display: grid;
         grid-template-columns: auto auto 1fr;
         width: 100%;
@@ -1205,9 +1296,15 @@ const { metadata, page } = Astro.props
         }
       }
 
+      :global(.additional-info-block) {
+        grid-column: 1/4;
+        grid-row: 2/3;
+        margin-bottom: 0;
+      }
+
       .address-form-wrapper {
         grid-column: 1/4;
-        grid-row: 3/4;
+        grid-row: 4/5;
         max-width: 100%;
 
         :global(button[data-theme='primary']) {
@@ -1320,6 +1417,48 @@ const { metadata, page } = Astro.props
       }
     }
   }
+
+  :global(.activity-address-popup) {
+    display: grid;
+    align-items: start;
+    gap: 1rem 2rem;
+    grid-template-columns: 1fr auto;
+    max-width: 42rem;
+
+    h2 {
+      grid-column: 1/2;
+      grid-row: 1/2;
+    }
+
+    :global(.CloseButton) {
+      justify-self: end;
+      grid-column: 2/3;
+      grid-row: 1/2;
+    }
+
+    .activity-address-form-wrapper {
+      grid-column: 1/3;
+      grid-row: 2/3;
+
+      .activity-form-heading {
+        color: var(--primary-800, #45051c);
+        font-size: var(--typography-body-m, 0.875rem);
+        font-weight: 700;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+      }
+    }
+
+    @media (max-width: 46.1875rem) {
+      padding: 1.5rem;
+      max-width: 100%;
+    }
+
+    @media (max-width: 31.1875rem) {
+      padding: 1.5rem var(--pageMargin);
+      width: 100vw !important;
+    }
+  }
 </style>
 
 <script>
@@ -1353,6 +1492,44 @@ const { metadata, page } = Astro.props
     }
 
     return 'loading' // Default
+  }
+
+  // Function to dynamically sync peoplePerBus with participant count
+  function syncTransportPeopleWithParticipants(participantCount: number) {
+    // Set peoplePerBus to match participant count (minimum 1)
+    const newPeoplePerBus = Math.max(participantCount || 1, 1)
+
+    // Always store peoplePerBus in localStorage (independent of transport selection)
+    localStorage.setItem('cart_people_per_bus', newPeoplePerBus.toString())
+
+    // Also update transport address data if it exists
+    const transportAddress = localStorage.getItem('transport_address')
+    if (transportAddress) {
+      try {
+        const addressData = JSON.parse(transportAddress)
+
+        // Update the address data
+        const updatedAddressData = {
+          ...addressData,
+          peoplePerBus: newPeoplePerBus,
+        }
+
+        // Save updated data to localStorage
+        localStorage.setItem('transport_address', JSON.stringify(updatedAddressData))
+      } catch (error) {
+        console.error('Error updating transport address data:', error)
+      }
+    }
+
+    // Always dispatch event to notify the form component
+    window.dispatchEvent(
+      new CustomEvent('transport-people-synced', {
+        detail: {
+          newPeoplePerBus: newPeoplePerBus,
+          participantCount: participantCount,
+        },
+      })
+    )
   }
 
   // Function to update participant alerts based on current count
@@ -1576,6 +1753,26 @@ const { metadata, page } = Astro.props
 
   // Function to handle transport selection
   async function handleTransportToggle(item: HTMLElement, isSelected: boolean) {
+    // NEW: Check if participants are set before allowing transport selection
+    if (isSelected) {
+      const participantInput = document.getElementById('participantCount') as HTMLInputElement
+      const participantCount = participantInput?.value ? parseInt(participantInput.value) : 0
+
+      if (!participantCount) {
+        // Show error toast and don't proceed
+        showToast(t.missingParticipantsForTransport, 'error')
+
+        // Reset checkbox state
+        const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement
+        if (checkbox) {
+          checkbox.checked = false
+        }
+        item.setAttribute('data-selected', 'false')
+
+        return false
+      }
+    }
+
     // isSelected is the target state - if true, we're adding transport, if false, we're removing it
 
     // If removing transport (unchecking), show confirmation popup
@@ -1815,10 +2012,31 @@ const { metadata, page } = Astro.props
 
       // Only store in localStorage if we have a value
       if (value) {
+        const newParticipantCount = parseInt(value)
         localStorage.setItem('cart_participant_count', value)
+
+        // Check and auto-adjust transport settings if needed
+        syncTransportPeopleWithParticipants(newParticipantCount)
+
+        // Dispatch custom event to notify form components
+        window.dispatchEvent(
+          new CustomEvent('cart-participant-updated', {
+            detail: { participantCount: newParticipantCount },
+          })
+        )
       } else {
         // If the field was cleared, remove from localStorage
         localStorage.removeItem('cart_participant_count')
+
+        // Sync transport people to 1 when participants are empty (if transport is selected)
+        syncTransportPeopleWithParticipants(0)
+
+        // Dispatch custom event for cleared state
+        window.dispatchEvent(
+          new CustomEvent('cart-participant-updated', {
+            detail: { participantCount: 0 },
+          })
+        )
       }
 
       // Update alerts when participant count changes
@@ -1838,11 +2056,289 @@ const { metadata, page } = Astro.props
           participantInput.value = intValue.toString()
           localStorage.setItem('cart_participant_count', intValue.toString())
 
+          // Check and auto-adjust transport settings if needed
+          syncTransportPeopleWithParticipants(intValue)
+
+          // Dispatch custom event to notify form components
+          window.dispatchEvent(
+            new CustomEvent('cart-participant-updated', {
+              detail: { participantCount: intValue },
+            })
+          )
+
           // Update alerts on blur
           updateParticipantAlerts()
         }
       }
     })
+  }
+
+  // Function to proceed with quote submission after getting activity address
+  async function proceedWithQuoteSubmission() {
+    try {
+      // Get selected date(s)
+      const cartDates = localStorage.getItem('cart_dates')
+      let selectedDates: any[] = []
+      if (cartDates) {
+        try {
+          selectedDates = JSON.parse(cartDates)
+        } catch (e) {
+          console.error('Error parsing cart dates:', e)
+        }
+      }
+
+      // Validate that at least one date is selected
+      if (!selectedDates || selectedDates.length === 0) {
+        showToast(t.missingDates, 'error')
+        return
+      }
+
+      // Get participant count and validate
+      const participantInput = document.getElementById('participantCount') as HTMLInputElement
+      const participantCount = participantInput?.value ? parseInt(participantInput.value) : 0
+
+      // Validate that participant count is not empty
+      if (!participantCount) {
+        showToast(t.missingParticipants, 'error')
+        return
+      }
+
+      // Track begin_checkout event
+      const items = getCartItemsForTracking()
+
+      trackEvent({
+        ga: {
+          event_name: 'begin_checkout',
+          params: {
+            currency: 'PLN',
+            value: items
+              .filter((item) => item.item_category === 'hotel' || item.item_category === 'activity')
+              .reduce((acc, item) => acc + item.item_price, 0),
+            items: items.map((item) => ({
+              item_id: item.item_id,
+              item_name: item.item_name,
+            })),
+          },
+        },
+        meta: {
+          event_name: 'InitiateCheckout',
+          content_name: document.title,
+          params: {
+            content_ids: items.map((item) => item.item_id),
+          },
+        },
+      })
+
+      // Scroll to top immediately when clicking submit
+      window.scrollTo({
+        top: 0,
+        behavior: 'instant',
+      })
+
+      // Show submit-loading state
+      showState('submit-loading')
+
+      // Get cart data
+      const cart = cartStore.get()
+
+      // Fetch complete data for hotels with pricing and addons
+      let validHotels = []
+      let validActivities = []
+
+      // If all necessary data is already in cache, use it
+      if (cachedCartData.isComplete()) {
+        validHotels = cachedCartData.hotels.map((hotel) => {
+          // Format the hotel data for quote
+          const addons =
+            hotel.cartAddons?.map((addon) => {
+              return {
+                id: addon.id,
+                name: addon.fullData?.name || 'Unknown',
+                pricing: addon.fullData?.pricing,
+                count: addon.count || 1,
+              }
+            }) || []
+
+          return {
+            id: hotel._id,
+            type: 'hotel',
+            name: hotel.name,
+            slug: hotel.slug,
+            pricing: hotel.pricing,
+            maxPeople: hotel.maxPeople,
+            addons,
+            address: hotel.address,
+          }
+        })
+
+        validActivities = cachedCartData.activities.map((activity) => {
+          // Format the activity data for quote
+          const addons =
+            activity.cartAddons?.map((addon) => {
+              return {
+                id: addon.id,
+                name: addon.fullData?.name || 'Unknown',
+                pricing: addon.fullData?.pricing,
+                count: addon.count || 1,
+              }
+            }) || []
+
+          return {
+            id: activity._id,
+            type: 'activity',
+            name: activity.name,
+            slug: activity.slug,
+            pricing: activity.pricing,
+            participantsCount: activity.participantsCount,
+            addons,
+          }
+        })
+      } else {
+        // If cache is not complete, fetch data (this is a backup but shouldn't happen)
+
+        // Fetch hotels data
+        const hotelsPromises = cart.hotels.map(async (hotelItem) => {
+          const addonIds = hotelItem.addOns.map((addon) => addon.id)
+          const hotelData = await fetchHotelData(hotelItem.id, addonIds)
+
+          if (!hotelData) return null
+
+          // Map addons with their counts from the cart
+          const addons =
+            hotelData.addons?.addonsList?.map((addon: any) => {
+              const cartAddon = hotelItem.addOns.find((a: { id: string }) => a.id === addon._key)
+              return {
+                id: addon._key,
+                name: addon.name,
+                pricing: addon.pricing,
+                count: cartAddon?.count || 1,
+              }
+            }) || []
+
+          return {
+            id: hotelItem.id,
+            type: 'hotel',
+            name: hotelData.name,
+            slug: hotelData.slug,
+            pricing: hotelData.pricing,
+            maxPeople: hotelData.maxPeople,
+            addons,
+          }
+        })
+
+        // Fetch activities data
+        const activitiesPromises = cart.activities.map(async (activityItem) => {
+          const addonIds = activityItem.addOns.map((addon) => addon.id)
+          const activityData = await fetchActivityData(activityItem.id, addonIds)
+
+          if (!activityData) return null
+
+          // Map addons with their counts from the cart
+          const addons =
+            activityData.addons?.addonsList?.map((addon: any) => {
+              const cartAddon = activityItem.addOns.find((a: { id: string }) => a.id === addon._key)
+              return {
+                id: addon._key,
+                name: addon.name,
+                pricing: addon.pricing,
+                count: cartAddon?.count || 1,
+              }
+            }) || []
+
+          return {
+            id: activityItem.id,
+            type: 'activity',
+            name: activityData.name,
+            slug: activityData.slug,
+            pricing: activityData.pricing,
+            participantsCount: activityData.participantsCount,
+            addons,
+          }
+        })
+
+        // Wait for all fetch operations to complete
+        const [hotels, activities] = await Promise.all([Promise.all(hotelsPromises), Promise.all(activitiesPromises)])
+
+        // Filter out null values (failed fetches)
+        validHotels = hotels.filter(Boolean)
+        validActivities = activities.filter(Boolean)
+      }
+
+      // Get transport address if exists
+      const transportAddress = JSON.parse(localStorage.getItem('transport_address') || 'null')
+
+      // Get activity address if exists (for activities without dedicated addresses)
+      const activityAddress = JSON.parse(localStorage.getItem('activity_address') || 'null')
+
+      // Get extras/addons
+      const extrasIds = JSON.parse(localStorage.getItem('cart_order_addons') || '[]') as Array<{
+        id: string
+        count?: number
+      }>
+
+      // Get the extras data from the DOM that contains pricing information
+      const extrasList = document.querySelector('.extras .list')
+      const extrasData = JSON.parse(extrasList?.getAttribute('data-addons-data') || '{}')
+
+      // Map the extras with their pricing data
+      const extrasWithPricing = extrasIds.map((item: { id: string; count?: number }) => {
+        if (item.id === 'transport') {
+          return {
+            id: item.id,
+            count: item.count || 1,
+            name: t.transportAddonName,
+            pricing: extrasData.transportOptions.pricing,
+            address: transportAddress,
+          }
+        } else {
+          // Find the addon in the list
+          const addonData = extrasData.addonsList.find(
+            (addon: { _key: string; name: string; pricing: any }) => addon._key === item.id
+          )
+          return {
+            id: item.id,
+            count: item.count || 1,
+            name: addonData?.name || 'Unknown Addon',
+            pricing: addonData?.pricing || null,
+          }
+        }
+      })
+
+      // Prepare data payload
+      const quoteData = {
+        hotels: validHotels,
+        activities: validActivities,
+        participantCount,
+        selectedDates,
+        extras: extrasWithPricing,
+        language: pageLang,
+        activityAddress: activityAddress, // Include activity address
+      }
+
+      // Add artificial delay for testing
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      // Send data to API
+      const response = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quoteData),
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create quote')
+      }
+
+      // Redirect to quote page
+      window.location.href = `/${pageLang}/koszyk?id=${result.quoteId}`
+    } catch (error) {
+      console.error('Error creating quote:', error)
+      showState('submit-error')
+    }
   }
 
   // Setup quote request handling
@@ -1888,238 +2384,20 @@ const { metadata, page } = Astro.props
           return
         }
 
-        // Track begin_checkout event
-        const items = getCartItemsForTracking()
-
-        trackEvent({
-          ga: {
-            event_name: 'begin_checkout',
-            params: {
-              currency: 'PLN',
-              value: items
-                .filter((item) => item.item_category === 'hotel' || item.item_category === 'activity')
-                .reduce((acc, item) => acc + item.item_price, 0),
-              items: items.map((item) => ({
-                item_id: item.item_id,
-                item_name: item.item_name,
-              })),
-            },
-          },
-          meta: {
-            event_name: 'InitiateCheckout',
-            content_name: document.title,
-            params: {
-              content_ids: items.map((item) => item.item_id),
-            },
-          },
-        })
-
-        // Scroll to top immediately when clicking submit
-        window.scrollTo({
-          top: 0,
-          behavior: 'instant',
-        })
-
-        // Show submit-loading state
-        showState('submit-loading')
-
-        // Get cart data
-        const cart = cartStore.get()
-
-        // Fetch complete data for hotels with pricing and addons
-        let validHotels = []
-        let validActivities = []
-
-        // If all necessary data is already in cache, use it
-        if (cachedCartData.isComplete()) {
-          validHotels = cachedCartData.hotels.map((hotel) => {
-            // Format the hotel data for quote
-            const addons =
-              hotel.cartAddons?.map((addon) => {
-                return {
-                  id: addon.id,
-                  name: addon.fullData?.name || 'Unknown',
-                  pricing: addon.fullData?.pricing,
-                  count: addon.count || 1,
-                }
-              }) || []
-
-            return {
-              id: hotel._id,
-              type: 'hotel',
-              name: hotel.name,
-              slug: hotel.slug,
-              pricing: hotel.pricing,
-              maxPeople: hotel.maxPeople,
-              addons,
-              address: hotel.address,
-            }
-          })
-
-          validActivities = cachedCartData.activities.map((activity) => {
-            // Format the activity data for quote
-            const addons =
-              activity.cartAddons?.map((addon) => {
-                return {
-                  id: addon.id,
-                  name: addon.fullData?.name || 'Unknown',
-                  pricing: addon.fullData?.pricing,
-                  count: addon.count || 1,
-                }
-              }) || []
-
-            return {
-              id: activity._id,
-              type: 'activity',
-              name: activity.name,
-              slug: activity.slug,
-              pricing: activity.pricing,
-              participantsCount: activity.participantsCount,
-              addons,
-            }
-          })
-        } else {
-          // If cache is not complete, fetch data (this is a backup but shouldn't happen)
-
-          // Fetch hotels data
-          const hotelsPromises = cart.hotels.map(async (hotelItem) => {
-            const addonIds = hotelItem.addOns.map((addon) => addon.id)
-            const hotelData = await fetchHotelData(hotelItem.id, addonIds)
-
-            if (!hotelData) return null
-
-            // Map addons with their counts from the cart
-            const addons =
-              hotelData.addons?.addonsList?.map((addon: any) => {
-                const cartAddon = hotelItem.addOns.find((a: { id: string }) => a.id === addon._key)
-                return {
-                  id: addon._key,
-                  name: addon.name,
-                  pricing: addon.pricing,
-                  count: cartAddon?.count || 1,
-                }
-              }) || []
-
-            return {
-              id: hotelItem.id,
-              type: 'hotel',
-              name: hotelData.name,
-              slug: hotelData.slug,
-              pricing: hotelData.pricing,
-              maxPeople: hotelData.maxPeople,
-              addons,
-            }
-          })
-
-          // Fetch activities data
-          const activitiesPromises = cart.activities.map(async (activityItem) => {
-            const addonIds = activityItem.addOns.map((addon) => addon.id)
-            const activityData = await fetchActivityData(activityItem.id, addonIds)
-
-            if (!activityData) return null
-
-            // Map addons with their counts from the cart
-            const addons =
-              activityData.addons?.addonsList?.map((addon: any) => {
-                const cartAddon = activityItem.addOns.find((a: { id: string }) => a.id === addon._key)
-                return {
-                  id: addon._key,
-                  name: addon.name,
-                  pricing: addon.pricing,
-                  count: cartAddon?.count || 1,
-                }
-              }) || []
-
-            return {
-              id: activityItem.id,
-              type: 'activity',
-              name: activityData.name,
-              slug: activityData.slug,
-              pricing: activityData.pricing,
-              participantsCount: activityData.participantsCount,
-              addons,
-            }
-          })
-
-          // Wait for all fetch operations to complete
-          const [hotels, activities] = await Promise.all([Promise.all(hotelsPromises), Promise.all(activitiesPromises)])
-
-          // Filter out null values (failed fetches)
-          validHotels = hotels.filter(Boolean)
-          validActivities = activities.filter(Boolean)
-        }
-
-        // Get transport address if exists
-        const transportAddress = JSON.parse(localStorage.getItem('transport_address') || 'null')
-
-        // Get extras/addons
-        const extrasIds = JSON.parse(localStorage.getItem('cart_order_addons') || '[]') as Array<{
-          id: string
-          count?: number
-        }>
-
-        // Get the extras data from the DOM that contains pricing information
-        const extrasList = document.querySelector('.extras .list')
-        const extrasData = JSON.parse(extrasList?.getAttribute('data-addons-data') || '{}')
-
-        // Map the extras with their pricing data
-        const extrasWithPricing = extrasIds.map((item: { id: string; count?: number }) => {
-          if (item.id === 'transport') {
-            return {
-              id: item.id,
-              count: item.count || 1,
-              name: t.transportAddonName,
-              pricing: extrasData.transportOptions.pricing,
-              address: transportAddress,
-            }
-          } else {
-            // Find the addon in the list
-            const addonData = extrasData.addonsList.find(
-              (addon: { _key: string; name: string; pricing: any }) => addon._key === item.id
-            )
-            return {
-              id: item.id,
-              count: item.count || 1,
-              name: addonData?.name || 'Unknown Addon',
-              pricing: addonData?.pricing || null,
-            }
+        // NEW: Check if activity address is needed
+        if (needsActivityAddress()) {
+          // Show activity address popup
+          const activityAddressTrigger = document.getElementById('activity-address-trigger')
+          if (activityAddressTrigger) {
+            activityAddressTrigger.click()
           }
-        })
-
-        // Prepare data payload
-        const quoteData = {
-          hotels: validHotels,
-          activities: validActivities,
-          participantCount,
-          selectedDates,
-          extras: extrasWithPricing,
-          language: pageLang,
+          return // Wait for activity address submission
         }
 
-        // Add artificial delay for testing
-        await new Promise((resolve) => setTimeout(resolve, 200))
-
-        // Send data to API
-        const response = await fetch('/api/quotes', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(quoteData),
-        })
-
-        const result = await response.json()
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to create quote')
-        }
-
-        // Redirect to quote page
-        window.location.href = `/${pageLang}/koszyk?id=${result.quoteId}`
+        // If we reach here, proceed with quote submission using the shared function
+        await proceedWithQuoteSubmission()
       } catch (error) {
-        console.error('Error creating quote:', error)
-
-        // Show submit-error state
+        console.error('Error in submit handler:', error)
         showState('submit-error')
       }
     })
@@ -2135,6 +2413,9 @@ const { metadata, page } = Astro.props
 
     // Setup address form
     setupAddressForm()
+
+    // Setup activity address form
+    setupActivityAddressForm()
 
     // Setup extras popup events
     setupExtrasPopupEvents()
@@ -2435,8 +2716,11 @@ const { metadata, page } = Astro.props
       name: string
       image: any
       pricing: {
-        type: string
+        type?: string
         fixedPrice?: number
+        basePrice?: number
+        maxKilometers?: number
+        pricePerKm?: number
         threshold?: {
           basePrice: number
           maxUnits: number
@@ -2489,7 +2773,16 @@ const { metadata, page } = Astro.props
     const plusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="13" fill="none"><path stroke="#F67258" stroke-linecap="round" d="M9 6.963H6m0 0H3m3 0v-3m0 3v3"/></svg>`
 
     // Handle different pricing types
-    if (extra.pricing.type === 'fixed' && extra.pricing.fixedPrice) {
+    if (extra._key === 'transport') {
+      // Special handling for transport with new kilometer-based pricing
+      if (extra.pricing.maxKilometers) {
+        priceElement.innerHTML = `<strong>${t.from} ${extra.pricing.basePrice} ${t.currency}</strong><span>/ ${t.to} ${extra.pricing.maxKilometers} km</span>`
+        priceDetailsElement.innerHTML = `${plusIcon} <span>${t.additionalKilometer}</span><strong>${extra.pricing.pricePerKm} ${t.currency}</strong>`
+      } else {
+        priceElement.innerHTML = `<strong>${extra.pricing.basePrice} ${t.currency}</strong>`
+        priceDetailsElement.textContent = ''
+      }
+    } else if (extra.pricing.type === 'fixed' && extra.pricing.fixedPrice) {
       priceElement.innerHTML = `<strong>${extra.pricing.fixedPrice} ${t.currency}</strong>`
       priceDetailsElement.textContent = ''
     } else if (extra.pricing.type === 'threshold' && extra.pricing.threshold) {
@@ -3243,5 +3536,79 @@ const { metadata, page } = Astro.props
 
       return allHotelsCached && allActivitiesCached
     },
+  }
+
+  // Function to check if activity address is needed
+  function needsActivityAddress(): boolean {
+    const cart = cartStore.get()
+
+    // If we have hotels, activity addresses don't matter (hotels take precedence)
+    if (cart.hotels.length > 0) {
+      return false
+    }
+
+    // If we have no activities, no address needed
+    if (cart.activities.length === 0) {
+      return false
+    }
+
+    const hasNationwideActivities = cachedCartData.activities.some(
+      (activity) => activity.location?.isNationwide === true
+    )
+
+    return hasNationwideActivities
+  }
+
+  // Setup activity address form events
+  function setupActivityAddressForm() {
+    // Listen for activity address form submission
+    document.addEventListener('activity-address-submitted', (event: Event) => {
+      const customEvent = event as CustomEvent
+      const addressData = customEvent.detail?.data
+
+      if (!addressData) return
+
+      // Store address data in localStorage
+      localStorage.setItem('activity_address', JSON.stringify(addressData))
+
+      // Close popup
+      const closeBtn = document.querySelector('.activity-address-popup .CloseButton')
+      if (closeBtn && closeBtn instanceof HTMLElement) {
+        closeBtn.click()
+      }
+
+      // Proceed with quote submission
+      proceedWithQuoteSubmission()
+    })
+
+    // Setup popup close event to reset form state
+    const activityAddressPopup = document.querySelector('.activity-address-popup')
+    if (activityAddressPopup) {
+      const popupWindow = activityAddressPopup.closest('.popup-window')
+
+      if (popupWindow) {
+        // Create a MutationObserver to watch for aria-hidden changes
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+              const isHidden = popupWindow.getAttribute('aria-hidden') === 'true'
+              if (isHidden) {
+                // Popup is closing - dispatch reset event
+                document.dispatchEvent(new CustomEvent('activity-address-reset'))
+              } else {
+                // Popup is opening - also dispatch reset event to ensure clean state
+                document.dispatchEvent(new CustomEvent('activity-address-reset'))
+              }
+            }
+          })
+        })
+
+        // Start observing
+        observer.observe(popupWindow, {
+          attributes: true,
+          attributeFilter: ['aria-hidden'],
+        })
+      }
+    }
   }
 </script>

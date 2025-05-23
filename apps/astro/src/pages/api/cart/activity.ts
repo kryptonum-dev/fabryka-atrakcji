@@ -33,6 +33,17 @@ export const GET: APIRoute = async ({ request }) => {
           ${ImageDataQuery('imageList[0]')}
           pricing,
           participantsCount,
+          location{
+            isNationwide,
+            address{
+              street,
+              postalCode,
+              city,
+              voivodeship
+            },
+            googleMapsLink,
+            isIndoor
+          },
           addons{
             hasAddons,
             ${

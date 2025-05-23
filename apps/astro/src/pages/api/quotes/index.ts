@@ -209,7 +209,14 @@ function calculateAddonPrice(
       if (addon.pricing.perUnit && typeof addon.pricing.perUnit.price === 'number') {
         const unitPrice = addon.pricing.perUnit.price
         // If the add-on has count capability, use the specified count
-        const units = addon.pricing.perUnit.hasCount ? addonCount : 1
+        let units = addon.pricing.perUnit.hasCount ? addonCount : 1
+
+        // Special handling for per-person addons
+        // If the unit is "osoba" (person), multiply by participant count as well
+        const isPerPersonAddon = addon.pricing.perUnit.singular === 'osoba'
+        if (isPerPersonAddon) {
+          units = units * participantCount
+        }
 
         result.bruttoPrice = unitPrice * units
         result.priceDetails = {
@@ -309,6 +316,29 @@ function calculateExtraPrice(
       }
       break
 
+    case 'per_unit':
+      // Per unit pricing (like "per hour" or "per person")
+      if ((pricing as any).perUnit && typeof (pricing as any).perUnit.price === 'number') {
+        const perUnit = (pricing as any).perUnit
+        const unitPrice = perUnit.price
+        // If the add-on has count capability, use the specified count
+        let units = perUnit.hasCount ? extra.count || 1 : 1
+
+        // Special handling for per-person addons
+        // If the unit is "osoba" (person), multiply by participant count as well
+        const isPerPersonAddon = perUnit.singular === 'osoba'
+        if (isPerPersonAddon) {
+          units = units * participantCount
+        }
+
+        result.totalPrice = unitPrice * units
+        result.priceDetails = {
+          unitPrice,
+          units,
+        }
+      }
+      break
+
     case 'threshold':
       // Threshold pricing based on participant count
       if (pricing.threshold) {
@@ -356,22 +386,21 @@ async function geocodeAddress(address: {
 }): Promise<{ lat: number; lng: number } | null> {
   // Only attempt geocoding if we have at least street and city
   if (!address.street || !address.city) {
-    console.warn('Insufficient address information for geocoding')
+    console.warn('Insufficient address information for geocoding:', address)
     return null
   }
 
   const query = `${address.street}, ${address.postal || ''} ${address.city}`.trim()
 
   try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=1`,
-      {
-        headers: {
-          'User-Agent': 'Fabryka-Atrakcji/1.0', // Proper user-agent as required by Nominatim
-          'Accept-Language': 'pl', // Prioritize Polish results
-        },
-      }
-    )
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=1`
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Fabryka-Atrakcji/1.0', // Proper user-agent as required by Nominatim
+        'Accept-Language': 'pl', // Prioritize Polish results
+      },
+    })
 
     if (!response.ok) {
       throw new Error(`Geocoding request failed with status: ${response.status}`)
@@ -380,10 +409,11 @@ async function geocodeAddress(address: {
     const data = await response.json()
 
     if (data && data.length > 0) {
-      return {
+      const result = {
         lat: parseFloat(data[0].lat),
         lng: parseFloat(data[0].lon),
       }
+      return result
     }
 
     console.warn('No geocoding results found for address:', query)
@@ -391,6 +421,58 @@ async function geocodeAddress(address: {
   } catch (error) {
     console.error('Geocoding error:', error)
     return null
+  }
+}
+
+/**
+ * Calculate transport price based on distance, bus capacity, and number of buses
+ *
+ * @param params Object containing pricing configuration and calculation parameters
+ * @returns Object with calculated transport pricing details
+ */
+function calculateTransportPrice(params: {
+  distance: number
+  basePrice: number
+  maxKilometers: number
+  pricePerKm: number
+  numberOfBuses: number
+  peoplePerBus: number
+}): {
+  basePrice: number
+  distancePrice: number
+  totalPrice: number
+  nettoTotalPrice: number
+  pricePerKm: number
+  numberOfBuses: number
+  peoplePerBus: number
+  maxKilometers: number
+} {
+  const { distance, basePrice, maxKilometers, pricePerKm, numberOfBuses, peoplePerBus } = params
+
+  // Calculate price per single bus
+  let singleBusPrice = basePrice
+
+  // Add distance pricing if distance exceeds maxKilometers
+  let distancePrice = 0
+  if (distance > maxKilometers) {
+    const extraKm = distance - maxKilometers
+    distancePrice = extraKm * pricePerKm
+    singleBusPrice += distancePrice
+  }
+
+  // Calculate total price for all buses
+  const totalBruttoPrice = Math.round(singleBusPrice * numberOfBuses)
+  const totalNettoPrice = Math.round(totalBruttoPrice / 1.23)
+
+  return {
+    basePrice,
+    distancePrice,
+    totalPrice: totalBruttoPrice,
+    nettoTotalPrice: totalNettoPrice,
+    pricePerKm,
+    numberOfBuses,
+    peoplePerBus,
+    maxKilometers,
   }
 }
 
@@ -474,17 +556,32 @@ export const POST: APIRoute = async ({ request }) => {
       language,
       selectedDates,
       participantCount,
+      activityAddress,
     }: {
       hotels: BaseHotelProps[]
       activities: BaseActivityProps[]
       extras: (ExtraItem & {
         id?: string
         count?: number
-        address?: { street: string; postal: string; city: string; lat?: number; lng?: number }
+        address?: {
+          street: string
+          postal: string
+          city: string
+          lat?: number
+          lng?: number
+          peoplePerBus?: number
+        }
       })[]
       participantCount: number
       language: string
       selectedDates: Array<string | { start: string; end: string }>
+      activityAddress?: {
+        street: string
+        postal: string
+        city: string
+        lat?: number
+        lng?: number
+      }
     } = data
 
     // Array to store all quote items
@@ -494,6 +591,54 @@ export const POST: APIRoute = async ({ request }) => {
     let transportExtra = extras.find((extra) => extra.id === 'transport')
     let transportPickupCoordinates = null
     let transportGeocodingFailed = false
+    let transportConfig = null
+    let peoplePerBus = 0
+    let numberOfBuses = 0
+
+    // Fetch transport configuration from Sanity if transport is requested
+    if (transportExtra) {
+      try {
+        transportConfig = await client.fetch(
+          `
+          *[_type == "Cart_Page" && language == $language][0] {
+            orderAddons {
+              transportOptions {
+                pricing {
+                  basePrice,
+                  maxKilometers,
+                  pricePerKm,
+                  maxPeoplePerBus
+                }
+              }
+            }
+          }
+        `,
+          { language }
+        )
+
+        // Extract peoplePerBus from address data
+        if (transportExtra.address && transportExtra.address.peoplePerBus) {
+          peoplePerBus = transportExtra.address.peoplePerBus
+        } else {
+          // Fallback to participant count if no peoplePerBus specified
+          peoplePerBus = participantCount
+        }
+
+        // Calculate number of buses needed
+        const maxPeoplePerBus = transportConfig?.orderAddons?.transportOptions?.pricing?.maxPeoplePerBus || 50
+
+        // Ensure peoplePerBus doesn't exceed maxPeoplePerBus
+        peoplePerBus = Math.min(peoplePerBus, maxPeoplePerBus)
+
+        // Calculate number of buses (minimum 1 if transport is selected)
+        numberOfBuses = Math.max(1, Math.ceil(participantCount / peoplePerBus))
+      } catch (error) {
+        console.error('Error fetching transport config:', error)
+        // Fallback values
+        peoplePerBus = participantCount
+        numberOfBuses = 1
+      }
+    }
 
     if (transportExtra && transportExtra.address) {
       // Get pickup coordinates from the address
@@ -640,42 +785,40 @@ export const POST: APIRoute = async ({ request }) => {
             hotelCoordinates.lng
           )
 
-          // Store distance for this hotel
-          hotelQuoteItem.transport = {
-            itemId: 'transport',
-            distance: distance,
-            pickupCoordinates: transportPickupCoordinates,
-            destinationCoordinates: hotelCoordinates,
-          }
+          // Check if pickup and destination are at the same location (within 0.001 degrees ≈ 100m)
+          const latDiff = Math.abs(transportPickupCoordinates.lat - hotelCoordinates.lat)
+          const lngDiff = Math.abs(transportPickupCoordinates.lng - hotelCoordinates.lng)
+          const isSameLocation = latDiff < 0.001 && lngDiff < 0.001
 
-          // If transport has pricePerKm, calculate transport price
-          if (transportExtra.pricing && transportExtra.pricing.pricePerKm) {
-            const distancePrice = distance * transportExtra.pricing.pricePerKm
-
-            // Calculate base transport price
-            let baseTransportPrice = 0
-            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
-              baseTransportPrice = transportExtra.pricing.fixedPrice
-            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
-              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
-
-              baseTransportPrice = basePrice
-
-              if (participantCount > maxUnits) {
-                const additionalPeople = participantCount - maxUnits
-                baseTransportPrice += additionalPeople * additionalPrice
-              }
+          // If same location, don't add transport (no charge for 0km transport)
+          if (isSameLocation) {
+            // Don't set transport - user is already at the destination
+            hotelQuoteItem.transport = null
+          } else {
+            // Different locations - add normal transport
+            hotelQuoteItem.transport = {
+              itemId: 'transport',
+              distance: distance,
+              pickupCoordinates: transportPickupCoordinates,
+              destinationCoordinates: hotelCoordinates,
+              peoplePerBus: peoplePerBus,
+              numberOfBuses: numberOfBuses,
             }
 
-            const totalPrice = baseTransportPrice + distancePrice
-            const nettoPrice = Math.round(totalPrice / 1.23)
+            // Calculate transport price using new bus-based system
+            if (transportConfig?.orderAddons?.transportOptions?.pricing) {
+              const pricing = transportConfig.orderAddons.transportOptions.pricing
 
-            hotelQuoteItem.transport.pricing = {
-              basePrice: baseTransportPrice,
-              distancePrice: distancePrice,
-              totalPrice: totalPrice,
-              nettoTotalPrice: nettoPrice,
-              pricePerKm: transportExtra.pricing.pricePerKm,
+              const transportPricing = calculateTransportPrice({
+                distance: distance,
+                basePrice: pricing.basePrice || 0,
+                maxKilometers: pricing.maxKilometers || 0,
+                pricePerKm: pricing.pricePerKm || 0,
+                numberOfBuses: numberOfBuses,
+                peoplePerBus: peoplePerBus,
+              })
+
+              hotelQuoteItem.transport.pricing = transportPricing
             }
           }
         } else if (transportExtra) {
@@ -717,28 +860,22 @@ export const POST: APIRoute = async ({ request }) => {
           }
 
           // Calculate base transport price without distance
-          if (transportExtra.pricing && hotelQuoteItem.transport) {
-            let baseTransportPrice = 0
-            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
-              baseTransportPrice = transportExtra.pricing.fixedPrice
-            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
-              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+          if (transportConfig?.orderAddons?.transportOptions?.pricing && hotelQuoteItem.transport) {
+            const pricing = transportConfig.orderAddons.transportOptions.pricing
 
-              baseTransportPrice = basePrice
+            // Calculate transport price with 0 distance (base price only)
+            const transportPricing = calculateTransportPrice({
+              distance: 0,
+              basePrice: pricing.basePrice || 0,
+              maxKilometers: pricing.maxKilometers || 0,
+              pricePerKm: pricing.pricePerKm || 0,
+              numberOfBuses: numberOfBuses,
+              peoplePerBus: peoplePerBus,
+            })
 
-              if (participantCount > maxUnits) {
-                const additionalPeople = participantCount - maxUnits
-                baseTransportPrice += additionalPeople * additionalPrice
-              }
-            }
-
-            const nettoPrice = Math.round(baseTransportPrice / 1.23)
-
-            hotelQuoteItem.transport.pricing = {
-              basePrice: baseTransportPrice,
-              totalPrice: baseTransportPrice,
-              nettoTotalPrice: nettoPrice,
-            }
+            hotelQuoteItem.transport.pricing = transportPricing
+            hotelQuoteItem.transport.peoplePerBus = peoplePerBus
+            hotelQuoteItem.transport.numberOfBuses = numberOfBuses
           }
         }
 
@@ -747,7 +884,41 @@ export const POST: APIRoute = async ({ request }) => {
       }
     } else if (activities && activities.length > 0) {
       // No hotels, process activities only
-      for (const activity of activities) {
+
+      // NEW: Fetch activity location data from Sanity to determine address handling
+      const activitiesWithLocation = await Promise.all(
+        activities.map(async (activity) => {
+          try {
+            const locationData = await client.fetch(
+              `*[_type == "Activities_Collection" && _id == $activityId][0] {
+                location {
+                  isNationwide,
+                  address {
+                    street,
+                    postalCode,
+                    city,
+                    voivodeship
+                  }
+                }
+              }`,
+              { activityId: activity._id || activity.id }
+            )
+
+            return {
+              ...activity,
+              location: locationData?.location || null,
+            }
+          } catch (error) {
+            console.error(`Error fetching location for activity ${activity._id || activity.id}:`, error)
+            return {
+              ...activity,
+              location: null,
+            }
+          }
+        })
+      )
+
+      for (const activity of activitiesWithLocation) {
         // Calculate activity price
         const activityPriceResult = calculateActivityPrice(activity, participantCount)
 
@@ -806,39 +977,144 @@ export const POST: APIRoute = async ({ request }) => {
         // Set the initial total price
         activityQuoteItem.totalPrice = initialActivityPrice
 
-        // Handle transport for activities (without coordinates or distance calculation)
+        // NEW: Handle transport for activities with proper address logic
         if (transportExtra && transportPickupCoordinates) {
-          // Since we don't have activity coordinates, we can only add base transport price
-          activityQuoteItem.transport = {
-            itemId: 'transport',
-            activityNoAddress: true,
-            pickupCoordinates: transportPickupCoordinates,
-          }
+          // Determine which address to use for the activity destination
+          let activityDestinationCoordinates = null
+          let activityGeocodingFailed = false
+          let usingUserSelectedAddress = false
+          let activityAddressSource = 'none'
 
-          // Add base transport price
-          if (transportExtra.pricing) {
-            let baseTransportPrice = 0
-            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
-              baseTransportPrice = transportExtra.pricing.fixedPrice
-            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
-              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+          if (activity.location && !activity.location.isNationwide && activity.location.address) {
+            // Activity has a dedicated address - use it
+            activityAddressSource = 'dedicated'
 
-              baseTransportPrice = basePrice
-
-              if (participantCount > maxUnits) {
-                const additionalPeople = participantCount - maxUnits
-                baseTransportPrice += additionalPeople * additionalPrice
-              }
+            const addressToGeocode = {
+              street: activity.location.address.street,
+              postal: activity.location.address.postalCode,
+              city: activity.location.address.city,
             }
 
-            const nettoPrice = Math.round(baseTransportPrice / 1.23)
+            activityDestinationCoordinates = await geocodeAddress(addressToGeocode)
 
-            if (activityQuoteItem.transport) {
-              activityQuoteItem.transport.pricing = {
-                basePrice: baseTransportPrice,
-                totalPrice: baseTransportPrice,
-                nettoTotalPrice: nettoPrice,
+            if (!activityDestinationCoordinates) {
+              activityGeocodingFailed = true
+              console.warn(`Failed to geocode activity address for: ${activity.name}`)
+            }
+          } else if (activity.location && activity.location.isNationwide && activityAddress) {
+            // Activity is nationwide and user provided address - use user's address
+            activityAddressSource = 'user_selected'
+            usingUserSelectedAddress = true
+
+            if (activityAddress.lat && activityAddress.lng) {
+              // Coordinates already present (from map selection)
+              activityDestinationCoordinates = {
+                lat: activityAddress.lat,
+                lng: activityAddress.lng,
               }
+            } else {
+              // Need to geocode the user-provided address
+              const addressToGeocode = {
+                street: activityAddress.street,
+                postal: activityAddress.postal,
+                city: activityAddress.city,
+              }
+
+              activityDestinationCoordinates = await geocodeAddress(addressToGeocode)
+
+              if (!activityDestinationCoordinates) {
+                activityGeocodingFailed = true
+                console.warn('Failed to geocode user-selected activity address')
+              }
+            }
+          }
+
+          // Calculate distance and set transport data
+          if (activityDestinationCoordinates) {
+            // We have both pickup and destination coordinates - calculate distance
+            const distance = calculateDistance(
+              transportPickupCoordinates.lat,
+              transportPickupCoordinates.lng,
+              activityDestinationCoordinates.lat,
+              activityDestinationCoordinates.lng
+            )
+
+            // Check if pickup and destination are at the same location (within 0.001 degrees ≈ 100m)
+            const latDiff = Math.abs(transportPickupCoordinates.lat - activityDestinationCoordinates.lat)
+            const lngDiff = Math.abs(transportPickupCoordinates.lng - activityDestinationCoordinates.lng)
+            const isSameLocation = latDiff < 0.001 && lngDiff < 0.001
+
+            // If same location, don't add transport (no charge for 0km transport)
+            if (isSameLocation) {
+              // Don't set transport - user is already at the destination
+              activityQuoteItem.transport = null
+            } else {
+              // Different locations - add normal transport
+              activityQuoteItem.transport = {
+                itemId: 'transport',
+                distance: distance,
+                pickupCoordinates: transportPickupCoordinates,
+                destinationCoordinates: activityDestinationCoordinates,
+                peoplePerBus: peoplePerBus,
+                numberOfBuses: numberOfBuses,
+                activityAddressSource: activityAddressSource,
+                usingUserSelectedAddress: usingUserSelectedAddress,
+              }
+
+              // Calculate transport price with distance
+              if (transportConfig?.orderAddons?.transportOptions?.pricing) {
+                const pricing = transportConfig.orderAddons.transportOptions.pricing
+
+                const transportPricing = calculateTransportPrice({
+                  distance: distance,
+                  basePrice: pricing.basePrice || 0,
+                  maxKilometers: pricing.maxKilometers || 0,
+                  pricePerKm: pricing.pricePerKm || 0,
+                  numberOfBuses: numberOfBuses,
+                  peoplePerBus: peoplePerBus,
+                })
+
+                activityQuoteItem.transport.pricing = transportPricing
+              }
+            }
+          } else {
+            // Could not get destination coordinates - handle different error cases
+            let transportFlags: any = {
+              itemId: 'transport',
+              peoplePerBus: peoplePerBus,
+              numberOfBuses: numberOfBuses,
+              pickupCoordinates: transportPickupCoordinates,
+            }
+
+            if (activityGeocodingFailed && activityAddressSource === 'dedicated') {
+              transportFlags.activityAddressNotFound = true
+            } else if (activityGeocodingFailed && activityAddressSource === 'user_selected') {
+              transportFlags.userSelectedActivityAddressNotFound = true
+            } else if (activity.location && activity.location.isNationwide && !activityAddress) {
+              transportFlags.nationwideActivityNoUserAddress = true
+            } else if (!activity.location) {
+              transportFlags.activityNoAddress = true
+            } else {
+              // Fallback case
+              transportFlags.activityNoAddress = true
+            }
+
+            activityQuoteItem.transport = transportFlags
+
+            // Add base transport price even when we can't calculate distance
+            if (transportConfig?.orderAddons?.transportOptions?.pricing) {
+              const pricing = transportConfig.orderAddons.transportOptions.pricing
+
+              const transportPricing = calculateTransportPrice({
+                distance: 0,
+                basePrice: pricing.basePrice || 0,
+                maxKilometers: pricing.maxKilometers || 0,
+                pricePerKm: pricing.pricePerKm || 0,
+                numberOfBuses: numberOfBuses,
+                peoplePerBus: peoplePerBus,
+              })
+
+              activityQuoteItem.transport.pricing = transportPricing
             }
           }
         } else if (transportGeocodingFailed) {
@@ -846,63 +1122,48 @@ export const POST: APIRoute = async ({ request }) => {
           activityQuoteItem.transport = {
             itemId: 'transport',
             transportAddressNotFound: true,
+            peoplePerBus: peoplePerBus,
+            numberOfBuses: numberOfBuses,
           }
 
           // Still add base transport price even when address lookup fails
-          if (transportExtra && transportExtra.pricing) {
-            let baseTransportPrice = 0
-            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
-              baseTransportPrice = transportExtra.pricing.fixedPrice
-            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
-              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+          if (transportConfig?.orderAddons?.transportOptions?.pricing) {
+            const pricing = transportConfig.orderAddons.transportOptions.pricing
 
-              baseTransportPrice = basePrice
+            const transportPricing = calculateTransportPrice({
+              distance: 0,
+              basePrice: pricing.basePrice || 0,
+              maxKilometers: pricing.maxKilometers || 0,
+              pricePerKm: pricing.pricePerKm || 0,
+              numberOfBuses: numberOfBuses,
+              peoplePerBus: peoplePerBus,
+            })
 
-              if (participantCount > maxUnits) {
-                const additionalPeople = participantCount - maxUnits
-                baseTransportPrice += additionalPeople * additionalPrice
-              }
-            }
-
-            const nettoPrice = Math.round(baseTransportPrice / 1.23)
-
-            if (activityQuoteItem.transport) {
-              activityQuoteItem.transport.pricing = {
-                basePrice: baseTransportPrice,
-                totalPrice: baseTransportPrice,
-                nettoTotalPrice: nettoPrice,
-              }
-            }
+            activityQuoteItem.transport.pricing = transportPricing
           }
         } else if (transportExtra) {
-          // Transport requested but no address provided
+          // Transport requested but no pickup address provided
           activityQuoteItem.transport = {
             itemId: 'transport',
             noTransportAddress: true,
+            peoplePerBus: peoplePerBus,
+            numberOfBuses: numberOfBuses,
           }
 
-          // Add base transport price
-          if (transportExtra.pricing) {
-            let baseTransportPrice = 0
-            if (transportExtra.pricing.type === 'fixed' && transportExtra.pricing.fixedPrice) {
-              baseTransportPrice = transportExtra.pricing.fixedPrice
-            } else if (transportExtra.pricing.type === 'threshold' && transportExtra.pricing.threshold) {
-              const { basePrice, maxUnits, additionalPrice } = transportExtra.pricing.threshold
+          // Add base transport price using new system
+          if (transportConfig?.orderAddons?.transportOptions?.pricing) {
+            const pricing = transportConfig.orderAddons.transportOptions.pricing
 
-              baseTransportPrice = basePrice
+            const transportPricing = calculateTransportPrice({
+              distance: 0,
+              basePrice: pricing.basePrice || 0,
+              maxKilometers: pricing.maxKilometers || 0,
+              pricePerKm: pricing.pricePerKm || 0,
+              numberOfBuses: numberOfBuses,
+              peoplePerBus: peoplePerBus,
+            })
 
-              if (participantCount > maxUnits) {
-                const additionalPeople = participantCount - maxUnits
-                baseTransportPrice += additionalPeople * additionalPrice
-              }
-            }
-
-            if (activityQuoteItem.transport) {
-              activityQuoteItem.transport.pricing = {
-                basePrice: baseTransportPrice,
-                totalPrice: baseTransportPrice,
-              }
-            }
+            activityQuoteItem.transport.pricing = transportPricing
           }
         }
 
@@ -1129,12 +1390,17 @@ export const POST: APIRoute = async ({ request }) => {
           transport: item.transport
             ? {
                 distance: item.transport.distance || 0,
+                peoplePerBus: item.transport.peoplePerBus || 0,
+                numberOfBuses: item.transport.numberOfBuses || 0,
+                maxKilometers: item.transport.pricing?.maxKilometers || 0,
                 pricing: item.transport.pricing
                   ? {
                       basePrice: item.transport.pricing.basePrice || 0,
                       distancePrice: item.transport.pricing.distancePrice || 0,
                       totalPrice: item.transport.pricing.totalPrice || 0,
-                      nettoTotalPrice: Math.round((item.transport.pricing.totalPrice || 0) / 1.23),
+                      nettoTotalPrice:
+                        item.transport.pricing.nettoTotalPrice ||
+                        Math.round((item.transport.pricing.totalPrice || 0) / 1.23),
                       pricePerKm: item.transport.pricing.pricePerKm || 0,
                     }
                   : null,
@@ -1145,6 +1411,11 @@ export const POST: APIRoute = async ({ request }) => {
                 hotelAddressNotFound: toBoolString(item.transport.hotelAddressNotFound),
                 bothAddressesNotFound: toBoolString(item.transport.bothAddressesNotFound),
                 activityNoAddress: toBoolString(item.transport.activityNoAddress),
+                activityAddressNotFound: toBoolString(item.transport.activityAddressNotFound),
+                userSelectedActivityAddressNotFound: toBoolString(item.transport.userSelectedActivityAddressNotFound),
+                nationwideActivityNoUserAddress: toBoolString(item.transport.nationwideActivityNoUserAddress),
+                activityAddressSource: item.transport.activityAddressSource || null,
+                usingUserSelectedAddress: toBoolString(item.transport.usingUserSelectedAddress),
               }
             : null,
           extras: item.extras.map((extra: any) => ({

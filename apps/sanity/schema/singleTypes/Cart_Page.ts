@@ -102,7 +102,7 @@ export default defineType({
             defineField({
               name: 'pricing',
               type: 'object',
-              title: 'Cennik',
+              title: 'Cennik transportu',
               options: {
                 collapsible: false,
                 collapsed: false,
@@ -110,116 +110,61 @@ export default defineType({
               validation: (Rule) => Rule.required().error('Cennik jest wymagany'),
               fields: [
                 {
-                  name: 'type',
-                  type: 'string',
-                  title: 'Typ cennika',
-                  options: {
-                    list: [
-                      { title: 'Stała cena', value: 'fixed' },
-                      { title: 'Cena progowa', value: 'threshold' },
-                    ],
-                    layout: 'radio',
-                  },
-                  validation: (Rule) => Rule.required().error('Typ cennika jest wymagany'),
-                  initialValue: 'fixed',
+                  name: 'basePrice',
+                  type: 'number',
+                  title: 'Cena podstawowa (PLN)',
+                  description: 'Cena bazowa za transport do określonej odległości',
+                  validation: (Rule) =>
+                    Rule.custom((value: number) => {
+                      if (!value) return 'Cena podstawowa jest wymagana'
+                      if (typeof value !== 'number' || !Number.isInteger(value)) return 'Cena musi być liczbą całkowitą'
+                      if (value < 1) return 'Cena musi być większa niż 0 PLN'
+                      return true
+                    }),
+                },
+                {
+                  name: 'maxKilometers',
+                  type: 'number',
+                  title: 'Maksymalna odległość w cenie podstawowej (km)',
+                  description: 'Do ilu kilometrów obowiązuje cena podstawowa',
+                  validation: (Rule) =>
+                    Rule.custom((value: number) => {
+                      if (!value) return 'Maksymalna odległość jest wymagana'
+                      if (typeof value !== 'number' || !Number.isInteger(value))
+                        return 'Odległość musi być liczbą całkowitą'
+                      if (value < 1) return 'Odległość musi być większa niż 0 km'
+                      return true
+                    }),
                 },
                 {
                   name: 'pricePerKm',
                   type: 'number',
-                  title: 'Cena za kilometr (PLN)',
-                  description:
-                    'Kwota doliczana za każdy kilometr odległości transportu niezależnie od wybranego cennika',
+                  title: 'Cena za każdy dodatkowy kilometr (PLN)',
+                  description: 'Kwota doliczana za każdy kilometr powyżej maksymalnej odległości',
                   validation: (Rule) =>
-                    Rule.custom((value) => {
+                    Rule.custom((value: number) => {
                       if (value === undefined || value === null) return 'Cena za kilometr jest wymagana'
                       if (typeof value !== 'number' || !Number.isInteger(value))
                         return 'Cena za kilometr musi być liczbą całkowitą'
                       if (value < 1) return 'Cena za kilometr musi być większa niż 0 PLN'
                       return true
                     }),
-                  initialValue: 1, // Default to 1 PLN per km
+                  initialValue: 1,
                 },
                 {
-                  name: 'fixedPrice',
+                  name: 'maxPeoplePerBus',
                   type: 'number',
-                  title: 'Cena (PLN)',
-                  hidden: ({ parent }) => parent?.type !== 'fixed',
+                  title: 'Maksymalna liczba osób w jednym autobusie',
+                  description: 'Po przekroczeniu tej liczby zostanie dodany kolejny autobus',
                   validation: (Rule) =>
-                    Rule.custom((value, context) => {
-                      const parent = context.parent as any
-                      if (parent?.type === 'fixed') {
-                        if (!value) return 'Cena jest wymagana dla stałej ceny'
-                        if (typeof value !== 'number' || !Number.isInteger(value))
-                          return 'Cena musi być liczbą całkowitą'
-                        if (value < 1) return 'Cena musi być większa niż 0 PLN'
-                      }
+                    Rule.custom((value: number) => {
+                      if (!value) return 'Maksymalna liczba osób jest wymagana'
+                      if (typeof value !== 'number' || !Number.isInteger(value))
+                        return 'Liczba osób musi być liczbą całkowitą'
+                      if (value < 1) return 'Liczba osób musi być większa niż 0'
                       return true
                     }),
-                },
-                {
-                  name: 'threshold',
-                  type: 'object',
-                  title: 'Cena progowa',
-                  options: {
-                    collapsible: false,
-                    collapsed: false,
-                  },
-                  hidden: ({ parent }) => parent?.type !== 'threshold',
-                  validation: (Rule) =>
-                    Rule.custom((value, context) => {
-                      const parent = context.parent as any
-                      const objValue = value as {
-                        basePrice: number
-                        maxUnits: number
-                        additionalPrice: number
-                        singular: string
-                      }
-                      if (
-                        parent?.type === 'threshold' &&
-                        (!objValue?.basePrice || !objValue?.maxUnits || !objValue?.additionalPrice)
-                      ) {
-                        return 'Wszystkie pola są wymagane dla ceny progowej'
-                      }
-                      return true
-                    }),
-                  fields: [
-                    {
-                      name: 'basePrice',
-                      type: 'number',
-                      title: 'Cena podstawowa (PLN)',
-                      validation: (Rule) =>
-                        Rule.custom((value: number) => {
-                          if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
-                            return 'Cena musi być liczbą całkowitą'
-                          if (!!value && value < 1) return 'Cena musi być większa niż 0 PLN'
-                          return true
-                        }),
-                    },
-                    {
-                      name: 'maxUnits',
-                      type: 'number',
-                      title: 'Maksymalna liczba osób w cenie podstawowej',
-                      validation: (Rule) =>
-                        Rule.custom((value: number) => {
-                          if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
-                            return 'Maksymalna liczba osób musi być liczbą całkowitą'
-                          if (!!value && value < 1) return 'Maksymalna liczba osób musi być większa niż 0'
-                          return true
-                        }),
-                    },
-                    {
-                      name: 'additionalPrice',
-                      type: 'number',
-                      title: 'Cena za każdą dodatkową osobę (PLN)',
-                      validation: (Rule) =>
-                        Rule.custom((value: number) => {
-                          if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
-                            return 'Cena musi być liczbą całkowitą'
-                          if (!!value && value < 1) return 'Cena musi być większa niż 0 PLN'
-                          return true
-                        }),
-                    },
-                  ],
+                  initialValue: 50,
                 },
               ],
             }),

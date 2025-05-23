@@ -96,8 +96,6 @@ export const POST: APIRoute = async ({ request }) => {
       ],
     }
 
-    console.log('[Meta Conversion API] Sending payload:', JSON.stringify(payload, null, 2))
-
     const response = await fetch(
       `https://graph.facebook.com/v21.0/${meta_pixel_id}/events?access_token=${meta_conversion_token}`,
       {
@@ -120,7 +118,6 @@ export const POST: APIRoute = async ({ request }) => {
       )
     }
 
-    console.log('[Meta Conversion API] Success response:', JSON.stringify(responseData, null, 2))
     return new Response(
       JSON.stringify({
         success: true,

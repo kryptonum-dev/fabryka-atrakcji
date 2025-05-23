@@ -22,6 +22,7 @@ type FormValues = {
   street: string
   postal: string
   city: string
+  peoplePerBus: number
   coordinates?: {
     lat: number
     lng: number
@@ -39,6 +40,10 @@ type TranslationType = {
   postalPattern: string
   city: string
   cityRequired: string
+  peoplePerBus: string
+  peoplePerBusPlaceholder: string
+  peoplePerBusRequired: string
+  peoplePerBusMax: string
   submit: string
   pickFromMap?: string
   searchLocation?: string
@@ -61,6 +66,45 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
   const [originalValues, setOriginalValues] = useState<Partial<FormValues>>({})
   const formInitialized = useRef(false)
   const [leafletLoaded, setLeafletLoaded] = useState(false)
+  const [currentPeoplePerBus, setCurrentPeoplePerBus] = useState<number | null>(null)
+
+  // Helper function to get max participants from localStorage
+  const getMaxParticipants = (): number => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return 50 // Default value for SSR
+    }
+    const savedCount = localStorage.getItem('cart_participant_count')
+    return savedCount ? parseInt(savedCount) : 50
+  }
+
+  // Helper function to get stored peoplePerBus value
+  const getStoredPeoplePerBus = (): number => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return Math.min(getMaxParticipants(), 50) // Default value for SSR
+    }
+
+    // First try to get from dedicated peoplePerBus storage
+    const storedPeoplePerBus = localStorage.getItem('cart_people_per_bus')
+    if (storedPeoplePerBus) {
+      return parseInt(storedPeoplePerBus)
+    }
+
+    // Fallback to transport address data
+    const transportAddress = localStorage.getItem('transport_address')
+    if (transportAddress) {
+      try {
+        const addressData = JSON.parse(transportAddress)
+        if (addressData.peoplePerBus) {
+          return addressData.peoplePerBus
+        }
+      } catch (error) {
+        console.error('Error parsing transport address:', error)
+      }
+    }
+
+    // Final fallback to participant count or 50
+    return Math.min(getMaxParticipants(), 50)
+  }
 
   // Map state
   const [isMapOpen, setIsMapOpen] = useState(false)
@@ -117,33 +161,60 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
     if (formInitialized.current) return
 
     try {
-      const savedAddress = localStorage.getItem('transport_address')
-      if (savedAddress) {
-        const parsedAddress = JSON.parse(savedAddress)
-        // Only reset if we have valid data
-        if (parsedAddress.street || parsedAddress.postal || parsedAddress.city) {
-          setOriginalValues(parsedAddress)
-          reset(parsedAddress)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const savedAddress = localStorage.getItem('transport_address')
+        if (savedAddress) {
+          const parsedAddress = JSON.parse(savedAddress)
+          // Only reset if we have valid data
+          if (parsedAddress.street || parsedAddress.postal || parsedAddress.city) {
+            setOriginalValues(parsedAddress)
 
-          // If coordinates exist, set last map position
-          if (parsedAddress.coordinates) {
-            setLastMapPosition(parsedAddress.coordinates)
+            // Always use the stored peoplePerBus value (might be more recent)
+            const currentPeoplePerBus = getStoredPeoplePerBus()
+            parsedAddress.peoplePerBus = currentPeoplePerBus
+            setCurrentPeoplePerBus(currentPeoplePerBus)
+
+            reset(parsedAddress)
+
+            // If coordinates exist, set last map position
+            if (parsedAddress.coordinates) {
+              setLastMapPosition(parsedAddress.coordinates)
+            }
+
+            // Initialize previous form values
+            previousFormValues.current = {
+              street: parsedAddress.street,
+              city: parsedAddress.city,
+              postal: parsedAddress.postal,
+            }
+
+            formInitialized.current = true
+            return
           }
-
-          // Initialize previous form values
-          previousFormValues.current = {
-            street: parsedAddress.street,
-            city: parsedAddress.city,
-            postal: parsedAddress.postal,
-          }
-
-          formInitialized.current = true
         }
+
+        // If no saved address or incomplete data, set default peoplePerBus
+        const defaultPeoplePerBus = getStoredPeoplePerBus()
+        setValue('peoplePerBus', defaultPeoplePerBus)
+        setCurrentPeoplePerBus(defaultPeoplePerBus)
+
+        // Store the default value
+        localStorage.setItem('cart_people_per_bus', defaultPeoplePerBus.toString())
+      } else {
+        // Set default peoplePerBus value for SSR
+        setValue('peoplePerBus', 50)
       }
     } catch (error) {
       console.error('Error loading saved address data:', error)
+      // Set default peoplePerBus value in case of error
+      const fallbackValue = Math.min(getMaxParticipants(), 50)
+      setValue('peoplePerBus', fallbackValue)
+      setCurrentPeoplePerBus(fallbackValue)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('cart_people_per_bus', fallbackValue.toString())
+      }
     }
-  }, [reset])
+  }, [reset, setValue])
 
   // Load Leaflet dynamically when needed
   useEffect(() => {
@@ -707,30 +778,108 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
     }
   }, [reset, originalValues])
 
-  const submitHandler = (data: FormValues) => {
-    // Update original values on successful submit
-    setOriginalValues(data)
+  // Watch for participant count changes and re-validate peoplePerBus
+  useEffect(() => {
+    if (typeof window === 'undefined') return
 
-    // Save data to localStorage
-    localStorage.setItem('transport_address', JSON.stringify(data))
+    const handleStorageChange = () => {
+      // Trigger validation for peoplePerBus field when participant count changes
+      trigger('peoplePerBus')
+    }
+
+    const handleTransportPeopleSync = (event: CustomEvent) => {
+      const { newPeoplePerBus, participantCount } = event.detail
+
+      // Update the peoplePerBus field to match the synced value
+      setValue('peoplePerBus', newPeoplePerBus, { shouldValidate: true })
+
+      // Update state to force re-render
+      setCurrentPeoplePerBus(newPeoplePerBus)
+
+      // Also store in localStorage
+      localStorage.setItem('cart_people_per_bus', newPeoplePerBus.toString())
+
+      // Clear any validation errors
+      clearErrors('peoplePerBus')
+
+      // Force update the input element directly as a fallback
+      setTimeout(() => {
+        const peoplePerBusInput = document.querySelector('input[name="peoplePerBus"]') as HTMLInputElement
+        if (peoplePerBusInput && peoplePerBusInput.value !== newPeoplePerBus.toString()) {
+          peoplePerBusInput.value = newPeoplePerBus.toString()
+
+          // Trigger input event to notify React Hook Form
+          const inputEvent = new Event('input', { bubbles: true })
+          peoplePerBusInput.dispatchEvent(inputEvent)
+        }
+      }, 100)
+    }
+
+    // Listen for storage changes
+    window.addEventListener('storage', handleStorageChange)
+
+    // Also listen for custom events (in case participant count is updated within same page)
+    window.addEventListener('cart-participant-updated', handleStorageChange)
+
+    // Listen for transport people sync events
+    window.addEventListener('transport-people-synced', handleTransportPeopleSync as EventListener)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('cart-participant-updated', handleStorageChange)
+      window.removeEventListener('transport-people-synced', handleTransportPeopleSync as EventListener)
+    }
+  }, [trigger, setValue, clearErrors])
+
+  const submitHandler = (data: FormValues) => {
+    // Validate peoplePerBus against current participant count
+    let participantCount = 0
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedCount = localStorage.getItem('cart_participant_count')
+      participantCount = savedCount ? parseInt(savedCount) : 0
+    }
+
+    if (data.peoplePerBus > participantCount && participantCount > 0) {
+      // Show error - this shouldn't happen due to form validation, but safety check
+      console.error('People per bus cannot exceed participant count')
+      return
+    }
+
+    const addressData = {
+      street: data.street.trim(),
+      postal: data.postal.trim(),
+      city: data.city.trim(),
+      peoplePerBus: data.peoplePerBus,
+      coordinates: data.coordinates,
+    }
+
+    // Update original values on successful submit
+    setOriginalValues(addressData)
+
+    // Save data to localStorage (only in browser)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('transport_address', JSON.stringify(addressData))
+      // Also store peoplePerBus separately for easier access
+      localStorage.setItem('cart_people_per_bus', data.peoplePerBus.toString())
+    }
 
     // Update previous form values
     previousFormValues.current = {
-      street: data.street,
-      city: data.city,
-      postal: data.postal,
+      street: addressData.street,
+      city: addressData.city,
+      postal: addressData.postal,
     }
 
     // Dispatch custom event for CartPage.astro to handle
     const event = new CustomEvent('address-form-submitted', {
-      detail: { data },
+      detail: { data: addressData },
       bubbles: true,
     })
     document.dispatchEvent(event)
 
     // Call onSubmit prop if provided
     if (onSubmit) {
-      onSubmit(data)
+      onSubmit(addressData)
     }
 
     // Try to close the popup
@@ -835,6 +984,34 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
           errors={errors}
         />
       </div>
+
+      <Input
+        register={register('peoplePerBus', {
+          required: translations.peoplePerBusRequired,
+          min: {
+            value: 1,
+            message: 'Minimalna liczba osób to 1',
+          },
+          validate: (value) => {
+            const numValue = parseInt(value.toString())
+            if (!Number.isInteger(numValue)) return 'Wprowadź liczbę całkowitą'
+            if (numValue < 1) return 'Minimalna liczba osób to 1'
+
+            // Get current participant count at validation time
+            const currentMaxParticipants = getMaxParticipants()
+            if (numValue > currentMaxParticipants) {
+              return translations.peoplePerBusMax
+            }
+            return true
+          },
+        })}
+        label={translations.peoplePerBus}
+        type="number"
+        placeholder={translations.peoplePerBusPlaceholder}
+        errors={errors}
+        min="1"
+        step="1"
+      />
 
       <Button type="submit" className={styles.submit}>
         {translations.submit}

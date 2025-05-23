@@ -244,17 +244,91 @@ export default defineType({
           initialValue: false,
         }),
         defineField({
-          name: 'customLocation',
-          type: 'string',
-          title: 'Konkretna lokalizacja',
-          description: 'Wprowadź nazwę konkretnej lokalizacji w której odbywa się integracja.',
+          name: 'address',
+          type: 'object',
+          title: 'Adres integracji',
           hidden: ({ parent }) => parent?.isNationwide,
+          options: {
+            columns: 2,
+          },
           validation: (Rule) =>
             Rule.custom((value, { parent }) => {
               if ((parent as { isNationwide?: boolean })?.isNationwide) return true
-              if (!value) return 'Lokalizacja jest wymagana'
+              if (!value) return 'Adres jest wymagany gdy integracja nie jest ogólnopolska'
               return true
             }),
+          fields: [
+            defineField({
+              name: 'street',
+              type: 'string',
+              title: 'Ulica i numer',
+              validation: (Rule) =>
+                Rule.custom((value, { document }) => {
+                  const locationData = (document as any)?.location
+                  if (locationData?.isNationwide) return true
+                  if (!value) return 'Ulica i numer są wymagane'
+                  return true
+                }),
+            }),
+            defineField({
+              name: 'postalCode',
+              type: 'string',
+              title: 'Kod pocztowy',
+              validation: (Rule) =>
+                Rule.custom((value, { document }) => {
+                  const locationData = (document as any)?.location
+                  if (locationData?.isNationwide) return true
+                  if (!value) return 'Kod pocztowy jest wymagany'
+                  if (!/^\d{2}-\d{3}$/.test(value)) return 'Kod pocztowy musi być w formacie XX-XXX'
+                  return true
+                }),
+            }),
+            defineField({
+              name: 'city',
+              type: 'string',
+              title: 'Miasto',
+              validation: (Rule) =>
+                Rule.custom((value, { document }) => {
+                  const locationData = (document as any)?.location
+                  if (locationData?.isNationwide) return true
+                  if (!value) return 'Miasto jest wymagane'
+                  return true
+                }),
+            }),
+            defineField({
+              name: 'voivodeship',
+              type: 'string',
+              title: 'Województwo',
+              options: {
+                list: [
+                  { title: 'Dolnośląskie', value: 'dolnoslaskie' },
+                  { title: 'Kujawsko-pomorskie', value: 'kujawsko-pomorskie' },
+                  { title: 'Lubelskie', value: 'lubelskie' },
+                  { title: 'Lubuskie', value: 'lubuskie' },
+                  { title: 'Łódzkie', value: 'lodzkie' },
+                  { title: 'Małopolskie', value: 'malopolskie' },
+                  { title: 'Mazowieckie', value: 'mazowieckie' },
+                  { title: 'Opolskie', value: 'opolskie' },
+                  { title: 'Podkarpackie', value: 'podkarpackie' },
+                  { title: 'Podlaskie', value: 'podlaskie' },
+                  { title: 'Pomorskie', value: 'pomorskie' },
+                  { title: 'Śląskie', value: 'slaskie' },
+                  { title: 'Świętokrzyskie', value: 'swietokrzyskie' },
+                  { title: 'Warmińsko-mazurskie', value: 'warminsko-mazurskie' },
+                  { title: 'Wielkopolskie', value: 'wielkopolskie' },
+                  { title: 'Zachodniopomorskie', value: 'zachodniopomorskie' },
+                ],
+              },
+              initialValue: 'mazowieckie',
+              validation: (Rule) =>
+                Rule.custom((value, { document }) => {
+                  const locationData = (document as any)?.location
+                  if (locationData?.isNationwide) return true
+                  if (!value) return 'Województwo jest wymagane'
+                  return true
+                }),
+            }),
+          ],
         }),
         defineField({
           name: 'googleMapsLink',

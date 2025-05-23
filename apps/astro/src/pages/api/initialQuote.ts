@@ -84,7 +84,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = addon.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${addon.name} (${addon.count}x) - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -122,7 +122,7 @@ const quoteTemplate = ({
                     }
                   }) => {
                     const isIndividual = addon.pricing.pricingModel === 'individual'
-                    itemHtml += `<li>${addon.name} (${addon.count}x) - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+                    itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
                   }
                 )
                 itemHtml += `</ul>`
@@ -161,6 +161,21 @@ const quoteTemplate = ({
           if (item.transport.activityNoAddress) {
             transportIssues += `<p style="color: #F67258;"><em>Uwaga: Brak adresu aktywności</em></p>`
           }
+          if (item.transport.activityAddressNotFound) {
+            transportIssues += `<p style="color: #F67258;"><em>Uwaga: Nie znaleziono adresu integracji</em></p>`
+          }
+          if (item.transport.userSelectedActivityAddressNotFound) {
+            transportIssues += `<p style="color: #F67258;"><em>Uwaga: Nie znaleziono adresu wybranego przez użytkownika dla integracji</em></p>`
+          }
+          if (item.transport.nationwideActivityNoUserAddress) {
+            transportIssues += `<p style="color: #F67258;"><em>Uwaga: Integracja ogólnopolska wymaga adresu użytkownika</em></p>`
+          }
+          if (item.transport.activityAddressSource === 'dedicated') {
+            transportIssues += `<p style="color: #4CAF50;"><em>Używa adresu dedykowanego integracji</em></p>`
+          }
+          if (item.transport.activityAddressSource === 'user_selected') {
+            transportIssues += `<p style="color: #4CAF50;"><em>Używa adresu wybranego przez użytkownika</em></p>`
+          }
 
           // Insert the issues right after the heading
           if (transportIssues) {
@@ -188,7 +203,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = extra.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${extra.name} (${extra.count}x) - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -229,7 +244,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = addon.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${addon.name} (${addon.count}x) - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -264,6 +279,21 @@ const quoteTemplate = ({
           if (item.transport.activityNoAddress) {
             transportIssues += `<p style="color: #F67258;"><em>Uwaga: Brak adresu aktywności</em></p>`
           }
+          if (item.transport.activityAddressNotFound) {
+            transportIssues += `<p style="color: #F67258;"><em>Uwaga: Nie znaleziono adresu integracji</em></p>`
+          }
+          if (item.transport.userSelectedActivityAddressNotFound) {
+            transportIssues += `<p style="color: #F67258;"><em>Uwaga: Nie znaleziono adresu wybranego przez użytkownika dla integracji</em></p>`
+          }
+          if (item.transport.nationwideActivityNoUserAddress) {
+            transportIssues += `<p style="color: #F67258;"><em>Uwaga: Integracja ogólnopolska wymaga adresu użytkownika</em></p>`
+          }
+          if (item.transport.activityAddressSource === 'dedicated') {
+            transportIssues += `<p style="color: #4CAF50;"><em>Używa adresu dedykowanego integracji</em></p>`
+          }
+          if (item.transport.activityAddressSource === 'user_selected') {
+            transportIssues += `<p style="color: #4CAF50;"><em>Używa adresu wybranego przez użytkownika</em></p>`
+          }
 
           // Insert the issues right after the heading
           if (transportIssues) {
@@ -291,7 +321,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = extra.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${extra.name} (${extra.count}x) - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -318,7 +348,7 @@ const quoteTemplate = ({
             }
           }) => {
             const isIndividual = extra.pricing.pricingModel === 'individual'
-            itemHtml += `<li>${extra.name} (${extra.count}x) - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+            itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
           }
         )
         itemHtml += `</ul>`
