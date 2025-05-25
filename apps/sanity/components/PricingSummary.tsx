@@ -180,13 +180,22 @@ export const PricingSummary = (props: {
                       <Flex justify="space-between" align="flex-start">
                         <Text weight="semibold">{item.hotels[0].name}</Text>
                         <Box style={{ textAlign: 'right' }}>
-                          <Text weight="semibold">
-                            {formatNettoPrice(item.hotels[0].pricing?.nettoFinalPrice || 0)}
-                          </Text>
-                          <br />
-                          <Text size={1} muted>
-                            {formatBruttoPrice(item.hotels[0].pricing?.finalPrice || 0)}
-                          </Text>
+                          {item.hotels[0].pricing?.pricingNotVisible ||
+                          item.hotels[0].pricing?.pricingModel === 'individual' ? (
+                            <Text weight="semibold" style={{ color: '#F67258' }}>
+                              Wycena indywidualna
+                            </Text>
+                          ) : (
+                            <>
+                              <Text weight="semibold">
+                                {formatNettoPrice(item.hotels[0].pricing?.nettoFinalPrice || 0)}
+                              </Text>
+                              <br />
+                              <Text size={1} muted>
+                                {formatBruttoPrice(item.hotels[0].pricing?.finalPrice || 0)}
+                              </Text>
+                            </>
+                          )}
                         </Box>
                       </Flex>
 

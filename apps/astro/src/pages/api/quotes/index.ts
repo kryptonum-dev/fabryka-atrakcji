@@ -25,6 +25,7 @@ interface QuoteItem {
 function calculateHotelPrice(
   hotel: {
     pricing: {
+      pricingVisible?: boolean
       hasFixedGroupPrice?: boolean
       groupPrice?: number
       groupPeopleCount?: number
@@ -42,6 +43,16 @@ function calculateHotelPrice(
     nettoPrice: 0,
     exceedsMaxPeople: false,
     calculatedFor: participantCount,
+    pricingNotVisible: false,
+    pricingModel: 'individual' as string,
+  }
+
+  // Check if pricing is visible
+  if (hotel.pricing.pricingVisible === false) {
+    result.pricingNotVisible = true
+    result.pricingModel = 'individual'
+    // Return early with 0 prices for non-visible pricing
+    return result
   }
 
   // Check if participants exceed max people
@@ -57,6 +68,7 @@ function calculateHotelPrice(
   // Calculate price based on pricing model
   if (hotel.pricing.hasFixedGroupPrice && hotel.pricing.groupPrice && hotel.pricing.groupPeopleCount) {
     // Fixed group price + additional per person
+    result.pricingModel = 'threshold'
     if (effectiveParticipantCount <= hotel.pricing.groupPeopleCount) {
       // Just the group price (netto)
       result.nettoPrice = hotel.pricing.groupPrice
@@ -67,6 +79,7 @@ function calculateHotelPrice(
     }
   } else {
     // Simple per person pricing (netto)
+    result.pricingModel = 'per_unit'
     result.nettoPrice = effectiveParticipantCount * hotel.pricing.pricePerPerson
   }
 
@@ -721,6 +734,8 @@ export const POST: APIRoute = async ({ request }) => {
                 nettoFinalPrice: hotelPriceResult.nettoPrice,
                 participantCount: hotelPriceResult.calculatedFor,
                 exceedsMaxPeople: hotelPriceResult.exceedsMaxPeople,
+                pricingModel: hotelPriceResult.pricingModel,
+                pricingNotVisible: hotelPriceResult.pricingNotVisible,
               },
               addons: hotelAddonsResults,
             },
@@ -1346,6 +1361,8 @@ export const POST: APIRoute = async ({ request }) => {
               nettoFinalPrice: hotel.pricing.nettoFinalPrice || 0,
               participantCount: hotel.pricing.participantCount || 0,
               exceedsMaxPeople: toBoolString(hotel.pricing.exceedsMaxPeople),
+              pricingModel: hotel.pricing.pricingModel || 'per_unit',
+              pricingNotVisible: toBoolString(hotel.pricing.pricingNotVisible),
             },
             addons: hotel.addons.map((addon: { name: string; count?: number; pricing: any }) => ({
               _key: generateKey(),

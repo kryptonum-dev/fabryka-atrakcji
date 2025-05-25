@@ -178,15 +178,16 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
     <SubmitSidebar
       id={page._id}
       type="hotels"
-      basePrice={page.pricing.hasFixedGroupPrice
+      basePrice={page.pricing?.pricingVisible && page.pricing.hasFixedGroupPrice
         ? {
             amount: page.pricing.groupPrice!,
             maxPeople: page.pricing.groupPeopleCount!,
           }
         : undefined}
-      perPersonPrice={page.pricing.pricePerPerson}
+      perPersonPrice={page.pricing?.pricingVisible ? page.pricing.pricePerPerson || 0 : 0}
       addons={page.addons}
       name={page.name}
+      pricingVisible={page.pricing?.pricingVisible}
     />
   </article>
   <Components data={page.components} hasPreviousSections />

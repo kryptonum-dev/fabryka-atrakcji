@@ -172,8 +172,53 @@ export default defineType({
               exceedsMaxPeople: 'pricing.exceedsMaxPeople',
               maxPeople: 'maxPeople',
               addons: 'addons',
+              pricingNotVisible: 'pricing.pricingNotVisible',
+              pricingModel: 'pricing.pricingModel',
             },
-            prepare({ name, finalPrice = 0, participantCount = 0, exceedsMaxPeople, maxPeople, addons }) {
+            prepare({
+              name,
+              finalPrice = 0,
+              participantCount = 0,
+              exceedsMaxPeople,
+              maxPeople,
+              addons,
+              pricingNotVisible,
+              pricingModel,
+            }) {
+              // Check if pricing is not visible
+              if (pricingNotVisible || pricingModel === 'individual') {
+                let title = name || 'Hotel'
+                if (addons && addons.length > 0) {
+                  title += ' + dodatki'
+                }
+
+                // Create description text with max capacity info
+                let description = `${participantCount} `
+
+                // Get correct Polish form for participants
+                if (participantCount === 1) {
+                  description += 'osoba'
+                } else if (participantCount >= 2 && participantCount <= 4) {
+                  description += 'osoby'
+                } else {
+                  description += 'osób'
+                }
+
+                if (maxPeople) {
+                  description += ` / maks. ${maxPeople} osób`
+                }
+
+                if (exceedsMaxPeople) {
+                  description += ' (przekracza limit)'
+                }
+
+                return {
+                  title,
+                  subtitle: `${description} • Wycena indywidualna`,
+                  media: Hotel,
+                }
+              }
+
               // Format price in Polish currency
               const formattedPrice = new Intl.NumberFormat('pl-PL', {
                 style: 'currency',
@@ -247,12 +292,14 @@ export default defineType({
                   title: 'Cena finalna brutto (PLN)',
                   type: 'number',
                   description: 'Ostateczna cena brutto w złotych polskich',
+                  hidden: ({ parent }) => parent?.pricingNotVisible === true,
                 }),
                 defineField({
                   name: 'nettoFinalPrice',
                   title: 'Cena finalna netto (PLN)',
                   type: 'number',
                   description: 'Ostateczna cena netto w złotych polskich',
+                  hidden: ({ parent }) => parent?.pricingNotVisible === true,
                 }),
                 defineField({
                   name: 'participantCount',
@@ -263,6 +310,25 @@ export default defineType({
                 defineField({
                   name: 'exceedsMaxPeople',
                   title: 'Przekracza maksymalną liczbę osób',
+                  type: 'boolean',
+                }),
+                defineField({
+                  name: 'pricingModel',
+                  title: 'Model cenowy',
+                  type: 'string',
+                  options: {
+                    list: [
+                      { title: 'Stała cena', value: 'fixed' },
+                      { title: 'Za jednostkę', value: 'per_unit' },
+                      { title: 'Progowy', value: 'threshold' },
+                      { title: 'Indywidualny', value: 'individual' },
+                    ],
+                    layout: 'radio',
+                  },
+                }),
+                defineField({
+                  name: 'pricingNotVisible',
+                  title: 'Cennik nie jest widoczny publicznie',
                   type: 'boolean',
                 }),
               ],

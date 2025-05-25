@@ -79,6 +79,7 @@ export type BaseHotelProps = {
   }
   popularityIndex: number
   pricing: {
+    pricingVisible?: boolean
     hasFixedGroupPrice?: boolean
     groupPrice?: number
     groupPeopleCount?: number

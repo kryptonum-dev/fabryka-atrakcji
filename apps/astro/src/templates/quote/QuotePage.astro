@@ -38,6 +38,8 @@ type HotelType = {
     nettoFinalPrice: number
     participantCount: number
     exceedsMaxPeople: boolean
+    pricingModel?: string
+    pricingNotVisible?: boolean
   }
   addons?: AddonType[]
 }
@@ -133,7 +135,9 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
               finalPrice,
               nettoFinalPrice,
               participantCount,
-              exceedsMaxPeople
+              exceedsMaxPeople,
+              pricingModel,
+              pricingNotVisible
             },
             addons[] {
               id,
@@ -1216,6 +1220,12 @@ const t = translations[lang]
       priceElements.forEach((element) => {
         const bruttoPrice = element.getAttribute('data-brutto-price')
         const nettoPrice = element.getAttribute('data-netto-price')
+
+        // Skip elements that show individual pricing text
+        const currentText = element.textContent?.trim() || ''
+        if (currentText === 'Wycena indywidualna' || currentText === 'Individual pricing') {
+          return
+        }
 
         if (bruttoPrice && nettoPrice) {
           // Format as currency

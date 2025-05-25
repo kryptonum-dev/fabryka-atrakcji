@@ -46,6 +46,7 @@ export type Props = {
     additionalInfo?: string
   }
   name: string
+  pricingVisible?: boolean
 }
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
@@ -59,6 +60,9 @@ const translations = {
     },
     currency: 'zł',
     pricingPrefix: 'Szacowany koszt: ',
+    pricingNotAvailable: 'Ceny tego hotelu nie są publicznie dostępne.',
+    contactLink: 'Zapytaj nas o cennik hotelu',
+    pricingNotAvailableSuffix: ', lub dowiedz się o cenie po uzyskaniu szczegółowej wyceny.',
     activityAlert: 'Koszt może różnić się w zależności od lokalizacji i wybranego scenariusza',
     callout: 'Poznaj wstępną wycenę – bez podawania danych!',
     buttonText: 'Wybierz do kompleksowej wyceny',
@@ -67,6 +71,7 @@ const translations = {
     changeAddons: 'Zmień opcje',
     removedAlert: 'Usunięto z wyceny',
     cartUrl: '/pl/koszyk',
+    contactUrl: '/pl/kontakt',
     alreadyInCart: {
       hotel: 'Ten hotel już jest w Twojej wycenie',
       activity: 'Ta integracja jest już w Twojej wycenie',
@@ -81,6 +86,9 @@ const translations = {
     },
     currency: 'PLN',
     pricingPrefix: 'Estimated cost: ',
+    pricingNotAvailable: 'Pricing for this hotel is not publicly available.',
+    contactLink: 'Ask us about hotel pricing',
+    pricingNotAvailableSuffix: ', or find out the price after getting a detailed quote.',
     activityAlert: 'The cost may vary depending on the location and chosen scenario',
     callout: 'Get an initial estimate - without providing data!',
     buttonText: 'Choose for a comprehensive estimate',
@@ -89,6 +97,7 @@ const translations = {
     changeAddons: 'Change options',
     removedAlert: 'Removed from estimate',
     cartUrl: '/en/cart',
+    contactUrl: '/en/contact',
     alreadyInCart: {
       hotel: 'This hotel is already in your estimate',
       activity: 'This activity is already in your estimate',
@@ -109,7 +118,7 @@ function getPeopleText(participants: number, lang: Language) {
   return participants === 1 ? t.people.single : t.people.multiple
 }
 
-const { id, basePrice, perPersonPrice, type, addons, name } = Astro.props
+const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true } = Astro.props
 const hasAddons = addons?.hasAddons || false
 
 // Prepare data for data attributes
@@ -143,19 +152,21 @@ const translationsJson = JSON.stringify(translations)
             {'/ '}
             {basePrice.maxPeople} {getPeopleText(basePrice.maxPeople, lang)}
           </p>
-          <p class="additional">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
-              <path stroke="#F67258" stroke-linecap="round" stroke-width="1.5" d="M12 8H8m0 0H4m4 0V4m0 4v4" />
-            </svg>
-            <span>
-              {t.people.additional}
-              <strong>
-                {perPersonPrice} {t.currency}
-              </strong>
-            </span>
-          </p>
+          {perPersonPrice && (
+            <p class="additional">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+                <path stroke="#F67258" stroke-linecap="round" stroke-width="1.5" d="M12 8H8m0 0H4m4 0V4m0 4v4" />
+              </svg>
+              <span>
+                {t.people.additional}
+                <strong>
+                  {perPersonPrice} {t.currency}
+                </strong>
+              </span>
+            </p>
+          )}
         </div>
-      ) : (
+      ) : pricingVisible ? (
         <div class="price-per-person">
           <p class="prefix">{t.pricingPrefix}</p>
           <p class="price">
@@ -163,6 +174,16 @@ const translationsJson = JSON.stringify(translations)
               {perPersonPrice} {t.currency}{' '}
             </strong>{' '}
             / {t.people.single}
+          </p>
+        </div>
+      ) : (
+        <div class="price-not-available">
+          <p>
+            <span>{t.pricingNotAvailable}</span>{' '}
+            <a class="link" data-shade="light" target="_blank" href={t.contactUrl}>
+              {t.contactLink}
+            </a>
+            <span>{t.pricingNotAvailableSuffix}</span>
           </p>
         </div>
       )
@@ -363,8 +384,21 @@ const translationsJson = JSON.stringify(translations)
         }
       }
 
+      .price-not-available {
+        margin-bottom: 1rem;
+
+        :global(a) {
+          z-index: 2;
+        }
+
+        :global(span) {
+          z-index: 3;
+          position: relative;
+        }
+      }
+
       :global(button),
-      :global(a) {
+      :global(a):not(.link) {
         width: 100%;
         max-width: 100%;
 

@@ -68,7 +68,7 @@ const quoteTemplate = ({
         }
 
         // Add hotel-specific pricing
-        const hasPricingModel = hotel.pricing.pricingModel === 'individual'
+        const hasPricingModel = hotel.pricing.pricingModel === 'individual' || hotel.pricing.pricingNotVisible
         itemHtml += `<p>Cena hotelu: <b>${hasPricingModel ? 'Wycena indywidualna' : `${hotel.pricing.nettoFinalPrice} PLN netto <span style="color: #888888;">(${hotel.pricing.finalPrice} PLN brutto)</span>`}</b></p>`
 
         if (hotel.addons && hotel.addons.length > 0) {

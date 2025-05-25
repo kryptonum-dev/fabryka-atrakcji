@@ -327,21 +327,30 @@ export default defineType({
       description: 'Ustaw cenę netto za osobę oraz opcjonalnie cenę netto za grupę (ceny bez VAT)',
       fields: [
         defineField({
+          name: 'pricingVisible',
+          type: 'boolean',
+          title: 'Cennik widoczny publicznie',
+          description:
+            'Czy ceny hotelu mają być widoczne na stronie? Jeśli wyłączone, użytkownicy będą informowani o konieczności kontaktu w celu uzyskania wyceny.',
+          initialValue: true,
+        }),
+        defineField({
           name: 'hasFixedGroupPrice',
           type: 'boolean',
           title: 'Dodaj cenę za grupę',
           initialValue: false,
+          hidden: ({ parent }) => !parent?.pricingVisible,
         }),
         defineField({
           name: 'groupPrice',
           type: 'number',
           title: 'Cena netto za grupę (PLN)',
           description: 'Cena bez VAT',
-          hidden: ({ parent }) => !parent?.hasFixedGroupPrice,
+          hidden: ({ parent }) => !parent?.hasFixedGroupPrice || !parent?.pricingVisible,
           validation: (Rule) =>
             Rule.custom((value, context) => {
-              const parent = context.parent as { hasFixedGroupPrice?: boolean }
-              if (!parent?.hasFixedGroupPrice) return true
+              const parent = context.parent as { hasFixedGroupPrice?: boolean; pricingVisible?: boolean }
+              if (!parent?.pricingVisible || !parent?.hasFixedGroupPrice) return true
               if (!value) return 'Cena za grupę jest wymagana'
               if (value < 1) return 'Cena musi być większa niż 0'
               return true
@@ -351,11 +360,11 @@ export default defineType({
           name: 'groupPeopleCount',
           type: 'number',
           title: 'Liczba osób w cenie grupowej',
-          hidden: ({ parent }) => !parent?.hasFixedGroupPrice,
+          hidden: ({ parent }) => !parent?.hasFixedGroupPrice || !parent?.pricingVisible,
           validation: (Rule) =>
             Rule.custom((value, context) => {
-              const parent = context.parent as { hasFixedGroupPrice?: boolean }
-              if (!parent?.hasFixedGroupPrice) return true
+              const parent = context.parent as { hasFixedGroupPrice?: boolean; pricingVisible?: boolean }
+              if (!parent?.pricingVisible || !parent?.hasFixedGroupPrice) return true
               if (!value) return 'Liczba osób jest wymagana'
               if (value < 2) return 'Liczba osób musi być większa niż 1'
               return true
@@ -366,7 +375,15 @@ export default defineType({
           type: 'number',
           title: 'Cena netto za osobę (PLN)',
           description: 'Cena bez VAT',
-          validation: (Rule) => Rule.required().min(1).error('Cena za osobę jest wymagana i musi być większa niż 0'),
+          hidden: ({ parent }) => !parent?.pricingVisible,
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as { pricingVisible?: boolean }
+              if (!parent?.pricingVisible) return true
+              if (!value) return 'Cena za osobę jest wymagana'
+              if (value < 1) return 'Cena za osobę musi być większa niż 0'
+              return true
+            }),
         }),
       ],
     }),

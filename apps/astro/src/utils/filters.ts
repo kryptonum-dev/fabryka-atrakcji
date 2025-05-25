@@ -122,9 +122,17 @@ export const getOrderClause = (
     case 'newest':
       return 'coalesce(publishedDate, _createdAt) desc'
     case 'priceDesc':
-      return `${type === 'hotels' ? 'pricing.pricePerPerson' : 'pricing.basePrice'} desc`
+      if (type === 'hotels') {
+        // Push non-public pricing hotels to the end, then sort by price descending
+        return 'pricing.pricingVisible desc, pricing.pricePerPerson desc'
+      }
+      return 'pricing.basePrice desc'
     case 'priceAsc':
-      return `${type === 'hotels' ? 'pricing.pricePerPerson' : 'pricing.basePrice'} asc`
+      if (type === 'hotels') {
+        // Push non-public pricing hotels to the end, then sort by price ascending
+        return 'pricing.pricingVisible desc, pricing.pricePerPerson asc'
+      }
+      return 'pricing.basePrice asc'
     case 'popularity':
       return 'popularityIndex desc'
     case 'searchMatching':

@@ -212,7 +212,9 @@ export async function renderHotel(hotel: ExtendedHotelData, t: Record<string, an
   }
 
   if (details[1]) {
-    const priceText = hotel.pricing?.pricePerPerson ? `${t.from} ${hotel.pricing.pricePerPerson} ${t.perNight}` : ''
+    const priceText = hotel.pricing?.pricingVisible
+      ? `${t.from} ${hotel.pricing.pricePerPerson} ${t.perNight}`
+      : t.priceNotAvailable
     details[1].innerHTML += priceText
   }
 

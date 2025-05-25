@@ -5,6 +5,7 @@ type PricingType = {
   totalPrice: number
   nettoTotalPrice: number
   pricingModel?: 'fixed' | 'per_unit' | 'threshold' | 'individual'
+  pricingNotVisible?: boolean
   isTransport?: boolean
 }
 
@@ -23,6 +24,8 @@ type HotelType = {
     nettoFinalPrice: number
     participantCount: number
     exceedsMaxPeople: boolean
+    pricingModel?: string
+    pricingNotVisible?: boolean
   }
   addons?: AddonType[]
 }
@@ -40,6 +43,8 @@ type ActivityType = {
     participantCount: number
     exceedsMaxPeople: boolean
     belowMinPeople: boolean
+    pricingModel?: string
+    pricingNotVisible?: boolean
   }
   addons?: AddonType[]
 }
@@ -164,7 +169,22 @@ accordionTitle = getAccordionTitle()
 
 // Format price
 const totalPrice = item.totalPrice || 0
-const formattedPrice = formatCurrency(totalPrice, lang)
+const hasNonVisiblePricing =
+  hasHotels &&
+  item.hotels?.some((hotel) => {
+    // Check for both boolean and string boolean values
+    const pricingNotVisible =
+      hotel.pricing.pricingNotVisible === true || String(hotel.pricing.pricingNotVisible) === 'true'
+    const isIndividualModel = hotel.pricing.pricingModel === 'individual'
+    return pricingNotVisible || isIndividualModel
+  })
+
+// Only show individual pricing if:
+// 1. There are hotels with non-visible pricing AND
+// 2. The item contains ONLY hotels (no activities, transport, or extras)
+const shouldShowIndividualPricing = hasNonVisiblePricing && !hasActivities && !item.transport && !hasExtras
+
+const formattedPrice = shouldShowIndividualPricing ? t.individualPricing : formatCurrency(totalPrice, lang)
 ---
 
 <details class="quote-accordion" data-index={index} data-expanded={isFirst ? 'true' : 'false'} open={isFirst}>
@@ -274,7 +294,11 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                         data-brutto-price={hotel.pricing.finalPrice}
                         data-netto-price={hotel.pricing.nettoFinalPrice}
                       >
-                        {formatCurrency(hotel.pricing.finalPrice, lang)}
+                        {hotel.pricing.pricingNotVisible === true ||
+                        String(hotel.pricing.pricingNotVisible) === 'true' ||
+                        hotel.pricing.pricingModel === 'individual'
+                          ? t.individualPricing
+                          : formatCurrency(hotel.pricing.finalPrice, lang)}
                       </span>
                     </div>
                   </summary>
@@ -312,7 +336,11 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                       data-brutto-price={hotel.pricing.finalPrice}
                       data-netto-price={hotel.pricing.nettoFinalPrice}
                     >
-                      {formatCurrency(hotel.pricing.finalPrice, lang)}
+                      {hotel.pricing.pricingNotVisible === true ||
+                      String(hotel.pricing.pricingNotVisible) === 'true' ||
+                      hotel.pricing.pricingModel === 'individual'
+                        ? t.individualPricing
+                        : formatCurrency(hotel.pricing.finalPrice, lang)}
                     </span>
                   </div>
                 </>
@@ -387,7 +415,9 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                         data-brutto-price={activity.pricing.finalPrice}
                         data-netto-price={activity.pricing.nettoFinalPrice}
                       >
-                        {formatCurrency(activity.pricing.finalPrice, lang)}
+                        {activity.pricing.pricingNotVisible || activity.pricing.pricingModel === 'individual'
+                          ? t.individualPricing
+                          : formatCurrency(activity.pricing.finalPrice, lang)}
                       </span>
                     </div>
                   </summary>
@@ -455,7 +485,9 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                       data-brutto-price={activity.pricing.finalPrice}
                       data-netto-price={activity.pricing.nettoFinalPrice}
                     >
-                      {formatCurrency(activity.pricing.finalPrice, lang)}
+                      {activity.pricing.pricingNotVisible || activity.pricing.pricingModel === 'individual'
+                        ? t.individualPricing
+                        : formatCurrency(activity.pricing.finalPrice, lang)}
                     </span>
                   </div>
                 </>
@@ -509,7 +541,7 @@ const formattedPrice = formatCurrency(totalPrice, lang)
                   data-brutto-price={extra.pricing.totalPrice}
                   data-netto-price={extra.pricing.nettoTotalPrice}
                 >
-                  {extra.pricing.pricingModel === 'individual'
+                  {extra.pricing.pricingNotVisible || extra.pricing.pricingModel === 'individual'
                     ? t.individualPricing
                     : formatCurrency(extra.pricing.totalPrice, lang)}
                 </span>

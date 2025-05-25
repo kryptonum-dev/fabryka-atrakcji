@@ -43,6 +43,7 @@ type HotelItem = {
     basePrice?: number
     maxPeople?: number
     additionalPersonPrice?: number
+    pricingVisible?: boolean
   }
   amenitiesList: string[]
 }
@@ -188,8 +189,13 @@ export const Listing_Query = (orderClause: string) => {
   `
 
   const priceFilter = `
-    (!defined($minPrice) || pricing.pricePerPerson >= $minPrice)
-    && (!defined($maxPrice) || pricing.pricePerPerson <= $maxPrice)
+    (!defined($minPrice) && !defined($maxPrice)) ||
+    (
+      (defined($minPrice) || defined($maxPrice)) &&
+      pricing.pricingVisible == true &&
+      (!defined($minPrice) || pricing.pricePerPerson >= $minPrice) &&
+      (!defined($maxPrice) || pricing.pricePerPerson <= $maxPrice)
+    )
   `
 
   // Add embeddings filter
@@ -314,16 +320,16 @@ export const Listing_Query = (orderClause: string) => {
         stars: true,
         rooms: true,
         price: false,
-      })}] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson,
+      })} && pricing.pricingVisible == true] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson,
       "max": *[_type == 'Hotels_Collection' ${createBaseFilter({
         location: true,
         amenities: true,
         stars: true,
         rooms: true,
         price: false,
-      })}] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
-      "maxAbs": *[_type == 'Hotels_Collection'] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
-      "minAbs": *[_type == 'Hotels_Collection'] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson
+      })} && pricing.pricingVisible == true] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
+      "maxAbs": *[_type == 'Hotels_Collection' && pricing.pricingVisible == true] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
+      "minAbs": *[_type == 'Hotels_Collection' && pricing.pricingVisible == true] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson
     },
     "listing": *[_type == 'Hotels_Collection' ${createBaseFilter()}] {
       ${HotelCardQuery}
