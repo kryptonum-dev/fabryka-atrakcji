@@ -225,7 +225,8 @@ export const createAddonsObject = (config: AddonsConfig) => {
                   {
                     name: 'fixedPrice',
                     type: 'number',
-                    title: 'Cena (PLN)',
+                    title: 'Cena netto (PLN)',
+                    description: 'Cena bez VAT',
                     hidden: ({ parent }) => parent?.type !== 'fixed',
                     validation: (Rule) =>
                       Rule.custom((value, context) => {
@@ -263,7 +264,8 @@ export const createAddonsObject = (config: AddonsConfig) => {
                       {
                         name: 'price',
                         type: 'number',
-                        title: 'Cena za jednostkę (PLN)',
+                        title: 'Cena netto za jednostkę (PLN)',
+                        description: 'Cena bez VAT',
                         validation: (Rule) =>
                           Rule.custom((value: number) => {
                             if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
@@ -326,7 +328,8 @@ export const createAddonsObject = (config: AddonsConfig) => {
                       {
                         name: 'basePrice',
                         type: 'number',
-                        title: 'Cena podstawowa (PLN)',
+                        title: 'Cena podstawowa netto (PLN)',
+                        description: 'Cena bez VAT',
                         validation: (Rule) =>
                           Rule.custom((value: number) => {
                             if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
@@ -350,7 +353,8 @@ export const createAddonsObject = (config: AddonsConfig) => {
                       {
                         name: 'additionalPrice',
                         type: 'number',
-                        title: 'Cena za każdą dodatkową jednostkę (PLN)',
+                        title: 'Cena netto za każdą dodatkową jednostkę (PLN)',
+                        description: 'Cena bez VAT',
                         validation: (Rule) =>
                           Rule.custom((value: number) => {
                             if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
@@ -403,13 +407,13 @@ export const createAddonsObject = (config: AddonsConfig) => {
 
                 switch (pricingType) {
                   case 'fixed':
-                    subtitle = `${fixedPrice} PLN`
+                    subtitle = `${fixedPrice} PLN netto`
                     break
                   case 'per_unit':
-                    subtitle = `${perUnitPrice} PLN / ${perUnitSingular}`
+                    subtitle = `${perUnitPrice} PLN netto / ${perUnitSingular}`
                     break
                   case 'threshold':
-                    subtitle = `${thresholdBasePrice} PLN (do ${thresholdMaxUnits} ${thresholdPlural})`
+                    subtitle = `${thresholdBasePrice} PLN netto (do ${thresholdMaxUnits} ${thresholdPlural})`
                     break
                   case 'individual':
                     subtitle = 'Wycena indywidualna'

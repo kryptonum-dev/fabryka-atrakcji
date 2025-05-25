@@ -112,8 +112,8 @@ export default defineType({
                 {
                   name: 'basePrice',
                   type: 'number',
-                  title: 'Cena podstawowa (PLN)',
-                  description: 'Cena bazowa za transport do określonej odległości',
+                  title: 'Cena podstawowa netto (PLN)',
+                  description: 'Cena bazowa bez VAT za transport do określonej odległości',
                   validation: (Rule) =>
                     Rule.custom((value: number) => {
                       if (!value) return 'Cena podstawowa jest wymagana'
@@ -139,8 +139,8 @@ export default defineType({
                 {
                   name: 'pricePerKm',
                   type: 'number',
-                  title: 'Cena za każdy dodatkowy kilometr (PLN)',
-                  description: 'Kwota doliczana za każdy kilometr powyżej maksymalnej odległości',
+                  title: 'Cena netto za każdy dodatkowy kilometr (PLN)',
+                  description: 'Kwota bez VAT doliczana za każdy kilometr powyżej maksymalnej odległości',
                   validation: (Rule) =>
                     Rule.custom((value: number) => {
                       if (value === undefined || value === null) return 'Cena za kilometr jest wymagana'
@@ -215,7 +215,8 @@ export default defineType({
                     {
                       name: 'fixedPrice',
                       type: 'number',
-                      title: 'Cena (PLN)',
+                      title: 'Cena netto (PLN)',
+                      description: 'Cena bez VAT',
                       hidden: ({ parent }) => parent?.type !== 'fixed',
                       validation: (Rule) =>
                         Rule.custom((value, context) => {
@@ -259,7 +260,8 @@ export default defineType({
                         {
                           name: 'basePrice',
                           type: 'number',
-                          title: 'Cena podstawowa (PLN)',
+                          title: 'Cena podstawowa netto (PLN)',
+                          description: 'Cena bez VAT',
                           validation: (Rule) =>
                             Rule.custom((value: number) => {
                               if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))
@@ -283,7 +285,8 @@ export default defineType({
                         {
                           name: 'additionalPrice',
                           type: 'number',
-                          title: 'Cena za każdą dodatkową osobę (PLN)',
+                          title: 'Cena netto za każdą dodatkową osobę (PLN)',
+                          description: 'Cena bez VAT',
                           validation: (Rule) =>
                             Rule.custom((value: number) => {
                               if (!!value && (typeof value !== 'number' || !Number.isInteger(value)))

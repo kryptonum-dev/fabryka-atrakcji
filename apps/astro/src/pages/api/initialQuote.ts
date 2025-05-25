@@ -69,7 +69,7 @@ const quoteTemplate = ({
 
         // Add hotel-specific pricing
         const hasPricingModel = hotel.pricing.pricingModel === 'individual'
-        itemHtml += `<p>Cena hotelu: <b>${hasPricingModel ? 'Wycena indywidualna' : `${hotel.pricing.finalPrice} PLN <span style="color: #888888;">(${hotel.pricing.nettoFinalPrice} PLN netto)</span>`}</b></p>`
+        itemHtml += `<p>Cena hotelu: <b>${hasPricingModel ? 'Wycena indywidualna' : `${hotel.pricing.nettoFinalPrice} PLN netto <span style="color: #888888;">(${hotel.pricing.finalPrice} PLN brutto)</span>`}</b></p>`
 
         if (hotel.addons && hotel.addons.length > 0) {
           itemHtml += `<p><b>Dodatki do hotelu:</b></p><ul>`
@@ -84,7 +84,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = addon.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.nettoTotalPrice} PLN netto <span style="color: #888888;">(${addon.pricing.totalPrice} PLN brutto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -107,7 +107,7 @@ const quoteTemplate = ({
 
             if (activity.pricing) {
               const activityHasIndividualPricing = activity.pricing.pricingModel === 'individual'
-              itemHtml += `<p>Cena: <b>${activityHasIndividualPricing ? 'Wycena indywidualna' : `${activity.pricing.finalPrice} PLN <span style="color: #888888;">(${activity.pricing.nettoFinalPrice} PLN netto)</span>`}</b></p>`
+              itemHtml += `<p>Cena: <b>${activityHasIndividualPricing ? 'Wycena indywidualna' : `${activity.pricing.nettoFinalPrice} PLN netto <span style="color: #888888;">(${activity.pricing.finalPrice} PLN brutto)</span>`}</b></p>`
 
               if (activity.addons && activity.addons.length > 0) {
                 itemHtml += `<p><b>Dodatki do integracji:</b></p><ul>`
@@ -122,7 +122,7 @@ const quoteTemplate = ({
                     }
                   }) => {
                     const isIndividual = addon.pricing.pricingModel === 'individual'
-                    itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+                    itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.nettoTotalPrice} PLN netto <span style="color: #888888;">(${addon.pricing.totalPrice} PLN brutto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
                   }
                 )
                 itemHtml += `</ul>`
@@ -183,7 +183,7 @@ const quoteTemplate = ({
           }
 
           if (item.transport.pricing && item.transport.pricing.totalPrice) {
-            itemHtml += `<p>Cena: <b>${item.transport.pricing.totalPrice} PLN</b> <span style="color: #888888;">(${item.transport.pricing.nettoTotalPrice} PLN netto)</span></p>`
+            itemHtml += `<p>Cena: <b>${item.transport.pricing.nettoTotalPrice} PLN netto</b> <span style="color: #888888;">(${item.transport.pricing.totalPrice} PLN brutto)</span></p>`
           } else {
             itemHtml += `<p>Cena: Do wyceny</p>`
           }
@@ -203,7 +203,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = extra.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.nettoTotalPrice} PLN netto <span style="color: #888888;">(${extra.pricing.totalPrice} PLN brutto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -211,7 +211,7 @@ const quoteTemplate = ({
 
         // Add total price for the whole item at the very end (after all components)
         itemHtml += `<div style="margin-top: 15px; padding: 10px; background-color: #f8f8f8; border-radius: 5px;">
-          <p style="font-size: 1.2em; font-weight: bold; margin: 0;">Łączna cena: <span style="color: #45051c;">${item.totalPrice} PLN</span> <span style="color: #888888; font-size: 0.9em;">(${item.totalNettoPrice} PLN netto)</span></p>
+          <p style="font-size: 1.2em; font-weight: bold; margin: 0;">Łączna cena: <span style="color: #45051c;">${item.totalNettoPrice} PLN netto</span> <span style="color: #888888; font-size: 0.9em;">(${item.totalPrice} PLN brutto)</span></p>
         </div>`
       }
       // Handle standalone activities (activity type)
@@ -229,7 +229,7 @@ const quoteTemplate = ({
 
         // Activity-specific pricing
         const activityHasIndividualPricing = activity.pricing.pricingModel === 'individual'
-        itemHtml += `<p>Cena aktywności: <b>${activityHasIndividualPricing ? 'Wycena indywidualna' : `${activity.pricing.finalPrice} PLN <span style="color: #888888;">(${activity.pricing.nettoFinalPrice} PLN netto)</span>`}</b></p>`
+        itemHtml += `<p>Cena aktywności: <b>${activityHasIndividualPricing ? 'Wycena indywidualna' : `${activity.pricing.nettoFinalPrice} PLN netto <span style="color: #888888;">(${activity.pricing.finalPrice} PLN brutto)</span>`}</b></p>`
 
         if (activity.addons && activity.addons.length > 0) {
           itemHtml += `<p><b>Dodatki do integracji:</b></p><ul>`
@@ -244,7 +244,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = addon.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.totalPrice} PLN <span style="color: #888888;">(${addon.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${addon.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${addon.pricing.nettoTotalPrice} PLN netto <span style="color: #888888;">(${addon.pricing.totalPrice} PLN brutto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -301,7 +301,7 @@ const quoteTemplate = ({
           }
 
           if (item.transport.pricing && item.transport.pricing.totalPrice) {
-            itemHtml += `<p>Cena: <b>${item.transport.pricing.totalPrice} PLN</b> <span style="color: #888888;">(${item.transport.pricing.nettoTotalPrice} PLN netto)</span></p>`
+            itemHtml += `<p>Cena: <b>${item.transport.pricing.nettoTotalPrice} PLN netto</b> <span style="color: #888888;">(${item.transport.pricing.totalPrice} PLN brutto)</span></p>`
           } else {
             itemHtml += `<p>Cena: Do wyceny</p>`
           }
@@ -321,7 +321,7 @@ const quoteTemplate = ({
               }
             }) => {
               const isIndividual = extra.pricing.pricingModel === 'individual'
-              itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+              itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.nettoTotalPrice} PLN netto <span style="color: #888888;">(${extra.pricing.totalPrice} PLN brutto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
             }
           )
           itemHtml += `</ul>`
@@ -329,7 +329,7 @@ const quoteTemplate = ({
 
         // Add total price for the whole item at the very end (after all components)
         itemHtml += `<div style="margin-top: 15px; padding: 10px; background-color: #f8f8f8; border-radius: 5px;">
-          <p style="font-size: 1.2em; font-weight: bold; margin: 0;">Łączna cena: <span style="color: #45051c;">${item.totalPrice} PLN</span> <span style="color: #888888; font-size: 0.9em;">(${item.totalNettoPrice} PLN netto)</span></p>
+          <p style="font-size: 1.2em; font-weight: bold; margin: 0;">Łączna cena: <span style="color: #45051c;">${item.totalNettoPrice} PLN netto</span> <span style="color: #888888; font-size: 0.9em;">(${item.totalPrice} PLN brutto)</span></p>
         </div>`
       }
       // Handle extras-only items
@@ -348,14 +348,14 @@ const quoteTemplate = ({
             }
           }) => {
             const isIndividual = extra.pricing.pricingModel === 'individual'
-            itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.totalPrice} PLN <span style="color: #888888;">(${extra.pricing.nettoTotalPrice} PLN netto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
+            itemHtml += `<li>${extra.name} - <b>${isIndividual ? 'Wycena indywidualna' : `${extra.pricing.nettoTotalPrice} PLN netto <span style="color: #888888;">(${extra.pricing.totalPrice} PLN brutto)</span>`}</b>${isIndividual ? ' <span style="color: #F67258; font-weight: bold;"></span>' : ''}</li>`
           }
         )
         itemHtml += `</ul>`
 
         // Add total price for extras-only items
         itemHtml += `<div style="margin-top: 15px; padding: 10px; background-color: #f8f8f8; border-radius: 5px;">
-          <p style="font-size: 1.2em; font-weight: bold; margin: 0;">Łączna cena: <span style="color: #45051c;">${item.totalPrice} PLN</span> <span style="color: #888888; font-size: 0.9em;">(${item.totalNettoPrice} PLN netto)</span></p>
+          <p style="font-size: 1.2em; font-weight: bold; margin: 0;">Łączna cena: <span style="color: #45051c;">${item.totalNettoPrice} PLN netto</span> <span style="color: #888888; font-size: 0.9em;">(${item.totalPrice} PLN brutto)</span></p>
         </div>`
       }
 

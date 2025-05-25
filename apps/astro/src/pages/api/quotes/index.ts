@@ -58,20 +58,20 @@ function calculateHotelPrice(
   if (hotel.pricing.hasFixedGroupPrice && hotel.pricing.groupPrice && hotel.pricing.groupPeopleCount) {
     // Fixed group price + additional per person
     if (effectiveParticipantCount <= hotel.pricing.groupPeopleCount) {
-      // Just the group price
-      result.bruttoPrice = hotel.pricing.groupPrice
+      // Just the group price (netto)
+      result.nettoPrice = hotel.pricing.groupPrice
     } else {
-      // Group price + additional people at per-person rate
+      // Group price + additional people at per-person rate (netto)
       const additionalPeople = effectiveParticipantCount - hotel.pricing.groupPeopleCount
-      result.bruttoPrice = hotel.pricing.groupPrice + additionalPeople * hotel.pricing.pricePerPerson
+      result.nettoPrice = hotel.pricing.groupPrice + additionalPeople * hotel.pricing.pricePerPerson
     }
   } else {
-    // Simple per person pricing
-    result.bruttoPrice = effectiveParticipantCount * hotel.pricing.pricePerPerson
+    // Simple per person pricing (netto)
+    result.nettoPrice = effectiveParticipantCount * hotel.pricing.pricePerPerson
   }
 
-  // Calculate netto price (brutto / 1.23)
-  result.nettoPrice = Math.round(result.bruttoPrice / 1.23)
+  // Calculate brutto price (netto * 1.23)
+  result.bruttoPrice = Math.round(result.nettoPrice * 1.23)
 
   return result
 }
@@ -133,16 +133,16 @@ function calculateActivityPrice(
 
   // Calculate price based on threshold model
   if (effectiveParticipantCount <= activity.pricing.maxParticipants) {
-    // Base price covers all participants
-    result.bruttoPrice = activity.pricing.basePrice
+    // Base price covers all participants (netto)
+    result.nettoPrice = activity.pricing.basePrice
   } else {
-    // Base price + additional per person pricing
+    // Base price + additional per person pricing (netto)
     const additionalPeople = effectiveParticipantCount - activity.pricing.maxParticipants
-    result.bruttoPrice = activity.pricing.basePrice + additionalPeople * activity.pricing.additionalPersonPrice
+    result.nettoPrice = activity.pricing.basePrice + additionalPeople * activity.pricing.additionalPersonPrice
   }
 
-  // Calculate netto price (brutto / 1.23)
-  result.nettoPrice = Math.round(result.bruttoPrice / 1.23)
+  // Calculate brutto price (netto * 1.23)
+  result.bruttoPrice = Math.round(result.nettoPrice * 1.23)
 
   return result
 }
@@ -196,7 +196,7 @@ function calculateAddonPrice(
     // Fixed price (same price regardless of count or participants)
     case 'fixed':
       if (typeof addon.pricing.fixedPrice === 'number') {
-        result.bruttoPrice = addon.pricing.fixedPrice
+        result.nettoPrice = addon.pricing.fixedPrice
         result.priceDetails = {
           unitPrice: addon.pricing.fixedPrice,
           units: 1,
@@ -218,7 +218,7 @@ function calculateAddonPrice(
           units = units * participantCount
         }
 
-        result.bruttoPrice = unitPrice * units
+        result.nettoPrice = unitPrice * units
         result.priceDetails = {
           unitPrice,
           units,
@@ -231,19 +231,19 @@ function calculateAddonPrice(
       if (addon.pricing.threshold) {
         const { basePrice, maxUnits, additionalPrice } = addon.pricing.threshold
 
-        // Start with base price
-        result.bruttoPrice = basePrice
+        // Start with base price (netto)
+        result.nettoPrice = basePrice
         result.priceDetails = {
           basePrice,
           units: Math.min(participantCount, maxUnits),
         }
 
-        // If participant count exceeds threshold, add additional pricing
+        // If participant count exceeds threshold, add additional pricing (netto)
         if (participantCount > maxUnits) {
           const additionalUnits = participantCount - maxUnits
           const additionalCost = additionalUnits * additionalPrice
 
-          result.bruttoPrice += additionalCost
+          result.nettoPrice += additionalCost
           result.priceDetails.additionalUnits = additionalUnits
           result.priceDetails.additionalUnitPrice = additionalPrice
         }
@@ -253,7 +253,7 @@ function calculateAddonPrice(
     // Individual pricing (custom quote needed)
     case 'individual':
       // For individual pricing, we can't calculate automatically
-      result.bruttoPrice = 0
+      result.nettoPrice = 0
       result.priceDetails = {
         unitPrice: 0,
         units: 0,
@@ -261,8 +261,8 @@ function calculateAddonPrice(
       break
   }
 
-  // Calculate netto price (brutto / 1.23)
-  result.nettoPrice = Math.round(result.bruttoPrice / 1.23)
+  // Calculate brutto price (netto * 1.23)
+  result.bruttoPrice = Math.round(result.nettoPrice * 1.23)
 
   return result
 }
@@ -306,9 +306,9 @@ function calculateExtraPrice(
   // Calculate based on pricing type
   switch (pricing.type) {
     case 'fixed':
-      // Simple fixed price
+      // Simple fixed price (netto)
       if (typeof pricing.fixedPrice === 'number') {
-        result.totalPrice = pricing.fixedPrice
+        result.nettoTotalPrice = pricing.fixedPrice
         result.priceDetails = {
           unitPrice: pricing.fixedPrice,
           units: 1,
@@ -331,7 +331,7 @@ function calculateExtraPrice(
           units = units * participantCount
         }
 
-        result.totalPrice = unitPrice * units
+        result.nettoTotalPrice = unitPrice * units
         result.priceDetails = {
           unitPrice,
           units,
@@ -344,8 +344,8 @@ function calculateExtraPrice(
       if (pricing.threshold) {
         const { basePrice, maxUnits, additionalPrice } = pricing.threshold
 
-        // Start with base price
-        result.totalPrice = basePrice
+        // Start with base price (netto)
+        result.nettoTotalPrice = basePrice
         result.priceDetails = {
           basePrice,
           maxUnits,
@@ -353,12 +353,12 @@ function calculateExtraPrice(
           calculatedFor: Math.min(participantCount, maxUnits),
         }
 
-        // If participant count exceeds threshold, add additional pricing
+        // If participant count exceeds threshold, add additional pricing (netto)
         if (participantCount > maxUnits) {
           const additionalUnits = participantCount - maxUnits
           const additionalCost = additionalUnits * additionalPrice
 
-          result.totalPrice += additionalCost
+          result.nettoTotalPrice += additionalCost
           result.priceDetails.additionalUnits = additionalUnits
           result.priceDetails.additionalUnitPrice = additionalPrice
           result.priceDetails.additionalCost = additionalCost
@@ -367,8 +367,8 @@ function calculateExtraPrice(
       break
   }
 
-  // Calculate nettoTotalPrice directly from totalPrice
-  result.nettoTotalPrice = Math.round(result.totalPrice / 1.23)
+  // Calculate totalPrice (brutto) from nettoTotalPrice
+  result.totalPrice = Math.round(result.nettoTotalPrice * 1.23)
 
   return result
 }
@@ -449,20 +449,21 @@ function calculateTransportPrice(params: {
 } {
   const { distance, basePrice, maxKilometers, pricePerKm, numberOfBuses, peoplePerBus } = params
 
-  // Calculate price per single bus
-  let singleBusPrice = basePrice
+  // Calculate price per single bus (netto)
+  let singleBusNettoPrice = basePrice
 
-  // Add distance pricing if distance exceeds maxKilometers
+  // Add distance pricing if distance exceeds maxKilometers (netto)
   let distancePrice = 0
   if (distance > maxKilometers) {
     const extraKm = distance - maxKilometers
     distancePrice = extraKm * pricePerKm
-    singleBusPrice += distancePrice
+    singleBusNettoPrice += distancePrice
   }
 
-  // Calculate total price for all buses
-  const totalBruttoPrice = Math.round(singleBusPrice * numberOfBuses)
-  const totalNettoPrice = Math.round(totalBruttoPrice / 1.23)
+  // Calculate total netto price for all buses
+  const totalNettoPrice = Math.round(singleBusNettoPrice * numberOfBuses)
+  // Calculate total brutto price (netto * 1.23)
+  const totalBruttoPrice = Math.round(totalNettoPrice * 1.23)
 
   return {
     basePrice,
@@ -1247,9 +1248,8 @@ export const POST: APIRoute = async ({ request }) => {
       // Set the calculated total price
       quoteItem.totalPrice = totalPrice
 
-      // Instead of adding up individual netto prices which can lead to inconsistencies,
-      // calculate the netto price directly from the total brutto price
-      quoteItem.totalNettoPrice = Math.round(totalPrice / 1.23)
+      // Use the sum of individual netto prices for accuracy
+      quoteItem.totalNettoPrice = totalNettoPrice
 
       return quoteItem
     }

@@ -396,7 +396,8 @@ export default defineType({
         defineField({
           name: 'basePrice',
           type: 'number',
-          title: 'Cena podstawowa (PLN)',
+          title: 'Cena podstawowa netto (PLN)',
+          description: 'Cena bez VAT',
           validation: (Rule) =>
             Rule.custom((value) => {
               if (!value) {
@@ -426,7 +427,8 @@ export default defineType({
         defineField({
           name: 'additionalPersonPrice',
           type: 'number',
-          title: 'Cena za każdą dodatkową osobę (PLN / osoba)',
+          title: 'Cena netto za każdą dodatkową osobę (PLN / osoba)',
+          description: 'Cena bez VAT',
           validation: (Rule) =>
             Rule.custom((value) => {
               if (!value) {

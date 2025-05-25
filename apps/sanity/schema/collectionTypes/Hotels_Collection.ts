@@ -324,7 +324,7 @@ export default defineType({
       type: 'object',
       title: 'Cennik',
       group: 'pricing',
-      description: 'Ustaw cenę za osobę oraz opcjonalnie cenę za grupę',
+      description: 'Ustaw cenę netto za osobę oraz opcjonalnie cenę netto za grupę (ceny bez VAT)',
       fields: [
         defineField({
           name: 'hasFixedGroupPrice',
@@ -335,7 +335,8 @@ export default defineType({
         defineField({
           name: 'groupPrice',
           type: 'number',
-          title: 'Cena za grupę (PLN)',
+          title: 'Cena netto za grupę (PLN)',
+          description: 'Cena bez VAT',
           hidden: ({ parent }) => !parent?.hasFixedGroupPrice,
           validation: (Rule) =>
             Rule.custom((value, context) => {
@@ -363,7 +364,8 @@ export default defineType({
         defineField({
           name: 'pricePerPerson',
           type: 'number',
-          title: 'Cena za osobę (PLN)',
+          title: 'Cena netto za osobę (PLN)',
+          description: 'Cena bez VAT',
           validation: (Rule) => Rule.required().min(1).error('Cena za osobę jest wymagana i musi być większa niż 0'),
         }),
       ],

@@ -12,8 +12,10 @@ export default defineType({
       activities: 'activities',
       extras: 'extras',
       totalPrice: 'totalPrice',
+      totalNettoPrice: 'totalNettoPrice',
       activityName: 'activities.0.name',
       activityPrice: 'activities.0.pricing.finalPrice',
+      activityNettoPrice: 'activities.0.pricing.nettoFinalPrice',
       activityParticipantCount: 'activities.0.pricing.participantCount',
       activityMin: 'activities.0.participantsCount.min',
       activityMax: 'activities.0.participantsCount.max',
@@ -24,8 +26,10 @@ export default defineType({
       activities,
       extras,
       totalPrice = 0,
+      totalNettoPrice = 0,
       activityName,
       activityPrice = 0,
+      activityNettoPrice = 0,
       activityParticipantCount = 0,
       activityMin,
       activityMax,
@@ -70,20 +74,29 @@ export default defineType({
         }
       }
 
-      // Format price - fallback to activityPrice if totalPrice is 0 (for activity-only quotes)
-      let priceToShow = totalPrice
-      if (type === 'activity' && (totalPrice === 0 || !totalPrice) && activityPrice) {
-        priceToShow = activityPrice
+      // Format price - use netto prices as primary, fallback to activityNettoPrice if totalNettoPrice is 0
+      let nettoToShow = totalNettoPrice
+      let bruttoToShow = totalPrice
+
+      if (type === 'activity' && (totalNettoPrice === 0 || !totalNettoPrice) && activityNettoPrice) {
+        nettoToShow = activityNettoPrice
+        bruttoToShow = activityPrice
       }
 
-      const formattedPrice = new Intl.NumberFormat('pl-PL', {
+      const formattedNettoPrice = new Intl.NumberFormat('pl-PL', {
         style: 'currency',
         currency: 'PLN',
         minimumFractionDigits: 0,
-      }).format(priceToShow)
+      }).format(nettoToShow)
+
+      const formattedBruttoPrice = new Intl.NumberFormat('pl-PL', {
+        style: 'currency',
+        currency: 'PLN',
+        minimumFractionDigits: 0,
+      }).format(bruttoToShow)
 
       // For activity type, add participant count if available
-      let subtitle = `Cena: ${formattedPrice}`
+      let subtitle = `Cena: ${formattedNettoPrice} netto`
 
       if (type === 'activity' && activityParticipantCount) {
         // Get correct Polish form for participants
@@ -102,9 +115,12 @@ export default defineType({
           subtitle += ` / ${activityMin}-${activityMax} osób`
         }
 
-        // Add the price
-        subtitle += ` • ${formattedPrice}`
+        // Add the netto price
+        subtitle += ` • ${formattedNettoPrice} netto`
       }
+
+      // Add brutto price below
+      subtitle += `\n${formattedBruttoPrice} brutto`
 
       return {
         title: title || 'Wycena',

@@ -10,6 +10,12 @@ const formatPrice = (price: number = 0) =>
     minimumFractionDigits: 0,
   }).format(price)
 
+// Helper to format netto price with label
+const formatNettoPrice = (nettoPrice: number = 0) => `${formatPrice(nettoPrice)} netto`
+
+// Helper to format brutto price with label
+const formatBruttoPrice = (bruttoPrice: number = 0) => `${formatPrice(bruttoPrice)} brutto`
+
 // Function to get the correct Polish plural form for 'osoba'
 const getPolishPersonPlural = (count: number): string => {
   // Get last digit and last two digits
@@ -87,9 +93,11 @@ export const PricingSummary = (props: {
   const quoteId = (docData.quoteId || useFormValue(['quoteId']) || '') as string
   const selectedDates = (docData.selectedDates || useFormValue(['selectedDates']) || []) as any[]
 
-  // Calculate the total price for all items
-  const totalPrice = useMemo(() => {
-    return items.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+  // Calculate the total price for all items (netto and brutto)
+  const { totalNettoPrice, totalBruttoPrice } = useMemo(() => {
+    const netto = items.reduce((sum, item) => sum + (item.totalNettoPrice || 0), 0)
+    const brutto = items.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+    return { totalNettoPrice: netto, totalBruttoPrice: brutto }
   }, [items])
 
   // If there are no items yet, show a message
@@ -169,9 +177,17 @@ export const PricingSummary = (props: {
                   </Text>
                   <Card padding={3} radius={2} tone="positive">
                     <Stack space={3}>
-                      <Flex justify="space-between">
+                      <Flex justify="space-between" align="flex-start">
                         <Text weight="semibold">{item.hotels[0].name}</Text>
-                        <Text weight="semibold">{formatPrice(item.hotels[0].pricing?.finalPrice || 0)}</Text>
+                        <Box style={{ textAlign: 'right' }}>
+                          <Text weight="semibold">
+                            {formatNettoPrice(item.hotels[0].pricing?.nettoFinalPrice || 0)}
+                          </Text>
+                          <br />
+                          <Text size={1} muted>
+                            {formatBruttoPrice(item.hotels[0].pricing?.finalPrice || 0)}
+                          </Text>
+                        </Box>
                       </Flex>
 
                       {item.hotels[0].maxPeople && (
@@ -189,9 +205,15 @@ export const PricingSummary = (props: {
                           </Text>
                           <Stack space={2} marginTop={2}>
                             {item.hotels[0].addons.map((addon: any, addonIndex: number) => (
-                              <Flex key={addonIndex} justify="space-between" paddingLeft={2}>
+                              <Flex key={addonIndex} justify="space-between" align="flex-start" paddingLeft={2}>
                                 <Text size={1}>{addon.name}</Text>
-                                <Text size={1}>{formatPrice(addon.pricing?.totalPrice || 0)}</Text>
+                                <Box style={{ textAlign: 'right' }}>
+                                  <Text size={1}>{formatNettoPrice(addon.pricing?.nettoTotalPrice || 0)}</Text>
+                                  <br />
+                                  <Text size={0} muted>
+                                    {formatBruttoPrice(addon.pricing?.totalPrice || 0)}
+                                  </Text>
+                                </Box>
                               </Flex>
                             ))}
                           </Stack>
@@ -212,13 +234,19 @@ export const PricingSummary = (props: {
                     {item.activities.map((activity: any, activityIndex: number) => (
                       <Card key={activityIndex} padding={3} radius={2} tone="caution">
                         <Stack space={3}>
-                          <Flex justify="space-between">
+                          <Flex justify="space-between" align="flex-start">
                             <Text weight="semibold" size={1}>
                               {activity.name}
                             </Text>
-                            <Text weight="semibold" size={1}>
-                              {formatPrice(activity.pricing?.finalPrice || 0)}
-                            </Text>
+                            <Box style={{ textAlign: 'right' }}>
+                              <Text weight="semibold" size={1}>
+                                {formatNettoPrice(activity.pricing?.nettoFinalPrice || 0)}
+                              </Text>
+                              <br />
+                              <Text size={0} muted>
+                                {formatBruttoPrice(activity.pricing?.finalPrice || 0)}
+                              </Text>
+                            </Box>
                           </Flex>
 
                           {/* Activity addons */}
@@ -229,9 +257,15 @@ export const PricingSummary = (props: {
                               </Text>
                               <Stack space={2} marginTop={2}>
                                 {activity.addons.map((addon: any, addonIndex: number) => (
-                                  <Flex key={addonIndex} justify="space-between" paddingLeft={2}>
+                                  <Flex key={addonIndex} justify="space-between" align="flex-start" paddingLeft={2}>
                                     <Text size={1}>{addon.name}</Text>
-                                    <Text size={1}>{formatPrice(addon.pricing?.totalPrice || 0)}</Text>
+                                    <Box style={{ textAlign: 'right' }}>
+                                      <Text size={1}>{formatNettoPrice(addon.pricing?.nettoTotalPrice || 0)}</Text>
+                                      <br />
+                                      <Text size={0} muted>
+                                        {formatBruttoPrice(addon.pricing?.totalPrice || 0)}
+                                      </Text>
+                                    </Box>
                                   </Flex>
                                 ))}
                               </Stack>
@@ -251,13 +285,19 @@ export const PricingSummary = (props: {
                     Transport:
                   </Text>
                   <Card padding={3} radius={2} tone="critical">
-                    <Flex justify="space-between">
+                    <Flex justify="space-between" align="flex-start">
                       <Text size={1}>
                         {item.transport.distance > 0 ? `${item.transport.distance} km` : 'Transport'}
                       </Text>
-                      <Text weight="semibold" size={1}>
-                        {formatPrice(item.transport.pricing.totalPrice)}
-                      </Text>
+                      <Box style={{ textAlign: 'right' }}>
+                        <Text weight="semibold" size={1}>
+                          {formatNettoPrice(item.transport.pricing.nettoTotalPrice || 0)}
+                        </Text>
+                        <br />
+                        <Text size={0} muted>
+                          {formatBruttoPrice(item.transport.pricing.totalPrice)}
+                        </Text>
+                      </Box>
                     </Flex>
                   </Card>
                 </Box>
@@ -277,16 +317,22 @@ export const PricingSummary = (props: {
                           <Text weight="semibold" size={1} style={{ marginBottom: '0.5rem' }}>
                             Dodatki:
                           </Text>
-                          <Card padding={3} radius={2} tone="primary">
-                            <Stack space={2}>
-                              {regularExtras.map((extra: any, extraIndex: number) => (
-                                <Flex key={extraIndex} justify="space-between">
+                          <Stack space={2}>
+                            {regularExtras.map((extra: any, extraIndex: number) => (
+                              <Card key={extraIndex} padding={3} radius={2} tone="primary">
+                                <Flex justify="space-between" align="flex-start">
                                   <Text size={1}>{extra.name}</Text>
-                                  <Text size={1}>{formatPrice(extra.pricing?.totalPrice || 0)}</Text>
+                                  <Box style={{ textAlign: 'right' }}>
+                                    <Text size={1}>{formatNettoPrice(extra.pricing?.nettoTotalPrice || 0)}</Text>
+                                    <br />
+                                    <Text size={0} muted>
+                                      {formatBruttoPrice(extra.pricing?.totalPrice || 0)}
+                                    </Text>
+                                  </Box>
                                 </Flex>
-                              ))}
-                            </Stack>
-                          </Card>
+                              </Card>
+                            ))}
+                          </Stack>
                         </>
                       )}
 
@@ -296,18 +342,24 @@ export const PricingSummary = (props: {
                           <Text weight="semibold" size={1} style={{ marginBottom: '0.5rem' }}>
                             Transport:
                           </Text>
-                          <Card padding={3} radius={2} tone="critical">
-                            <Stack space={2}>
-                              {transportItems.map((transport: any, transportIndex: number) => (
-                                <Flex key={transportIndex} justify="space-between">
+                          <Stack space={2}>
+                            {transportItems.map((transport: any, transportIndex: number) => (
+                              <Card key={transportIndex} padding={3} radius={2} tone="critical">
+                                <Flex justify="space-between" align="flex-start">
                                   <Text size={1}>{transport.name}</Text>
-                                  <Text weight="semibold" size={1}>
-                                    {formatPrice(transport.pricing?.totalPrice || 0)}
-                                  </Text>
+                                  <Box style={{ textAlign: 'right' }}>
+                                    <Text weight="semibold" size={1}>
+                                      {formatNettoPrice(transport.pricing?.nettoTotalPrice || 0)}
+                                    </Text>
+                                    <br />
+                                    <Text size={0} muted>
+                                      {formatBruttoPrice(transport.pricing?.totalPrice || 0)}
+                                    </Text>
+                                  </Box>
                                 </Flex>
-                              ))}
-                            </Stack>
-                          </Card>
+                              </Card>
+                            ))}
+                          </Stack>
                         </Box>
                       )}
                     </Box>
@@ -315,13 +367,24 @@ export const PricingSummary = (props: {
                 })()}
 
               {/* Item Total */}
-              <Flex justify="space-between" marginTop={4} style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+              <Flex
+                justify="space-between"
+                align="flex-start"
+                marginTop={4}
+                style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}
+              >
                 <Text weight="semibold" size={2}>
                   Suma częściowa
                 </Text>
-                <Text weight="semibold" size={2}>
-                  {formatPrice(item.totalPrice || 0)}
-                </Text>
+                <Box style={{ textAlign: 'right' }}>
+                  <Text weight="semibold" size={2}>
+                    {formatNettoPrice(item.totalNettoPrice || 0)}
+                  </Text>
+                  <br />
+                  <Text size={1} muted>
+                    {formatBruttoPrice(item.totalPrice || 0)}
+                  </Text>
+                </Box>
               </Flex>
             </Stack>
           </Card>

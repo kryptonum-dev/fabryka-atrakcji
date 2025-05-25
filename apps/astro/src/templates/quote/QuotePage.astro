@@ -470,7 +470,7 @@ const t = translations[lang]
           </div>
         </div>
         <div class="price-toggle">
-          <span class="price-type">{t.netto}</span>
+          <span class="price-type">{t.brutto}</span>
           <Switch
             size="sm"
             asLabel
@@ -481,7 +481,7 @@ const t = translations[lang]
               checked: true,
             }}
           />
-          <span class="price-type">{t.brutto}</span>
+          <span class="price-type">{t.netto}</span>
         </div>
       </div>
 
@@ -1205,10 +1205,10 @@ const t = translations[lang]
   const priceToggle = document.getElementById('price-toggle') as HTMLInputElement
 
   if (priceToggle) {
-    // No need to set checked property here as it's already set in the HTML
+    // The toggle is initially checked (showing netto)
 
     priceToggle.addEventListener('change', () => {
-      const isBrutto = priceToggle.checked
+      const isNetto = priceToggle.checked
 
       // Get all price elements
       const priceElements = document.querySelectorAll('.item-price, .total-price, .price')
@@ -1227,16 +1227,16 @@ const t = translations[lang]
           })
 
           // Display either netto or brutto based on toggle state
-          if (isBrutto) {
-            element.textContent = formatter.format(parseInt(bruttoPrice, 10))
-          } else {
+          if (isNetto) {
             element.textContent = formatter.format(parseInt(nettoPrice, 10))
+          } else {
+            element.textContent = formatter.format(parseInt(bruttoPrice, 10))
           }
         }
       })
     })
 
-    // Still trigger the change event to ensure initial prices are displayed correctly
+    // Trigger the change event to ensure initial prices are displayed correctly
     priceToggle.dispatchEvent(new Event('change'))
   }
 </script>
