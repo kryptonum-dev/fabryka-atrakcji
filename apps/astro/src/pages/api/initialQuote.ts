@@ -90,6 +90,43 @@ const quoteTemplate = ({
           itemHtml += `</ul>`
         }
 
+        // Add gastronomy items for hotel
+        if (hotel.gastronomy && hotel.gastronomy.length > 0) {
+          itemHtml += `<p><b>Gastronomia:</b></p><ul>`
+          hotel.gastronomy.forEach(
+            (gastronomyItem: {
+              name: string
+              count: number
+              pricing: {
+                totalPrice: number
+                nettoTotalPrice: number
+                unavailable?: boolean
+                pricingNotVisible?: boolean
+              }
+            }) => {
+              let gastronomyPrice = ''
+              let gastronomyStatus = ''
+
+              if (gastronomyItem.pricing.unavailable) {
+                gastronomyPrice = '<span style="color: #F67258; font-weight: bold;">Niedostępne</span>'
+                gastronomyStatus = ' <span style="color: #F67258;"></span>'
+              } else if (gastronomyItem.pricing.pricingNotVisible) {
+                gastronomyPrice = '<span style="color: #F67258; font-weight: bold;">Cena ukryta</span>'
+                gastronomyStatus = ' <span style="color: #F67258;"></span>'
+              } else {
+                gastronomyPrice = `${gastronomyItem.pricing.nettoTotalPrice} PLN netto <span style="color: #888888;">(${gastronomyItem.pricing.totalPrice} PLN brutto)</span>`
+              }
+
+              const serviceCount =
+                gastronomyItem.count > 1
+                  ? ` <span style="color: #888888; font-size: 0.9em;">(${gastronomyItem.count} usług)</span>`
+                  : ''
+              itemHtml += `<li>${gastronomyItem.name}${serviceCount} - <b>${gastronomyPrice}</b>${gastronomyStatus}</li>`
+            }
+          )
+          itemHtml += `</ul>`
+        }
+
         // For hotel type, also check if there are activities
         if (item.activities && item.activities.length > 0) {
           itemHtml += `<h3>Aktywności do hotelu:</h3>`

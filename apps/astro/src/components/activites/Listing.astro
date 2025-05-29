@@ -110,20 +110,19 @@ const { listing, currentPage, heading, paragraph, totalItems } = Astro.props
     :global(.Pagination) {
       margin-top: clamp(2rem, calc(3vw / 0.48), 3rem);
     }
-
-    @media (max-width: 1089px) {
+    @media (max-width: 68.0625rem) {
       .list {
         grid-template-columns: repeat(3, 1fr);
       }
     }
 
-    @media (max-width: 839px) {
+    @media (max-width: 52.4375rem) {
       .list {
         grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media (max-width: 439px) {
+    @media (max-width: 27.4375rem) {
       .header {
         text-align: left;
 

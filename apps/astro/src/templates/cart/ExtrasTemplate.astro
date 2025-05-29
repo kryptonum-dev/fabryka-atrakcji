@@ -366,7 +366,7 @@
       }
     }
 
-    @media (max-width: 799px) {
+    @media (max-width: 49.9375rem) {
       width: 100%;
       .toggle-addon {
         display: grid;
@@ -440,15 +440,63 @@
     }
 
     &[data-in-popup] {
-      @media (max-width: 699px) {
+      @media (max-width: 43.6875rem) {
         @include toggle-addon-mobile;
       }
     }
-    @media (max-width: 599px) {
+    @media (max-width: 37.4375rem) {
       @include toggle-addon-mobile;
     }
 
-    @media (max-width: 469px) {
+    @media (max-width: 49.9375rem) {
+      .toggle-addon .price-info {
+        gap: 1rem;
+        .price {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          white-space: nowrap;
+        }
+
+        .price-details {
+          align-self: center;
+        }
+      }
+    }
+
+    @media (max-width: 43.6875rem) {
+      .toggle-addon .price-info {
+        gap: 1rem;
+        .price {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          white-space: nowrap;
+        }
+
+        .price-details {
+          align-self: center;
+        }
+      }
+    }
+
+    @media (max-width: 37.4375rem) {
+      .toggle-addon .price-info {
+        gap: 1rem;
+        .price {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          white-space: nowrap;
+        }
+
+        .price-details {
+          align-self: center;
+        }
+      }
+    }
+
+    @media (max-width: 29.3125rem) {
       .toggle-addon .price-info {
         gap: 1rem;
         .price {

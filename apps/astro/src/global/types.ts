@@ -87,6 +87,15 @@ export type BaseHotelProps = {
   }
   addons?: AddonProps
   alerts?: Alert[]
+  gastronomy?: {
+    type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+    count: number
+    name: string
+    options?: {
+      level?: 'standard' | 'premium' | 'luxury'
+      style?: 'buffet' | 'menu'
+    }
+  }
 }
 
 export type Alert = {

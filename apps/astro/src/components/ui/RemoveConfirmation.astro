@@ -142,7 +142,7 @@ const message = t.message[itemType as keyof typeof t.message]
       }
     }
 
-    @media (max-width: 499px) {
+    @media (max-width: 31.1875rem) {
       .confirmation-content {
         padding: 1.5rem var(--pageMargin);
 
@@ -151,11 +151,11 @@ const message = t.message[itemType as keyof typeof t.message]
         }
       }
     }
-  }
 
-  @media (max-width: 459px) {
-    .confirmation-content .confirmation-actions {
-      flex-direction: column;
+    @media (max-width: 28.6875rem) {
+      .confirmation-content .confirmation-actions {
+        flex-direction: column;
+      }
     }
   }
 </style>

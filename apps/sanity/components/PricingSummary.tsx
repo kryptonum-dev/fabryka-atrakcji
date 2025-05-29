@@ -228,6 +228,66 @@ export const PricingSummary = (props: {
                           </Stack>
                         </Box>
                       )}
+
+                      {/* Hotel gastronomy */}
+                      {item.hotels[0].gastronomy && item.hotels[0].gastronomy.length > 0 && (
+                        <Box>
+                          <Text size={1} weight="semibold">
+                            Gastronomia:
+                          </Text>
+                          <Stack space={2} marginTop={2}>
+                            {item.hotels[0].gastronomy.map((gastronomyItem: any, gastroIndex: number) => (
+                              <Flex
+                                key={gastroIndex}
+                                justify="space-between"
+                                align="flex-start"
+                                paddingLeft={2}
+                                style={{
+                                  borderBottom: '1px solid #0c6826',
+                                  paddingBottom: '0.5rem',
+                                  marginBottom: '0.5rem',
+                                }}
+                              >
+                                <Box padding={0} style={{ paddingTop: '0.5rem' }}>
+                                  <Text size={1}>
+                                    {gastronomyItem.name}
+                                    {gastronomyItem.count > 1 && (
+                                      <Text
+                                        size={0}
+                                        muted
+                                        style={{ marginLeft: '0.5rem', marginTop: '0.25rem', marginBottom: '0.5rem' }}
+                                      >
+                                        • {gastronomyItem.count} usług
+                                      </Text>
+                                    )}
+                                  </Text>
+                                </Box>
+                                <Box style={{ textAlign: 'right' }}>
+                                  {gastronomyItem.pricing?.unavailable ? (
+                                    <Text size={1} style={{ color: '#F67258', marginTop: '0.25rem' }}>
+                                      Niedostępne
+                                    </Text>
+                                  ) : gastronomyItem.pricing?.pricingNotVisible ? (
+                                    <Text size={1} style={{ color: '#F67258', marginTop: '0.25rem' }}>
+                                      Cena ukryta
+                                    </Text>
+                                  ) : (
+                                    <>
+                                      <Text size={1} style={{ marginTop: '0.25rem' }}>
+                                        {formatNettoPrice(gastronomyItem.pricing?.nettoTotalPrice || 0)}
+                                      </Text>
+                                      <br />
+                                      <Text size={0} muted style={{ marginTop: '0.25rem' }}>
+                                        {formatBruttoPrice(gastronomyItem.pricing?.totalPrice || 0)}
+                                      </Text>
+                                    </>
+                                  )}
+                                </Box>
+                              </Flex>
+                            ))}
+                          </Stack>
+                        </Box>
+                      )}
                     </Stack>
                   </Card>
                 </Box>

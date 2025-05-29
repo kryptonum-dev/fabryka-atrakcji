@@ -64,6 +64,33 @@ export const GET: APIRoute = async ({ request }) => {
             addonsHaveImage,
             additionalInfo,
           },
+          gastronomy{
+            lunch[]{
+              level,
+              style,
+              pricePerService,
+              hidePricing
+            },
+            supper[]{
+              level,
+              style,
+              pricePerService,
+              hidePricing
+            },
+            coffeeBreak{
+              availability,
+              pricePerService
+            },
+            grill{
+              availability,
+              pricePerService
+            },
+            openBar[]{
+              level,
+              pricePerService,
+              hidePricing
+            }
+          },
           alerts[]{
             ${PortableTextQuery('heading')}
             ${PortableTextQuery('paragraph')}

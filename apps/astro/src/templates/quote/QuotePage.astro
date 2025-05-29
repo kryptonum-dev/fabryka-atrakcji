@@ -27,6 +27,18 @@ type AddonType = {
   }
 }
 
+type GastronomyType = {
+  id: string
+  name: string
+  count: number
+  pricing: {
+    totalPrice: number
+    nettoTotalPrice: number
+    unavailable?: boolean
+    pricingNotVisible?: boolean
+  }
+}
+
 type HotelType = {
   itemId: string
   id: string
@@ -42,6 +54,7 @@ type HotelType = {
     pricingNotVisible?: boolean
   }
   addons?: AddonType[]
+  gastronomy?: GastronomyType[]
 }
 
 type ActivityType = {
@@ -149,6 +162,17 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
                 nettoTotalPrice,
                 pricingModel,
                 isTransport
+              }
+            },
+            gastronomy[] {
+              id,
+              name,
+              count,
+              pricing {
+                totalPrice,
+                nettoTotalPrice,
+                unavailable,
+                pricingNotVisible
               }
             }
           },
@@ -1214,16 +1238,27 @@ const t = translations[lang]
     priceToggle.addEventListener('change', () => {
       const isNetto = priceToggle.checked
 
-      // Get all price elements
-      const priceElements = document.querySelectorAll('.item-price, .total-price, .price')
+      // Get all price elements including gastronomy items
+      const priceElements = document.querySelectorAll('.item-price, .total-price, .price, .addon-price')
 
       priceElements.forEach((element) => {
         const bruttoPrice = element.getAttribute('data-brutto-price')
         const nettoPrice = element.getAttribute('data-netto-price')
+        const isUnavailable = element.getAttribute('data-unavailable') === 'true'
+        const isPriceHidden = element.getAttribute('data-price-hidden') === 'true'
 
-        // Skip elements that show individual pricing text
+        // Skip elements that show individual pricing text or special gastronomy states
         const currentText = element.textContent?.trim() || ''
-        if (currentText === 'Wycena indywidualna' || currentText === 'Individual pricing') {
+        if (
+          currentText === 'Wycena indywidualna' ||
+          currentText === 'Individual pricing' ||
+          currentText === 'Niedostępne' ||
+          currentText === 'Unavailable' ||
+          currentText === 'Cena ukryta' ||
+          currentText === 'Price hidden' ||
+          isUnavailable ||
+          isPriceHidden
+        ) {
           return
         }
 

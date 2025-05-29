@@ -7,7 +7,21 @@ interface QuoteItem {
   type: string
   _type?: string
   _key?: string
-  hotels?: Array<any>
+  hotels?: Array<{
+    itemId: string
+    name: string
+    slug: string
+    maxPeople: number
+    pricing: any
+    addons: any[]
+    gastronomy?: Array<{
+      type: string
+      count: number
+      name: string
+      options?: any
+      pricing: any
+    }>
+  }>
   activities?: Array<any>
   transport?: any
   extras?: Array<any>
@@ -272,6 +286,15 @@ function calculateAddonPrice(
         units: 0,
       }
       break
+
+    default:
+      // Capitalize first letter for any other types
+      result.nettoPrice = 0
+      result.priceDetails = {
+        unitPrice: 0,
+        units: 0,
+      }
+      break
   }
 
   // Calculate brutto price (netto * 1.23)
@@ -406,7 +429,9 @@ async function geocodeAddress(address: {
   const query = `${address.street}, ${address.postal || ''} ${address.city}`.trim()
 
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=1`
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      query
+    )}&countrycodes=pl&limit=1`
 
     const response = await fetch(url, {
       headers: {
@@ -558,6 +583,216 @@ const generateQuoteId = (): string => {
   return result
 }
 
+function combineGastronomyItems(
+  gastronomyItems: Array<{
+    id: string
+    type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+    count: number
+    options?: {
+      level?: 'standard' | 'premium' | 'luxury'
+      style?: 'buffet' | 'menu'
+    }
+  }>
+): Array<{
+  type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+  count: number
+  options?: {
+    level?: 'standard' | 'premium' | 'luxury'
+    style?: 'buffet' | 'menu'
+  }
+}> {
+  const combinedItems = new Map<
+    string,
+    {
+      type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+      count: number
+      options?: {
+        level?: 'standard' | 'premium' | 'luxury'
+        style?: 'buffet' | 'menu'
+      }
+    }
+  >()
+
+  gastronomyItems.forEach((item, index) => {
+    // Create a unique key based on type and options
+    const optionsKey = item.options ? `${item.options.level || ''}-${item.options.style || ''}` : ''
+    const uniqueKey = `${item.type}-${optionsKey}`
+
+    if (combinedItems.has(uniqueKey)) {
+      const existing = combinedItems.get(uniqueKey)!
+      existing.count += item.count
+    } else {
+      combinedItems.set(uniqueKey, {
+        type: item.type,
+        count: item.count,
+        options: item.options,
+      })
+    }
+  })
+
+  const result = Array.from(combinedItems.values())
+
+  return result
+}
+
+function calculateGastronomyPricing(
+  gastronomyItems: Array<{
+    type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+    count: number
+    options?: {
+      level?: 'standard' | 'premium' | 'luxury'
+      style?: 'buffet' | 'menu'
+    }
+  }>,
+  hotelGastronomy: any,
+  participantCount: number
+): Array<{
+  type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+  count: number
+  name: string
+  options?: {
+    level?: 'standard' | 'premium' | 'luxury'
+    style?: 'buffet' | 'menu'
+  }
+  pricing: {
+    totalPrice: number
+    nettoTotalPrice: number
+    pricingNotVisible?: boolean
+    unavailable?: boolean
+  }
+}> {
+  return gastronomyItems.map((item) => {
+    let name: string = item.type
+    let totalPrice = 0
+    let nettoTotalPrice = 0
+    let pricingNotVisible = false
+    let unavailable = false
+
+    // Map gastronomy type to Sanity field name
+    let serviceFieldName = ''
+    switch (item.type) {
+      case 'lunch':
+        serviceFieldName = 'lunch'
+        break
+      case 'supper':
+        serviceFieldName = 'supper'
+        break
+      case 'coffee-break':
+        serviceFieldName = 'coffeeBreak'
+        break
+      case 'grill':
+        serviceFieldName = 'grill'
+        break
+      case 'open-bar':
+        serviceFieldName = 'openBar'
+        break
+    }
+
+    // Get the service data from hotel gastronomy
+    const serviceData = hotelGastronomy?.[serviceFieldName]
+
+    if (!serviceData) {
+      unavailable = true
+    } else {
+      // Handle simple services (coffee-break, grill) with availability field
+      if (serviceData.availability) {
+        switch (serviceData.availability) {
+          case 'disabled':
+            unavailable = true
+            break
+          case 'priceHidden':
+            pricingNotVisible = true
+            break
+          case 'withPrice':
+            const servicePrice = serviceData.pricePerService || 0
+            nettoTotalPrice = servicePrice * item.count
+            totalPrice = Math.round(nettoTotalPrice * 1.23)
+            break
+        }
+      }
+      // Handle complex services (lunch, supper, openBar) with options array
+      else if (Array.isArray(serviceData)) {
+        // Find matching option based on level and style
+        const matchingOption = serviceData.find((option: any) => {
+          const levelMatch = !item.options?.level || option.level === item.options.level
+          const styleMatch = !item.options?.style || option.style === item.options.style
+          return levelMatch && styleMatch
+        })
+
+        if (matchingOption) {
+          if (matchingOption.hidePricing) {
+            pricingNotVisible = true
+          } else {
+            const optionPrice = matchingOption.pricePerService || 0
+            nettoTotalPrice = optionPrice * item.count
+            totalPrice = Math.round(nettoTotalPrice * 1.23)
+          }
+        } else {
+          unavailable = true
+        }
+      } else {
+        unavailable = true
+      }
+    }
+
+    // Format the name properly
+    switch (item.type) {
+      case 'lunch':
+        name = 'Obiad'
+        if (item.options) {
+          const details = []
+          if (item.options.level) details.push(item.options.level)
+          if (item.options.style) details.push(item.options.style)
+          if (details.length > 0) {
+            name += ` (${details.join(', ')})`
+          }
+        }
+        break
+      case 'supper':
+        name = 'Kolacja'
+        if (item.options) {
+          const details = []
+          if (item.options.level) details.push(item.options.level)
+          if (item.options.style) details.push(item.options.style)
+          if (details.length > 0) {
+            name += ` (${details.join(', ')})`
+          }
+        }
+        break
+      case 'coffee-break':
+        name = 'Przerwa kawowa'
+        break
+      case 'grill':
+        name = 'Grill'
+        break
+      case 'open-bar':
+        name = 'Open bar'
+        if (item.options && item.options.level) {
+          name += ` (${item.options.level})`
+        }
+        break
+      default:
+        name = (item.type as string).charAt(0).toUpperCase() + (item.type as string).slice(1)
+        break
+    }
+
+    const result = {
+      type: item.type,
+      count: item.count,
+      name,
+      options: item.options,
+      pricing: {
+        totalPrice,
+        nettoTotalPrice,
+        pricingNotVisible,
+        unavailable,
+      },
+    }
+
+    return result
+  })
+}
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     // Parse the incoming request body
@@ -571,6 +806,7 @@ export const POST: APIRoute = async ({ request }) => {
       selectedDates,
       participantCount,
       activityAddress,
+      gastronomy,
     }: {
       hotels: BaseHotelProps[]
       activities: BaseActivityProps[]
@@ -596,10 +832,33 @@ export const POST: APIRoute = async ({ request }) => {
         lat?: number
         lng?: number
       }
+      gastronomy?: Array<{
+        id: string
+        type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+        count: number
+        options?: {
+          level?: 'standard' | 'premium' | 'luxury'
+          style?: 'buffet' | 'menu'
+        }
+      }>
     } = data
 
     // Array to store all quote items
     const quoteItems = []
+
+    // Combine gastronomy items if present
+    let combinedGastronomy: Array<{
+      type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
+      count: number
+      options?: {
+        level?: 'standard' | 'premium' | 'luxury'
+        style?: 'buffet' | 'menu'
+      }
+    }> = []
+
+    if (gastronomy && gastronomy.length > 0) {
+      combinedGastronomy = combineGastronomyItems(gastronomy)
+    }
 
     // Process transport extras if present to handle distance calculations
     let transportExtra = extras.find((extra) => extra.id === 'transport')
@@ -738,6 +997,10 @@ export const POST: APIRoute = async ({ request }) => {
                 pricingNotVisible: hotelPriceResult.pricingNotVisible,
               },
               addons: hotelAddonsResults,
+              gastronomy:
+                combinedGastronomy.length > 0 && hotel.gastronomy
+                  ? calculateGastronomyPricing(combinedGastronomy, hotel.gastronomy, participantCount)
+                  : [],
             },
           ],
           activities: [] as any[],
@@ -1227,6 +1490,14 @@ export const POST: APIRoute = async ({ request }) => {
               totalNettoPrice += addon.pricing?.nettoPrice || addon.pricing?.nettoTotalPrice || 0
             }
           }
+
+          // Add hotel gastronomy prices
+          if (hotel.gastronomy && hotel.gastronomy.length > 0) {
+            for (const gastronomyItem of hotel.gastronomy) {
+              totalPrice += gastronomyItem.pricing?.totalPrice || 0
+              totalNettoPrice += gastronomyItem.pricing?.nettoTotalPrice || 0
+            }
+          }
         }
       }
 
@@ -1374,6 +1645,20 @@ export const POST: APIRoute = async ({ request }) => {
                 pricingModel: addon.pricing.pricingModel || 'fixed',
               },
             })),
+            gastronomy:
+              hotel.gastronomy?.map((gastronomyItem: any) => ({
+                _key: generateKey(),
+                type: gastronomyItem.type,
+                count: gastronomyItem.count,
+                name: gastronomyItem.name,
+                options: gastronomyItem.options || null,
+                pricing: {
+                  totalPrice: gastronomyItem.pricing.totalPrice || 0,
+                  nettoTotalPrice: gastronomyItem.pricing.nettoTotalPrice || 0,
+                  pricingNotVisible: toBoolString(gastronomyItem.pricing.pricingNotVisible),
+                  unavailable: toBoolString(gastronomyItem.pricing.unavailable),
+                },
+              })) || [],
           })),
           activities: item.activities.map((activity: any) => ({
             _key: generateKey(),

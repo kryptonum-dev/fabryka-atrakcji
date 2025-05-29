@@ -15,6 +15,18 @@ type AddonType = {
   pricing: PricingType
 }
 
+type GastronomyType = {
+  id: string
+  name: string
+  count: number
+  pricing: {
+    totalPrice: number
+    nettoTotalPrice: number
+    unavailable?: boolean
+    pricingNotVisible?: boolean
+  }
+}
+
 type HotelType = {
   name: string
   slug: string
@@ -28,6 +40,7 @@ type HotelType = {
     pricingNotVisible?: boolean
   }
   addons?: AddonType[]
+  gastronomy?: GastronomyType[]
 }
 
 type ActivityType = {
@@ -108,6 +121,11 @@ const translations = {
     person: 'osób',
     whole: 'całość',
     individualPricing: 'Wycena indywidualna',
+    gastronomy: 'gastronomia',
+    services: 'usług',
+    unavailable: 'Niedostępne',
+    priceHidden: 'Cena ukryta',
+    withGastronomy: 'z gastronomią',
   },
   en: {
     additionalPerson: 'Each additional person',
@@ -129,6 +147,11 @@ const translations = {
     person: 'people',
     whole: 'whole',
     individualPricing: 'Individual pricing',
+    gastronomy: 'gastronomy',
+    services: 'services',
+    unavailable: 'Unavailable',
+    priceHidden: 'Price hidden',
+    withGastronomy: 'with gastronomy',
   },
 }
 
@@ -140,6 +163,7 @@ const hasHotels = item.hotels && item.hotels.length > 0
 const hasActivities = item.activities && item.activities.length > 0
 const hasExtras = item.extras && item.extras.length > 0
 const hotelsHaveAddons = hasHotels && item.hotels?.some((hotel) => hotel.addons && hotel.addons.length > 0)
+const hotelsHaveGastronomy = hasHotels && item.hotels?.some((hotel) => hotel.gastronomy && hotel.gastronomy.length > 0)
 const activitiesHaveAddons =
   hasActivities && item.activities?.some((activity) => activity.addons && activity.addons.length > 0)
 
@@ -148,12 +172,17 @@ const getAccordionTitle = () => {
     hotels: hasHotels,
     activities: hasActivities,
     extras: hasExtras || hotelsHaveAddons || activitiesHaveAddons,
+    gastronomy: hotelsHaveGastronomy,
   }
 
   switch (true) {
     case type.hotels && type.activities:
+    case type.hotels && type.extras && type.gastronomy:
+      return `${item.hotels?.[0].name} + ${t.extras} + ${t.gastronomy}`
     case type.hotels && type.extras:
       return `${item.hotels?.[0].name} + ${t.extras}`
+    case type.hotels && type.gastronomy:
+      return `${item.hotels?.[0].name} + ${t.gastronomy}`
     case type.hotels:
       return item.hotels?.[0].name || ''
     case type.activities && type.extras:
@@ -262,11 +291,26 @@ const formattedPrice = shouldShowIndividualPricing ? t.individualPricing : forma
         hasHotels &&
           item.hotels?.map((hotel) => (
             <li class="item hotel-item">
-              {hotel.addons && hotel.addons.length > 0 ? (
+              {(hotel.addons && hotel.addons.length > 0) || (hotel.gastronomy && hotel.gastronomy.length > 0) ? (
                 <details class="nested-details">
                   <summary>
                     <div class="item-details">
-                      <span class="item-name">{`${hotel.name} ${t.withAddons}`}</span>
+                      <span class="item-name">
+                        {hotel.name}
+                        {(() => {
+                          const hasAddons = hotel.addons && hotel.addons.length > 0
+                          const hasGastronomy = hotel.gastronomy && hotel.gastronomy.length > 0
+
+                          if (hasAddons && hasGastronomy) {
+                            return ` ${t.withAddons} + ${t.gastronomy}`
+                          } else if (hasAddons) {
+                            return ` ${t.withAddons}`
+                          } else if (hasGastronomy) {
+                            return ` ${t.withGastronomy}`
+                          }
+                          return ''
+                        })()}
+                      </span>
                       <div class="toggle-addons">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
                           <path
@@ -304,24 +348,57 @@ const formattedPrice = shouldShowIndividualPricing ? t.individualPricing : forma
                   </summary>
                   <div class="addons-list">
                     <ul>
-                      {hotel.addons.map((addon) => (
-                        <li class="addon-item">
-                          <span class="addon-name">
-                            {addon.count > 1 && <strong>{addon.count}X</strong>} {addon.name}
-                          </span>
-                          <div class="addon-pricing">
-                            <span
-                              class="addon-price"
-                              data-brutto-price={addon.pricing.totalPrice}
-                              data-netto-price={addon.pricing.nettoTotalPrice}
-                            >
-                              {addon.pricing.pricingModel === 'individual'
-                                ? t.individualPricing
-                                : formatCurrency(addon.pricing.totalPrice, lang)}
+                      {/* Render addons */}
+                      {hotel.addons &&
+                        hotel.addons.map((addon) => (
+                          <li class="addon-item">
+                            <span class="addon-name">
+                              {addon.count > 1 && <strong>{addon.count}x</strong>} {addon.name}
                             </span>
-                          </div>
-                        </li>
-                      ))}
+                            <div class="addon-pricing">
+                              <span
+                                class="addon-price"
+                                data-brutto-price={addon.pricing.totalPrice}
+                                data-netto-price={addon.pricing.nettoTotalPrice}
+                              >
+                                {addon.pricing.pricingModel === 'individual'
+                                  ? t.individualPricing
+                                  : formatCurrency(addon.pricing.totalPrice, lang)}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+
+                      {/* Render gastronomy items */}
+                      {hotel.gastronomy &&
+                        hotel.gastronomy.map((gastronomyItem) => (
+                          <li class="addon-item gastronomy-item">
+                            <span class="addon-name">
+                              {gastronomyItem.name}
+                              {gastronomyItem.count > 1 && (
+                                <span class="service-count">
+                                  {' '}
+                                  • {gastronomyItem.count} {t.services}
+                                </span>
+                              )}
+                            </span>
+                            <div class="addon-pricing">
+                              <span
+                                class="addon-price"
+                                data-brutto-price={gastronomyItem.pricing.totalPrice}
+                                data-netto-price={gastronomyItem.pricing.nettoTotalPrice}
+                                data-unavailable={gastronomyItem.pricing.unavailable}
+                                data-price-hidden={gastronomyItem.pricing.pricingNotVisible}
+                              >
+                                {gastronomyItem.pricing.unavailable
+                                  ? t.unavailable
+                                  : gastronomyItem.pricing.pricingNotVisible
+                                    ? t.priceHidden
+                                    : formatCurrency(gastronomyItem.pricing.totalPrice, lang)}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
                     </ul>
                   </div>
                 </details>
@@ -831,8 +908,25 @@ const formattedPrice = shouldShowIndividualPricing ? t.individualPricing : forma
                     color: var(--primary-800, #45051c);
                   }
 
+                  .addon-pricing {
+                    display: flex;
+                    justify-content: flex-end;
+                  }
+
                   .addon-price {
+                    text-align: right;
                     margin-left: 1rem;
+                  }
+
+                  // Gastronomy-specific styling
+                  &.gastronomy-item {
+                    .addon-name {
+                      .service-count {
+                        color: var(--primary-400, #74535e);
+                        font-size: var(--typography-body-s, 0.75rem);
+                        font-weight: 400;
+                      }
+                    }
                   }
                 }
               }

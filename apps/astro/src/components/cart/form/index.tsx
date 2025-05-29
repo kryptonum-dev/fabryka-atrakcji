@@ -528,6 +528,9 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
         if (mapInstanceRef.current) {
           mapInstanceRef.current.invalidateSize()
 
+          // Also reposition the popup
+          positionMapPopup()
+
           // Check if we need to update map based on manual input
           checkAndUpdateMapForManualChanges()
         }
@@ -714,6 +717,61 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
   const toggleMap = () => {
     setIsMapOpen(!isMapOpen)
   }
+
+  // Function to position map popup relative to street input
+  const positionMapPopup = () => {
+    const streetInput = document.querySelector('input[name="street"]') as HTMLInputElement
+    const mapPopup = mapPopupRef.current
+
+    if (streetInput && mapPopup) {
+      const inputRect = streetInput.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+
+      // Check if we're in mobile breakpoint (739px = 46.1875rem)
+      const isMobileBreakpoint = viewportWidth <= 739
+
+      // Set width first
+      mapPopup.style.width = `${Math.max(inputRect.width, 350)}px`
+      mapPopup.style.left = `${inputRect.left}px`
+
+      if (isMobileBreakpoint) {
+        // On mobile (≤739px): Always position above
+        // Get actual height to position correctly above
+        const actualPopupHeight = mapPopup.offsetHeight || 350 // fallback height
+        mapPopup.style.top = `${inputRect.top - actualPopupHeight - 8}px`
+        mapPopup.style.marginTop = '0'
+      } else {
+        // On desktop (>739px): Always position below
+        mapPopup.style.top = `${inputRect.bottom + 8}px`
+        mapPopup.style.marginTop = '0'
+      }
+    }
+  }
+
+  // Position map popup when it opens and handle repositioning
+  useEffect(() => {
+    if (isMapOpen) {
+      // Initial positioning
+      requestAnimationFrame(() => {
+        positionMapPopup()
+      })
+
+      // Add event listeners for repositioning
+      const handleReposition = () => {
+        if (isMapOpen) {
+          positionMapPopup()
+        }
+      }
+
+      window.addEventListener('resize', handleReposition)
+      window.addEventListener('scroll', handleReposition, true) // Use capture to catch all scroll events
+
+      return () => {
+        window.removeEventListener('resize', handleReposition)
+        window.removeEventListener('scroll', handleReposition, true)
+      }
+    }
+  }, [isMapOpen])
 
   // Handle clicks outside the map popup
   useEffect(() => {

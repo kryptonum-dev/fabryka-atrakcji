@@ -101,7 +101,6 @@ async function validateSubscriberById(newsletterId: string, allowedGroups: strin
     )
 
     if (!searchResponse.ok) {
-      console.log('Failed to search subscribers', await searchResponse.text())
       return false
     }
 
@@ -113,13 +112,11 @@ async function validateSubscriberById(newsletterId: string, allowedGroups: strin
     )
 
     if (!subscriber) {
-      console.log('Subscriber with provided ID not found')
       return false
     }
 
     // Check if subscriber is active
     if (subscriber.type !== 'active') {
-      console.log('Subscriber is not active')
       return false
     }
 
@@ -135,7 +132,6 @@ async function validateSubscriberById(newsletterId: string, allowedGroups: strin
     )
 
     if (!groupsResponse.ok) {
-      console.log('Failed to fetch subscriber groups', await groupsResponse.text())
       return false
     }
 

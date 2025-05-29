@@ -1,5 +1,5 @@
 import { defineType, defineField } from 'sanity'
-import { Hotel, Users, Bus, PlusCircle, Package, Receipt } from 'lucide-react'
+import { Hotel, Users, Bus, PlusCircle, Package, Receipt, Utensils } from 'lucide-react'
 
 export default defineType({
   name: 'quoteItem',
@@ -9,6 +9,7 @@ export default defineType({
     select: {
       type: 'type',
       hotelName: 'hotels.0.name',
+      hotels: 'hotels',
       activities: 'activities',
       extras: 'extras',
       totalPrice: 'totalPrice',
@@ -23,6 +24,7 @@ export default defineType({
     prepare({
       type,
       hotelName,
+      hotels,
       activities,
       extras,
       totalPrice = 0,
@@ -34,6 +36,29 @@ export default defineType({
       activityMin,
       activityMax,
     }) {
+      // Calculate gastronomy contribution if hotels have gastronomy
+      let gastronomyPrice = 0
+      let gastronomyNettoPrice = 0
+      let gastronomyCount = 0
+
+      if (hotels && Array.isArray(hotels)) {
+        hotels.forEach((hotel: any) => {
+          if (hotel.gastronomy && Array.isArray(hotel.gastronomy)) {
+            hotel.gastronomy.forEach((gastronomyItem: any) => {
+              if (
+                gastronomyItem.pricing &&
+                !gastronomyItem.pricing.unavailable &&
+                !gastronomyItem.pricing.pricingNotVisible
+              ) {
+                gastronomyPrice += gastronomyItem.pricing.totalPrice || 0
+                gastronomyNettoPrice += gastronomyItem.pricing.nettoTotalPrice || 0
+                gastronomyCount += gastronomyItem.count || 0
+              }
+            })
+          }
+        })
+      }
+
       // Determine title based on type
       let title = ''
       let icon = Receipt
@@ -43,7 +68,7 @@ export default defineType({
       const extrasCount = extras ? Object.keys(extras).length : 0
 
       if (type === 'hotel' && hotelName) {
-        // For hotel type: Show hotel name + activity count + extras
+        // For hotel type: Show hotel name + activity count + gastronomy + extras
         title = hotelName
         icon = Hotel
 
@@ -57,6 +82,18 @@ export default defineType({
           }
 
           title += ` + ${activityCount} ${activityText}`
+        }
+
+        // Add gastronomy if present
+        if (gastronomyCount > 0) {
+          let gastronomyText = 'usług gastronomicznych'
+          if (gastronomyCount === 1) {
+            gastronomyText = 'usługa gastronomiczna'
+          } else if (gastronomyCount >= 2 && gastronomyCount <= 4) {
+            gastronomyText = 'usługi gastronomiczne'
+          }
+
+          title += ` + ${gastronomyCount} ${gastronomyText}`
         }
 
         // Add extras if present
@@ -74,9 +111,9 @@ export default defineType({
         }
       }
 
-      // Format price - use netto prices as primary, fallback to activityNettoPrice if totalNettoPrice is 0
-      let nettoToShow = totalNettoPrice
-      let bruttoToShow = totalPrice
+      // Calculate total prices including gastronomy
+      let nettoToShow = totalNettoPrice + gastronomyNettoPrice
+      let bruttoToShow = totalPrice + gastronomyPrice
 
       if (type === 'activity' && (totalNettoPrice === 0 || !totalNettoPrice) && activityNettoPrice) {
         nettoToShow = activityNettoPrice
@@ -118,9 +155,6 @@ export default defineType({
         // Add the netto price
         subtitle += ` • ${formattedNettoPrice} netto`
       }
-
-      // Add brutto price below
-      subtitle += `\n${formattedBruttoPrice} brutto`
 
       return {
         title: title || 'Wycena',
@@ -168,6 +202,7 @@ export default defineType({
             select: {
               name: 'name',
               finalPrice: 'pricing.finalPrice',
+              nettoFinalPrice: 'pricing.nettoFinalPrice',
               participantCount: 'pricing.participantCount',
               exceedsMaxPeople: 'pricing.exceedsMaxPeople',
               maxPeople: 'maxPeople',
@@ -178,6 +213,7 @@ export default defineType({
             prepare({
               name,
               finalPrice = 0,
+              nettoFinalPrice = 0,
               participantCount = 0,
               exceedsMaxPeople,
               maxPeople,
@@ -224,7 +260,7 @@ export default defineType({
                 style: 'currency',
                 currency: 'PLN',
                 minimumFractionDigits: 0,
-              }).format(finalPrice)
+              }).format(nettoFinalPrice)
 
               // Create description text with max capacity info
               let description = `${participantCount} `
@@ -292,14 +328,14 @@ export default defineType({
                   title: 'Cena finalna brutto (PLN)',
                   type: 'number',
                   description: 'Ostateczna cena brutto w złotych polskich',
-                  hidden: ({ parent }) => parent?.pricingNotVisible === true,
+                  hidden: ({ parent }) => parent?.pricingNotVisible === true || parent?.pricingModel === 'individual',
                 }),
                 defineField({
                   name: 'nettoFinalPrice',
                   title: 'Cena finalna netto (PLN)',
                   type: 'number',
                   description: 'Ostateczna cena netto w złotych polskich',
-                  hidden: ({ parent }) => parent?.pricingNotVisible === true,
+                  hidden: ({ parent }) => parent?.pricingNotVisible === true || parent?.pricingModel === 'individual',
                 }),
                 defineField({
                   name: 'participantCount',
@@ -345,25 +381,32 @@ export default defineType({
                       name: 'name',
                       count: 'count',
                       totalPrice: 'pricing.totalPrice',
+                      nettoTotalPrice: 'pricing.nettoTotalPrice',
                       pricingModel: 'pricing.pricingModel',
                     },
-                    prepare({ name, count = 1, totalPrice = 0, pricingModel = 'fixed' }) {
-                      // Format price in Polish currency
-                      const formattedPrice = new Intl.NumberFormat('pl-PL', {
-                        style: 'currency',
-                        currency: 'PLN',
-                        minimumFractionDigits: 0,
-                      }).format(totalPrice)
-
+                    prepare({ name, count = 1, totalPrice = 0, nettoTotalPrice = 0, pricingModel = 'fixed' }) {
                       // Get pricing model in Polish
                       let modelText = 'Stała cena'
                       if (pricingModel === 'per_unit') modelText = 'Za jednostkę'
                       if (pricingModel === 'threshold') modelText = 'Progowy'
                       if (pricingModel === 'individual') modelText = 'Indywidualny'
 
+                      // Format price or show individual pricing text
+                      let priceText = ''
+                      if (pricingModel === 'individual') {
+                        priceText = 'Wycena indywidualna'
+                      } else {
+                        const formattedPrice = new Intl.NumberFormat('pl-PL', {
+                          style: 'currency',
+                          currency: 'PLN',
+                          minimumFractionDigits: 0,
+                        }).format(nettoTotalPrice)
+                        priceText = formattedPrice
+                      }
+
                       return {
                         title: name || 'Dodatek',
-                        subtitle: `${count > 1 ? `${count}x • ` : ''}${formattedPrice} • ${modelText}`,
+                        subtitle: `${count > 1 ? `${count}x • ` : ''}${priceText} • ${modelText}`,
                         media: PlusCircle,
                       }
                     },
@@ -395,12 +438,14 @@ export default defineType({
                           title: 'Cena całkowita brutto (PLN)',
                           type: 'number',
                           description: 'Wartość brutto w złotych polskich',
+                          hidden: ({ parent }) => parent?.pricingModel === 'individual',
                         }),
                         defineField({
                           name: 'nettoTotalPrice',
                           title: 'Cena całkowita netto (PLN)',
                           type: 'number',
                           description: 'Wartość netto w złotych polskich',
+                          hidden: ({ parent }) => parent?.pricingModel === 'individual',
                         }),
                         defineField({
                           name: 'pricingModel',
@@ -415,6 +460,182 @@ export default defineType({
                             ],
                             layout: 'radio',
                           },
+                        }),
+                      ],
+                    }),
+                  ],
+                },
+              ],
+            }),
+            defineField({
+              name: 'gastronomy',
+              title: 'Gastronomia',
+              type: 'array',
+              of: [
+                {
+                  type: 'object',
+                  preview: {
+                    select: {
+                      name: 'name',
+                      type: 'type',
+                      count: 'count',
+                      totalPrice: 'pricing.totalPrice',
+                      nettoTotalPrice: 'pricing.nettoTotalPrice',
+                      pricingNotVisible: 'pricing.pricingNotVisible',
+                      unavailable: 'pricing.unavailable',
+                    },
+                    prepare({
+                      name,
+                      type,
+                      count = 1,
+                      totalPrice = 0,
+                      nettoTotalPrice = 0,
+                      pricingNotVisible,
+                      unavailable,
+                    }) {
+                      // Get type icon based on gastronomy type
+                      let typeText = type
+                      if (type === 'lunch') typeText = 'Obiad'
+                      if (type === 'supper') typeText = 'Kolacja'
+                      if (type === 'coffee-break') typeText = 'Przerwa kawowa'
+                      if (type === 'grill') typeText = 'Grill'
+                      if (type === 'open-bar') typeText = 'Open bar'
+
+                      // Format price based on availability and visibility
+                      // IMPORTANT: Check flags first, don't show price even if totalPrice has a value
+                      let formattedPrice = ''
+                      if (unavailable === true) {
+                        formattedPrice = 'Niedostępne'
+                      } else if (pricingNotVisible === true) {
+                        formattedPrice = 'Cena ukryta'
+                      } else {
+                        // Only show price if both flags are false/undefined
+                        formattedPrice = new Intl.NumberFormat('pl-PL', {
+                          style: 'currency',
+                          currency: 'PLN',
+                          minimumFractionDigits: 0,
+                        }).format(nettoTotalPrice)
+                      }
+
+                      return {
+                        title: name || typeText,
+                        subtitle: `${count} usług • ${formattedPrice}`,
+                        media: Utensils,
+                      }
+                    },
+                  },
+                  fields: [
+                    defineField({
+                      name: 'type',
+                      title: 'Typ gastronomii',
+                      type: 'string',
+                      options: {
+                        list: [
+                          { title: 'Obiad', value: 'lunch' },
+                          { title: 'Kolacja', value: 'supper' },
+                          { title: 'Przerwa kawowa', value: 'coffee-break' },
+                          { title: 'Grill', value: 'grill' },
+                          { title: 'Open Bar', value: 'open-bar' },
+                        ],
+                      },
+                    }),
+                    defineField({
+                      name: 'name',
+                      title: 'Nazwa',
+                      type: 'string',
+                    }),
+                    defineField({
+                      name: 'count',
+                      title: 'Liczba usług',
+                      type: 'number',
+                      description: 'Liczba usług gastronomicznych',
+                    }),
+                    defineField({
+                      name: 'options',
+                      title: 'Opcje',
+                      type: 'object',
+                      fields: [
+                        defineField({
+                          name: 'level',
+                          title: 'Poziom',
+                          type: 'string',
+                          options: {
+                            list: [
+                              { title: 'Standard', value: 'standard' },
+                              { title: 'Premium', value: 'premium' },
+                              { title: 'Luxury', value: 'luxury' },
+                            ],
+                          },
+                        }),
+                        defineField({
+                          name: 'style',
+                          title: 'Styl',
+                          type: 'string',
+                          options: {
+                            list: [
+                              { title: 'Bufet', value: 'buffet' },
+                              { title: 'Menu', value: 'menu' },
+                            ],
+                          },
+                        }),
+                      ],
+                    }),
+                    defineField({
+                      name: 'pricing',
+                      title: 'Cennik',
+                      type: 'object',
+                      fields: [
+                        defineField({
+                          name: 'totalPrice',
+                          title: 'Cena całkowita brutto (PLN)',
+                          type: 'number',
+                          description: 'Wartość brutto w złotych polskich',
+                          hidden: ({ parent }) => parent?.unavailable === true || parent?.pricingNotVisible === true,
+                          readOnly: ({ parent }) => parent?.unavailable === true || parent?.pricingNotVisible === true,
+                          validation: (Rule) =>
+                            Rule.custom((value, context) => {
+                              const parent = context.parent as { unavailable?: boolean; pricingNotVisible?: boolean }
+                              if (parent?.unavailable === true || parent?.pricingNotVisible === true) {
+                                // When unavailable or price not visible, the value should be 0
+                                return (
+                                  value === 0 ||
+                                  value === undefined ||
+                                  'Cena powinna być 0 gdy usługa jest niedostępna lub ma ukrytą cenę'
+                                )
+                              }
+                              return true
+                            }),
+                        }),
+                        defineField({
+                          name: 'nettoTotalPrice',
+                          title: 'Cena całkowita netto (PLN)',
+                          type: 'number',
+                          description: 'Wartość netto w złotych polskich',
+                          hidden: ({ parent }) => parent?.unavailable === true || parent?.pricingNotVisible === true,
+                          readOnly: ({ parent }) => parent?.unavailable === true || parent?.pricingNotVisible === true,
+                          validation: (Rule) =>
+                            Rule.custom((value, context) => {
+                              const parent = context.parent as { unavailable?: boolean; pricingNotVisible?: boolean }
+                              if (parent?.unavailable === true || parent?.pricingNotVisible === true) {
+                                // When unavailable or price not visible, the value should be 0
+                                return (
+                                  value === 0 ||
+                                  value === undefined ||
+                                  'Cena powinna być 0 gdy usługa jest niedostępna lub ma ukrytą cenę'
+                                )
+                              }
+                              return true
+                            }),
+                        }),
+                        defineField({
+                          name: 'pricingNotVisible',
+                          title: 'Cennik nie jest widoczny publicznie',
+                          type: 'boolean',
+                        }),
+                        defineField({
+                          name: 'unavailable',
+                          title: 'Niedostępne',
+                          type: 'boolean',
                         }),
                       ],
                     }),
@@ -437,6 +658,7 @@ export default defineType({
             select: {
               name: 'name',
               finalPrice: 'pricing.finalPrice',
+              nettoFinalPrice: 'pricing.nettoFinalPrice',
               participantCount: 'pricing.participantCount',
               exceedsMaxPeople: 'pricing.exceedsMaxPeople',
               belowMinPeople: 'pricing.belowMinPeople',
@@ -446,6 +668,7 @@ export default defineType({
             prepare({
               name,
               finalPrice = 0,
+              nettoFinalPrice = 0,
               participantCount = 0,
               exceedsMaxPeople,
               belowMinPeople,
@@ -457,7 +680,7 @@ export default defineType({
                 style: 'currency',
                 currency: 'PLN',
                 minimumFractionDigits: 0,
-              }).format(finalPrice || 0)
+              }).format(nettoFinalPrice || 0)
 
               // Create description text with min/max capacity
               let description = `${participantCount || 0} `
@@ -541,12 +764,14 @@ export default defineType({
                   title: 'Cena finalna brutto (PLN)',
                   type: 'number',
                   description: 'Ostateczna cena brutto w złotych polskich',
+                  hidden: ({ parent }) => parent?.pricingNotVisible === true || parent?.pricingModel === 'individual',
                 }),
                 defineField({
                   name: 'nettoFinalPrice',
                   title: 'Cena finalna netto (PLN)',
                   type: 'number',
                   description: 'Ostateczna cena netto w złotych polskich',
+                  hidden: ({ parent }) => parent?.pricingNotVisible === true || parent?.pricingModel === 'individual',
                 }),
                 defineField({
                   name: 'participantCount',
@@ -578,25 +803,32 @@ export default defineType({
                       name: 'name',
                       count: 'count',
                       totalPrice: 'pricing.totalPrice',
+                      nettoTotalPrice: 'pricing.nettoTotalPrice',
                       pricingModel: 'pricing.pricingModel',
                     },
-                    prepare({ name, count = 1, totalPrice = 0, pricingModel = 'fixed' }) {
-                      // Format price in Polish currency
-                      const formattedPrice = new Intl.NumberFormat('pl-PL', {
-                        style: 'currency',
-                        currency: 'PLN',
-                        minimumFractionDigits: 0,
-                      }).format(totalPrice)
-
+                    prepare({ name, count = 1, totalPrice = 0, nettoTotalPrice = 0, pricingModel = 'fixed' }) {
                       // Get pricing model in Polish
                       let modelText = 'Stała cena'
                       if (pricingModel === 'per_unit') modelText = 'Za jednostkę'
                       if (pricingModel === 'threshold') modelText = 'Progowy'
                       if (pricingModel === 'individual') modelText = 'Indywidualny'
 
+                      // Format price or show individual pricing text
+                      let priceText = ''
+                      if (pricingModel === 'individual') {
+                        priceText = 'Wycena indywidualna'
+                      } else {
+                        const formattedPrice = new Intl.NumberFormat('pl-PL', {
+                          style: 'currency',
+                          currency: 'PLN',
+                          minimumFractionDigits: 0,
+                        }).format(nettoTotalPrice)
+                        priceText = formattedPrice
+                      }
+
                       return {
                         title: name || 'Dodatek',
-                        subtitle: `${count > 1 ? `${count}x • ` : ''}${formattedPrice} • ${modelText}`,
+                        subtitle: `${count > 1 ? `${count}x • ` : ''}${priceText} • ${modelText}`,
                         media: PlusCircle,
                       }
                     },
@@ -628,12 +860,14 @@ export default defineType({
                           title: 'Cena całkowita brutto (PLN)',
                           type: 'number',
                           description: 'Wartość brutto w złotych polskich',
+                          hidden: ({ parent }) => parent?.pricingModel === 'individual',
                         }),
                         defineField({
                           name: 'nettoTotalPrice',
                           title: 'Cena całkowita netto (PLN)',
                           type: 'number',
                           description: 'Wartość netto w złotych polskich',
+                          hidden: ({ parent }) => parent?.pricingModel === 'individual',
                         }),
                         defineField({
                           name: 'pricingModel',
@@ -667,6 +901,7 @@ export default defineType({
         select: {
           distance: 'distance',
           totalPrice: 'pricing.totalPrice',
+          nettoTotalPrice: 'pricing.nettoTotalPrice',
           basePrice: 'pricing.basePrice',
           distancePrice: 'pricing.distancePrice',
           noTransportAddress: 'noTransportAddress',
@@ -675,6 +910,7 @@ export default defineType({
         prepare({
           distance = 0,
           totalPrice = 0,
+          nettoTotalPrice = 0,
           basePrice = 0,
           distancePrice = 0,
           noTransportAddress,
@@ -685,7 +921,7 @@ export default defineType({
             style: 'currency',
             currency: 'PLN',
             minimumFractionDigits: 0,
-          }).format(totalPrice)
+          }).format(nettoTotalPrice)
 
           let subtitle = ''
 
@@ -863,25 +1099,32 @@ export default defineType({
               name: 'name',
               count: 'count',
               totalPrice: 'pricing.totalPrice',
+              nettoTotalPrice: 'pricing.nettoTotalPrice',
               pricingModel: 'pricing.pricingModel',
             },
-            prepare({ name, count = 1, totalPrice = 0, pricingModel = 'fixed' }) {
-              // Format price in Polish currency
-              const formattedPrice = new Intl.NumberFormat('pl-PL', {
-                style: 'currency',
-                currency: 'PLN',
-                minimumFractionDigits: 0,
-              }).format(totalPrice)
-
+            prepare({ name, count = 1, totalPrice = 0, nettoTotalPrice = 0, pricingModel = 'fixed' }) {
               // Get pricing model in Polish
               let modelText = 'Stała cena'
               if (pricingModel === 'per_unit') modelText = 'Za jednostkę'
               if (pricingModel === 'threshold') modelText = 'Progowy'
               if (pricingModel === 'individual') modelText = 'Indywidualny'
 
+              // Format price or show individual pricing text
+              let priceText = ''
+              if (pricingModel === 'individual') {
+                priceText = 'Wycena indywidualna'
+              } else {
+                const formattedPrice = new Intl.NumberFormat('pl-PL', {
+                  style: 'currency',
+                  currency: 'PLN',
+                  minimumFractionDigits: 0,
+                }).format(nettoTotalPrice)
+                priceText = formattedPrice
+              }
+
               return {
                 title: name || 'Dodatek',
-                subtitle: `${count > 1 ? `${count}x • ` : ''}${formattedPrice} • ${modelText}`,
+                subtitle: `${count > 1 ? `${count}x • ` : ''}${priceText} • ${modelText}`,
                 media: Package,
               }
             },
@@ -914,12 +1157,14 @@ export default defineType({
                   title: 'Cena całkowita brutto (PLN)',
                   type: 'number',
                   description: 'Wartość brutto w złotych polskich',
+                  hidden: ({ parent }) => parent?.pricingModel === 'individual',
                 }),
                 defineField({
                   name: 'nettoTotalPrice',
                   title: 'Cena całkowita netto (PLN)',
                   type: 'number',
                   description: 'Wartość netto w złotych polskich',
+                  hidden: ({ parent }) => parent?.pricingModel === 'individual',
                 }),
                 defineField({
                   name: 'pricingModel',

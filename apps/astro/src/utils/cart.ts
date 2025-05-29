@@ -37,6 +37,33 @@ export type ExtendedHotelData = BaseHotelProps & {
   imageList: ImageDataProps
   cartAddons?: CartAddon[]
   fullAddonList: AddonItem[]
+  gastronomy?: {
+    lunch?: Array<{
+      level: string
+      style: string
+      pricePerService: number
+      hidePricing: boolean
+    }>
+    supper?: Array<{
+      level: string
+      style: string
+      pricePerService: number
+      hidePricing: boolean
+    }>
+    coffeeBreak?: {
+      availability: string
+      pricePerService: number
+    }
+    grill?: {
+      availability: string
+      pricePerService: number
+    }
+    openBar?: Array<{
+      level: string
+      pricePerService: number
+      hidePricing: boolean
+    }>
+  }
 }
 
 export type ExtendedActivityData = BaseActivityProps & {
