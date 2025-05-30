@@ -19,7 +19,7 @@ const data = await sanityFetch<{
   address: { city: string; street: string; postalCode: string; voivodeship: string }
   googleMaps: {
     googleMapsLink: string
-    googleMapsEmbed: string
+    googleMapsEmbed?: string
   }
 }>({
   query: `*[_type == "Hotels_Collection" && language == $lang && slug.current == $slug][0]{
@@ -29,7 +29,7 @@ const data = await sanityFetch<{
       googleMapsEmbed,
     },
   }`,
-  params: { slug: slugPrefix[lang] + slug || null, lang: lang || null },
+  params: { slug: slugPrefix[lang] + slug + '/' || null, lang: lang || null },
 })
 
 export const Location_Query = `
@@ -137,15 +137,20 @@ const transformToKm = (meters: number) => {
   <PortableText value={node.heading} heading="h2" class="heading" />
   <div class="map">
     <div class="wrapper">
-      <iframe
-        src={data.googleMaps.googleMapsEmbed}
-        width="100%"
-        height="100%"
-        style="border:0;"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        title={t.mapTitle}
-        aria-label={t.mapAriaLabel}></iframe>
+      {
+        data.googleMaps.googleMapsEmbed && (
+          <iframe
+            src={data.googleMaps.googleMapsEmbed}
+            width="100%"
+            height="100%"
+            style="border:0;"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title={t.mapTitle}
+            aria-label={t.mapAriaLabel}
+          />
+        )
+      }
     </div>
     <p class="address">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"

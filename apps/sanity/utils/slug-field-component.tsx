@@ -1,7 +1,7 @@
-import { CopyIcon, EditIcon, FolderIcon, SyncIcon, WarningOutlineIcon } from '@sanity/icons'
+import { CopyIcon, SyncIcon, WarningOutlineIcon } from '@sanity/icons'
 import { Badge, Box, Button, Card, Flex, Stack, Text, TextInput } from '@sanity/ui'
-import type { FocusEvent, FormEvent, MouseEvent } from 'react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import type { FocusEvent } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import {
   type ObjectFieldProps,
   type SanityDocument,
@@ -46,15 +46,14 @@ function stringToPathname(
     // Normalize multiple slashes
     .replace(/\/+/g, '/')
 
-  // If we're allowing trailing slashes and the original input had one, preserve it
-  const hasTrailingSlash = input.endsWith('/') && options?.allowTrailingSlash
-  const withoutTrailingSlash = options?.allowTrailingSlash ? sanitized : sanitized.replace(/\/$/, '')
+  // Remove trailing slash temporarily for processing
+  const withoutTrailingSlash = sanitized.replace(/\/$/, '')
 
   // Ensure leading slash and normalize any remaining multiple slashes
   let result = `/${withoutTrailingSlash}`.replace(/\/+/g, '/')
 
-  // Add back the trailing slash if needed
-  if (hasTrailingSlash && !result.endsWith('/')) {
+  // Always add trailing slash unless it's the root path
+  if (result !== '/' && !result.endsWith('/')) {
     result += '/'
   }
 
@@ -83,17 +82,6 @@ const getDocumentPath = (document: DocumentWithLocale) => {
   return formatPath(document.slug)
 }
 
-const UnlockButton = styled(Button)`
-  cursor: pointer;
-  > span:nth-of-type(2) {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-  }
-`
-
 const GenerateButton = styled(Button)`
   cursor: pointer;
   > span:nth-of-type(2) {
@@ -114,14 +102,6 @@ const CopyButton = styled(Button)`
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-  }
-`
-
-const FolderText = styled(Text)`
-  span {
-    white-space: nowrap;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
   }
 `
 
@@ -149,22 +129,55 @@ export function PathnameFieldComponent(props: PathnameFieldComponentProps) {
   const segments = useMemo(() => {
     if (!value?.current) return []
 
-    // If the value ends with a slash, add an empty segment
-    const hasTrailingSlash = value.current.endsWith('/')
-    const segmentArray = value.current.split('/').filter(Boolean)
+    // Parse the slug to separate prefix and content
+    const slug = value.current
 
-    // If there was a trailing slash, add an empty segment at the end
-    if (hasTrailingSlash) {
-      segmentArray.push('')
-    }
+    // Check if this follows the pattern: /prefix/content/ or /content/
+    const parts = slug.split('/').filter(Boolean)
 
-    return segmentArray
+    return parts
   }, [value])
 
-  const [folderLocked, setFolderLocked] = useState(segments.length > 1)
+  // Extract prefix and main content for display
+  const { prefix, mainContent } = useMemo(() => {
+    if (!value?.current) return { prefix: '', mainContent: '' }
+
+    const language = (document?.language as keyof LanguageValues) ?? 'pl'
+    const expectedPrefix = prefixes?.[language] ?? ''
+
+    if (expectedPrefix && value.current.startsWith(expectedPrefix)) {
+      // Remove the expected prefix and trailing slash to get the main content
+      const contentWithoutPrefix = value.current.replace(expectedPrefix, '').replace(/\/$/, '')
+      return {
+        prefix: expectedPrefix.replace(/\/$/, ''), // Remove trailing slash from prefix for display
+        mainContent: contentWithoutPrefix,
+      }
+    }
+
+    // If no expected prefix but starts with /, try to extract first segment as prefix
+    if (value.current.startsWith('/')) {
+      const parts = value.current.split('/').filter(Boolean)
+      if (parts.length > 1) {
+        return {
+          prefix: `/${parts[0]}`,
+          mainContent: parts.slice(1).join('/'),
+        }
+      }
+      // Single segment, no prefix
+      return {
+        prefix: '',
+        mainContent: parts[0] || '',
+      }
+    }
+
+    // If no prefix, treat the whole thing as main content (minus trailing slash)
+    return {
+      prefix: '',
+      mainContent: value.current.replace(/\/$/, ''),
+    }
+  }, [value, prefixes, document?.language])
 
   const fullPathInputRef = useRef<HTMLInputElement>(null)
-  const pathSegmentInputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = useCallback(
     (value?: string) => {
@@ -173,15 +186,24 @@ export function PathnameFieldComponent(props: PathnameFieldComponentProps) {
         return
       }
 
-      // Check if the original input had a trailing slash
-      const hasTrailingSlash = value.endsWith('/')
+      const language = (document?.language as keyof LanguageValues) ?? 'pl'
+      const expectedPrefix = prefixes?.[language] ?? ''
 
-      // Format the value using stringToPathname
-      let finalValue = stringToPathname(value, { allowTrailingSlash: true })
+      let finalValue: string
 
-      // Ensure the trailing slash is preserved if it was in the original input
-      if (hasTrailingSlash && !finalValue.endsWith('/')) {
-        finalValue += '/'
+      // If user is typing a full path (starts with /), use it as-is but ensure trailing slash
+      if (value.startsWith('/')) {
+        finalValue = value.endsWith('/') ? value : `${value}/`
+      } else {
+        // If user is typing just the content part, add prefix and trailing slash
+        const cleanValue = value.trim()
+        if (expectedPrefix && cleanValue) {
+          finalValue = `${expectedPrefix}${cleanValue}/`
+        } else if (cleanValue) {
+          finalValue = `/${cleanValue}/`
+        } else {
+          finalValue = expectedPrefix || '/'
+        }
       }
 
       onChange(
@@ -191,47 +213,12 @@ export function PathnameFieldComponent(props: PathnameFieldComponentProps) {
         })
       )
     },
-    [onChange]
+    [onChange, prefixes, document?.language]
   )
 
-  const updateSegment = useCallback(
-    (index: number, newValue: string) => {
-      const newSegments = [...segments]
-      // Only filter out '/' characters, allow all others including hyphens
-      newSegments[index] = newValue.replace(/\//g, '')
-
-      // Join with slashes and ensure proper formatting
-      const path = newSegments.join('/')
-
-      // If this is the last segment and it's empty, add a trailing slash
-      const shouldAddTrailingSlash = index === segments.length - 1 && newValue === '' && segments.length > 1
-
-      handleChange(shouldAddTrailingSlash ? `${path}/` : path)
-    },
-    [segments, handleChange]
-  )
-
-  const updateFullPath = useCallback(
-    (e: FormEvent<HTMLInputElement>) => {
-      handleChange(e.currentTarget.value)
-    },
-    [handleChange]
-  )
-
-  const unlockFolder = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    setFolderLocked(false)
-    requestAnimationFrame(() => {
-      fullPathInputRef.current?.focus()
-    })
+  const handleBlur = useCallback((e: FocusEvent<HTMLInputElement>) => {
+    // No longer need to set folder lock state
   }, [])
-
-  const handleBlur = useCallback(
-    (e: FocusEvent<HTMLInputElement>) => {
-      setFolderLocked(segments.length > 1)
-    },
-    [segments]
-  )
 
   const localizedPathname = `${DOMAIN}${value?.current?.slice(1) || ''}`
 
@@ -239,122 +226,73 @@ export function PathnameFieldComponent(props: PathnameFieldComponentProps) {
   const generateSlug = useCallback(() => {
     if (!nameField) return
 
-    const language = (document?.language as keyof LanguageValues) ?? 'pl'
-    // Use the prefix from props if available
-    const prefix = prefixes?.[language] ?? ''
-
-    // Generate the slugified version of the name
+    // Generate the slugified version of the name (this will be the main content)
     const slugified = slugify(nameField)
 
-    let newSlug
-    if (prefix) {
-      // If we have a prefix for this language, use it
-      newSlug = `${prefix}${slugified}`
-    } else if (segments.length > 0 && /^[a-z]{2}$/.test(segments[0])) {
-      // If we have segments and the first segment looks like a language code (e.g., "pl", "en")
-      newSlug = `/${segments[0]}/${slugified}`
-    } else if (segments.length > 0) {
-      // If we have other segments but not a language prefix, preserve the first segment
-      newSlug = `/${segments[0]}/${slugified}`
-    } else {
-      // If we have no segments, just use the slugified name
-      newSlug = `/${slugified}`
-    }
-
-    handleChange(newSlug)
-  }, [nameField, segments, handleChange, prefixes, document?.language])
+    // Use handleChange to properly construct the full path with prefix and trailing slash
+    handleChange(slugified)
+  }, [nameField, handleChange])
 
   const pathInput = useMemo(() => {
     // Determine if we should show the generate button
     const showGenerateButton = Boolean(nameField) && !readOnly
 
-    if (folderLocked && segments.length > 1) {
-      return (
-        <Stack space={2}>
-          <Flex gap={2}>
-            {segments.slice(0, -1).map((segment, index) => (
-              <Flex key={`segment-${index}`} gap={1} align="center">
-                <Card
-                  paddingX={2}
-                  paddingY={2}
-                  border
-                  radius={1}
-                  tone="transparent"
-                  style={{
-                    position: 'relative',
-                  }}
-                >
-                  <Flex gap={2} align="center">
-                    <Text muted>
-                      <FolderIcon />
-                    </Text>
-                    <FolderText muted>{segment}</FolderText>
-                  </Flex>
-                </Card>
-                <Text muted size={2}>
-                  /
-                </Text>
-              </Flex>
-            ))}
-            <Flex gap={1} flex={1} align="center">
-              <Box flex={1}>
-                <TextInput
-                  width="100%"
-                  value={segments[segments.length - 1] || ''}
-                  onChange={(e) => updateSegment(segments.length - 1, e.currentTarget.value)}
-                  ref={pathSegmentInputRef}
-                  onBlur={handleBlur}
-                  disabled={readOnly}
-                  placeholder={
-                    segments.length > 1 && segments[segments.length - 1] === '' ? 'Wprowadź nazwę strony' : ''
-                  }
-                />
-              </Box>
-            </Flex>
-            {showGenerateButton && (
-              <GenerateButton
-                icon={SyncIcon}
-                onClick={generateSlug}
-                title="Wygeneruj slug z nazwy"
-                mode="bleed"
-                tone="primary"
-                padding={2}
-                fontSize={1}
-                disabled={!nameField}
-              >
-                <span />
-              </GenerateButton>
-            )}
-            <UnlockButton
-              icon={EditIcon}
-              onClick={unlockFolder}
-              title="Edytuj pełną ścieżkę"
-              mode="bleed"
-              tone="primary"
-              padding={2}
-              fontSize={1}
-              disabled={readOnly}
-            >
-              <span />
-            </UnlockButton>
-          </Flex>
-        </Stack>
-      )
-    }
-
     return (
       <Stack space={2}>
-        <Flex gap={2}>
+        <Flex gap={1} align="center">
+          {/* Prefix indicator */}
+          {prefix && (
+            <>
+              <Card
+                paddingX={2}
+                paddingY={2}
+                border
+                radius={1}
+                tone="transparent"
+                style={{
+                  backgroundColor: 'var(--card-muted-bg-color)',
+                }}
+              >
+                <Text muted size={2}>
+                  {prefix}
+                </Text>
+              </Card>
+              <Text muted size={2}>
+                /
+              </Text>
+            </>
+          )}
+
+          {/* Main content input */}
           <Box flex={1}>
             <TextInput
-              value={value?.current || ''}
-              onChange={updateFullPath}
+              value={mainContent}
+              onChange={(e) => handleChange(e.currentTarget.value)}
               ref={fullPathInputRef}
               onBlur={handleBlur}
               disabled={readOnly}
+              placeholder="Wprowadź nazwę strony"
               style={{ width: '100%' }}
             />
           </Box>
+
+          {/* Trailing slash indicator */}
+          <Card
+            paddingX={2}
+            paddingY={2}
+            border
+            radius={1}
+            tone="transparent"
+            style={{
+              backgroundColor: 'var(--card-muted-bg-color)',
+            }}
+          >
+            <Text muted size={2}>
+              /
+            </Text>
+          </Card>
+
+          {/* Generate button */}
           {showGenerateButton && (
             <GenerateButton
               icon={SyncIcon}
@@ -371,18 +309,7 @@ export function PathnameFieldComponent(props: PathnameFieldComponentProps) {
         </Flex>
       </Stack>
     )
-  }, [
-    folderLocked,
-    segments,
-    value,
-    updateFullPath,
-    handleBlur,
-    readOnly,
-    unlockFolder,
-    updateSegment,
-    generateSlug,
-    nameField,
-  ])
+  }, [prefix, mainContent, handleChange, handleBlur, readOnly, generateSlug, nameField])
 
   return (
     <Stack space={3}>

@@ -8,7 +8,7 @@ export const translations = {
       legal: {
         labelFirst: 'Wyrażam zgodę na',
         labelSecond: 'politykę prywatności',
-        link: '/pl/polityka-prywatnosci',
+        link: '/pl/polityka-prywatnosci/',
         required: 'Zgoda jest wymagana',
       },
       email: {
@@ -33,7 +33,7 @@ export const translations = {
       legal: {
         labelFirst: 'I agree to',
         labelSecond: 'privacy policy',
-        link: '/en/privacy-policy',
+        link: '/en/privacy-policy/',
         required: 'Legal consent is required',
       },
       email: {

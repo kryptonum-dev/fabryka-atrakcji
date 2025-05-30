@@ -470,7 +470,7 @@ export const POST: APIRoute = async ({ request }) => {
     const successResponse = {
       message: 'Quote sent successfully',
       success: true,
-      redirectUrl: lang === 'pl' ? '/pl/strona-podziekowania' : '/en/thank-you',
+      redirectUrl: lang === 'pl' ? '/pl/strona-podziekowania/' : '/en/thank-you/',
     }
 
     // Define error response

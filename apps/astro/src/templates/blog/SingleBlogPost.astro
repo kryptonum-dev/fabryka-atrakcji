@@ -27,7 +27,8 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
 }
 
 export async function fetchData(slug: string, lang: Language) {
-  const fullSlug = `/${lang}/blog/${slug}`
+  const fullSlug = `/${lang}/blog/${slug}/`
+  console.log(fullSlug)
 
   const page = await sanityFetch<
     {

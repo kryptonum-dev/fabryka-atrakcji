@@ -71,9 +71,15 @@ export const defineSlugForDocument = ({
         customSlugify ||
         ((slug, _, context) => {
           const language = (context.parent as { language: (typeof LANGUAGES)[number]['id'] })?.language ?? 'pl'
-          if (slugs) return slugs[language]
+          if (slugs) {
+            const slugValue = slugs[language]
+            // Ensure trailing slash for predefined slugs (except root)
+            return slugValue === '/' ? slugValue : `${slugValue.replace(/\/$/, '')}/`
+          }
           const currentPrefix = prefixes?.[language] ?? ''
-          return `${currentPrefix}${slugify(slug)}`
+          const slugified = `${currentPrefix}${slugify(slug)}`
+          // Ensure trailing slash for generated slugs (except root)
+          return slugified === '/' ? slugified : `${slugified.replace(/\/$/, '')}/`
         }),
       isUnique: isUniqueSlug,
     },
@@ -83,13 +89,17 @@ export const defineSlugForDocument = ({
         Rule.custom(async (value, context) => {
           const language = (context.parent as { language: (typeof LANGUAGES)[number]['id'] })?.language ?? 'pl'
           const currentPrefix = prefixes?.[language] ?? ''
+
           if (currentPrefix && value?.current && !value.current.startsWith(currentPrefix)) {
             return `Slug powinien zaczynać się od ${currentPrefix}`
           }
 
           if (slugs) {
-            if (value?.current !== slugs[language]) {
-              return `Slug musi być dokładnie "${slugs[language]}"`
+            const expectedSlug = slugs[language]
+            const expectedWithTrailingSlash =
+              expectedSlug === '/' ? expectedSlug : `${expectedSlug.replace(/\/$/, '')}/`
+            if (value?.current !== expectedWithTrailingSlash) {
+              return `Slug musi być dokładnie "${expectedWithTrailingSlash}"`
             }
             return true
           }
@@ -101,11 +111,17 @@ export const defineSlugForDocument = ({
             }
           }
 
+          // Check for trailing slash requirement (except for root)
+          if (value?.current && value.current !== '/' && !value.current.endsWith('/')) {
+            return 'Slug musi kończyć się ukośnikiem (/)'
+          }
+
           if (
             value?.current &&
-            value.current.replace(currentPrefix, '') !== slugify(value.current.replace(currentPrefix, ''))
+            value.current.replace(currentPrefix, '') !==
+              slugify(value.current.replace(currentPrefix, '').replace(/\/$/, '')) + (value.current === '/' ? '' : '/')
           ) {
-            return 'W slugu jest literówka. Pamiętaj, że slug może zawierać tylko małe litery, cyfry i myślniki.'
+            return 'W slugu jest literówka. Pamiętaj, że slug może zawierać tylko małe litery, cyfry i myślniki, oraz musi kończyć się ukośnikiem.'
           }
           return true
         }).required()),

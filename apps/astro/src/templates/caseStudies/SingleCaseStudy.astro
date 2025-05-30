@@ -84,7 +84,7 @@ export async function fetchData(slug: string, lang: Language) {
       ${Components_Query}
     }
   `,
-    params: { language: lang, slug: `${prefixes[lang]}${slug}` },
+    params: { language: lang, slug: `${prefixes[lang]}${slug}/` },
   })
 
   if (!page) return null
