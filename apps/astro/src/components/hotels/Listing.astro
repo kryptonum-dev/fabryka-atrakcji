@@ -189,13 +189,8 @@ export const Listing_Query = (orderClause: string) => {
   `
 
   const priceFilter = `
-    (!defined($minPrice) && !defined($maxPrice)) ||
-    (
-      (defined($minPrice) || defined($maxPrice)) &&
-      pricing.pricingVisible == true &&
-      (!defined($minPrice) || pricing.pricePerPerson >= $minPrice) &&
-      (!defined($maxPrice) || pricing.pricePerPerson <= $maxPrice)
-    )
+    (!defined($minPrice) || (pricing.pricingVisible == true && pricing.pricePerPerson >= $minPrice))
+    && (!defined($maxPrice) || (pricing.pricingVisible == true && pricing.pricePerPerson <= $maxPrice))
   `
 
   // Add embeddings filter
