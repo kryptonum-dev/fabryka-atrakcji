@@ -14,8 +14,7 @@ const SlugValidation = (Rule: SlugRule) =>
   Rule.custom((value) => {
     if (!value || !value.current) return 'Wartość nie może być pusta'
     if (!value.current.startsWith('/')) return 'Ścieżka musi być ścieżką względną (zaczynać się od /)'
-    if (value.current !== '/' && value.current.endsWith('/'))
-      return 'Ścieżki źródłowe nie mogą kończyć się ukośnikiem (/)'
+
     return true
   })
 
@@ -220,8 +219,7 @@ export default defineType({
               if (!redirect.source || typeof redirect.source !== 'string')
                 return 'Każde przekierowanie musi mieć właściwość "source" z wartością typu string'
               if (!redirect.source.startsWith('/')) return 'Ścieżki źródłowe muszą zaczynać się od ukośnika (/)'
-              if (redirect.source !== '/' && redirect.source.endsWith('/'))
-                return 'Ścieżki źródłowe nie mogą kończyć się ukośnikiem (/)'
+
               if (!redirect.destination || typeof redirect.destination !== 'string')
                 return 'Każde przekierowanie musi mieć właściwość "destination" z wartością typu string'
               if (!redirect.destination.startsWith('/')) return 'Ścieżki docelowe muszą zaczynać się od ukośnika (/)'
