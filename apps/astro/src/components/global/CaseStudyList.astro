@@ -1,0 +1,275 @@
+---
+import Button, { ButtonDataQuery, type ButtonDataProps } from '@/components/ui/Button'
+import CaseStudyCard from '@/components/ui/CaseStudyCard.astro'
+import { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
+
+export const CaseStudyList_Query = `
+  _type == "CaseStudyList" => {
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    ${ButtonDataQuery('cta')}
+    caseStudies[]->{
+      name,
+      "slug": slug.current,
+      ${ImageDataQuery('primaryImage')}
+      ${ImageDataQuery('secondaryImage')}
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  cta: ButtonDataProps
+  caseStudies: {
+    name: string
+    slug: string
+    primaryImage: ImageDataProps
+    secondaryImage: ImageDataProps
+  }[]
+}
+
+const { index, sectionId, heading, paragraph, cta, caseStudies } = Astro.props
+
+const imgSizes =
+  '(max-width: 29.125rem) 92vw,  (max-width: 36.1875rem) 420px, (max-width: 56.625rem) 42vw, (max-width: 67.4375rem) 380px, (max-width: 85.375rem) 23vw, 306px'
+---
+
+<section class="CaseStudyList" id={sectionId}>
+  <div class="container">
+    <svg viewBox="0 0 1326 689" fill="none" xmlns="http://www.w3.org/2000/svg"
+      ><g filter="url(#filter0_f_5978_14445)"
+        ><ellipse
+          cx="68.3286"
+          cy="4.26469"
+          rx="522.328"
+          ry="400.599"
+          transform="rotate(-180 68.329 4.265)"
+          fill="#F7D8FF"></ellipse><ellipse
+          cx="1257.67"
+          cy="-88.5166"
+          rx="522.328"
+          ry="400.599"
+          transform="rotate(-180 1257.67 -88.517)"
+          fill="#EAE8FF"></ellipse><ellipse
+          cx="1362.58"
+          cy="-125.637"
+          rx="406.576"
+          ry="311.637"
+          transform="rotate(-180 1362.58 -125.637)"
+          fill="#FFF1F2"></ellipse><ellipse
+          cx="715.095"
+          cy="-84.696"
+          rx="406.576"
+          ry="311.637"
+          transform="rotate(-180 715.095 -84.696)"
+          fill="#FAF7F7"></ellipse><ellipse
+          cx="874.244"
+          cy="-279.537"
+          rx="370.404"
+          ry="283.803"
+          transform="rotate(-180 874.244 -279.537)"
+          fill="#C173FF"></ellipse><ellipse
+          cx="110.293"
+          cy="-163.475"
+          rx="450.707"
+          ry="345.475"
+          transform="rotate(-180 110.293 -163.475)"
+          fill="#E1F8FF"></ellipse></g
+      ><defs
+        ><filter
+          id="filter0_f_5978_14445"
+          x="-737.591"
+          y="-963.727"
+          width="2801.18"
+          height="1652.18"
+          filterUnits="userSpaceOnUse"
+          color-interpolation-filters="sRGB"
+          ><feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood><feBlend
+            in="SourceGraphic"
+            in2="BackgroundImageFix"
+            result="shape"></feBlend><feGaussianBlur stdDeviation="141.795" result="effect1_foregroundBlur_5978_14445"
+          ></feGaussianBlur></filter
+        ></defs
+      ></svg
+    >
+
+    <header class="header">
+      <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+      <PortableText value={paragraph} class="paragraph" />
+    </header>
+    <nav class="list">
+      {
+        caseStudies.map(({ slug, primaryImage, secondaryImage, name }, i) => (
+          <CaseStudyCard
+            title={name}
+            primaryImage={{
+              src: primaryImage,
+              loading: index === 0 ? 'eager' : 'lazy',
+              priority: i === 0 && index === 0,
+            }}
+            secondaryImage={{
+              src: secondaryImage,
+              loading: 'lazy',
+            }}
+            imageSizes={imgSizes}
+            slug={slug}
+          />
+        ))
+      }
+    </nav>
+    <Button {...cta} />
+  </div>
+</section>
+
+<style lang="scss">
+  .CaseStudyList {
+    padding: clamp(3rem, calc(4vw / 0.48), 6rem) clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+    max-width: 85.375rem;
+    margin: 0 auto;
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--neutral-200, #f5f1ec);
+      border-radius: 32px;
+      position: relative;
+      padding: clamp(1.5rem, calc(5vw / 0.48), 8rem) 2rem clamp(1.5rem, calc(2vw / 0.48), 2rem);
+      overflow: hidden;
+      z-index: 1;
+      isolation: isolate;
+
+      > svg {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+      }
+      .header {
+        max-width: 41rem;
+        margin-bottom: clamp(1.5rem, calc(3vw / 0.48), 4rem);
+        text-align: center;
+        font-variant-numeric: lining-nums proportional-nums;
+        .heading {
+          display: inline;
+          padding: 0.375rem 0.375rem 0;
+          background-color: var(--neutral-100, #faf7f7);
+          line-height: 1;
+          -webkit-box-decoration-break: clone;
+          box-decoration-break: clone;
+        }
+
+        .paragraph {
+          color: var(--primary-400, #74535e);
+          font-size: var(--typography-body-xl, 1.125rem);
+          line-height: 1.5;
+          letter-spacing: -0.02em;
+          margin-top: clamp(1.25rem, calc(1.75vw / 0.48), 1.75rem);
+        }
+      }
+    }
+
+    .list {
+      gap: 0.5rem clamp(0.5rem, calc(1vw / 0.48), 1rem);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin: 0 -1.75rem clamp(1.5rem, calc(3vw / 0.48), 4rem);
+
+      .item {
+        display: flex;
+        flex-direction: column;
+        padding: 0.375rem;
+        border-radius: 8px;
+        background-color: var(--neutral-100, #faf7f7);
+        transition: background-color 250ms;
+
+        .img-container {
+          border-radius: 4px;
+          width: 100%;
+          height: 216px;
+          position: relative;
+          overflow: hidden;
+          img {
+            width: 100%;
+            height: 100%;
+            transition: transform 500ms var(--easing);
+            border-radius: 4px;
+            &:nth-of-type(2) {
+              position: absolute;
+              inset: 0;
+              transform: translateY(100%);
+              transition: transform 450ms var(--easing);
+            }
+          }
+        }
+
+        span {
+          padding: 0.75rem 0.375rem 0.375rem;
+          color: var(--primary-800, #45051c);
+          text-align: center;
+          letter-spacing: -0.03em;
+          font-weight: 700;
+          line-height: 1.55;
+        }
+        &:hover {
+          .img-container {
+            img {
+              &:nth-of-type(1) {
+                transform: scale(1.2) translateY(-40%) rotate(-10deg);
+              }
+              &:nth-of-type(2) {
+                transform: translateY(0);
+              }
+            }
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          background-color: var(--neutral-300, #ede6de);
+          .img-container {
+            img {
+              &:nth-of-type(2) {
+                transform: translateY(0) scale(1.16) rotate(-4deg);
+                transition-duration: 500ms;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    @media (max-width: 67.4375rem) {
+      .container {
+        padding-left: clamp(1rem, calc(3.75vw / 0.48), 3.75rem);
+        padding-right: clamp(1rem, calc(3.75vw / 0.48), 3.75rem);
+        .list {
+          max-width: 50rem;
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    }
+
+    @media (max-width: 36.1875rem) {
+      padding-left: 0;
+      padding-right: 0;
+      .container {
+        padding-top: clamp(1.5rem, calc(2vw / 0.48), 2rem);
+        padding-left: 1rem;
+        padding-right: 1rem;
+
+        .header {
+          max-width: 32rem;
+        }
+        .list {
+          max-width: 27rem;
+          grid-template-columns: 1fr;
+          margin-left: 0;
+          margin-right: 0;
+        }
+      }
+    }
+  }
+</style>

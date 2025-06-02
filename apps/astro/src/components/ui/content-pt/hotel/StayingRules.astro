@@ -1,0 +1,168 @@
+---
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+
+export const StayingRules_Query = `
+  _type == "StayingRules" => {
+    ${PortableTextQuery('heading')}
+    rulesList{
+      ${PortableTextQuery('checkIn')}
+      ${PortableTextQuery('checkOut')}
+      ${PortableTextQuery('cancellationPolicy')}
+      ${PortableTextQuery('quietHours')}
+      ${PortableTextQuery('petPolicy')}
+      ${PortableTextQuery('valuablesStorage')}
+      ${PortableTextQuery('guestPolicy')}
+      ${PortableTextQuery('otherRules')}
+    },
+  },
+`
+
+interface Props {
+  node: {
+    heading: PortableTextValue
+    rulesList: {
+      checkIn: PortableTextValue
+      checkOut: PortableTextValue
+      cancellationPolicy?: PortableTextValue
+      quietHours?: PortableTextValue
+      petPolicy?: PortableTextValue
+      valuablesStorage?: PortableTextValue
+      guestPolicy?: PortableTextValue
+      otherRules?: PortableTextValue
+    }
+  }
+}
+
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const translations = {
+  pl: {
+    checkIn: 'Zameldowanie',
+    checkOut: 'Wymeldowanie',
+    cancellationPolicy: 'Odwołanie rezerwacji',
+    quietHours: 'Cisza nocna',
+    petPolicy: 'Zwierzęta',
+    valuablesStorage: 'Przechowywanie wartościowych przedmiotów',
+    guestPolicy: 'Polityka dotycząca gości zewnętrznych',
+    otherRules: 'Pozostałe zasady',
+  },
+
+  en: {
+    checkIn: 'Check-in',
+    checkOut: 'Check-out',
+    cancellationPolicy: 'Cancellation policy',
+    quietHours: 'Quiet hours',
+    petPolicy: 'Pet policy',
+    valuablesStorage: 'Valuables storage',
+    guestPolicy: 'Guest policy',
+    otherRules: 'Other rules',
+  },
+}
+
+const t = translations[lang]
+
+const getSvg = (name: string) => {
+  switch (name) {
+    case 'checkIn':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" fill-rule="evenodd" d="M1.664 10.333c0-3.929 0-5.893 1.22-7.113C4.104 2 6.07 2 9.997 2c3.929 0 5.893 0 7.113 1.22 1.22 1.22 1.22 3.184 1.22 7.113 0 3.928 0 5.892-1.22 7.113-1.22 1.22-3.184 1.22-7.113 1.22-3.928 0-5.892 0-7.113-1.22-1.22-1.22-1.22-3.185-1.22-7.113Zm3.542 0c0 .345.28.625.625.625h4.324L8.722 12.39a.625.625 0 0 0 .884.884l2.5-2.5a.625.625 0 0 0 0-.884l-2.5-2.5a.625.625 0 0 0-.884.884l1.433 1.433H5.831a.625.625 0 0 0-.625.625ZM14.789 7a.625.625 0 0 0-1.25 0v6.666a.625.625 0 1 0 1.25 0V7Z" clip-rule="evenodd"/></svg>`
+    case 'checkOut':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" fill-rule="evenodd" d="M1.664 10.333c0-3.929 0-5.893 1.22-7.113C4.104 2 6.07 2 9.997 2c3.929 0 5.893 0 7.113 1.22 1.22 1.22 1.22 3.184 1.22 7.113 0 3.928 0 5.892-1.22 7.113-1.22 1.22-3.184 1.22-7.113 1.22-3.928 0-5.892 0-7.113-1.22-1.22-1.22-1.22-3.185-1.22-7.113Zm13.125 0c0 .345-.28.625-.625.625H9.84l1.433 1.433a.625.625 0 0 1-.884.884l-2.5-2.5a.625.625 0 0 1 0-.884l2.5-2.5a.625.625 0 0 1 .884.884L9.84 9.708h4.324c.345 0 .625.28.625.625ZM6.456 7a.625.625 0 1 0-1.25 0v6.666a.625.625 0 1 0 1.25 0V7Z" clip-rule="evenodd"/></svg>`
+    case 'cancellationPolicy':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" d="M9.997 18.666A8.333 8.333 0 0 1 3.68 4.9L15.432 16.65a8.3 8.3 0 0 1-5.435 2.015ZM9.997 2a8.333 8.333 0 0 1 6.318 13.767L4.563 4.015A8.3 8.3 0 0 1 9.997 2Z"/></svg>`
+    case 'quietHours':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" fill-rule="evenodd" d="M6.777 1.668a.625.625 0 0 1-.198.862L3.245 4.613a.625.625 0 1 1-.662-1.06L5.916 1.47a.625.625 0 0 1 .861.198Zm6.44 0a.625.625 0 0 1 .862-.198l3.333 2.083a.625.625 0 1 1-.662 1.06L13.416 2.53a.625.625 0 0 1-.199-.862ZM9.997 18.666a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Zm-2.5-9.375a.625.625 0 1 1 0-1.25h5a.625.625 0 0 1 .442 1.067l-3.933 3.933h3.492a.625.625 0 1 1 0 1.25h-5a.625.625 0 0 1-.442-1.067l3.933-3.933H7.497Z" clip-rule="evenodd"/></svg>`
+    case 'petPolicy':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" d="M6.306 13.146c1.322-2.69 1.982-4.035 2.933-4.355a2.371 2.371 0 0 1 1.516 0c.951.32 1.612 1.665 2.933 4.355l.733 1.491c.341.695.512 1.043.552 1.28.168.982-.559 1.887-1.538 1.915-.236.007-.604-.094-1.341-.296-.421-.115-.632-.173-.843-.215a6.32 6.32 0 0 0-2.507 0c-.211.042-.422.1-.843.215-.737.202-1.105.303-1.341.296-.98-.028-1.706-.933-1.538-1.916.04-.236.21-.584.552-1.279l.732-1.49ZM5.118 4.94c.343 1.358 1.314 2.263 2.167 2.02.854-.243 1.268-1.541.925-2.9-.343-1.359-1.313-2.264-2.167-2.021-.854.243-1.268 1.541-.925 2.9ZM14.877 4.94c-.343 1.358-1.314 2.263-2.168 2.02-.854-.243-1.268-1.541-.924-2.9.343-1.359 1.313-2.264 2.167-2.021.854.243 1.268 1.541.925 2.9ZM1.832 10.58c.375 1.005 1.257 1.615 1.97 1.363.712-.252.986-1.27.61-2.274-.374-1.005-1.256-1.615-1.969-1.363-.712.252-.986 1.27-.61 2.274ZM18.163 10.58c-.375 1.005-1.257 1.615-1.97 1.363-.712-.252-.986-1.27-.61-2.274.374-1.005 1.256-1.615 1.968-1.363.713.252.987 1.27.612 2.274Z"/></svg>`
+    case 'valuablesStorage':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" fill-rule="evenodd" d="M10.04 1.375h-.086c-.749 0-1.373 0-1.869.066-.523.07-.995.225-1.375.605s-.534.852-.604 1.375c-.048.355-.062 1.205-.065 1.933-1.686.055-2.697.252-3.4.955-.977.976-.977 2.548-.977 5.69 0 3.143 0 4.715.976 5.69.977.977 2.548.977 5.69.977h3.334c3.143 0 4.714 0 5.69-.976.977-.976.977-2.548.977-5.69 0-3.143 0-4.715-.977-5.69-.703-.704-1.715-.9-3.4-.956-.004-.728-.017-1.578-.065-1.933-.07-.523-.225-.996-.604-1.375-.38-.38-.852-.535-1.376-.605-.495-.067-1.12-.067-1.868-.066Zm2.664 3.96c-.004-.706-.016-1.465-.054-1.748-.051-.384-.14-.549-.25-.657-.108-.109-.273-.198-.657-.25-.403-.054-.942-.055-1.746-.055-.803 0-1.343 0-1.745.055-.385.052-.55.141-.658.25-.108.108-.198.273-.25.657-.037.283-.05 1.042-.053 1.747l1.04-.001h3.333l1.04.001ZM9.997 8.04c.346 0 .625.28.625.625v.009c.908.228 1.667.944 1.667 1.936a.625.625 0 0 1-1.25 0c0-.32-.355-.764-1.042-.764-.686 0-1.041.444-1.041.764s.355.763 1.041.763c1.155 0 2.292.8 2.292 2.014 0 .992-.76 1.708-1.667 1.936v.009a.625.625 0 1 1-1.25 0v-.009c-.907-.228-1.666-.944-1.666-1.936a.625.625 0 1 1 1.25 0c0 .32.355.764 1.041.764.687 0 1.042-.444 1.042-.764s-.355-.764-1.042-.764c-1.154 0-2.291-.8-2.291-2.013 0-.992.76-1.708 1.666-1.936v-.009c0-.345.28-.625.625-.625Z" clip-rule="evenodd"/></svg>`
+    case 'guestPolicy':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" d="M9.997 8.666a3.333 3.333 0 1 0 0-6.667 3.333 3.333 0 0 0 0 6.667Z"/><path fill="#F67258" d="M2.27 5.181a.625.625 0 0 0-1.212.303l.318 1.274a6.84 6.84 0 0 0 4.663 4.89v3.728c0 .749 0 1.373.067 1.869.07.523.225.995.604 1.375.38.38.852.534 1.375.604.496.067 1.12.067 1.87.067h.086c.749 0 1.373 0 1.869-.067.523-.07.995-.224 1.375-.604s.534-.852.604-1.375c.067-.496.067-1.12.067-1.869v-3.494a2.187 2.187 0 0 1 1.546 1.84l.542 4.6a.625.625 0 1 0 1.24-.146l-.54-4.6a3.436 3.436 0 0 0-3.413-3.035H6.735a5.59 5.59 0 0 1-4.146-4.087L2.27 5.181Z"/></svg>`
+    case 'otherRules':
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"><path fill="#F67258" fill-rule="evenodd" d="M3.336 4.5v11.667a2.5 2.5 0 0 0 2.5 2.5h8.333a2.5 2.5 0 0 0 2.5-2.5V7.834a2.5 2.5 0 0 0-2.5-2.5h-10a.833.833 0 0 1-.833-.833Zm2.708 5.834c0-.345.28-.625.625-.625h6.667a.625.625 0 1 1 0 1.25H6.669a.625.625 0 0 1-.625-.625Zm0 2.917c0-.345.28-.625.625-.625h4.584a.625.625 0 1 1 0 1.25H6.669a.625.625 0 0 1-.625-.625Z" clip-rule="evenodd"/><path fill="#F67258" d="M3.677 3.74c.29.13.492.422.492.76h10c.288 0 .567.037.834.106v-.684a1.667 1.667 0 0 0-1.903-1.65L4.102 3.558a.89.89 0 0 0-.425.182Z"/></svg>`
+    default:
+      return ''
+  }
+}
+
+const { node } = Astro.props
+
+const orderMap = {
+  checkIn: 1,
+  checkOut: 2,
+  cancellationPolicy: 3,
+  quietHours: 4,
+  petPolicy: 5,
+  valuablesStorage: 6,
+  guestPolicy: 7,
+  otherRules: 8,
+}
+
+const rulesArray = Object.entries(node.rulesList)
+  .map(([key, value]) => ({
+    key,
+    value: value as PortableTextValue,
+    title: t[key as keyof typeof t],
+    svg: getSvg(key),
+    order: orderMap[key as keyof typeof orderMap] || 999,
+  }))
+  .filter((rule) => rule.value)
+  .sort((a, b) => a.order - b.order)
+---
+
+<section class="StayingRules">
+  <PortableText value={node.heading} heading="h2" />
+  <div class="list">
+    {
+      rulesArray.map((rule) => (
+        <div class="item">
+          <Fragment set:html={rule.svg} />
+          <h3 class="title">{rule.title}</h3>
+          <PortableText value={rule.value} class="paragraph" />
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style lang="scss">
+  .StayingRules {
+    margin-bottom: clamp(3rem, calc(3.5vw / 0.48), 3.5rem);
+    :global(> h2) {
+      margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      .item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+
+        :global(svg) {
+          grid-row: 1/3;
+          grid-column: 1/2;
+          align-self: start;
+          margin-top: 0.25rem;
+        }
+
+        .title {
+          color: var(--primary-800, #45051c);
+          font-weight: 700;
+          line-height: 1.5;
+          letter-spacing: -0.03em;
+          grid-row: 1/2;
+          grid-column: 2/3;
+        }
+
+        .paragraph {
+          grid-row: 2/3;
+          grid-column: 2/3;
+          font-size: var(--typography-body-l, 1rem);
+        }
+      }
+    }
+  }
+</style>

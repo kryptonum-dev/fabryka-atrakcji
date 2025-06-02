@@ -1,0 +1,902 @@
+---
+import PortableText, { type PortableTextValue } from '../ui/portable-text'
+import Image from '../ui/image'
+import type { ImageDataProps } from '../ui/image'
+import { getLangFromPath, type Language } from '@/global/languages'
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    openImage: 'Pokaż zdjęcie',
+    openVideo: 'Pokaż wideo',
+    closePopup: 'Zamknij okno',
+    closeVideo: 'Zamknij wideo',
+    prevImage: 'Poprzednie zdjęcie',
+    nextImage: 'Następne zdjęcie',
+  },
+
+  en: {
+    openImage: 'Show image',
+    openVideo: 'Show video',
+    closePopup: 'Close popup',
+    closeVideo: 'Close video',
+    prevImage: 'Previous image',
+    nextImage: 'Next image',
+  },
+}
+
+const t = translations[lang]
+
+type Props = {
+  mediaArray: {
+    image: ImageDataProps
+    youtubeId: string
+  }[]
+  galleryHeading: PortableTextValue
+}
+
+const { mediaArray, galleryHeading } = Astro.props as Props
+---
+
+<section class="CaseStudyGallery" data-media={JSON.stringify(mediaArray)}>
+  <header class="header">
+    <PortableText value={galleryHeading} heading="h2" class="heading" />
+  </header>
+
+  <div class="grid" data-has-many-images={mediaArray.length > 5}>
+    {
+      mediaArray.map((media) => (
+        <button
+          class="item"
+          data-has-video={!!media.youtubeId}
+          aria-label={media.youtubeId ? t.openVideo : t.openImage}
+        >
+          <Image
+            {...media.image}
+            sizes="(max-width: 28.0625rem) 100vw, (max-width: 56.1875rem) 50vw, (max-width: 85.375rem) 33vw, 450px"
+            loading="lazy"
+          />
+        </button>
+      ))
+    }
+  </div>
+  <div class="popup-overlay" aria-hidden="true"></div>
+  <div class="popup" aria-hidden="true">
+    <!-- Add navigation buttons -->
+    <div class="nav-buttons">
+      <button class="gallery-nav gallery-prev" aria-label={t.prevImage}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path
+            d="M15 17.4658L10 12.4658L15 7.46582"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </button>
+      <button class="gallery-nav gallery-next" aria-label={t.nextImage}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path
+            d="M10 7.46582L15 12.4658L10 17.4658"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="popup-content">
+      <img src="" alt="" class="popup-image" />
+      <button class="popup-close-video">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
+            <circle cx={12} cy={12} r={10} stroke="currentColor" stroke-width={1.5}></circle>
+            <path
+              d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+              stroke="currentColor"
+              stroke-width={1.5}
+              stroke-linecap="round"></path>
+          </svg>
+        </div>
+        <span>{t.closeVideo}</span>
+      </button>
+      <div class="popup-video" style="display: none;">
+        <iframe
+          width="100%"
+          height="100%"
+          src=""
+          title="Odtwarzanie wideo"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+      </div>
+      <button class="popup-close" aria-label={t.closePopup}
+        ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+          ><path
+            fill="#F67258"
+            fill-rule="evenodd"
+            d="M21.788 21.788a.723.723 0 0 0 0-1.022L18.122 17.1a9.157 9.157 0 1 0-1.022 1.022l3.666 3.666a.723.723 0 0 0 1.022 0ZM8.024 11.157c0-.4.324-.723.723-.723h4.82a.723.723 0 0 1 0 1.446h-4.82a.723.723 0 0 1-.723-.723Z"
+            clip-rule="evenodd"></path></svg
+        ></button
+      >
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .CaseStudyGallery {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 85.375rem;
+    margin: 0 auto;
+    .header {
+      max-width: calc(41.1875rem + 2 * var(--pageMargin));
+      padding: 0 var(--pageMargin);
+      text-align: center;
+      margin: clamp(2rem, calc(3vw / 0.48), 3rem) auto 0;
+
+      .heading {
+        font-size: var(--typography-heading-l, 2rem);
+      }
+    }
+    .grid {
+      columns: 3;
+      gap: clamp(0.25rem, calc(0.5vw / 0.48), 0.5rem);
+
+      &[data-has-many-images='true'] {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .item {
+        align-self: stretch;
+        overflow: hidden;
+        height: 100%;
+        border-radius: 0.25rem;
+        position: relative;
+        display: block;
+        cursor: pointer;
+        margin-bottom: clamp(0.25rem, calc(0.5vw / 0.48), 0.5rem);
+
+        img {
+          transition: transform 250ms var(--easing);
+        }
+
+        &:hover {
+          img {
+            transform: scale(1.1) rotate(3deg);
+          }
+        }
+        &:focus:not(:focus-visible) {
+          img {
+            transform: scale(1.25) rotate(0deg);
+          }
+        }
+      }
+    }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(250, 247, 247, 0.3) 0%, #faf7f7 100%);
+      backdrop-filter: blur(5px);
+      z-index: 998;
+      animation: CaseStudyGallery-popup-fade-in 150ms;
+      cursor: pointer;
+
+      &[aria-hidden='true'] {
+        display: none;
+      }
+    }
+
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 999;
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &[aria-hidden='true'] {
+        display: none;
+      }
+
+      &[aria-hidden='false'] {
+        .popup-image {
+          // Only apply the bounce animation when the first-open class is present
+          &.first-open {
+            animation: CaseStudyGallery-content-bounce-in 250ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+            z-index: 1;
+          }
+        }
+        .popup-close {
+          animation: CaseStudyGallery-close-button-entrance 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          z-index: 4;
+        }
+        .gallery-nav {
+          // animation: CaseStudyGallery-nav-entrance 350ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+          z-index: 2;
+        }
+      }
+
+      .popup-content {
+        position: relative;
+        max-width: 80vw;
+        max-height: 90vh;
+        display: grid;
+        place-items: center;
+        z-index: 2;
+        margin: 0 auto;
+      }
+
+      .popup-image {
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 0.25rem;
+
+        // Remove the transition from here - we'll handle animation fully with classes
+        // transition: opacity 200ms var(--easing), transform 200ms var(--easing);
+
+        // Only use first-open animation on initial open
+        &.first-open {
+          animation: CaseStudyGallery-content-bounce-in 250ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+        }
+
+        // For subsequent navigation, use these classes instead of multiple animation phases
+        &.slide-next {
+          animation: gallery-slide-next 300ms var(--easing) forwards;
+        }
+
+        &.slide-prev {
+          animation: gallery-slide-prev 300ms var(--easing) forwards;
+        }
+      }
+
+      .popup-close {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: var(--neutral-200, #f5f1ec);
+        transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+
+        &:hover {
+          transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        &:focus:not(:focus-visible) {
+          transform: translate(-50%, -50%) scale(0.95);
+        }
+      }
+
+      .popup-close-video {
+        position: absolute;
+        right: 1rem;
+        top: -3rem;
+        display: flex;
+        align-items: center;
+        background: var(--neutral-200, #f5f1ec);
+        border-radius: 999rem;
+        gap: 0.25rem;
+        min-height: 2.75rem;
+        padding: 0.25rem 0.6725rem 0.25rem 0.25rem;
+        z-index: 5;
+        animation: CaseStudyGallery-close-video-button-entrance 350ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+        span {
+          color: var(--primary-700, #600d2a);
+          line-height: 1.6;
+          font-size: var(--typography-body-s, 0.75rem);
+          transition: transform 250ms var(--easing);
+        }
+
+        .icon {
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          position: relative;
+          isolation: isolate;
+          overflow: hidden;
+          transition:
+            transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.17),
+            color 150ms;
+          color: var(--primary-500, #f67258);
+          &:before,
+          &:after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--neutral-100, #faf7f7);
+            z-index: -2;
+          }
+
+          &:before {
+            transform: scale(0);
+            background: var(--primary-800, #f5f1ec);
+            z-index: -1;
+            transition: transform 250ms var(--easing);
+            border-radius: 50%;
+          }
+        }
+
+        &:hover {
+          .icon {
+            transform: scale(1.05);
+          }
+
+          span {
+            transform: translateX(2px);
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          .icon {
+            color: var(--neutral-100);
+
+            &::before {
+              transform: scale(1);
+            }
+          }
+
+          span {
+            transform: translateX(0);
+          }
+        }
+      }
+
+      .nav-buttons {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        width: 100vw;
+        display: flex;
+        padding: 0 2rem;
+        justify-content: space-between;
+      }
+
+      .gallery-nav {
+        // position: fixed;
+        // top: 50%;
+        // transform: translateY(-50%);
+        z-index: 2;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        background: var(--primary-700, #600d2a);
+        display: grid;
+        place-items: center;
+        transition:
+          transform 250ms var(--easing),
+          background-color 250ms var(--easing);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+
+        svg {
+          width: 1.5rem;
+          height: 1.5rem;
+        }
+
+        &.gallery-prev {
+          left: 1.5rem;
+          color: var(--neutral-100, #faf7f7);
+        }
+
+        &.gallery-next {
+          right: 1.5rem;
+          color: var(--neutral-100, #faf7f7);
+        }
+
+        &:hover {
+          transform: scale(1.1);
+          background-color: var(--primary-800, #45051c);
+        }
+
+        &:focus:not(:focus-visible) {
+          transform: scale(0.95);
+        }
+
+        &[aria-disabled='true'] {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+
+      .popup-video {
+        width: 100vw;
+        max-width: 80vw;
+        max-height: 90vh;
+        aspect-ratio: 16/9;
+        position: relative;
+
+        iframe {
+          border-radius: 0.25rem;
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        &.slide-next {
+          animation: gallery-slide-next 300ms var(--easing) forwards;
+        }
+
+        &.slide-prev {
+          animation: gallery-slide-prev 300ms var(--easing) forwards;
+        }
+
+        &.first-open {
+          animation: CaseStudyGallery-content-bounce-in 250ms cubic-bezier(0.18, 0.89, 0.32, 1.17);
+        }
+      }
+    }
+
+    @media (max-width: 56.1875rem) {
+      .header {
+        text-align: left;
+      }
+      .grid {
+        columns: 2;
+      }
+
+      .popup {
+        .popup-close {
+          position: absolute;
+          top: unset;
+          left: unset;
+          bottom: 0.5rem;
+          right: 0.5rem;
+          z-index: 5;
+
+          &:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+          }
+
+          &:focus:not(:focus-visible) {
+            transform: translate(-50%, -50%) scale(0.95);
+          }
+        }
+
+        .popup-content {
+          max-width: 85vw;
+          position: relative;
+          max-height: 70vh;
+
+          .popup-image {
+            max-height: 70vh;
+          }
+        }
+
+        .nav-buttons {
+          bottom: 2rem;
+          left: 50%;
+          transform: translateX(-50%);
+          top: unset;
+          width: max-content;
+          gap: 1.5rem;
+          background-color: var(--neutral-100);
+          border-radius: 999rem;
+          padding: 0.25rem;
+          box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+        }
+
+        .popup-video {
+          max-width: 80vw;
+          width: 100vw;
+          max-height: 80vh;
+        }
+
+        .popup-close-video {
+          top: -3rem;
+          right: 0;
+        }
+      }
+    }
+
+    @media (max-width: 31.1875rem) {
+      .popup {
+        .popup-content {
+          max-width: 90vw;
+        }
+      }
+    }
+
+    @media (max-width: 31.1875rem) {
+      .popup {
+        .popup-content {
+          position: relative;
+        }
+
+        .popup-image {
+          max-height: calc(90vh - 5rem); /* Account for the space needed for buttons */
+        }
+      }
+    }
+
+    @media (max-width: 28.0625rem) {
+      .grid {
+        columns: 1;
+      }
+
+      .popup {
+      }
+    }
+
+    @keyframes CaseStudyGallery-popup-fade-in {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes CaseStudyGallery-content-bounce-in {
+      0% {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes CaseStudyGallery-close-button-entrance {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 0%) rotate(180deg) scale(0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0) scale(1);
+      }
+    }
+
+    @keyframes CaseStudyGallery-close-video-button-entrance {
+      0% {
+        opacity: 0;
+        transform: translateX(30%) scale(0.75);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0%) scale(1);
+      }
+    }
+
+    @keyframes CaseStudyGallery-nav-entrance {
+      0% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.7);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+      }
+    }
+
+    @keyframes CaseStudyGallery-image-transition {
+      0% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+    }
+
+    @keyframes slide-in-from-right {
+      0% {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slide-in-from-left {
+      0% {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    // Replace the multiple animations with single, direction-specific animations
+    @keyframes gallery-slide-next {
+      0% {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes gallery-slide-prev {
+      0% {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+  }
+</style>
+
+<script>
+  type Media = {
+    image: {
+      asset: {
+        url: string
+        altText: string
+        playbackId: string
+        thumbnailUrl: string
+        duration: number
+      }
+    }
+    youtubeId?: string
+  }
+
+  document.querySelectorAll('.CaseStudyGallery').forEach((gallery) => {
+    const mediaArray = gallery.getAttribute('data-media') ? JSON.parse(gallery.getAttribute('data-media') || '[]') : []
+    let currentIndex = 0
+
+    const items = gallery.querySelectorAll('.item')! as NodeListOf<HTMLElement>
+    const popup = gallery.querySelector('.popup')! as HTMLElement
+    const popupImage = gallery.querySelector('.popup-image')! as HTMLImageElement
+    const popupVideo = gallery.querySelector('.popup-video')! as HTMLElement
+    const iframe = popupVideo.querySelector('iframe')! as HTMLIFrameElement
+    const overlay = gallery.querySelector('.popup-overlay')! as HTMLElement
+    const closeButton = gallery.querySelector('.popup-close')! as HTMLElement
+    const closeVideoButton = gallery.querySelector('.popup-close-video')! as HTMLElement
+    const prevButton = gallery.querySelector('.gallery-prev')! as HTMLElement
+    const nextButton = gallery.querySelector('.gallery-next')! as HTMLElement
+
+    // Add variables to track popup and animation states
+    let isAnimating = false
+    let isFirstOpen = true // Track if this is the first time opening the popup
+
+    function openPopup(media: Media, index: number) {
+      currentIndex = index
+      updateNavigationState()
+
+      // Clear any existing animation classes first
+      popupImage.classList.remove('slide-next', 'slide-prev', 'first-open')
+      popupVideo.classList.remove('slide-next', 'slide-prev', 'first-open')
+
+      if (media.youtubeId) {
+        popupImage.style.display = 'none'
+        popupVideo.style.display = 'block'
+        closeVideoButton.style.display = 'flex'
+
+        // Position close button relative to video container
+
+        closeButton.style.display = 'none'
+        // Always show navigation buttons
+        prevButton.style.display = 'grid'
+        nextButton.style.display = 'grid'
+        iframe.src = `https://www.youtube.com/embed/${media.youtubeId}?autoplay=1`
+
+        // Add animation classes to video container similar to images
+        if (isFirstOpen && popup.getAttribute('aria-hidden') === 'true') {
+          popupVideo.classList.add('first-open')
+          isFirstOpen = false
+        }
+
+        setTimeout(() => closeVideoButton.focus(), 0)
+      } else {
+        popupImage.src = media.image.asset.url
+        popupImage.alt = media.image.asset.altText
+        closeVideoButton.style.display = 'none'
+        closeButton.style.display = 'grid'
+        prevButton.style.display = 'grid'
+        nextButton.style.display = 'grid'
+        popupImage.style.display = 'block'
+        popupVideo.style.display = 'none'
+
+        // Add the first-open class only if this is truly the initial popup opening
+        // and not during a navigation action
+        if (isFirstOpen && popup.getAttribute('aria-hidden') === 'true') {
+          popupImage.classList.add('first-open')
+          isFirstOpen = false // Only do this once per gallery session
+        }
+
+        setTimeout(() => closeButton.focus(), 0)
+      }
+
+      popup.setAttribute('aria-hidden', 'false')
+      overlay.setAttribute('aria-hidden', 'false')
+
+      // Prevent scrolling on body while popup is open
+      document.body.style.overflow = 'hidden'
+    }
+
+    function updateNavigationState() {
+      // With looping enabled, buttons are always enabled
+      prevButton.setAttribute('aria-disabled', 'false')
+      nextButton.setAttribute('aria-disabled', 'false')
+
+      // Remove opacity changes since buttons are always enabled
+      prevButton.style.opacity = '1'
+      nextButton.style.opacity = '1'
+    }
+
+    function navigateGallery(direction: number) {
+      // Prevent rapid clicking during animation
+      if (isAnimating) return
+      isAnimating = true
+
+      const newIndex = currentIndex + direction
+
+      // Implement circular looping navigation
+      let targetIndex = newIndex
+      if (targetIndex < 0) {
+        targetIndex = mediaArray.length - 1 // Wrap to last image when going previous from first
+      } else if (targetIndex >= mediaArray.length) {
+        targetIndex = 0 // Wrap to first image when going next from last
+      }
+
+      const currentMedia = mediaArray[currentIndex]
+      const targetMedia = mediaArray[targetIndex]
+      const currentIsVideo = !!currentMedia.youtubeId
+      const targetIsVideo = !!targetMedia.youtubeId
+
+      // Handle transition between media types
+      if (currentIsVideo && !targetIsVideo) {
+        // Transitioning from video to image
+        iframe.src = '' // Stop video playback
+        openPopup(targetMedia, targetIndex)
+        isAnimating = false
+        return
+      } else if (!currentIsVideo && targetIsVideo) {
+        // Transitioning from image to video
+        openPopup(targetMedia, targetIndex)
+        isAnimating = false
+        return
+      } else if (currentIsVideo && targetIsVideo) {
+        // Video to video transition
+        iframe.src = ''
+
+        setTimeout(() => {
+          popupVideo.classList.add(direction > 0 ? 'slide-next' : 'slide-prev')
+          openPopup(targetMedia, targetIndex)
+
+          setTimeout(() => {
+            popupVideo.classList.remove('slide-next', 'slide-prev')
+            isAnimating = false
+          }, 350)
+        }, 100)
+
+        return
+      }
+
+      // For image to image transitions (existing code)
+      // Get the new image ready first, but don't display it yet
+      const newImage = new Image()
+      newImage.src = targetMedia.image.asset.url
+
+      // When the new image is loaded or after a timeout, do the transition
+      const performTransition = () => {
+        // Remove any previous animation classes
+        popupImage.classList.remove('slide-next', 'slide-prev', 'first-open')
+
+        // Update the image source
+        popupImage.src = targetMedia.image.asset.url
+        popupImage.alt = targetMedia.image.asset.altText
+
+        // Apply the appropriate animation class
+        popupImage.classList.add(direction > 0 ? 'slide-next' : 'slide-prev')
+
+        // Update the current index
+        currentIndex = targetIndex
+
+        // Clear the animation class after animation completes
+        setTimeout(() => {
+          popupImage.classList.remove('slide-next', 'slide-prev')
+          isAnimating = false
+        }, 350) // slightly longer than animation duration to ensure it completes
+      }
+
+      // Either wait for image to load or use a timeout as fallback
+      if (newImage.complete) {
+        performTransition()
+      } else {
+        newImage.onload = performTransition
+        // Fallback in case image load fails
+        setTimeout(performTransition, 200)
+      }
+    }
+
+    function closePopup() {
+      popup.setAttribute('aria-hidden', 'true')
+      overlay.setAttribute('aria-hidden', 'true')
+      iframe.src = ''
+      currentIndex = 0
+
+      // Reset first open state when closing popup
+      isFirstOpen = true
+
+      // Clear any animation classes
+      popupImage.classList.remove('slide-next', 'slide-prev', 'first-open')
+      popupVideo.classList.remove('slide-next', 'slide-prev', 'first-open')
+
+      // Re-enable scrolling
+      document.body.style.overflow = ''
+    }
+
+    // Setup event listeners
+    items.forEach((item, index) => {
+      item.addEventListener('click', () => {
+        const media = mediaArray[index]
+        if (media) {
+          openPopup(media, index)
+        }
+      })
+    })
+
+    prevButton.addEventListener('click', (e) => {
+      // Prevent event from bubbling up to the overlay
+      e.stopPropagation()
+      navigateGallery(-1)
+    })
+
+    nextButton.addEventListener('click', (e) => {
+      // Prevent event from bubbling up to the overlay
+      e.stopPropagation()
+      navigateGallery(1)
+    })
+
+    // Prevent clicks on popup content from closing the popup
+    const popupContent = popup.querySelector('.popup-content')
+    if (popupContent) {
+      popupContent.addEventListener('click', (e) => {
+        e.stopPropagation()
+      })
+    }
+
+    // Set up close elements
+    closeButton.addEventListener('click', closePopup)
+    closeVideoButton.addEventListener('click', closePopup)
+
+    // Allow overlay to close the popup
+    overlay.addEventListener('click', closePopup)
+
+    // Allow popup itself to close when clicked (but not its content)
+    popup.addEventListener('click', (e) => {
+      // Only close if the click was directly on the popup element, not its children
+      if (e.target === popup) {
+        closePopup()
+      }
+    })
+
+    // Add keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (popup.getAttribute('aria-hidden') === 'false') {
+        if (e.key === 'Escape') closePopup()
+        if (e.key === 'ArrowLeft') navigateGallery(-1)
+        if (e.key === 'ArrowRight') navigateGallery(1)
+      }
+    })
+  })
+</script>

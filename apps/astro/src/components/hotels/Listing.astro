@@ -1,0 +1,1530 @@
+---
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import { getLangFromPath, type Language } from '@/global/languages'
+import SearchBar from '../ui/SearchBar.astro'
+import Dropdown from '../ui/Dropdown.astro'
+import HotelCard, { HotelCardQuery } from '../ui/HotelCard.astro'
+import Pagination from '../ui/Pagination.astro'
+import { ITEMS_PER_PAGE } from '@/src/templates/hotels/HotelsPage.astro'
+import Button from '../ui/Button'
+import SelectFilter from '../ui/SelectFilter.astro'
+import PriceRangeFilter from '../ui/PriceRangeFilter.astro'
+
+type LocationOption = {
+  _id: string
+  name: string
+  count: number
+  slug: string
+}
+
+type AmenityOption = {
+  _id: string
+  name: string
+  count: number
+  slug: string
+}
+
+type HotelItem = {
+  _id: string
+  name: string
+  slug: string
+  description: string
+  stars: number
+  imageUrl: string
+  location: {
+    _id: string
+    name: string
+  }
+  numberOfRooms: number
+  maxPeopleOvernight: number
+  pricing: {
+    pricingType: 'perPerson' | 'fixed'
+    pricePerPerson?: number
+    basePrice?: number
+    maxPeople?: number
+    additionalPersonPrice?: number
+    pricingVisible?: boolean
+  }
+  amenitiesList: string[]
+}
+
+type Props = {
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  totalItems: number
+  listing: HotelItem[]
+  currentPage: number
+  locations: LocationOption[]
+  amenities: AmenityOption[]
+  roomsRange: { min: number; max: number }
+  priceRange: { min: number; max: number; minAbs: number; maxAbs: number }
+  checklist: string[]
+  stars: { stars: number; count: number }[]
+  roomRangeCounts: {
+    range1_50: number
+    range51_80: number
+    range81_150: number
+    range150plus: number
+  }
+}
+
+export type ListingProps = Props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    pathPrefix: '/pl/hotele',
+    hotels: 'Hotele',
+    placeholder: 'Wyszukaj hotel',
+    search: 'Wyszukaj hotel',
+    filters: {
+      location: 'Lokalizacja',
+      stars: 'Gwiazdki',
+      rooms: 'Liczba pokoi',
+      amenities: 'Udogodnienia',
+      price: {
+        heading: 'Budżet na 1 osobę/noc',
+        description: 'Niższa cena przy zakwaterowaniu w pokojach dwuosobowych',
+      },
+    },
+    sort: {
+      popularity: 'Najpopularniejsze',
+      priceDesc: 'Cena: od najwyższej',
+      priceAsc: 'Cena: od najniższej',
+      newest: 'Od najnowszych',
+    },
+    noResults: {
+      heading: '<span>Nie znaleziono wyników dla</span> <strong>podanych filtrów</strong>',
+      list: [
+        'Sprawdź poprawność wprowadzonych danych',
+        'Zmień kryteria wyszukiwania',
+        'Lub znajdź interesujące Cię hotele w widoku wszystkich hoteli',
+      ],
+      button: 'Wróć do wszystkich hoteli',
+    },
+    foundPrefix: 'Znaleziono',
+    foundHotelsSingle: 'hotel',
+    foundHotelsMultipleLow: 'hotele',
+    foundHotelsMultipleHigh: 'hoteli',
+    filtersHeading: 'Filtry',
+    apply: 'Zastosuj filtry',
+    clear: 'Wyczyść filtry',
+    filterButton: 'Filtruj',
+  },
+  en: {
+    pathPrefix: '/en/hotels',
+    hotels: 'Hotels',
+    placeholder: 'Search for hotels',
+    search: 'Search for hotels',
+    filters: {
+      location: 'Location',
+      stars: 'Stars',
+      rooms: 'Number of rooms',
+      amenities: 'Amenities',
+      price: {
+        heading: 'Budget per person/night',
+        description: 'Lower price when staying in double rooms',
+      },
+    },
+    sort: {
+      popularity: 'Most popular',
+      priceDesc: 'Price: highest first',
+      priceAsc: 'Price: lowest first',
+      newest: 'Newest first',
+    },
+    noResults: {
+      heading: '<span>No results found for</span> <strong>the given filters</strong>',
+      list: [
+        'Check the correctness of the data entered',
+        'Change the search criteria',
+        'Or find interesting hotels in the view of all hotels',
+      ],
+      button: 'Back to all hotels',
+    },
+    foundPrefix: 'Found',
+    foundHotelsSingle: 'hotel',
+    foundHotelsMultipleLow: 'hotels',
+    foundHotelsMultipleHigh: 'hotels',
+    filtersHeading: 'Filters',
+    apply: 'Apply filters',
+    clear: 'Clear filters',
+    filterButton: 'Filter',
+  },
+}
+
+const t = translations[lang]
+
+// Define Star SVG template at the top level
+const starSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <mask id="path-1-inside-1_6107_29788" fill="white">
+            <path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/>
+          </mask>
+          <g clip-path="url(#paint0_angular_6107_29788_clip_path)" data-figma-skip-parse="true"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}"/>
+          <g clip-path="url(#paint1_angular_6107_29788_clip_path)" data-figma-skip-parse="true" mask="url(#path-1-inside-1_6107_29788)"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}" mask="url(#path-1-inside-1_6107_29788)"/>
+          <defs>
+            <clipPath id="paint0_angular_6107_29788_clip_path"><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/></clipPath><clipPath id="paint1_angular_6107_29788_clip_path"><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" mask="url(#path-1-inside-1_6107_29788)"/></clipPath></defs>
+            </svg>`
+
+export const Listing_Query = (orderClause: string) => {
+  // Define individual filters
+  const locationFilter = `
+    (!defined($location) || location->slug.current == $location)
+  `
+
+  const amenitiesFilter = `
+    (!defined($amenities) || count(select(
+      defined(amenities) => amenities[]->slug.current,
+      []
+    )[@ in $amenities]) == count($amenities))
+  `
+
+  const starsFilter = `
+    (!defined($stars) || stars == $stars)
+  `
+
+  const roomsFilter = `
+    (!defined($minRooms) || numberOfRooms >= $minRooms)
+    && (!defined($maxRooms) || numberOfRooms <= $maxRooms)
+  `
+
+  const priceFilter = `
+    (!defined($minPrice) || (pricing.pricingVisible == true && pricing.pricePerPerson >= $minPrice))
+    && (!defined($maxPrice) || (pricing.pricingVisible == true && pricing.pricePerPerson <= $maxPrice))
+  `
+
+  // Add embeddings filter
+  const embeddingsFilter = `
+    (!defined($embeddingResults) || _id in $embeddingResults[].value.documentId)
+  `
+
+  // Create base filter function
+  const createBaseFilter = (
+    includeFilters: {
+      location?: boolean
+      amenities?: boolean
+      stars?: boolean
+      rooms?: boolean
+      price?: boolean
+    } = {
+      location: true,
+      amenities: true,
+      stars: true,
+      rooms: true,
+      price: true,
+    }
+  ) => `
+    && language == $language
+    ${includeFilters.location ? `&& ${locationFilter}` : ''}
+    ${includeFilters.amenities ? `&& ${amenitiesFilter}` : ''}
+    ${includeFilters.stars ? `&& ${starsFilter}` : ''}
+    ${includeFilters.rooms ? `&& ${roomsFilter}` : ''}
+    ${includeFilters.price ? `&& ${priceFilter}` : ''}
+    && ${embeddingsFilter}
+  `
+  const getStarFilter = (stars: number) => `
+    {
+        "stars": ${stars},
+        "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+          location: true,
+          amenities: true,
+          stars: false,
+          rooms: true,
+          price: true,
+        })} && stars == ${stars}])
+    },
+  `
+
+  return `
+    "totalItems": count(*[_type == 'Hotels_Collection' ${createBaseFilter()}]),
+    "locations": *[_type == 'Locations_Collection' && language == $language] {
+      _id,
+      name,
+      "slug": slug.current,
+      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: false,
+        amenities: true,
+        stars: true,
+        rooms: true,
+        price: true,
+      })} && references(^._id)])
+    },
+    "amenities": *[_type == 'Amenities_Collection' && language == $language] {
+      _id,
+      name,
+      "slug": slug.current,
+      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter()} && references(^._id)])
+    },
+    "roomRangeCounts": {
+      "range1_50": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms <= 50]),
+      "range51_80": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms >= 51 && numberOfRooms <= 80]),
+      "range81_150": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms >= 81 && numberOfRooms <= 150]),
+      "range150plus": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })} && numberOfRooms >= 150])
+    },
+    "roomsRange": {
+      "min": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })}] | order(numberOfRooms asc)[0].numberOfRooms,
+      "max": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: false,
+        price: true,
+      })}] | order(numberOfRooms desc)[0].numberOfRooms
+    },
+    "stars": [
+      ${getStarFilter(1)}
+      ${getStarFilter(2)}
+      ${getStarFilter(3)}
+      ${getStarFilter(4)}
+      ${getStarFilter(5)}
+    ],
+    "priceRange": {
+      "min": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: true,
+        price: false,
+      })} && pricing.pricingVisible == true] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson,
+      "max": *[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: true,
+        amenities: true,
+        stars: true,
+        rooms: true,
+        price: false,
+      })} && pricing.pricingVisible == true] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
+      "maxAbs": *[_type == 'Hotels_Collection' && pricing.pricingVisible == true] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
+      "minAbs": *[_type == 'Hotels_Collection' && pricing.pricingVisible == true] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson
+    },
+    "listing": *[_type == 'Hotels_Collection' ${createBaseFilter()}] {
+      ${HotelCardQuery}
+      "_score": $embeddingResults[value.documentId == ^._id][0].score
+    } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
+  `
+}
+
+const {
+  heading,
+  paragraph,
+  checklist,
+  totalItems,
+  listing,
+  currentPage,
+  locations,
+  amenities,
+  stars,
+  roomRangeCounts,
+  priceRange,
+} = Astro.props
+
+const params = Astro.url.searchParams
+
+const roomsRangeItems = [
+  {
+    name: '1–50',
+    count: roomRangeCounts.range1_50,
+    isSelected: params.get('maxRooms') === '50' && !params.get('minRooms'),
+    value: '1-50',
+  },
+  {
+    name: '51–80',
+    count: roomRangeCounts.range51_80,
+    isSelected: params.get('minRooms') === '51' && params.get('maxRooms') === '80',
+    value: '51-80',
+  },
+  {
+    name: '81–150',
+    count: roomRangeCounts.range81_150,
+    isSelected: params.get('minRooms') === '81' && params.get('maxRooms') === '150',
+    value: '81-150',
+  },
+  {
+    name: '150+',
+    count: roomRangeCounts.range150plus,
+    isSelected: params.get('minRooms') === '150' && !params.get('maxRooms'),
+    value: '150-',
+  },
+].filter((item) => item.isSelected || item.count > 0)
+
+const locationItems = locations.map((location) => ({
+  name: location.name,
+  count: location.count,
+  isSelected: location.slug === params.get('location'),
+  value: location.slug,
+}))
+
+// Process amenities to handle both comma-separated values and multiple parameters
+const amenitiesParam = params.get('amenities')
+let amenitiesValues: string[] = []
+
+if (amenitiesParam) {
+  // If it's a single comma-separated value
+  amenitiesValues = amenitiesParam.split(',')
+} else {
+  // If there are multiple parameters with the same name
+  amenitiesValues = params.getAll('amenities')
+}
+
+const amenitiesItems = amenities
+  .map((amenity) => ({
+    name: amenity.name,
+    count: amenity.count,
+    isSelected: amenitiesValues.includes(amenity.slug),
+    value: amenity.slug,
+  }))
+  .sort((a, b) => {
+    // First sort by selection status (selected items first)
+    if (a.isSelected && !b.isSelected) return -1
+    if (!a.isSelected && b.isSelected) return 1
+    // Then sort by count (higher count first)
+    return b.count - a.count
+  })
+
+const starsItems = stars
+  .map((starData) => ({
+    name: `<span class="stars-row" style="visibility: visible;">${Array(starData.stars).fill(starSVG).join('')}</span>`,
+    count: starData.count,
+    value: starData.stars.toString(),
+    isSelected: params.get('stars') === starData.stars.toString(),
+  }))
+  .sort((a, b) => parseInt(b.value) - parseInt(a.value)) // Sort by descending star count
+
+const getHotelsCount = () => {
+  if (totalItems % 10 >= 2 && totalItems % 10 <= 4 && (totalItems % 100 < 12 || totalItems % 100 > 14)) {
+    return t.foundHotelsMultipleLow
+  }
+
+  if (totalItems === 1) {
+    return t.foundHotelsSingle
+  }
+
+  return t.foundHotelsMultipleHigh
+}
+
+// Get current filters from URL
+const currentFilters = {
+  location: Astro.url.searchParams.get('location'),
+  stars: Astro.url.searchParams.get('stars'),
+  minRooms: Astro.url.searchParams.has('minRooms') ? parseInt(Astro.url.searchParams.get('minRooms') || '') : undefined,
+  maxRooms: Astro.url.searchParams.has('maxRooms') ? parseInt(Astro.url.searchParams.get('maxRooms') || '') : undefined,
+  amenities: Astro.url.searchParams.getAll('amenities'),
+  minPrice: Astro.url.searchParams.has('minPrice') ? parseInt(Astro.url.searchParams.get('minPrice') || '') : undefined,
+  maxPrice: Astro.url.searchParams.has('maxPrice') ? parseInt(Astro.url.searchParams.get('maxPrice') || '') : undefined,
+}
+
+// Check if we have any active filters
+const hasActiveFilters = Object.values(currentFilters).some(
+  (value) => value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : true)
+)
+
+// Add this near where you handle the filters data
+const shouldDisableFilters = totalItems === 0
+---
+
+<section class="Listing" data-price-min={priceRange.minAbs} data-price-max={priceRange.maxAbs} data-mobile-open="false">
+  <header class="header">
+    <PortableText value={heading} heading="h1" class="heading" />
+    <PortableText value={paragraph} class="paragraph" />
+    <ul class="checklist">
+      {
+        checklist.map((item) => (
+          <li class="checklist-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none">
+              <path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M7.993 3.167c-.203.173-.304.26-.413.332a2.26 2.26 0 0 1-.82.34c-.129.025-.261.036-.527.057-.668.053-1.002.08-1.28.178a2.26 2.26 0 0 0-1.38 1.38c-.098.278-.124.612-.178 1.28a4.772 4.772 0 0 1-.057.526 2.26 2.26 0 0 1-.34.82c-.072.11-.159.21-.332.414-.434.51-.652.765-.779 1.031a2.26 2.26 0 0 0 0 1.95c.127.267.345.521.78 1.031.172.203.259.305.331.413.167.249.282.527.34.82.026.129.036.262.057.528.054.667.08 1.001.179 1.28a2.26 2.26 0 0 0 1.378 1.379c.279.098.613.125 1.28.178.267.021.4.032.527.057.294.058.573.174.821.34.109.073.21.16.413.332.51.435.765.652 1.031.78a2.26 2.26 0 0 0 1.95 0c.267-.128.522-.345 1.032-.78.203-.173.304-.26.412-.332a2.26 2.26 0 0 1 .821-.34c.128-.025.261-.036.527-.057.668-.053 1.002-.08 1.28-.178a2.26 2.26 0 0 0 1.379-1.38c.098-.278.125-.612.178-1.28.021-.265.032-.398.057-.526a2.26 2.26 0 0 1 .34-.82c.073-.11.16-.21.332-.414.435-.51.652-.764.78-1.031a2.26 2.26 0 0 0 0-1.95c-.128-.266-.345-.521-.78-1.031-.172-.203-.259-.305-.332-.413a2.26 2.26 0 0 1-.34-.82 4.761 4.761 0 0 1-.057-.528c-.053-.667-.08-1.001-.178-1.28a2.26 2.26 0 0 0-1.379-1.379c-.278-.098-.612-.125-1.28-.178-.266-.021-.399-.032-.527-.057a2.26 2.26 0 0 1-.82-.34 4.762 4.762 0 0 1-.413-.332c-.51-.435-.765-.652-1.032-.78a2.26 2.26 0 0 0-1.95 0c-.266.128-.521.345-1.031.78Zm5.65 5.552a.678.678 0 1 0-.958-.959l-4.042 4.042-1.33-1.329a.678.678 0 0 0-.958.96l1.808 1.808a.678.678 0 0 0 .96 0l4.52-4.522Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="checklist-item-text">{item}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </header>
+  <div class="wrapper max-width">
+    <div class="filters">
+      <div class="sidebar-header">
+        <span>{t.filtersHeading}</span>
+        <button class="close-sidebar" aria-label="Close filters">
+          <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
+            <circle cx={12} cy={12} r={10} stroke="#F67258" stroke-width={1.5}></circle>
+            <path
+              d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+              stroke="#F67258"
+              stroke-width={1.5}
+              stroke-linecap="round"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="filters-content">
+        <SelectFilter
+          heading={t.filters.location}
+          items={locationItems}
+          paramName="location"
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={t.filters.stars}
+          items={starsItems}
+          paramName="stars"
+          allowHtmlName
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={t.filters.rooms}
+          items={roomsRangeItems}
+          paramName="rooms"
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={t.filters.amenities}
+          items={amenitiesItems}
+          paramName="amenities"
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <PriceRangeFilter
+          heading={t.filters.price.heading}
+          description={t.filters.price.description}
+          minPrice={priceRange.min}
+          maxPrice={priceRange.max}
+          currentMin={currentFilters.minPrice}
+          currentMax={currentFilters.maxPrice}
+          forceDisabled={shouldDisableFilters}
+        />
+      </div>
+
+      <Button className="apply-filters" type="button" theme="primary" shade="dark" disabled>{t.apply}</Button>
+      {
+        hasActiveFilters && (
+          <Button className="clear-filters" type="button" theme="secondary">
+            {t.clear}
+          </Button>
+        )
+      }
+    </div>
+    <div class="box">
+      <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
+      <button class="mobile-filter-button">
+        <span>{t.filterButton}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+          <path
+            fill="#F67258"
+            d="M6.168 9.583a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM9.501 2.916a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM5.835 4.388a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1 0-1h4.667ZM9.835 11.055a.5.5 0 0 0 0 1H14.5a.5.5 0 1 0 0-1H9.835ZM.668 11.555a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1-.5-.5ZM14.501 4.388a.5.5 0 0 1 0 1h-1.333a.5.5 0 1 1 0-1h1.333Z"
+          ></path>
+        </svg>
+      </button>
+      <Dropdown isSortingDropdown />
+      <p class="count">
+        {t.foundPrefix}
+        <strong>
+          {totalItems}
+          {getHotelsCount()}
+        </strong>
+      </p>
+      {
+        totalItems > 0 ? (
+          <>
+            <div class="listing">
+              {listing.map((item, index) => (
+                <HotelCard
+                  {...item}
+                  imgConfig={{
+                    sizes:
+                      '(max-width: 30.5625rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 56.1875rem) 42vw, (max-width: 69.3125rem) 376px, 325px',
+                    loading: index <= 3 ? 'eager' : 'lazy',
+                    fetchpriority: index === 0 ? 'high' : 'auto',
+                  }}
+                />
+              ))}
+            </div>
+            <Pagination
+              slugBase={t.pathPrefix}
+              totalItems={totalItems}
+              itemsPerPage={ITEMS_PER_PAGE}
+              currentPage={currentPage}
+            />
+          </>
+        ) : (
+          <div class="no-results">
+            <p>
+              <Fragment set:html={t.noResults.heading} />
+            </p>
+            <ul class="list">
+              {t.noResults.list.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+            <Button theme="secondary" href={t.pathPrefix}>
+              {t.noResults.button}
+            </Button>
+          </div>
+        )
+      }
+    </div>
+  </div>
+  <div class="overlay" aria-hidden="true"></div>
+
+  <style lang="scss">
+    .Listing {
+      background-color: var(--neutral-200, #f5f1ec);
+
+      .header {
+        max-width: 85.375rem;
+        margin: 0 auto;
+        background: var(--neutral-100, #faf7f7);
+        border-radius: 0rem 0rem 2.5rem 2.5rem;
+        padding: clamp(4rem, calc(5.25vw / 0.48), 5.25rem) var(--pageMargin) 2rem;
+        display: grid;
+        grid-template-columns: minmax(auto, 40.9375rem);
+        justify-content: center;
+        text-align: center;
+
+        .heading {
+          margin-bottom: 0.75rem;
+        }
+        .paragraph {
+          margin-bottom: clamp(0.75rem, calc(1.75vw / 0.48), 1.75rem);
+          font-size: var(--typography-body-xl, 1.125rem);
+          line-height: 1.5;
+        }
+        .checklist {
+          display: flex;
+          gap: 0.375rem 1.5rem;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+
+          li {
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+            font-size: var(--typography-body-xl, 1.125rem);
+            line-height: 1.5;
+
+            svg {
+              margin-top: 3px;
+            }
+          }
+        }
+      }
+
+      .wrapper {
+        padding: 3rem 0;
+        display: grid;
+        grid-template-columns: 20.4375rem 1fr;
+        gap: 2rem;
+
+        .mobile-filter-button {
+          display: none;
+          align-items: center;
+          gap: 0.5rem;
+          min-height: 2.75rem;
+          padding: 0 0.625rem;
+          border-radius: 0.5rem;
+          color: var(--primary-800, #45051c);
+          line-height: 1.7;
+          font-size: var(--typography-body-m, 0.875rem);
+          background-color: var(--neutral-100);
+          letter-spacing: -0.01em;
+          min-width: 5rem;
+          justify-content: center;
+          border: 1px solid var(--neutral-500, #d2c1b0);
+          cursor: pointer;
+          transition: border-color 150ms;
+          grid-column: 2/3;
+          grid-row: 2/3;
+          svg {
+            margin-top: 3px;
+            transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          }
+
+          &:hover {
+            border-color: var(--primary-700, #600d2a);
+
+            svg {
+              transform: scale(1.1);
+            }
+          }
+        }
+
+        .filters {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+
+          .sidebar-header {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.625rem;
+
+            span {
+              font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+              color: var(--primary-700, #600d2a);
+              line-height: 0.9;
+              letter-spacing: -0.065em;
+              font-size: var(--typography-heading-l, 2rem);
+              text-transform: uppercase;
+              font-weight: 760;
+              margin-top: 8px;
+            }
+
+            .close-sidebar {
+              position: relative;
+              isolation: isolate;
+              border-radius: 50%;
+              min-width: 2.75rem;
+              min-height: 2.75rem;
+              display: grid;
+              place-items: center;
+              transition: transform 300ms var(--easing);
+
+              &::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: var(--neutral-100, #f5f1ec);
+                border-radius: 50%;
+                transform: scale(0);
+                transition: transform 300ms var(--easing);
+                z-index: -1;
+              }
+
+              &:hover {
+                transform: scale(1.2);
+                &::before {
+                  transform: scale(1);
+                }
+              }
+
+              &:focus:not(:focus-visible) {
+                transform: scale(1);
+              }
+
+              &:focus-visible {
+                outline-offset: -2px;
+              }
+            }
+          }
+
+          .filters-content {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--neutral-100);
+            border-radius: 0 0 0.5rem 0.5rem;
+            :global(.stars-row) {
+              display: flex;
+              align-items: center;
+              gap: 0.125rem;
+
+              svg {
+                width: 0.875rem;
+                height: 0.875rem;
+              }
+            }
+          }
+
+          :global(> button) {
+            max-width: 100%;
+            width: 100%;
+
+            &[data-theme='secondary'] {
+              display: flex;
+              justify-content: center;
+              margin-top: 0.5rem;
+            }
+
+            &[data-theme='primary'] {
+              margin-top: 1rem;
+              display: none;
+              :global(span) {
+                margin: 0 auto;
+                padding-right: 1.75rem;
+              }
+            }
+          }
+        }
+
+        .box {
+          justify-self: end;
+          max-width: 54.75rem;
+          display: grid;
+          width: 100%;
+          grid-template-columns: repeat(2, 1fr);
+          justify-content: space-between;
+          grid-template-rows: auto auto auto 1fr;
+          column-gap: clamp(0.25rem, calc(0.5vw / 0.48), 0.75rem);
+
+          :global(.SearchBar) {
+            grid-column: 1/2;
+            grid-row: 1/2;
+            width: 100%;
+            max-width: 20.3125rem;
+            align-self: center;
+            margin: 0;
+          }
+
+          :global(.filter-dropdown) {
+            grid-column: 2/3;
+            grid-row: 1/2;
+            width: 100%;
+            max-width: 20.3125rem;
+            justify-self: end;
+            align-self: center;
+          }
+
+          .count {
+            grid-column: 1/2;
+            grid-row: 2/3;
+            margin: 0.875rem 0 0.375rem;
+            font-size: var(--typography-body-m, 0.875rem);
+            letter-spacing: -0.01em;
+            line-height: 1.7;
+
+            :global(strong) {
+              font-size: var(--typography-body-m, 0.875rem);
+              font-weight: 700;
+              letter-spacing: -0.02em;
+              color: var(--primary-800, #45051c);
+            }
+          }
+
+          .listing {
+            grid-column: 1/3;
+            grid-row: 3/4;
+            gap: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+            display: grid;
+            grid-template-columns: 1fr;
+            align-self: start;
+          }
+          :global(.Pagination) {
+            grid-column: 1/3;
+            grid-row: 4/5;
+            margin-top: 3rem;
+            align-self: start;
+          }
+
+          .no-results {
+            grid-column: 1/3;
+            grid-row: 3/5;
+            display: flex;
+            flex-direction: column;
+            justify-self: center;
+            max-width: 27.125rem;
+            margin: clamp(3rem, calc(4vw / 0.48), 4rem) 0;
+
+            p {
+              font-size: var(--typography-body-2xl, 1.5rem);
+              letter-spacing: -0.035em;
+              line-height: 1.25;
+              margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+
+              :global(strong) {
+                color: var(--primary-800, #45051c);
+                font-weight: 700;
+                letter-spacing: -0.04em;
+              }
+            }
+
+            ul {
+              margin-bottom: clamp(2rem, calc(2.5vw / 0.48), 2.5rem);
+              li {
+                display: grid;
+                gap: 0.5rem;
+                grid-template-columns: auto 1fr;
+                font-size: var(--typography-body-xl, 1.125rem);
+
+                line-height: 1.5;
+                letter-spacing: -0.02em;
+
+                &::before {
+                  content: '';
+                  width: 0.25rem;
+                  height: 0.25rem;
+                  border-radius: 50%;
+                  background-color: var(--primary-400, #74535e);
+                  margin-top: 0.825rem;
+                }
+                &:not(:last-child) {
+                  margin-bottom: clamp(0.25rem, calc(0.375vw / 0.48), 0.375rem);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(237, 230, 222, 0.25);
+        backdrop-filter: blur(6px);
+        top: 0;
+        z-index: 100;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 200ms,
+          visibility 200ms;
+
+        &[aria-hidden='false'] {
+          opacity: 1;
+          visibility: visible;
+        }
+      }
+
+      @media (max-width: 69.3125rem) {
+        .wrapper {
+          grid-template-columns: 1fr;
+          display: block;
+
+          .mobile-filter-button {
+            display: flex;
+          }
+
+          .filters {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 150;
+            width: 100%;
+            max-width: clamp(22.5rem, calc(33.3125vw / 0.48), 33.3125rem);
+            height: 100vh;
+            background: var(--neutral-200);
+            transform: translateX(-50%);
+            opacity: 0;
+            visibility: hidden;
+            transition:
+              opacity 100ms,
+              visibility 100ms,
+              transform 250ms var(--easing);
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid;
+            border-image: linear-gradient(0deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: clamp(1.5rem, calc(4vw / 0.48), 4rem) clamp(1rem, calc(4vw / 0.48), 4rem);
+
+            .filters-content {
+              overflow-y: auto;
+              padding-right: 0.75rem;
+              display: flex;
+              flex-direction: column;
+              height: max-content;
+              border-radius: 0.5rem;
+
+              flex: 1;
+
+              :global(> details) {
+                flex-shrink: 0 !important;
+              }
+            }
+
+            .sidebar-header {
+              display: flex;
+            }
+
+            &[aria-hidden='false'] {
+              transform: translateX(0);
+              opacity: 1;
+              visibility: visible;
+            }
+          }
+
+          .box {
+            grid-column: 1/2;
+            grid-row: 1/2;
+            grid-template-columns: 1fr auto auto;
+            grid-template-rows: auto auto 1fr;
+            max-width: 48rem;
+            margin: 0 auto;
+
+            :global(.SearchBar) {
+              grid-column: 1/4;
+              grid-row: 1/2;
+              max-width: 100%;
+              margin-bottom: 0.375rem;
+            }
+
+            :global(.filter-dropdown) {
+              grid-column: 3/4;
+              grid-row: 2/3;
+              width: clamp(15.25rem, calc(18.625vw / 0.48), 18.625rem);
+            }
+
+            .count {
+              grid-column: 1/2;
+              grid-row: 2/3;
+            }
+
+            .listing {
+              margin-top: 1rem;
+              grid-column: 1/4;
+              grid-row: 3/4;
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+            }
+
+            :global(.Pagination) {
+              grid-column: 1/4;
+              grid-row: 4/5;
+            }
+
+            .no-results {
+              grid-column: 1/4;
+              grid-row: 3/5;
+              justify-self: start;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 30.5625rem) {
+        .header {
+          display: block;
+          text-align: start;
+
+          .paragraph {
+            margin-bottom: 0.75rem;
+          }
+
+          .checklist {
+            flex-direction: column;
+            background: var(--neutral-200, #f5f1ec);
+            border-radius: 0.5rem;
+            align-items: flex-start;
+            padding: 0.625rem 0.625rem 0.75rem 0.625rem;
+          }
+        }
+
+        .wrapper {
+          .filters {
+            max-width: 86vw;
+          }
+          .box {
+            .listing {
+              grid-template-columns: 1fr;
+            }
+
+            .no-results {
+              :global(a) {
+                max-width: 100%;
+                width: 100%;
+
+                display: flex;
+                justify-content: center;
+              }
+            }
+          }
+        }
+      }
+
+      @media (max-width: 27.4375rem) {
+        .wrapper .filters {
+          max-width: 86vw;
+          padding: 1.5rem 1rem;
+        }
+      }
+
+      @media (max-width: 31.1875rem) {
+        .wrapper {
+          .box {
+            grid-template-columns: auto 1fr;
+
+            .listing {
+              grid-column: 1/3;
+              grid-row: 4/5;
+            }
+
+            .mobile-filter-button {
+              grid-column: 1/2;
+              grid-row: 2/3;
+            }
+
+            .count {
+              grid-column: 1/3;
+              grid-row: 3/4;
+              justify-self: start;
+            }
+
+            :global(.filter-dropdown) {
+              grid-column: 2/3;
+              grid-row: 2/3;
+              width: 100%;
+            }
+
+            :global(.SearchBar) {
+              grid-column: 1/3;
+              grid-row: 1/2;
+            }
+
+            .no-results {
+              grid-column: 1/3;
+            }
+
+            :global(.Pagination) {
+              grid-column: 1/3;
+              grid-row: 5/6;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 23.0625rem) {
+        .wrapper {
+          .box {
+            .listing {
+              grid-column: 1/2;
+              grid-row: 5/6;
+            }
+
+            .no-results {
+              grid-column: 1/2;
+              grid-row: 5/6;
+            }
+
+            :global(.Pagination) {
+              grid-column: 1/2;
+              grid-row: 6/7;
+            }
+            .count {
+              grid-column: 1/2;
+              grid-row: 4/5;
+            }
+
+            .mobile-filter-button {
+              grid-column: 1/2;
+              grid-row: 2/3;
+              margin-bottom: 0.5rem;
+            }
+
+            :global(.filter-dropdown) {
+              grid-column: 1/2;
+              grid-row: 3/4;
+              max-width: 100%;
+            }
+
+            :global(.SearchBar) {
+              grid-column: 1/2;
+              grid-row: 1/2;
+            }
+          }
+        }
+      }
+    }
+  </style>
+
+  <script>
+    // Track filter changes
+    type FilterValue = string | string[] | number | null
+    const initialFilters: Record<string, FilterValue> = {
+      minPrice: (() => {
+        const value = new URLSearchParams(window.location.search).get('minPrice')
+        return value ? parseInt(value) : null
+      })(),
+      maxPrice: (() => {
+        const value = new URLSearchParams(window.location.search).get('maxPrice')
+        return value ? parseInt(value) : null
+      })(),
+    }
+    const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
+    const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')!
+
+    // Store the initial URL state
+    const initialUrlState = {
+      location: new URLSearchParams(window.location.search).get('location'),
+      stars: new URLSearchParams(window.location.search).get('stars'),
+      rooms: (() => {
+        const params = new URLSearchParams(window.location.search)
+        const minRooms = params.get('minRooms')
+        const maxRooms = params.get('maxRooms')
+
+        if (minRooms === '1' && maxRooms === '50') return '1-50'
+        if (minRooms === '51' && maxRooms === '80') return '51-80'
+        if (minRooms === '81' && maxRooms === '150') return '81-150'
+        if (minRooms === '150' && !maxRooms) return '150-'
+        return null
+      })(),
+      amenities: new URLSearchParams(window.location.search).get('amenities')?.split(',') || [],
+      minPrice: initialFilters.minPrice,
+      maxPrice: initialFilters.maxPrice,
+    }
+
+    // Custom event types
+    interface FilterChangeEvent extends CustomEvent {
+      detail: {
+        paramName: string
+        value?: string
+        checked?: boolean
+        minValue?: number
+        maxValue?: number
+      }
+    }
+
+    interface FilterClearEvent extends CustomEvent {
+      detail: {
+        paramName: string
+        secondaryParamName?: string
+      }
+    }
+
+    // Compare current state with initial state to detect changes
+    function checkFiltersChanged() {
+      let changed = false
+
+      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+        const paramName = filterGroup.dataset.paramName
+        if (!paramName) return
+
+        const isMulti = filterGroup.dataset.multi === 'true'
+
+        // Check select filters (both single and multi)
+        if (paramName === 'price') {
+          // Check if price range has changed
+
+          const currentMinPrice = initialFilters.minPrice as number | null
+          const currentMaxPrice = initialFilters.maxPrice as number | null
+
+          // Compare current price range with initial state
+          if (currentMinPrice !== initialUrlState.minPrice || currentMaxPrice !== initialUrlState.maxPrice) {
+            changed = true
+          }
+        } else if (isMulti) {
+          const selectedValues = new URLSearchParams(window.location.search).get(paramName)?.split(',') || []
+
+          const initialValues = (initialFilters[paramName] as string[]) || []
+
+          if (initialValues.length !== selectedValues.length) {
+            changed = true
+          } else {
+            for (const value of selectedValues) {
+              if (!initialValues.includes(value)) {
+                changed = true
+                break
+              }
+            }
+          }
+        } else if (paramName === 'rooms') {
+          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+          const currentValue = selectedInput ? selectedInput.value : null
+
+          // Compare with initial URL state instead of current filter state
+          if (currentValue !== initialUrlState.rooms) {
+            changed = true
+          }
+        } else {
+          // Compare with initial URL state
+          if (initialFilters[paramName] !== initialUrlState[paramName as keyof typeof initialUrlState]) {
+            changed = true
+          }
+        }
+      })
+
+      // Update apply button visibility
+      if (changed) {
+        applyButton.style.display = 'flex'
+        applyButton.disabled = false
+      } else {
+        applyButton.style.display = 'none'
+      }
+
+      return changed
+    }
+
+    // Set up filter listeners
+    function setupFilterListeners() {
+      // Listen for filterChange events from SelectFilter component
+      window.addEventListener('filterChange', ((e: FilterChangeEvent) => {
+        const { paramName, value, checked, minValue, maxValue } = e.detail
+
+        if (paramName === 'price') {
+          // Handle price range filter
+          initialFilters.minPrice = typeof minValue === 'number' ? minValue : null
+          initialFilters.maxPrice = typeof maxValue === 'number' ? maxValue : null
+        } else if (paramName === 'amenities') {
+          // For multi-select filters, handle array management
+          if (!initialFilters[paramName]) {
+            initialFilters[paramName] = []
+          }
+
+          if (Array.isArray(initialFilters[paramName])) {
+            // For multi-select filters, we need to either add or remove the value
+            if (checked === false) {
+              // Remove value if it exists in the array
+              initialFilters[paramName] = (initialFilters[paramName] as string[]).filter((item) => item !== value)
+            } else {
+              // Add if not already present
+              if (!(initialFilters[paramName] as string[]).includes(value || '')) {
+                ;(initialFilters[paramName] as string[]).push(value || '')
+              }
+            }
+          }
+        } else {
+          initialFilters[paramName] = value || null
+        }
+
+        checkFiltersChanged()
+      }) as EventListener)
+
+      // Listen for filterClear events from SelectFilter component
+      window.addEventListener('filterClear', ((e: FilterClearEvent) => {
+        const { paramName } = e.detail
+
+        if (paramName === 'price') {
+          // Clear price range filter
+          initialFilters.minPrice = null
+          initialFilters.maxPrice = null
+        } else if (paramName === 'rooms') {
+          // Special handling for room ranges
+          initialFilters[paramName] = null
+        } else if (paramName === 'amenities') {
+          // For multi-select, set to empty array
+          initialFilters[paramName] = []
+        } else {
+          // For single-select, set to null
+          initialFilters[paramName] = null
+        }
+
+        checkFiltersChanged()
+      }) as EventListener)
+
+      // Apply button
+      applyButton?.addEventListener('click', applyFilters)
+
+      // Clear all button
+      clearButton?.addEventListener('click', () => {
+        window.location.href = window.location.pathname
+      })
+    }
+
+    // Apply all filters
+    function applyFilters() {
+      const url = new URL(window.location.href)
+      const params = new URLSearchParams()
+
+      // Collect all filter values
+      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+        const paramName = filterGroup.dataset.paramName
+        if (!paramName) return
+
+        const isMulti = filterGroup.dataset.multi === 'true'
+
+        if (paramName === 'rooms') {
+          // Handle room ranges
+          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
+          if (selectedInput && wasSelected) {
+            const value = selectedInput.value
+
+            // Parse the room range value (e.g., "1-50", "51-80", "81-150", "150-")
+            const [min, max] = value.split('-')
+
+            // For 1-50 range, only use maxRooms
+            if (min === '1' && max === '50') {
+              params.append('maxRooms', max)
+            } else {
+              // For other ranges, use both min and max
+              if (min) {
+                params.append('minRooms', min)
+              }
+
+              if (max && max !== '') {
+                params.append('maxRooms', max)
+              }
+            }
+          }
+        } else if (isMulti) {
+          // Handle multi-select filters
+          const selectedValues = (initialFilters[paramName] as string[]) || []
+
+          if (selectedValues.length > 0) {
+            // Join values with commas for URL-friendly format
+            params.append(paramName, selectedValues.join(','))
+          }
+        } else {
+          // Handle single-select filters
+          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
+          const minAbs = document.querySelector<HTMLElement>('.Listing')?.getAttribute('data-price-min')
+          const maxAbs = document.querySelector<HTMLElement>('.Listing')?.getAttribute('data-price-max')
+
+          if (
+            (paramName === 'minPrice' && selectedInput?.value === minAbs) ||
+            (paramName === 'maxPrice' && selectedInput?.value === maxAbs)
+          ) {
+            return
+          }
+
+          if (selectedInput && wasSelected) {
+            params.append(paramName, selectedInput.value)
+          }
+        }
+      })
+
+      // Preserve search and order parameters if they exist
+      const currentParams = new URLSearchParams(window.location.search)
+      const searchParam = currentParams.get('search')
+      const orderParam = currentParams.get('order')
+
+      if (searchParam !== null) {
+        params.set('search', searchParam)
+      }
+      if (orderParam !== null) {
+        params.set('order', orderParam)
+      }
+
+      // Handle price range filter
+      const minPrice = initialFilters.minPrice
+      const maxPrice = initialFilters.maxPrice
+      if (typeof minPrice === 'number' && typeof maxPrice === 'number') {
+        params.set('minPrice', minPrice.toString())
+        params.set('maxPrice', maxPrice.toString())
+      }
+
+      // Update URL and redirect
+      url.search = params.toString()
+      window.location.href = url.toString()
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Initialize filters from URL parameters
+      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
+        const paramName = filterGroup.dataset.paramName
+        if (!paramName) return
+
+        const isMulti = filterGroup.dataset.multi === 'true'
+
+        if (isMulti) {
+          // Handle multi-select filters (like amenities)
+          const values = initialUrlState.amenities
+          initialFilters[paramName] = values
+
+          // Check each checkbox that matches a value in our array
+          if (values.length > 0) {
+            filterGroup.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
+              input.checked = values.includes(input.value)
+              const label = input.parentElement
+              if (label) {
+                label.setAttribute('data-selected', input.checked.toString())
+              }
+            })
+          }
+        } else if (paramName === 'rooms') {
+          // Handle room ranges
+          const roomValue = initialUrlState.rooms
+          initialFilters[paramName] = roomValue
+
+          if (roomValue) {
+            filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+              const isMatch = input.value === roomValue
+              input.checked = isMatch
+              const label = input.parentElement
+              if (label) {
+                label.setAttribute('data-selected', isMatch.toString())
+              }
+            })
+          }
+        } else {
+          // Handle single-select filters (location and stars)
+          const value = initialUrlState[paramName as keyof typeof initialUrlState]
+          initialFilters[paramName] = value
+
+          if (value) {
+            filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+              const isMatch = input.value === value
+              input.checked = isMatch
+              const label = input.parentElement
+              if (label) {
+                label.setAttribute('data-selected', isMatch.toString())
+              }
+            })
+          }
+        }
+      })
+
+      // Then setup all the listeners
+      setupFilterListeners()
+    })
+
+    // Toggle filter sidebar
+    const listingSection = document.querySelector<HTMLElement>('.Listing')! as HTMLElement
+    const filterButton = listingSection.querySelector<HTMLButtonElement>('.mobile-filter-button')! as HTMLButtonElement
+    const sidebar = listingSection.querySelector<HTMLDivElement>('.filters')! as HTMLDivElement
+    const closeButton = listingSection.querySelector<HTMLButtonElement>('.close-sidebar')! as HTMLButtonElement
+    const overlay = listingSection.querySelector<HTMLDivElement>('.overlay')! as HTMLDivElement
+
+    filterButton.addEventListener('click', () => {
+      listingSection.setAttribute('data-mobile-open', 'true')
+      sidebar.setAttribute('aria-hidden', 'false')
+      overlay.setAttribute('aria-hidden', 'false')
+    })
+
+    closeButton.addEventListener('click', () => {
+      listingSection.setAttribute('data-mobile-open', 'false')
+      sidebar.setAttribute('aria-hidden', 'true')
+      overlay.setAttribute('aria-hidden', 'true')
+    })
+
+    overlay.addEventListener('click', () => {
+      listingSection.setAttribute('data-mobile-open', 'false')
+      sidebar.setAttribute('aria-hidden', 'true')
+      overlay.setAttribute('aria-hidden', 'true')
+    })
+
+    // Handle resize events for responsive behavior
+    let currentWidth = window.innerWidth
+    window.addEventListener('resize', () => {
+      // Only check if width changed (to avoid triggering on height changes like mobile keyboard)
+      if (currentWidth !== window.innerWidth) {
+        currentWidth = window.innerWidth
+        const isMobile = currentWidth < 1109 // 69.3125rem
+
+        if (!isMobile && listingSection) {
+          // Close sidebar if user resizes to desktop while sidebar is open
+          if (sidebar && overlay && sidebar.getAttribute('aria-hidden') === 'false') {
+            listingSection.setAttribute('data-mobile-open', 'false')
+            sidebar.setAttribute('aria-hidden', 'true')
+            overlay.setAttribute('aria-hidden', 'true')
+          }
+        }
+      }
+    })
+  </script>
+</section>

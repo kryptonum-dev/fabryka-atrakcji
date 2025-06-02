@@ -1,9 +1,46 @@
 ---
 import type { ComponentProps } from 'astro/types'
-import FullWidthPhoto, { FullWidthPhoto_Query } from '@/components/global/FullWidthPhoto.astro'
-
+import CardSteps, { CardSteps_Query } from '@/components/global/CardSteps.astro'
+import GradientBackgroundCta, { GradientBackgroundCta_Query } from '@/components/global/GradientBackgroundCta.astro'
+import CaseStudyList, { CaseStudyList_Query } from '@/components/global/CaseStudyList.astro'
+import ActivitiesCarousel, { ActivitiesCarousel_Query } from '@/components/global/ActivitiesCarousel/index.astro'
+import LargeImageWithGridList, { LargeImageWithGridList_Query } from '@/components/global/LargeImageWithGridList.astro'
+import HighlightedBlogPosts, { HighlightedBlogPosts_Query } from '@/components/global/HighlightedBlogPosts/index.astro'
+import Newsletter, { Newsletter_Query } from '@/components/global/Newsletter/index.astro'
+import AsymmetricalPhotoGalleryGrid, {
+  AsymmetricalPhotoGalleryGrid_Query,
+} from '@/components/global/AsymmetricalPhotoGalleryGrid.astro'
+import StepsList, { StepsList_Query } from '@/components/global/StepsList.astro'
+import Faq, { Faq_Query } from '@/components/global/Faq.astro'
+import ContactForm, { ContactForm_Query } from '@/components/global/ContactForm/index.astro'
+import ListImageProccessGrid, { ListImageProccessGrid_Query } from '@/components/global/ListImageProccessGrid.astro'
+import CardListWithCta, { CardListWithCta_Query } from '@/components/global/CardListWithCta.astro'
+import FloatingPointsList, { FloatingPointsList_Query } from '@/components/global/FloatingPointsList.astro'
+import BackgroundImageWithCenteredHeading, {
+  BackgroundImageWithCenteredHeading_Query,
+} from '@/components/global/BackgroundImageWithCenteredHeading.astro'
+import TextBlocksGrid, { TextBlocksGrid_Query } from '@/components/global/TextBlocksGrid.astro'
+import Testimonials, { Testimonials_Query } from '@/components/global/Testimonials.astro'
+import FeaturedHotelsList, { FeaturedHotelsList_Query } from '@/components/global/FeaturedHotelsList.astro'
 const components = {
-  FullWidthPhoto,
+  CardSteps,
+  GradientBackgroundCta,
+  CaseStudyList,
+  ActivitiesCarousel,
+  LargeImageWithGridList,
+  Testimonials,
+  HighlightedBlogPosts,
+  Newsletter,
+  AsymmetricalPhotoGalleryGrid,
+  StepsList,
+  Faq,
+  ContactForm,
+  ListImageProccessGrid,
+  CardListWithCta,
+  FloatingPointsList,
+  BackgroundImageWithCenteredHeading,
+  TextBlocksGrid,
+  FeaturedHotelsList,
 }
 
 type ComponentsMap = {
@@ -16,16 +53,33 @@ export type ComponentsProps = Array<ComponentsMap[keyof typeof components]>
 
 type Props = {
   data: ComponentsProps
-  indexStart?: number
+  hasPreviousSections?: boolean
 }
 
-const { data, indexStart = 0 } = Astro.props
+const { data, hasPreviousSections = false } = Astro.props
 
 export const Components_Query = /* groq */ `
   components[] {
     _type,
     sectionId,
-    ${FullWidthPhoto_Query}
+    ${CardSteps_Query}
+    ${GradientBackgroundCta_Query}
+    ${CaseStudyList_Query}
+    ${ActivitiesCarousel_Query}
+    ${LargeImageWithGridList_Query}
+    ${Testimonials_Query}
+    ${HighlightedBlogPosts_Query}
+    ${Newsletter_Query}
+    ${AsymmetricalPhotoGalleryGrid_Query}
+    ${StepsList_Query}
+    ${Faq_Query}
+    ${ContactForm_Query}
+    ${ListImageProccessGrid_Query}
+    ${CardListWithCta_Query}
+    ${FloatingPointsList_Query}
+    ${BackgroundImageWithCenteredHeading_Query}
+    ${TextBlocksGrid_Query}
+    ${FeaturedHotelsList_Query}
   },
 `
 ---
@@ -36,6 +90,6 @@ export const Components_Query = /* groq */ `
     // the implementation and avoid creating separate typed interfaces for each component.
     const DynamicComponent = components[item._type] as any
     if (!DynamicComponent) return null
-    return <DynamicComponent {...item} index={indexStart + i} />
+    return <DynamicComponent {...item} index={hasPreviousSections ? i + 1 : i} />
   })
 }

@@ -1,0 +1,369 @@
+---
+import { getLangFromPath, type Language } from '@/src/global/languages'
+
+interface Props {
+  value: string
+  placeholder?: string
+  hasWrapper?: boolean
+}
+
+const { value, placeholder, hasWrapper = false } = Astro.props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    buttonLabel: 'Szukaj',
+    historyLabel: 'Historia wyszukiwania',
+  },
+  en: {
+    buttonLabel: 'Search',
+    historyLabel: 'Search history',
+  },
+}
+
+const t = translations[lang]
+---
+
+<form class="SearchBar" method="get" data-has-wrapper={hasWrapper}>
+  <div class="search-wrapper">
+    <div class="search-container">
+      <input type="text" name="search" value={value} placeholder={placeholder || ''} class="search-input" />
+      <button type="submit" class="search-button" aria-label={t.buttonLabel}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" viewBox="0 0 17 16" fill="none">
+          <circle cx="8.16683" cy="7.66665" r="6.33333" stroke="#F67258" stroke-width="1.5"></circle>
+          <path d="M12.8335 12.3333L15.1668 14.6666" stroke="#F67258" stroke-width="1.5" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="search-history-dropdown" role="listbox" aria-label={t.historyLabel}></div>
+  </div>
+</form>
+
+<style lang="scss">
+  .SearchBar {
+    isolation: isolate;
+    width: 100%;
+    min-height: 3rem;
+    display: flex;
+    max-width: 20.3125rem;
+    align-items: center;
+    margin: 0 auto clamp(0.25rem, calc(0.375vw / 0.48), 0.375rem);
+    position: relative;
+    isolation: isolate;
+    z-index: 80;
+
+    &[data-has-wrapper='true'] {
+      padding: 1.5rem var(--pageMargin);
+      background: var(--neutral-200, #f5f1ec);
+      border-radius: 0 0 clamp(1rem, calc(2vw / 0.48), 2rem) clamp(1rem, calc(2vw / 0.48), 2rem);
+      display: grid;
+      place-items: center;
+      margin-bottom: calc(-1 * clamp(2.5rem, calc(3.5vw / 0.48), 4.5rem));
+      max-width: 88rem;
+
+      .search-wrapper {
+        max-width: 20.3125rem;
+      }
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-container {
+      position: relative;
+      width: 100%;
+      border: 1px solid var(--neutral-500);
+      border-radius: 0.25rem;
+      background: var(--neutral-100);
+      transition: border-color 150ms;
+
+      &:has(+ .search-history-dropdown[style*='display: block']) {
+        border-radius: 0.25rem 0.25rem 0 0;
+        border-bottom-color: transparent;
+        border-color: var(--neutral-500);
+      }
+
+      &:hover:not(:has(+ .search-history-dropdown[style*='display: block'])) {
+        border-color: var(--primary-700);
+      }
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 2.5rem;
+      padding: 0 2.125rem 0 0.625rem;
+      background: transparent;
+      border: none;
+      font-size: var(--typography-body-m, 0.875rem);
+      line-height: 1.7;
+      letter-spacing: -0.01em;
+      color: var(--primary-800);
+
+      &::placeholder {
+        color: var(--primary-400);
+      }
+
+      &:focus {
+        outline: none;
+      }
+
+      &:focus-visible {
+        outline: none;
+        border-radius: 0.25rem;
+      }
+    }
+
+    .search-button {
+      position: absolute;
+      right: 0;
+      top: 0;
+      color: var(--neutral-500);
+      transition: transform 250ms var(--easing);
+      aspect-ratio: 1;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      &:hover {
+        transform: translateY(-0.125rem) scale(1.05) rotate(7deg);
+      }
+    }
+
+    .search-history-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% - 1px);
+      left: 0;
+      width: 100%;
+      background: var(--neutral-100);
+      border: 1px solid var(--neutral-500);
+      border-top: none;
+      border-radius: 0 0 0.25rem 0.25rem;
+      max-height: 15rem;
+      overflow: hidden;
+      transition: height 150ms var(--easing);
+      box-shadow: 0px 8px 24px 0px rgba(255, 251, 251, 0.4);
+
+      :global(.history-item input[type='radio']) {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      :global(.history-item label) {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        width: 100%;
+        padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+        min-height: 2.5rem;
+        position: relative;
+        cursor: pointer;
+        font-size: var(--typography-body-m, 0.875rem);
+        color: var(--primary-800, #45051c);
+        letter-spacing: -0.01em;
+        line-height: 1.7;
+        transition: background-color 150ms;
+
+        :global(span) {
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
+        :global(svg) {
+          margin-top: 1px;
+        }
+
+        &:hover {
+          background-color: var(--neutral-200);
+        }
+      }
+
+      :global(.history-item input[type='radio']:focus-visible + label) {
+        outline: 2px solid var(--primary-800);
+        border-radius: 0.25rem;
+        outline-offset: -2px;
+      }
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.querySelector('.SearchBar') as HTMLFormElement
+    const searchWrapper = form.querySelector('.search-wrapper') as HTMLDivElement
+    const input = form.querySelector('.search-input') as HTMLInputElement
+    const dropdown = form.querySelector('.search-history-dropdown') as HTMLDivElement
+
+    // Prevent empty form submission
+    form.addEventListener('submit', (e) => {
+      const term = input.value.trim()
+      if (!term) {
+        e.preventDefault()
+        return
+      }
+      saveSearchTerm(term)
+    })
+
+    // Show dropdown on focus if input is empty
+    input.addEventListener('focus', () => {
+      showHistoryDropdown(input.value.trim())
+    })
+
+    // Handle keyboard navigation from search input
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        const firstRadio = dropdown.querySelector('input[type="radio"]') as HTMLInputElement
+        if (firstRadio) {
+          firstRadio.focus()
+        }
+      }
+    })
+
+    // Handle keyboard navigation from radio inputs
+    dropdown.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        const firstRadio = dropdown.querySelector('input[type="radio"]') as HTMLInputElement
+        if (document.activeElement === firstRadio) {
+          e.preventDefault()
+          input.focus()
+        }
+      }
+    })
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!searchWrapper.contains(e.target as Node)) {
+        hideHistoryDropdown()
+      }
+    })
+
+    // Toggle dropdown on input value change
+    input.addEventListener('input', () => {
+      showHistoryDropdown(input.value.trim())
+    })
+
+    // Helper functions
+    function saveSearchTerm(term: string) {
+      if (!term.trim()) return
+
+      const history = JSON.parse(localStorage.getItem('searchHistory') || '[]')
+      const newHistory = [term, ...history.filter((item: string) => item !== term)].slice(0, 5)
+
+      localStorage.setItem('searchHistory', JSON.stringify(newHistory))
+    }
+
+    function hideHistoryDropdown() {
+      if (dropdown.style.display === 'block') {
+        const startHeight = dropdown.scrollHeight
+        dropdown.style.height = startHeight + 'px'
+        requestAnimationFrame(() => {
+          dropdown.style.height = '0'
+        })
+
+        dropdown.addEventListener(
+          'transitionend',
+          () => {
+            dropdown.style.display = 'none'
+            dropdown.style.height = ''
+          },
+          { once: true }
+        )
+      }
+    }
+
+    function showHistoryDropdown(filterValue: string = '') {
+      const history = JSON.parse(localStorage.getItem('searchHistory') || '[]')
+
+      // Filter history items based on input value using fuzzy match
+      const filteredHistory = filterValue
+        ? history.filter((term: string) => {
+            const termLower = term.toLowerCase()
+            const filterLower = filterValue.toLowerCase()
+
+            let termIndex = 0
+            let filterIndex = 0
+
+            while (filterIndex < filterLower.length && termIndex < termLower.length) {
+              if (filterLower[filterIndex] === termLower[termIndex]) {
+                filterIndex++
+              }
+              termIndex++
+            }
+
+            return filterIndex === filterLower.length
+          })
+        : history
+
+      if (filteredHistory.length === 0) {
+        hideHistoryDropdown()
+        return
+      }
+
+      dropdown.innerHTML = ''
+
+      filteredHistory.forEach((term: string, index: number) => {
+        const item = document.createElement('div')
+        item.className = 'history-item'
+
+        const id = `history-item-${index}`
+        item.innerHTML = `
+          <input type="radio" id="${id}" value="${term}" />
+          <label for="${id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none">
+            <path stroke="#D2C1B0" stroke-linecap="round" stroke-linejoin="round" d="M6 4v2l1.25 1.25"/>
+            <path fill="#D2C1B0" d="M2.802 2.802 2.45 2.45l.353.353Zm-.633.633-.5.003a.5.5 0 0 0 .497.497l.003-.5Zm1.27.507a.5.5 0 1 0 .005-1l-.005 1ZM2.662 2.16a.5.5 0 1 0-1 .005l1-.005Zm-.625 3.25a.5.5 0 0 0-.99-.136l.99.135ZM9.52 2.48C7.562.523 4.397.502 2.45 2.45l.707.707c1.55-1.55 4.082-1.543 5.656.032l.708-.708ZM2.482 9.52c1.958 1.958 5.123 1.979 7.07.031l-.707-.707c-1.55 1.55-4.082 1.543-5.656-.032l-.708.708Zm7.07.031c1.948-1.947 1.927-5.112-.031-7.07l-.708.707c1.575 1.574 1.582 4.106.032 5.656l.707.707ZM2.45 2.45l-.634.633.707.707.634-.633-.707-.707Zm-.283 1.486 1.273.007.005-1-1.273-.007-.005 1Zm.503-.502L2.662 2.16l-1 .005.007 1.273 1-.005Zm-1.623 1.84A5.03 5.03 0 0 0 2.481 9.52l.707-.708a4.031 4.031 0 0 1-1.15-3.403l-.992-.135Z"/>
+            </svg>
+            <span>${term}</span>
+          </label>
+        `
+
+        const radio = item.querySelector('input[type="radio"]') as HTMLInputElement
+        const label = item.querySelector('label') as HTMLLabelElement
+
+        // Handle click on label (more reliable than radio click)
+        label.addEventListener('click', () => {
+          input.value = term
+          form.requestSubmit()
+        })
+
+        // Handle keyboard selection
+        radio.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            input.value = term
+            form.requestSubmit()
+          }
+        })
+
+        dropdown.appendChild(item)
+      })
+
+      if (dropdown.style.display !== 'block') {
+        dropdown.style.display = 'block'
+        dropdown.style.height = '0'
+        requestAnimationFrame(() => {
+          dropdown.style.height = dropdown.scrollHeight + 'px'
+        })
+
+        dropdown.addEventListener(
+          'transitionend',
+          () => {
+            dropdown.style.height = ''
+          },
+          { once: true }
+        )
+      }
+    }
+  })
+</script>

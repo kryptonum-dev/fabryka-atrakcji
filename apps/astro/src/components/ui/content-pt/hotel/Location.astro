@@ -1,0 +1,532 @@
+---
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import Button from '@/src/components/ui/Button'
+import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
+import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
+
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const slug = Astro.params.slug
+
+const slugPrefix = {
+  pl: '/pl/hotele/',
+  en: '/en/hotels/',
+}
+
+const data = await sanityFetch<{
+  address: { city: string; street: string; postalCode: string; voivodeship: string }
+  googleMaps: {
+    googleMapsLink: string
+    googleMapsEmbed?: string
+  }
+}>({
+  query: `*[_type == "Hotels_Collection" && language == $lang && slug.current == $slug][0]{
+    address,
+    googleMaps{
+      googleMapsLink,
+      googleMapsEmbed,
+    },
+  }`,
+  params: { slug: slugPrefix[lang] + slug + '/' || null, lang: lang || null },
+})
+
+export const Location_Query = `
+  _type == "Location" => {
+    _type,
+    ${PortableTextQuery('heading')}
+    howToGetThere {
+      ${PortableTextQuery('subheading')}
+      transportList,
+    },
+    attractions {
+      ${PortableTextQuery('subheading')}
+      highlightedAttractions[] {
+        name,
+        distance,
+      },
+      list[] {
+        heading,
+        items[] {
+          name,
+          distance,
+        },
+      },
+    },
+  },
+`
+
+interface Props {
+  node: {
+    heading: PortableTextValue
+    howToGetThere: {
+      subheading: PortableTextValue
+      transportList: {
+        byCar: string
+        publicTransport: string
+        parking: string
+        callout: string
+      }
+    }
+    attractions: {
+      subheading: PortableTextValue
+      highlightedAttractions: {
+        name: string
+        distance: number
+      }[]
+      list: {
+        heading: string
+        items: {
+          name: string
+          distance: number
+        }[]
+      }[]
+    }
+  }
+}
+
+const { node } = Astro.props
+
+const translations = {
+  pl: {
+    mapTitle: 'Mapa lokalizacji hotelu',
+    mapAriaLabel: 'Lokalizacja hotelu na Mapach Google',
+    getGoogleMapsRoute: 'Wyznacz trasę Google Maps',
+
+    transportList: {
+      byCar: 'Samochodem',
+      publicTransport: 'Transport publiczny',
+      parking: 'Parking',
+    },
+    attractions: {
+      showAll: 'Zobacz wszystkie atrakcje',
+      popupHeading: '<h2><strong>W okolicach</strong> obiektu znajdziecie</h2>',
+    },
+  },
+  en: {
+    mapTitle: 'Hotel location map',
+    mapAriaLabel: 'Hotel location on Google Maps',
+    getGoogleMapsRoute: 'Get Google Maps route',
+
+    transportList: {
+      byCar: 'By car',
+      publicTransport: 'Public transport',
+      parking: 'Parking',
+    },
+    attractions: {
+      showAll: 'See all attractions',
+      popupHeading: '<h2><strong>In the vicinity</strong> of the hotel you will find</h2>',
+    },
+  },
+}
+
+const t = translations[lang]
+
+const transformToKm = (meters: number) => {
+  if (meters < 1000) {
+    return `${meters} m`
+  }
+  const kmValue = Math.floor(meters / 1000)
+  const remainingMeters = Math.floor((meters % 1000) / 100)
+  return `${kmValue},${remainingMeters} km`
+}
+---
+
+<section class="Location">
+  <PortableText value={node.heading} heading="h2" class="heading" />
+  <div class="map">
+    <div class="wrapper">
+      {
+        data.googleMaps.googleMapsEmbed && (
+          <iframe
+            src={data.googleMaps.googleMapsEmbed}
+            width="100%"
+            height="100%"
+            style="border:0;"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title={t.mapTitle}
+            aria-label={t.mapAriaLabel}
+          />
+        )
+      }
+    </div>
+    <p class="address">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+        ><path
+          fill="#F67258"
+          d="M8 14.666c3.682 0 6.667-1.343 6.667-3 0-.844-.775-1.607-2.023-2.152-.761 1.397-1.922 2.601-3.397 3.232-.793.338-1.7.338-2.493 0-1.474-.63-2.636-1.835-3.397-3.232-1.248.545-2.023 1.308-2.023 2.152 0 1.657 2.985 3 6.667 3Z"
+        ></path><path
+          fill="#F67258"
+          fill-rule="evenodd"
+          d="M3.334 5.677c0-2.399 2.09-4.343 4.667-4.343s4.666 1.944 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z"
+          clip-rule="evenodd"></path></svg
+      >
+      <span
+        >{data.address.street}{', '}{data.address.postalCode}{' '}{data.address.city}{', '}{
+          data.address.voivodeship
+        }</span
+      >
+    </p>
+    <Button
+      theme="secondary"
+      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${data.address.street}, ${data.address.postalCode} ${data.address.city}, ${data.address.voivodeship}`)}`}
+      >{t.getGoogleMapsRoute}</Button
+    >
+  </div>
+  <PortableText value={node.howToGetThere.subheading} heading="h3" class="subheading" />
+  <ul class="transport-list">
+    {
+      node.howToGetThere.transportList?.byCar && (
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+            <path
+              fill="#F67258"
+              d="M19.583 5.833c.23 0 .417.187.417.417v.426c0 .66-.772.824-1.347.824l-.905-1.667h1.835Zm-1.2 2.922c.532.988.788 1.877.788 3.055 0 1.142-.331 2.11-.838 3.317v1.54c0 .46-.373.833-.833.833h-1.25a.834.834 0 0 1-.833-.833v-.834H4.583v.834c0 .46-.373.833-.833.833H2.5a.834.834 0 0 1-.833-.833v-1.54C1.16 13.921.829 12.953.829 11.81c0-1.178.256-2.067.788-3.055.691-1.28 1.543-2.878 2.442-4.377.69-1.151 1.052-1.422 1.898-1.574C7.234 2.575 8.39 2.5 10 2.5c1.61 0 2.766.075 4.043.304.846.152 1.208.423 1.898 1.574.899 1.5 1.75 3.096 2.441 4.377ZM5 11.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0Zm8.333.833a.417.417 0 0 0-.416-.416H7.083a.417.417 0 0 0 0 .833h5.834c.23 0 .416-.187.416-.417Zm2.451-4.606s-.617-1.521-1.359-2.618a1.114 1.114 0 0 0-.724-.471c-1.26-.227-2.363-.3-3.701-.3s-2.442.073-3.7.3a1.108 1.108 0 0 0-.725.471c-.743 1.096-1.36 2.619-1.36 2.619 1.367.26 3.592.414 5.785.414s4.418-.154 5.784-.415ZM17.5 11.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0ZM2.252 5.833H.417A.417.417 0 0 0 0 6.25v.426c0 .66.772.824 1.347.824l.905-1.667Z"
+            />
+          </svg>
+          <p>
+            <strong>
+              {t.transportList.byCar}
+              {': '}
+            </strong>
+            <span>{node.howToGetThere.transportList.byCar}</span>
+          </p>
+        </li>
+      )
+    }
+    {
+      node.howToGetThere.transportList?.publicTransport && (
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+            <path
+              fill="#F67258"
+              fill-rule="evenodd"
+              d="M9.997 1.666c-3.142 0-4.714 0-5.69.976-.886.886-.968 2.262-.976 4.857h-.834a.833.833 0 0 0-.833.834v.833c0 .262.124.51.333.667l1.334 1c.007 2.595.09 3.97.976 4.857.202.202.43.362.69.489v1.32c0 .46.373.834.834.834h1.25c.46 0 .833-.373.833-.834v-.848c.606.015 1.295.015 2.083.015.789 0 1.478 0 2.084-.015v.848c0 .46.373.834.833.834h1.25c.46 0 .833-.373.833-.834v-1.32a2.52 2.52 0 0 0 .69-.49c.887-.885.97-2.261.977-4.856l1.333-1a.833.833 0 0 0 .334-.667v-.833a.833.833 0 0 0-.834-.834h-.834c-.007-2.595-.09-3.97-.975-4.857-.977-.976-2.548-.976-5.69-.976Zm-5.416 6.25c0 1.179 0 1.768.366 2.134.366.366.955.366 2.134.366h5.833c1.179 0 1.768 0 2.134-.366.366-.366.366-.955.366-2.134V5.833c0-1.179 0-1.768-.366-2.134-.366-.366-.955-.366-2.134-.366H7.081c-1.179 0-1.768 0-2.134.366-.366.366-.366.955-.366 2.134v2.083Zm.625 5.417c0-.345.28-.625.625-.625h1.25a.625.625 0 1 1 0 1.25H5.83a.625.625 0 0 1-.625-.625Zm9.583 0a.625.625 0 0 0-.625-.625h-1.25a.625.625 0 1 0 0 1.25h1.25c.345 0 .625-.28.625-.625Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <p>
+            <strong>
+              {t.transportList.publicTransport}
+              {': '}
+            </strong>
+            <span>{node.howToGetThere.transportList.publicTransport}</span>
+          </p>
+        </li>
+      )
+    }
+    {
+      node.howToGetThere.transportList?.parking && (
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="0.835938" y="0.832031" width="18.3333" height="18.3333" rx="4" fill="#F67258" />
+            <path
+              d="M8.60241 14C8.9351 14 9.20482 13.7442 9.20482 13.4286V10.7429H10.5C11.8785 10.7429 13 9.67905 13 8.37143C13 7.06381 11.8785 6 10.5 6C10.4941 6 10.4882 6.00008 10.4823 6.00023H8.60321C8.60293 6.00023 8.60269 6.00019 8.60241 6.00019C8.26972 6.00019 8 6.25604 8 6.57162V10.1714V13.4286C8 13.7442 8.26972 14 8.60241 14ZM10.5 7.14309C10.5049 7.14309 10.5097 7.14305 10.5146 7.14293C11.222 7.1504 11.7952 7.69863 11.7952 8.37143C11.7952 9.04888 11.2141 9.6 10.5 9.6H9.20482V7.14309H10.5Z"
+              fill="#FAF7F7"
+            />
+          </svg>
+          <p>
+            <strong>
+              {t.transportList.parking}
+              {': '}
+            </strong>
+            <span>{node.howToGetThere.transportList.parking}</span>
+          </p>
+        </li>
+      )
+    }
+  </ul>
+  {
+    node.howToGetThere.transportList?.callout && (
+      <div class="callout">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+          <path
+            fill="#F67258"
+            fill-rule="evenodd"
+            d="M18.335 10a8.333 8.333 0 1 1-16.667 0 8.333 8.333 0 0 1 16.667 0ZM10 14.79c.346 0 .625-.28.625-.625v-5a.625.625 0 1 0-1.25 0v5c0 .345.28.625.625.625Zm0-8.958a.833.833 0 1 1 0 1.666.833.833 0 0 1 0-1.666Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span>{node.howToGetThere.transportList.callout}</span>
+      </div>
+    )
+  }
+  <PortableText value={node.attractions.subheading} heading="h3" class="subheading" />
+  <ul class="highlighted-list">
+    {
+      node.attractions.highlightedAttractions.map((attraction) => (
+        <li class="attraction-item">
+          <span>{attraction.name}</span>
+          <span>{transformToKm(attraction.distance)}</span>
+        </li>
+      ))
+    }
+  </ul>
+  <PopupWindow>
+    <Button slot="open" theme="secondary">
+      {t.attractions.showAll} ({node.attractions.list.reduce((acc, group) => acc + group.items.length, 0)})
+    </Button>
+    <div slot="content" class="attractions-popup">
+      <Fragment set:html={t.attractions.popupHeading} />
+      <CloseButton />
+      <ul class="content">
+        {
+          node.attractions.list.map((group) => (
+            <li class="group">
+              <h3 class="heading">{group.heading}</h3>
+              <ul class="attraction-list">
+                {group.items.map((item) => (
+                  <li class="attraction-item">
+                    <span>{item.name}</span>
+                    <span>{transformToKm(item.distance)}</span>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </PopupWindow>
+</section>
+
+<style lang="scss">
+  .Location {
+    margin-bottom: clamp(3rem, calc(3.5vw / 0.48), 3.5rem);
+    :global(> h2) {
+      margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
+    }
+
+    .map {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      margin-bottom: 1.5rem;
+      column-gap: 2rem;
+
+      .wrapper {
+        width: 100%;
+        height: 22rem;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        margin-bottom: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+        grid-column: 1/3;
+        grid-row: 1/2;
+      }
+
+      .address {
+        grid-column: 1/2;
+        grid-row: 2/3;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: var(--typography-body-m, 0.875rem);
+        align-self: center;
+
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+        svg {
+          margin-top: 3px;
+          flex-shrink: 0;
+        }
+      }
+
+      :global(a) {
+        grid-column: 2/3;
+        grid-row: 2/3;
+      }
+    }
+
+    .subheading {
+      font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+      color: var(--primary-700, #600d2a);
+      line-height: 0.9;
+      letter-spacing: -0.065em;
+      font-size: var(--typography-heading-m, 1.5rem);
+      text-transform: uppercase;
+      font-weight: 760;
+      margin-bottom: 1.25rem;
+
+      :global(strong) {
+        color: var(--primary-500, #f67258) !important;
+      }
+    }
+
+    .transport-list {
+      margin-bottom: 1.25rem;
+      li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.75rem;
+        align-items: start;
+
+        p {
+          font-size: var(--typography-body-xl, 1.125rem);
+          line-height: 1.5;
+          letter-spacing: -0.03em;
+          strong {
+            color: var(--primary-800, #45051c);
+            font-weight: 700;
+          }
+        }
+
+        svg {
+          margin-top: 4px;
+        }
+
+        &:not(:last-child) {
+          margin-bottom: 1rem;
+        }
+      }
+    }
+
+    .callout {
+      display: grid;
+      gap: 0.5rem 0.625rem;
+      grid-template-columns: auto 1fr;
+      border-radius: 0.5rem;
+      background-color: var(--neutral-200);
+      align-items: start;
+      padding: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+      font-size: var(--typography-body-xl, 1.125rem);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+      svg {
+        margin-top: 4px;
+      }
+    }
+
+    .highlighted-list {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+    }
+
+    .attraction-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+
+      span {
+        line-height: 1.5;
+        &:first-child {
+          color: var(--primary-800, #45051c);
+        }
+      }
+    }
+
+    :global(> .Wrapper) {
+      margin-top: 2rem;
+
+      .attractions-popup {
+        padding: 2.5rem;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2rem 1rem;
+        max-width: 68.5rem;
+        max-height: calc(100dvh - 6rem);
+        width: calc(100vw - var(--pageMargin) * 2);
+        overflow: hidden;
+
+        :global(.CloseButton) {
+          margin-top: -8px;
+        }
+
+        .content {
+          max-height: rem;
+          overflow-y: auto;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          grid-column: 1/3;
+          padding-right: 1.5rem;
+          gap: clamp(1.5rem, calc(2vw / 0.48), 3rem);
+
+          &::-webkit-scrollbar {
+            width: 0.25rem;
+          }
+
+          &::-webkit-scrollbar-track {
+            background: var(--neutral-300, #ede6de);
+            border-radius: 16px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: var(--primary-400, #74535e);
+            border-radius: 16px;
+          }
+
+          &::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-700, #600d2a);
+          }
+
+          .group {
+            .heading {
+              color: var(--primary-800, #45051c);
+              font-weight: 700;
+              line-height: 1.5;
+              letter-spacing: -0.03em;
+              margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+            }
+
+            .attraction-list {
+              display: flex;
+              flex-direction: column;
+              gap: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+            }
+          }
+        }
+      }
+    }
+    @media (max-width: 56.1875rem) {
+      :global(.Wrapper) {
+        .attractions-popup {
+          padding: clamp(1.5rem, calc(3.5vw / 0.48), 3.5rem) clamp(1rem, calc(3.5vw / 0.48), 3.5rem);
+
+          .content {
+            grid-template-columns: 1fr;
+            max-height: 32rem;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 31.1875rem) {
+      .map {
+        display: flex;
+        flex-direction: column;
+
+        .wrapper {
+          height: auto;
+          aspect-ratio: 1/1;
+        }
+
+        .address {
+          align-self: flex-start;
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      .callout {
+        margin-bottom: 1.75rem;
+      }
+
+      :global(.Wrapper) {
+        :global(> button) {
+          width: 100%;
+          max-width: 100%;
+          justify-content: center;
+        }
+        .attractions-popup {
+          padding: 1.5rem 1rem 0;
+          gap: 1rem;
+
+          .content {
+            padding-bottom: 1rem;
+          }
+        }
+      }
+    }
+  }
+</style>

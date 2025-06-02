@@ -1,0 +1,664 @@
+---
+import imageToInlineSvg from '@/utils/image-to-inline-svg'
+import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
+import AnimatedHeading from '@/components/ui/AnimatedHeading.astro'
+
+export const AsymmetricalPhotoGalleryGrid_Query = `
+  _type == "AsymmetricalPhotoGalleryGrid" => {
+    ${PortableTextQuery('heading')}
+    ${ImageDataQuery('imageTape[]')}
+    firstColumn {
+      ${PortableTextQuery('mainParagraph')}
+      ${PortableTextQuery('secondaryParagraph')}
+      ${ImageDataQuery('image')}
+    },
+    secondColumn {
+      ${ImageDataQuery('image')}
+      "icon": icon.asset->url,
+      boldText,
+      normalText,
+    },
+    thirdColumn {
+      ${ImageDataQuery('image')}
+      ${PortableTextQuery('paragraph')}
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  heading: PortableTextValue
+  imageTape: ImageDataProps[]
+  firstColumn: {
+    mainParagraph: PortableTextValue
+    secondaryParagraph: PortableTextValue
+    image: ImageDataProps
+  }
+  secondColumn: {
+    image: ImageDataProps
+    icon: string
+    boldText: string
+    normalText: string
+  }
+  thirdColumn: {
+    image: ImageDataProps
+    paragraph: PortableTextValue
+  }
+}
+
+const { index, sectionId, heading, imageTape, firstColumn, secondColumn, thirdColumn } = Astro.props
+
+const svgIcon = await imageToInlineSvg(secondColumn.icon)
+---
+
+<section class="AsymmetricalPhotoGalleryGrid max-width" id={sectionId}>
+  <header class="header">
+    <AnimatedHeading heading={heading} level={index === 0 ? 'h1' : 'h2'} class="heading" iterationDelay={40} />
+  </header>
+  <div class="image-tape">
+    {
+      imageTape.map((image) => (
+        <div class="wrapper">
+          <Image {...image} sizes="140px" loading={index === 0 ? 'eager' : 'lazy'} />
+          <div />
+          <div />
+          <div class="lines">
+            {Array.from({ length: 5 }).map(() => (
+              <div class="line" />
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+  <div class="columns">
+    <div class="first-column">
+      <PortableText value={firstColumn.mainParagraph} class="main-paragraph" />
+      <PortableText value={firstColumn.secondaryParagraph} class="secondary-paragraph" />
+      <Image
+        {...firstColumn.image}
+        loading={index === 0 ? 'eager' : 'lazy'}
+        sizes="(max-width: 556px) 160px, (max-width: 768px) 28vw,  (max-width: 899px) 211px, (max-width: 1023px) 434px, (max-width: 1366px) 30vw, 390px"
+      />
+    </div>
+    <div class="second-column">
+      <Image
+        {...secondColumn.image}
+        sizes="(max-width: 486px) 94vw, (max-width: 899px) 452px, (max-width: 1023px) 390px,  (max-width: 1366px) 30vw, 390px"
+        priority={index === 0}
+      />
+      <div class="box">
+        <Fragment set:html={svgIcon} />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 159 5">
+          <path
+            stroke="#F67258"
+            stroke-linecap="round"
+            d="M.9375 1c6.0384 0 6.0384 3 12.0752 3 6.0367 0 6.0384-3 12.0768-3s6.0384 3 12.0768 3 6.0367-3 12.0751-3c6.0384 0 6.0384 3 12.0768 3s6.0401-3 12.0785-3 6.0384 3 12.0768 3 6.0384-3 12.0768-3c6.0387 0 6.0387 3 12.0767 3s6.038-3 12.077-3c6.038 0 6.038 3 12.077 3 6.038 0 6.04-3 12.078-3 6.038 0 6.038 3 12.079 3"
+          ></path></svg
+        >
+        <span class="bold-text">{secondColumn.boldText}</span>
+        <span class="normal-text">{secondColumn.normalText}</span>
+      </div>
+    </div>
+    <div class="third-column">
+      <Image loading={index === 0 ? 'eager' : 'lazy'} {...thirdColumn.image} sizes="213px" />
+      <PortableText value={thirdColumn.paragraph} class="paragraph" />
+    </div>
+  </div>
+
+  <style lang="scss">
+    .AsymmetricalPhotoGalleryGrid {
+      padding: clamp(4rem, calc(5vw / 0.48), 6.75rem) 0 clamp(4rem, calc(6vw / 0.48), 8rem);
+      .header {
+        max-width: 54.75rem;
+        text-align: center;
+        margin: 0 auto 6.25rem;
+
+        :global(.animated-heading) {
+          margin-bottom: 1rem;
+        }
+      }
+
+      .image-tape {
+        position: relative;
+        left: 50%;
+        display: flex;
+        width: max-content;
+        gap: 0.625rem;
+        margin-bottom: 8.875rem;
+        transform: translateX(calc(-50%));
+        opacity: 0;
+        transition: opacity 400ms;
+        will-change: opacity;
+
+        &[data-fired='true'] {
+          opacity: 1;
+        }
+
+        .wrapper {
+          position: relative;
+          width: 8.625rem;
+          height: 4.875rem;
+          opacity: 0;
+          transform: scale(0.8);
+          transition:
+            opacity 150ms,
+            transform 600ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          will-change: opacity, transform;
+
+          &[data-fired='true'] {
+            opacity: 1;
+            transform: scale(1);
+          }
+
+          &:nth-of-type(1) {
+            transform: translateY(-2.1875rem) rotate(20deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(-2.1875rem) rotate(20deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(2) {
+            transform: translateY(0.1875rem) rotate(8deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(0.1875rem) rotate(8deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(3) {
+            transform: translateY(1.125rem) rotate(4deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(1.125rem) rotate(4deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(4) {
+            transform: translateY(1.3125rem) rotate(-1deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(1.3125rem) rotate(-1deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(5) {
+            transform: translateY(0.625rem) rotate(-9deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(0.625rem) rotate(-9deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(6) {
+            transform: translateY(-0.6875rem) rotate(-6deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(-0.6875rem) rotate(-6deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(7) {
+            transform: translateY(-1.375rem) rotate(-1deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(-1.375rem) rotate(-1deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(8) {
+            transform: translateY(-1.375rem) rotate(2deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(-1.375rem) rotate(2deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(9) {
+            transform: translateY(-0.3125rem) rotate(11deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translateY(-0.3125rem) rotate(11deg) scale(1);
+            }
+          }
+
+          &:nth-of-type(10) {
+            transform: translate(-0.5625rem, 3rem) rotate(30deg) scale(0.8);
+            &[data-fired='true'] {
+              transform: translate(-0.5625rem, 3rem) rotate(30deg) scale(1);
+            }
+          }
+
+          > div:nth-of-type(1) {
+            position: absolute;
+            inset: 0;
+            &::before,
+            &::after {
+              position: absolute;
+              top: 0;
+              left: 0;
+              content: '';
+              width: 1.125rem;
+              height: 1.125rem;
+              background: var(--neutral-100, #faf7f7);
+              border-radius: 50%;
+              transform: translate(-50%, -50%);
+            }
+
+            &::after {
+              left: unset;
+              right: 0;
+              transform: translate(50%, -50%);
+            }
+          }
+          > div:nth-of-type(2) {
+            position: absolute;
+            inset: 0;
+
+            &::before,
+            &::after {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              content: '';
+              width: 1.375rem;
+              height: 1.375rem;
+              background: var(--neutral-100, #faf7f7);
+              border-radius: 50%;
+              transform: translate(-50%, 50%);
+            }
+
+            &::after {
+              left: unset;
+              right: 0;
+              transform: translate(50%, 50%);
+            }
+          }
+
+          .lines {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: max-content;
+            gap: 0.25rem;
+            transform: translateY(-50%);
+
+            .line {
+              width: 0.3125rem;
+              height: 0.8125rem;
+              background: var(--neutral-100, #faf7f7);
+              border-radius: 999px;
+            }
+          }
+
+          img {
+            width: 100%;
+            height: 100%;
+          }
+        }
+      }
+
+      .columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: clamp(2.5rem, calc(2.625vw / 0.48), 4.625rem);
+
+        .first-column {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          max-width: 27.125rem;
+          opacity: 0;
+          transform: translateX(-2rem);
+          transition:
+            opacity 150ms,
+            transform 600ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          will-change: opacity, transform;
+
+          &[data-fired='true'] {
+            opacity: 1;
+            transform: translateX(0);
+          }
+
+          .main-paragraph {
+            margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 1rem);
+            color: var(--primary-800, #45051c);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+          }
+
+          .secondary-paragraph {
+            margin-bottom: 2rem;
+          }
+
+          img {
+            margin-top: auto;
+            width: 100%;
+            aspect-ratio: 435/245;
+            border-radius: clamp(8px, calc(12vw / 0.48), 12px);
+            opacity: 0;
+            transform: scale(0.9);
+            transition:
+              opacity 200ms,
+              transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            will-change: opacity, transform;
+
+            &[data-fired='true'] {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        }
+
+        .second-column {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          max-width: 25.6875rem;
+          opacity: 0;
+          transform: translateX(-2rem);
+          transition:
+            opacity 150ms,
+            transform 600ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          will-change: opacity, transform;
+          transition-delay: 150ms;
+
+          &[data-fired='true'] {
+            opacity: 1;
+            transform: translateX(0);
+          }
+
+          img {
+            width: 100%;
+            aspect-ratio: 410/514;
+            border-radius: clamp(16px, calc(20vw / 0.48), 20px);
+            opacity: 0;
+            transform: scale(0.9);
+            transition:
+              opacity 200ms,
+              transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            will-change: opacity, transform;
+
+            &[data-fired='true'] {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+
+          .box {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 11.8125rem;
+            margin-top: -1.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--neutral-200, #f5f1ec);
+            border-radius: clamp(8px, calc(12vw / 0.48), 12px);
+            color: var(--primary-800, #45051c);
+            font-size: var(--typography-body-s, 0.75rem);
+            line-height: 1.6;
+            letter-spacing: -0.01em;
+            text-align: center;
+
+            &::before,
+            &::after {
+              position: absolute;
+              top: 2.25rem;
+              left: 0;
+              width: 1.25rem;
+              height: 1.25rem;
+              background: var(--neutral-100, #faf7f7);
+              border-radius: 50%;
+              content: '';
+              transform: translateX(-50%);
+            }
+
+            &::after {
+              left: unset;
+              right: 0;
+              transform: translateX(50%);
+            }
+
+            > :global(svg:nth-of-type(1)) {
+              width: 4.75rem;
+              height: 1.5625rem;
+              margin-bottom: 0.375rem;
+            }
+
+            > :global(svg:nth-of-type(2)) {
+              width: 100%;
+              height: 0.3125rem;
+              margin-bottom: 0.75rem;
+            }
+
+            .bold-text {
+              font-weight: 700;
+            }
+
+            .normal-text {
+              font-weight: 400;
+            }
+          }
+        }
+
+        .third-column {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          width: 100%;
+          max-width: 20.1875rem;
+          opacity: 0;
+          transform: translateX(-2rem);
+          transition:
+            opacity 150ms,
+            transform 600ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          will-change: opacity, transform;
+          transition-delay: 300ms;
+
+          &[data-fired='true'] {
+            opacity: 1;
+            transform: translateX(0);
+          }
+
+          img {
+            width: 213px;
+            margin-bottom: 1.5rem;
+            aspect-ratio: 213/120;
+            border-radius: clamp(8px, calc(12vw / 0.48), 12px);
+            opacity: 0;
+            transform: scale(0.9);
+            transition:
+              opacity 200ms,
+              transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            will-change: opacity, transform;
+
+            &[data-fired='true'] {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        }
+      }
+
+      @media (max-width: 63.9375rem) {
+        .header {
+          margin-bottom: 4.75rem;
+        }
+        .image-tape {
+          margin-bottom: 6.625rem;
+          transform: translateX(-50%) scale(0.8);
+        }
+        .columns {
+          grid-template-columns: repeat(2, auto);
+          justify-content: center;
+
+          .third-column {
+            flex-direction: row;
+            justify-content: flex-start;
+            grid-column: 1/3;
+            width: 100%;
+            max-width: none;
+            gap: 2rem;
+
+            .paragraph {
+              max-width: 22.5rem;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 56.1875rem) {
+        .columns {
+          grid-template-columns: 1fr;
+          gap: 0;
+
+          .first-column {
+            display: grid;
+            grid-template-columns: 1fr 18.625rem;
+            max-width: none;
+            margin-bottom: clamp(2rem, calc(3vw / 0.48), 3rem);
+            column-gap: 1.25rem;
+
+            img {
+              grid-row: 1/3;
+              justify-self: start;
+              width: 100%;
+              max-width: clamp(10rem, calc(13.8125vw / 0.48), 13.8125rem);
+              margin-top: 0;
+            }
+
+            .main-paragraph {
+              grid-column: 2/3;
+              grid-row: 1/2;
+            }
+
+            .secondary-paragraph {
+              grid-column: 2/3;
+              grid-row: 2/3;
+              margin-bottom: 0;
+            }
+          }
+
+          .second-column {
+            max-width: 28.25rem;
+            margin-bottom: clamp(2.5rem, calc(3vw / 0.48), 3rem);
+            justify-self: center;
+          }
+
+          .third-column {
+            grid-column: 1/2;
+            justify-content: space-between;
+            max-width: 38rem;
+            justify-self: center;
+            align-items: center;
+
+            img {
+              order: 2;
+              margin-bottom: 0;
+            }
+
+            .paragraph {
+              order: 1;
+              max-width: 18.625rem;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 39.9375rem) {
+        .header {
+          margin-bottom: 2rem;
+        }
+        .image-tape {
+          margin-bottom: 3rem;
+          transform: translateX(-50%) scale(0.6);
+        }
+        .columns {
+          .first-column {
+            grid-template-columns: 1fr;
+
+            img {
+              grid-column: 1/2;
+              grid-row: 1/2;
+              margin-bottom: 1.25rem;
+            }
+
+            .main-paragraph {
+              grid-column: 1/2;
+              grid-row: 2/3;
+            }
+
+            .secondary-paragraph {
+              grid-column: 1/2;
+              grid-row: 3/4;
+            }
+          }
+          .third-column {
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1rem;
+
+            img {
+              order: 1;
+            }
+            .paragraph {
+              order: 2;
+              text-align: right;
+            }
+          }
+        }
+      }
+    }
+  </style>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('.AsymmetricalPhotoGalleryGrid')
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const section = entry.target as HTMLElement
+            const elements = {
+              heading: section.querySelector('.animated-heading'),
+              imageTape: section.querySelector('.image-tape'),
+              wrappers: section.querySelectorAll('.image-tape .wrapper'),
+              columns: [
+                { col: section.querySelector('.first-column'), img: section.querySelector('.first-column img') },
+                { col: section.querySelector('.second-column'), img: section.querySelector('.second-column img') },
+                { col: section.querySelector('.third-column'), img: section.querySelector('.third-column img') },
+              ],
+            }
+
+            elements.heading?.setAttribute('data-fired', 'true')
+
+            setTimeout(() => elements.imageTape?.setAttribute('data-fired', 'true'), 200)
+
+            Array.from(elements.wrappers).forEach((wrapper, i) =>
+              setTimeout(() => wrapper.setAttribute('data-fired', 'true'), 400 + i * 80)
+            )
+
+            const baseDelay = 400 + elements.wrappers.length * 80
+
+            elements.columns.forEach(({ col, img }, i) => {
+              const colDelay = baseDelay + i * 180
+              setTimeout(() => {
+                col?.setAttribute('data-fired', 'true')
+                setTimeout(() => img?.setAttribute('data-fired', 'true'), 250)
+              }, colDelay)
+            })
+
+            observer.unobserve(section)
+          }
+        })
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+    )
+
+    sections.forEach((section) => observer.observe(section))
+  })
+</script>

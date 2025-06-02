@@ -1,0 +1,178 @@
+---
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import Image, { type ImageDataProps } from '@/src/components/ui/image'
+import type { Language } from '@/src/global/languages'
+import { getRelativeDate } from '@/src/utils/get-relative-date'
+
+const lang = (Astro.params.lang as Language) || 'pl'
+
+const translations = {
+  pl: {
+    updated: 'Zaktualizowano',
+  },
+  en: {
+    updated: 'Updated',
+  },
+}
+
+const t = translations[lang]
+
+export type HeroProps = {
+  _createdAt: string
+  _updatedAt: string
+  title: PortableTextValue
+  image: ImageDataProps
+  description: string
+  readingTime: string
+}
+
+const { _createdAt, _updatedAt, title, image, description, readingTime } = Astro.props as HeroProps
+---
+
+<section class="Hero">
+  <PortableText value={title} class="heading" heading="h1" />
+  <p class="description">{description}</p>
+  <div class="details">
+    <div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+        ><path fill="#F67258" d="M14.67 8A6.667 6.667 0 1 1 1.335 8a6.667 6.667 0 0 1 13.333 0Z"></path><path
+          fill="#FAF7F7"
+          fill-rule="evenodd"
+          d="M8.003 4.833a.5.5 0 0 1 .5.5v2.46l1.52 1.52a.5.5 0 1 1-.707.707L7.649 8.354A.5.5 0 0 1 7.503 8V5.333a.5.5 0 0 1 .5-.5Z"
+          clip-rule="evenodd"></path></svg
+      >
+      <span>{readingTime}</span>
+    </div>
+
+    <div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+        ><path
+          fill="#F67258"
+          d="M5.17 1.667a.5.5 0 1 0-1 0V2.72c-.96.076-1.59.265-2.053.728-.463.463-.651 1.092-.728 2.052h13.227c-.076-.96-.265-1.59-.728-2.052-.463-.463-1.092-.652-2.052-.728V1.667a.5.5 0 1 0-1 0v1.008c-.444-.008-.94-.008-1.5-.008H6.669c-.56 0-1.056 0-1.5.008V1.667Z"
+        ></path><path
+          fill="#F67258"
+          fill-rule="evenodd"
+          d="M1.336 8c0-.56 0-1.056.009-1.5H14.66c.008.444.008.94.008 1.5v1.333c0 2.514 0 3.772-.78 4.553-.782.78-2.039.78-4.553.78H6.669c-2.514 0-3.771 0-4.552-.78-.781-.781-.781-2.038-.781-4.553V8Zm10 1.333a.667.667 0 1 0 0-1.333.667.667 0 0 0 0 1.333Zm0 2.667a.667.667 0 1 0 0-1.333.667.667 0 0 0 0 1.333ZM8.669 8.667a.667.667 0 1 1-1.333 0 .667.667 0 0 1 1.333 0Zm0 2.666a.667.667 0 1 1-1.333 0 .667.667 0 0 1 1.333 0Zm-4-2A.667.667 0 1 0 4.67 8a.667.667 0 0 0 0 1.333Zm0 2.667a.667.667 0 1 0 0-1.333.667.667 0 0 0 0 1.333Z"
+          clip-rule="evenodd"></path></svg
+      >
+      <span>{getRelativeDate({ date: _createdAt, lang, upperCase: true })}</span>
+    </div>
+    <div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M2.30444 2.30968C1.32812 3.286 1.32812 4.85734 1.32812 8.00004C1.32812 11.1427 1.32812 12.7141 2.30444 13.6904C3.28075 14.6667 4.85209 14.6667 7.99479 14.6667C11.1375 14.6667 12.7088 14.6667 13.6851 13.6904C14.6615 12.7141 14.6615 11.1427 14.6615 8.00004C14.6615 4.85734 14.6615 3.286 13.6851 2.30968C12.7088 1.33337 11.1375 1.33337 7.99479 1.33337C4.85209 1.33337 3.28075 1.33337 2.30444 2.30968ZM3.63518 7.38893C3.88368 5.19996 5.74417 3.50004 8.00118 3.50004C9.32252 3.50004 10.5082 4.08318 11.3131 5.0044C11.4948 5.21235 11.4735 5.52821 11.2656 5.7099C11.0576 5.89159 10.7417 5.8703 10.56 5.66235C9.93716 4.94943 9.02211 4.50004 8.00118 4.50004C6.29622 4.50004 4.88574 5.75483 4.64367 7.38893H4.88582C5.08811 7.38893 5.27048 7.51082 5.34783 7.69775C5.42518 7.88467 5.38227 8.09978 5.23913 8.24272L4.46029 9.0205C4.26509 9.21544 3.94888 9.21544 3.75367 9.0205L2.97483 8.24272C2.83169 8.09978 2.78878 7.88467 2.86613 7.69775C2.94349 7.51082 3.12585 7.38893 3.32814 7.38893H3.63518ZM11.5294 6.97958C11.7246 6.78464 12.0408 6.78464 12.236 6.97958L13.0148 7.75736C13.158 7.9003 13.2009 8.11541 13.1235 8.30233C13.0462 8.48926 12.8638 8.61115 12.6615 8.61115H12.3545C12.106 10.8001 10.2455 12.5 7.98847 12.5C6.66713 12.5 5.48142 11.9169 4.67655 10.9957C4.49486 10.7877 4.51615 10.4719 4.7241 10.2902C4.93205 10.1085 5.24791 10.1298 5.4296 10.3377C6.05249 11.0506 6.96754 11.5 7.98847 11.5C9.69343 11.5 11.1039 10.2452 11.346 8.61115H11.1038C10.9015 8.61115 10.7192 8.48926 10.6418 8.30234C10.5645 8.11541 10.6074 7.9003 10.7505 7.75736L11.5294 6.97958Z"
+          fill="#F67258"></path>
+      </svg>
+      <span>
+        {t.updated}
+        {' '}
+        <span data-updated-at={new Date(_updatedAt).toISOString()} class="relative-date" data-lang={lang}>
+          {getRelativeDate({ date: _updatedAt, lang, upperCase: true })}
+        </span>
+      </span>
+    </div>
+  </div>
+  <Image
+    {...image}
+    sizes="(max-width: 599px) 94vw, (max-width: 899px) 83vw, (max-width: 1109px) 768px, 655px"
+    priority
+  />
+</section>
+
+<style lang="scss">
+  .Hero {
+    .heading {
+      margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+      font-size: var(--typography-heading-l, 2rem);
+    }
+
+    .description {
+      font-size: var(--typography-body-xl, 1.125rem);
+      line-height: 1.5;
+      margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+    }
+
+    .details {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.375rem clamp(0.75rem, calc(1vw / 0.48), 1rem);
+      flex-wrap: wrap;
+      padding: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem) 0;
+      font-size: var(--typography-body-m);
+      line-height: 1.7;
+      letter-spacing: -0.01em;
+      border-bottom: 2px solid;
+      border-image: linear-gradient(
+          to left,
+          rgba(121, 141, 220, 0.6) 0%,
+          rgba(231, 199, 143, 0.6) 25%,
+          rgba(250, 116, 104, 0.6) 74%,
+          rgba(121, 141, 220, 0.6) 100%
+        )
+        1;
+      margin-bottom: 1rem;
+
+      div {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 655/368.34;
+      border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+    }
+  }
+</style>
+
+<script>
+  function getRelativeDate(date: Date, lang: string): string | null {
+    const translations = {
+      pl: {
+        today: 'dzisiaj',
+        yesterday: 'wczoraj',
+        twoDaysAgo: 'przedwczoraj',
+        threeToSixDaysAgo: 'dni temu',
+      },
+      en: {
+        today: 'today',
+        yesterday: 'yesterday',
+        twoDaysAgo: 'two days ago',
+        threeToSixDaysAgo: 'days ago',
+      },
+    }
+
+    const t = translations[lang as keyof typeof translations]
+
+    const now = new Date()
+    const dateToCompare = new Date(date)
+    now.setHours(0, 0, 0, 0)
+    dateToCompare.setHours(0, 0, 0, 0)
+    const diffDays = Math.floor((now.getTime() - dateToCompare.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 0) {
+      return t.today
+    } else if (diffDays === 1) {
+      return t.yesterday
+    } else if (diffDays === 2) {
+      return t.twoDaysAgo
+    } else if (diffDays >= 3 && diffDays <= 6) {
+      return `${diffDays}. ${t.threeToSixDaysAgo}`
+    }
+    return null
+  }
+
+  const dateElements = document.querySelectorAll<HTMLSpanElement>('.Hero .relative-date')
+  const lang = document.documentElement.getAttribute('lang')!
+  dateElements.forEach((element) => {
+    const updatedAt = new Date(element.dataset.updatedAt as string)
+    const relativeDate = getRelativeDate(updatedAt, lang)
+    if (relativeDate) element.textContent = relativeDate
+  })
+</script>

@@ -1,0 +1,11 @@
+---
+import BlogPostPage, { fetchData, staticPaths } from '@/src/templates/blog/SingleBlogPost.astro'
+
+const slug = Astro.params.slug || ''
+const data = await fetchData(slug, 'pl')
+if (!data) return Astro.rewrite('/404')
+
+export const getStaticPaths = () => staticPaths('pl')
+---
+
+<BlogPostPage {...data} lang="pl" slug={slug} />

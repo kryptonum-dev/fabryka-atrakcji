@@ -1,0 +1,178 @@
+---
+import PortableText, { type PortableTextValue } from '@/components/ui/portable-text'
+import Image, { type ImageDataProps } from '@/components/ui/image'
+import { getLangFromPath, type Language } from '@/global/languages'
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    days: 'dni',
+    singleDay: 'dzień',
+  },
+
+  en: {
+    days: 'days',
+    singleDay: 'day',
+  },
+}
+
+const t = translations[lang]
+
+type Props = {
+  title: PortableTextValue
+  primaryImage: ImageDataProps
+  duration: number
+  localization: string
+  services: string[]
+}
+
+const { title, primaryImage, duration, localization, services } = Astro.props as Props
+---
+
+<section class="CaseStudyHero">
+  <header class="header">
+    <PortableText value={title} heading="h1" class="heading" />
+  </header>
+  <div class="wrapper">
+    <Image {...primaryImage} sizes="100vh" priority />
+    <div class="info-row">
+      <div class="item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none"
+          ><path
+            fill="#F67258"
+            d="M8.003 14.916c3.681 0 6.666-1.343 6.666-3 0-.844-.775-1.607-2.023-2.152-.761 1.397-1.922 2.601-3.397 3.232-.793.338-1.7.338-2.493 0-1.475-.63-2.636-1.835-3.397-3.232-1.248.545-2.023 1.308-2.023 2.152 0 1.657 2.985 3 6.667 3Z"
+          ></path><path
+            fill="#F67258"
+            fill-rule="evenodd"
+            d="M3.336 5.927c0-2.399 2.09-4.343 4.667-4.343s4.666 1.944 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z"
+            clip-rule="evenodd"></path></svg
+        >
+        {localization}
+      </div>
+      <div class="item duration">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none"
+          ><path
+            fill="#F67258"
+            fill-rule="evenodd"
+            d="M3.468 2.45c.402-.866 1.78-.866 4.535-.866s4.133 0 4.534.866c.035.075.064.152.087.231.273.925-.701 1.997-2.65 4.14L8.67 8.252l1.305 1.428c1.949 2.144 2.923 3.216 2.65 4.14-.023.08-.052.158-.087.232-.401.866-1.779.866-4.534.866-2.756 0-4.133 0-4.535-.866a1.682 1.682 0 0 1-.087-.231c-.273-.925.701-1.997 2.65-4.14l1.305-1.43L6.03 6.823c-1.949-2.144-2.923-3.216-2.65-4.14a1.68 1.68 0 0 1 .087-.232Zm3.201 9.634a.5.5 0 1 0 0 1h2.667a.5.5 0 0 0 0-1H6.669Zm-.5-8.167a.5.5 0 0 1 .5-.5h2.667a.5.5 0 0 1 0 1H6.669a.5.5 0 0 1-.5-.5Z"
+            clip-rule="evenodd"></path></svg
+        >
+        {duration}
+        {duration === 1 ? t.singleDay : t.days}
+      </div>
+      <ul class="services">
+        {[...services].map((service) => <li class="item">{service}</li>)}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .CaseStudyHero {
+    padding: clamp(4.5rem, calc(5vw / 0.48), 6.75rem) 0 clamp(2.25rem, calc(3vw / 0.48), 8rem);
+    max-width: 85.375rem;
+    margin: 0 auto;
+
+    .header {
+      max-width: 40.9375rem;
+      margin-bottom: 1rem;
+      padding: 0 var(--pageMargin);
+
+      .heading {
+        font-size: var(--typography-heading-l, 2rem);
+      }
+    }
+
+    .wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 683/284;
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+      align-items: stretch;
+
+      > img {
+        position: absolute;
+        width: 100%;
+        z-index: -1;
+        height: 100%;
+      }
+
+      .info-row {
+        display: flex;
+        gap: 0.75rem 0.125rem;
+        padding: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+        align-items: flex-end;
+
+        .services {
+          display: flex;
+          align-items: center;
+          gap: clamp(0.125rem, calc(0.125vw / 0.48), 0.25rem);
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          max-width: 40rem;
+        }
+
+        .item {
+          padding: 0rem 0.75rem 0.1875rem 0.625rem;
+          border-radius: 999rem;
+          height: 2.25rem;
+          padding-top: 2px;
+
+          background: var(--neutral-200, #f5f1ec);
+          color: var(--primary-800, #45051c);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          &:nth-of-type(1),
+          &:nth-of-type(2) {
+            flex-shrink: 0;
+          }
+
+          svg {
+            margin-top: 1px;
+          }
+
+          &.duration {
+            margin-right: auto;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 46.8125rem) {
+      .wrapper {
+        .info-row {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          justify-content: start;
+          .item {
+            max-width: fit-content;
+          }
+
+          .services {
+            grid-row: 2/3;
+            grid-column: 1/3;
+            justify-content: start;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 37.4375rem) {
+      .wrapper {
+        aspect-ratio: autoĻ;
+        > img {
+          position: static;
+          aspect-ratio: 360/149;
+        }
+
+        .info-row .services {
+        }
+      }
+    }
+  }
+</style>

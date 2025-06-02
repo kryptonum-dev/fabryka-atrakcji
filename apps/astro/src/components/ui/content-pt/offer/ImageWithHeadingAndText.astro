@@ -1,0 +1,83 @@
+---
+import Image, { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../portable-text'
+
+export const ImageWithHeadingAndText_Query = `
+  _type == "ImageWithHeadingAndText" => {
+    ${ImageDataQuery('image')}
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('text')}
+  },
+`
+
+type Props = {
+  node: {
+    image: ImageDataProps
+    heading: PortableTextValue
+    text: PortableTextValue
+  }
+}
+
+const { node } = Astro.props
+---
+
+<Image {...node.image} sizes="" class="image" />
+<PortableText value={node.heading} heading="h2" class="heading" />
+<PortableText value={node.text} class="text" />
+
+<style lang="scss">
+  .image {
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .heading {
+    margin: clamp(1rem, calc(1.25vw / 0.48), 1.25rem) 0 !important;
+  }
+  .text {
+    :global(> p),
+    :global(> ul),
+    :global(> ol),
+    :global(> ul li),
+    :global(> ol li),
+    :global(> ul p),
+    :global(> ol p) {
+      font-size: var(--typography-body-xl, 1.125rem);
+      line-height: 1.5;
+      margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+    }
+
+    :global(li) {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 0.625rem;
+
+      &:first-child {
+        margin-top: -0.5rem;
+      }
+
+      &:not(:last-child) {
+        margin-bottom: 0.5rem;
+      }
+
+      &::before {
+        content: '';
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 50%;
+        background-color: var(--primary-400);
+        margin-top: 0.75rem;
+      }
+
+      :global(ul) {
+        grid-column: 2 / 3;
+
+        :global(li) {
+          &:first-child {
+            margin-top: 0.5rem;
+          }
+        }
+      }
+    }
+  }
+</style>

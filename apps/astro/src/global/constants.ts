@@ -4,7 +4,7 @@
  * @constant
  * @type {string}
  */
-export const THEME_COLOR: string = '#011310'
+export const THEME_COLOR: string = '#db664e'
 
 /**
  * Global declaration of background color in HEX format.
@@ -12,7 +12,7 @@ export const THEME_COLOR: string = '#011310'
  * @constant
  * @type {string}
  */
-export const BACKGROUND_COLOR: string = '#000103'
+export const BACKGROUND_COLOR: string = '#f5f1ec'
 
 /**
  * Global declaration of the locale (language) for the application.
@@ -28,7 +28,7 @@ export const LOCALE: string = 'pl'
  * @constant
  * @type {string}
  */
-export const DOMAIN: string = 'https://zakup-mieszkanie-astro-git-dev-kryptonum.vercel.app/'
+export const DOMAIN: string = 'https://fabryka-atrakcji-git-dev-kryptonum.vercel.app/'
 
 /**
  * Global declaration of the default title for the application.
@@ -36,7 +36,7 @@ export const DOMAIN: string = 'https://zakup-mieszkanie-astro-git-dev-kryptonum.
  * @constant
  * @type {string}
  */
-export const DEFAULT_TITLE: string = 'Kryptonum'
+export const DEFAULT_TITLE: string = 'Fabryka Atrakcji'
 
 /**
  * Global declaration of the default description for the application.
@@ -46,7 +46,7 @@ export const DEFAULT_TITLE: string = 'Kryptonum'
  * @type {string}
  */
 export const DEFAULT_DESCRIPTION: string =
-  'Kryptonum tworzy nieszablonowe projekty tym, którym zależy na: 👨🏻‍💻 profesjonalnej stronie, 🎨 unikatowym brandingu, 💰 dochodowym biznesie online.'
+  'Organizujemy niezapomniane eventy i integracje firmowe. Sprawdź, jak Fabryka Atrakcji może ożywić Twoje wydarzenie – kreatywnie, kompleksowo, z pasją.'
 
 /**
  * Object containing regular expressions for validation purposes.
@@ -63,30 +63,6 @@ export const REGEX: { email: RegExp; phone: RegExp; string: RegExp } = {
 }
 
 /**
- * Global declaration of the Resend API key.
- * This constant is used for sending emails via the Resend API.
- * @constant
- * @type {string}
- */
-export const RESEND_API_KEY: string = process.env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY
-
-/**
- * Global declaration of the Sanity project ID.
- * This constant is used for fetching data from Sanity.
- * @constant
- * @type {string}
- */
-export const PROJECT_ID: string = process.env.SANITY_PROJECT_ID || import.meta.env.SANITY_PROJECT_ID
-
-/**
- * Global declaration of the Sanity API token.
- * This constant is used for fetching data from Sanity.
- * @constant
- * @type {string}
- */
-export const SANITY_API_TOKEN: string = process.env.SANITY_API_TOKEN || import.meta.env.SANITY_API_TOKEN
-
-/**
  * Global declaration of the Sanity dataset.
  * This constant is used for fetching data from Sanity.
  * @constant
@@ -101,3 +77,19 @@ export const DATASET: string = 'production'
  * @type {string}
  */
 export const API_VERSION: string = '2024-10-15'
+
+/**
+ * Global declaration of the activities index name for Sanity Embeddings.
+ * This constant is used for searching activities using embeddings.
+ * @constant
+ * @type {string}
+ */
+export const ACTIVITIES_INDEX_NAME: string = 'activities-index'
+
+/**
+ * Global declaration of the hotels index name for Sanity Embeddings.
+ * This constant is used for searching hotels using embeddings.
+ * @constant
+ * @type {string}
+ */
+export const HOTELS_INDEX_NAME: string = 'hotels-index'

@@ -1,0 +1,258 @@
+---
+// Toast.astro
+---
+
+<div class="toast-container"></div>
+
+<style lang="scss">
+  .toast-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    pointer-events: none;
+    max-height: calc(5 * (3rem + 0.5rem)); /* Approximate height for 5 toasts with gap */
+
+    :global(.toast) {
+      padding: 0.75rem 1rem;
+      color: var(--primary-800);
+      font-size: var(--typography-body-m);
+      max-width: 20rem;
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.375rem;
+      transform: translateX(100%);
+      opacity: 0;
+      pointer-events: all;
+      animation: slideIn 250ms cubic-bezier(0.18, 0.89, 0.32, 1.27) forwards;
+      position: relative;
+      isolation: isolate;
+      border-radius: 0.5rem;
+      width: 18rem;
+      justify-content: flex-start;
+      overflow: hidden;
+
+      &::before,
+      &::after {
+        inset: 2px;
+        position: absolute;
+        content: '';
+        z-index: -1;
+        border-radius: inherit;
+        background-color: var(--neutral-100);
+        border-radius: 0.38rem;
+      }
+
+      &::after {
+        inset: 0;
+        background: conic-gradient(
+          from 135deg at 50% 50%,
+          #798ddc 0deg,
+          #e7c78f 90deg,
+          #fa7468 266.40000343322754deg,
+          #798ddc 360deg
+        );
+        border-radius: 0.5rem;
+        z-index: -2;
+      }
+
+      :global(.toast-progress) {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: var(--primary-500);
+        width: 100%;
+        transform-origin: left;
+        animation: progress 3s linear forwards;
+      }
+
+      &[data-type='error'] {
+        :global(.toast-progress) {
+          background: var(--error-500);
+        }
+      }
+
+      &.fade-out {
+        animation: fadeOut 0.3s var(--easing) forwards;
+        :global(.toast-progress) {
+          animation: none;
+        }
+      }
+
+      :global(svg) {
+        flex-shrink: 0;
+        width: 1rem;
+        height: 1rem;
+        transition: transform 200ms var(--easing);
+        margin-top: 3px;
+      }
+
+      :global(span) {
+        transition: transform 200ms var(--easing);
+      }
+
+      &:has(.toast-close:hover) {
+        span,
+        svg {
+          transform: translateY(0.25rem);
+        }
+      }
+
+      :global(.toast-close) {
+        position: absolute;
+        inset: 0;
+        background-color: rgba(255, 251, 251, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: currentColor;
+        opacity: 0;
+        inset: 2px;
+        border-radius: 0.38rem;
+        transition:
+          opacity 200ms,
+          visibility 200ms;
+
+        &:hover {
+          opacity: 1;
+          transform: translateY(0);
+          :global(svg) {
+            transform: translateY(0) scale(1) rotate(90deg);
+          }
+        }
+        :global(svg) {
+          width: 1.5rem;
+          height: 1.5rem;
+          transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          transform: translateY(0.5rem) scale(0.2) rotate(0deg);
+        }
+      }
+    }
+  }
+
+  @keyframes slideIn {
+    0% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOut {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(1rem);
+      opacity: 0;
+    }
+  }
+
+  @keyframes progress {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+</style>
+
+<script>
+  import { listenToToast } from '@/src/utils/events'
+
+  // Toast icon SVGs
+  const icons: Record<string, string> = {
+    success: `<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 16 16" fill="none"><path fill="#F67258" fill-rule="evenodd" d="M6.896 2.134c-.163.138-.244.207-.33.265a1.809 1.809 0 0 1-.657.272c-.103.02-.209.029-.422.046-.534.043-.801.064-1.024.143-.515.182-.92.587-1.103 1.103-.079.223-.1.49-.143 1.024a3.82 3.82 0 0 1-.045.421 1.809 1.809 0 0 1-.272.657c-.058.087-.127.168-.266.33-.347.408-.521.612-.623.825a1.809 1.809 0 0 0 0 1.56c.102.213.276.417.623.825.139.163.208.244.266.33.133.2.225.422.272.657.02.102.028.209.045.421.043.535.064.802.143 1.025.182.515.588.92 1.103 1.103.223.078.49.1 1.024.142.213.017.32.026.422.046.234.046.458.139.656.272.087.058.168.127.33.266.409.347.612.521.826.623a1.808 1.808 0 0 0 1.56 0c.213-.102.417-.276.825-.623.162-.139.243-.208.33-.266a1.81 1.81 0 0 1 .657-.272c.102-.02.208-.029.42-.046.535-.042.802-.064 1.025-.142.516-.182.921-.588 1.103-1.103.079-.223.1-.49.143-1.025.017-.212.025-.319.045-.42.047-.236.14-.459.272-.658.059-.086.128-.167.266-.33.348-.408.522-.612.623-.825a1.808 1.808 0 0 0 0-1.56c-.101-.213-.275-.417-.623-.825-.138-.162-.207-.243-.266-.33a1.808 1.808 0 0 1-.272-.657c-.02-.102-.028-.208-.045-.421-.043-.534-.064-.801-.143-1.024a1.809 1.809 0 0 0-1.103-1.103c-.223-.08-.49-.1-1.024-.143-.213-.017-.319-.025-.421-.046a1.81 1.81 0 0 1-.657-.272c-.087-.058-.168-.127-.33-.265-.408-.348-.612-.522-.825-.624a1.809 1.809 0 0 0-1.56 0c-.214.102-.418.276-.825.624Zm4.52 4.442a.543.543 0 1 0-.767-.768L7.415 9.042 6.352 7.979a.543.543 0 0 0-.767.767l1.447 1.447a.543.543 0 0 0 .767 0l3.617-3.617Z" clip-rule="evenodd"/></svg>`,
+    error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none"><path fill="#AA0B50" fill-rule="evenodd" d="M3.544 7.924C5.489 4.474 6.462 2.75 8.003 2.75c1.54 0 2.513 1.725 4.458 5.174l.243.43c1.617 2.867 2.425 4.3 1.694 5.348-.73 1.048-2.538 1.048-6.153 1.048H7.76c-3.615 0-5.423 0-6.153-1.048-.73-1.048.078-2.481 1.694-5.348l.243-.43Zm4.459-2.34a.5.5 0 0 1 .5.5v3.333a.5.5 0 1 1-1 0V6.083a.5.5 0 0 1 .5-.5Zm0 6.5a.667.667 0 1 0 0-1.334.667.667 0 0 0 0 1.333Z" clip-rule="evenodd"/></svg>`,
+  }
+
+  const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#F67258" stroke-width="1.5"/><path stroke="#F67258" stroke-linecap="round" stroke-width="1.5" d="m14.5 9.5-5 5m0-5 5 5"/></svg>`
+
+  // Create toast container if it doesn't exist
+  let toastContainer = document.querySelector('.toast-container')
+  if (!toastContainer) {
+    toastContainer = document.createElement('div')
+    toastContainer.className = 'toast-container'
+    document.body.appendChild(toastContainer)
+  }
+
+  // Maximum number of toasts to display at once
+  const MAX_TOASTS = 5
+
+  // Auto dismiss timeout (in ms)
+  const AUTO_DISMISS_TIMEOUT = 3000
+
+  // Function to show a toast notification
+  function showToast(message: string, type: 'success' | 'error' = 'success'): void {
+    const toast = document.createElement('div')
+    toast.className = `toast`
+    toast.setAttribute('data-type', type)
+    toast.innerHTML = `
+      ${icons[type] || ''}
+      <span>${message}</span>
+      <button class="toast-close" aria-label="Close">${closeIcon}</button>
+      <div class="toast-progress" role="progressbar" aria-hidden="true"></div>
+    `
+
+    // Add click handler for close button
+    const closeButton = toast.querySelector('.toast-close')
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        removeToast(toast)
+      })
+    }
+
+    // Auto-remove after timeout
+    setTimeout(() => {
+      removeToast(toast)
+    }, AUTO_DISMISS_TIMEOUT)
+
+    // Add to container
+    toastContainer?.appendChild(toast)
+
+    // Check if we need to remove old toasts
+    checkToastLimit()
+  }
+
+  // Function to remove a toast with animation
+  function removeToast(toast: HTMLElement): void {
+    toast.classList.add('fade-out')
+    toast.addEventListener(
+      'animationend',
+      () => {
+        toast.remove()
+      },
+      { once: true }
+    )
+  }
+
+  // Function to check and enforce toast limit
+  function checkToastLimit(): void {
+    if (!toastContainer) return
+
+    const toasts = toastContainer.querySelectorAll('.toast:not(.fade-out)')
+    if (toasts.length > MAX_TOASTS) {
+      // Remove oldest toasts (they appear at the top due to column-reverse)
+      const oldToasts = Array.from(toasts).slice(MAX_TOASTS)
+      oldToasts.forEach((toast) => {
+        removeToast(toast as HTMLElement)
+      })
+    }
+  }
+
+  // Listen for toast events using our centralized event system
+  listenToToast(({ message, type }) => {
+    showToast(message, type)
+  })
+</script>

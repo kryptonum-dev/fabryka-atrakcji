@@ -1,0 +1,58 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import Components, { Components_Query, type ComponentsProps } from '@/components/Components.astro'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import { type Language } from '../global/languages'
+import sanityFetch from '../utils/sanity.fetch'
+import metadataFetch from '../utils/metadata.fetch'
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
+
+export async function fetchData(slug: string, lang: Language) {
+  const singleTypeQuery = `
+    *[_type == "Index_Page" && language == $language][0] {
+  "slug": slug.current,
+  "name": name,
+  "firstItemType": components[0]._type,
+  ${Components_Query}
+}
+`
+  const collectionTypeQuery = `
+    *[_type == "Pages_Collection" && language == $language && slug.current == $slug][0] {
+        "slug": slug.current,
+        "name": name,
+        "firstItemType": components[0]._type,
+        ${Components_Query}
+    }
+`
+
+  const page = await sanityFetch<{
+    slug: string
+    name: string
+    firstItemType: string
+    components: ComponentsProps
+  }>({
+    query: slug ? collectionTypeQuery : singleTypeQuery,
+    params: { slug: `/${lang}/${slug}/`, language: lang },
+  })
+
+  if (!page) return null
+
+  const metadata = await metadataFetch(page.slug)
+
+  return {
+    page,
+    metadata,
+  }
+}
+
+const { page, metadata } = Astro.props
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs
+    data={page.slug.split('/').length > 3 ? [{ name: page.name, path: page.slug }] : []}
+    firstItemType={page.firstItemType}
+  />
+  <Components data={page.components} />
+</Layout>

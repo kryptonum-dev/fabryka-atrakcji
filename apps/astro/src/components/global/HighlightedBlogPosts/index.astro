@@ -1,0 +1,117 @@
+---
+import { optimizeImage } from '@/src/utils/optimize-images'
+import Button, { ButtonDataQuery, type ButtonDataProps } from '../../ui/Button'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
+import Carousel from './Carousel'
+import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import { BlogCardQuery, type BlogCardProps } from '../../ui/BlogCard'
+import type { GetImageResult } from 'astro'
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+export const HighlightedBlogPosts_Query = `
+  _type == "HighlightedBlogPosts" => {
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('subHeading')}
+    ${PortableTextQuery('paragraph')}
+    ${ButtonDataQuery('cta')}
+    blogPosts[]->{
+      ${BlogCardQuery}
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  heading: PortableTextValue
+  subHeading: PortableTextValue
+  paragraph: PortableTextValue
+  cta: ButtonDataProps
+  blogPosts: BlogCardProps[]
+}
+
+const { index, sectionId, heading, subHeading, paragraph, cta, blogPosts } = Astro.props
+
+const clientBlogPosts = await Promise.all(
+  blogPosts.map(async (blogPost) => ({
+    ...blogPost,
+    image: {
+      ...(await optimizeImage({
+        image: blogPost.image.asset.url,
+        width: blogPost.image.asset.metadata.dimensions.width,
+        height: blogPost.image.asset.metadata.dimensions.height,
+      })),
+    },
+    readingTime: getEstimatedReadingTime({ content: blogPost.content, lang }),
+    imageConfig: {
+      sizes: '(max-width: 37.4375rem) 328px, (max-width: 48rem) 298px, (max-width: 70.125rem) 40vw, 435px',
+      loading: index === 0 ? 'eager' : 'lazy',
+    },
+  }))
+)
+---
+
+<section class="HighlightedBlogPosts" id={sectionId}>
+  <div class="container max-width">
+    <header class="header">
+      <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+      <PortableText value={subHeading} class="subHeading" />
+      <PortableText value={paragraph} class="paragraph" />
+    </header>
+    <Carousel client:load blogPosts={clientBlogPosts as unknown as (BlogCardProps & { image: GetImageResult })[]}
+      ><Button {...cta} /></Carousel
+    >
+  </div>
+</section>
+
+<style lang="scss">
+  .HighlightedBlogPosts {
+    padding: clamp(3rem, calc(4vw / 0.48), 5rem) 0;
+    background: var(--neutral-200, #f5f1ec);
+
+    .container {
+      display: grid;
+      grid-template-columns: clamp(20rem, calc(18vw / 0.48), 35.5625rem) clamp(28rem, calc(22vw / 0.48), 39.875rem) 1fr;
+      grid-template-rows: repeat(2, auto);
+      gap: 1.5rem clamp(3rem, calc(4vw / 0.48), 7.25rem);
+
+      align-items: center;
+      .header {
+        justify-self: end;
+        max-width: 20.3125rem;
+        grid-row: 1 / 2;
+        grid-column: 1 / 2;
+        width: 100%;
+
+        .heading {
+          margin-bottom: 1.5rem;
+        }
+
+        .subHeading {
+          margin-bottom: 1rem;
+          color: var(--primary-800, #45051c);
+          font-weight: 700;
+          letter-spacing: -0.03em;
+        }
+      }
+    }
+
+    @media (max-width: 56.1875rem) {
+      padding-left: 0;
+      .container {
+        row-gap: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        .header {
+          margin-left: 0;
+          justify-self: start;
+          max-width: 38rem;
+          margin-bottom: clamp(2rem, calc(3vw / 0.48), 3rem);
+        }
+      }
+    }
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+import { DOMAIN } from '@/global/constants'
+
+export type BlogPageSchemaProps = {
+  name: string
+  description?: string
+  url: string
+  posts?: {
+    name: string
+    title: string
+    url: string
+    description?: string
+    image?: string
+    datePublished?: string
+  }[]
+}
+
+const { name, description, url, posts } = Astro.props as BlogPageSchemaProps
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': `${DOMAIN}/#blog`,
+  name,
+  description,
+  url,
+  ...(posts && {
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: posts.map((post, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'BlogPosting',
+          '@id': post.url,
+          name: post.name,
+          headline: post.title,
+          url: post.url,
+          ...(post.description && { description: post.description }),
+          ...(post.image && { image: [post.image] }),
+          ...(post.datePublished && { datePublished: post.datePublished }),
+          author: {
+            '@type': 'ProfessionalService',
+            name: 'Fabryka Atrakcji',
+            '@id': `${DOMAIN}/#organization`,
+            url: DOMAIN,
+          },
+          publisher: {
+            '@type': 'ProfessionalService',
+            name: 'Fabryka Atrakcji',
+            '@id': `${DOMAIN}/#organization`,
+            url: DOMAIN,
+          },
+        },
+      })),
+    },
+  }),
+}
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />

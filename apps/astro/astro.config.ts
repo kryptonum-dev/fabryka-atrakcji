@@ -18,7 +18,7 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      noExternal: [],
+      noExternal: ['react-hook-form', 'react-international-phone', 'embla-carousel-react'],
     },
     css: {
       preprocessorOptions: {
@@ -38,7 +38,7 @@ export default defineConfig({
       ? {
           isr: {
             bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
-            exclude: [],
+            exclude: [/^\/api\/.+/],
           },
         }
       : {}),

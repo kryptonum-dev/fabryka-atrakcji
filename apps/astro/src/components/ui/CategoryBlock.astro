@@ -1,0 +1,178 @@
+---
+import Image, { type ImageDataProps, ImageDataQuery } from '@/components/ui/image'
+
+export const CategoryBlockQuery = `
+  ${ImageDataQuery('image')}
+  _id,
+  name,
+  "slug": slug.current,
+  description{
+    long,
+    short
+  },
+  "referenceCount": count(*[_type == "Activities_Collection" && references(^._id)]),
+`
+
+export type CategoryBlockProps = {
+  image: ImageDataProps
+  _id: string
+  imageConfig?: {
+    sizes: string
+    loading: 'eager' | 'lazy'
+    fetchPriority: 'high' | 'auto'
+  }
+  name: string
+  description: {
+    long: string
+    short?: string
+  }
+  referenceCount: number
+  slug: string
+}
+
+const {
+  name,
+  description,
+  image,
+  referenceCount,
+  imageConfig = { sizes: '', loading: 'lazy', fetchPriority: 'auto' },
+  slug,
+  _id,
+} = Astro.props as CategoryBlockProps
+---
+
+<a class="CategoryBlock" href={slug} data-category-id={_id}>
+  <div class="wrapper">
+    <div class="box">
+      <Image {...image} {...imageConfig} loading={imageConfig.loading} fetchpriority={imageConfig.fetchPriority} />
+    </div>
+  </div>
+  <p class="title"><span class="text">{name}</span><span class="count">{referenceCount}</span></p>
+  <p class="description">{description.short || description.long}</p>
+</a>
+
+<style lang="scss">
+  .CategoryBlock {
+    width: 100%;
+    max-width: 323px;
+    cursor: pointer;
+
+    .wrapper {
+      border-radius: 50%;
+
+      position: relative;
+      isolation: isolate;
+      margin-bottom: 14px;
+      padding: 3px;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        z-index: -1;
+        background-color: var(--neutral-100);
+      }
+
+      &::after {
+        background: conic-gradient(
+          from 135deg at 50% 50%,
+          #798ddc 0deg,
+          #e7c78f 90deg,
+          #fa7468 266.40000343322754deg,
+          #798ddc 360deg
+        );
+        inset: -2px;
+        z-index: -2;
+      }
+
+      .box {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        overflow: hidden;
+        img {
+          width: 100%;
+          height: 100%;
+          transition: transform 350ms var(--easing);
+        }
+      }
+    }
+    .title {
+      .text {
+        color: var(--primary-800, #45051c);
+        font-weight: 700;
+        line-height: 1.3;
+        letter-spacing: -0.03em;
+        font-size: var(--typography-body-xl, 18px);
+        margin-right: 0.5rem;
+      }
+
+      .count {
+        display: inline-grid;
+        place-items: center;
+        padding: clamp(2px, calc(3vw / 7.68), 3px) clamp(5px, calc(6vw / 7.68), 6px) clamp(3px, calc(4vw / 7.68), 4px);
+        font-size: var(--typography-body-s, 12px);
+        line-height: 1.6;
+        border: 1px solid var(--neutral-300, #f5f1ec);
+        border-radius: 4px;
+        color: var(--primary-700, #600d2a);
+        background: var(--neutral-100, #faf7f7);
+        letter-spacing: -0.01em;
+        width: 26px;
+        height: 26px;
+      }
+    }
+
+    .description {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    &:hover {
+      .wrapper {
+        &::after {
+          animation: CategoryBlock-rotate 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        }
+        .box {
+          img {
+            transform: scale(1.1) rotate(12deg);
+          }
+        }
+      }
+    }
+
+    &:focus:not(:focus-visible) {
+      .wrapper > .box {
+        img {
+          transform: scale(1.2) rotate(0deg);
+        }
+      }
+    }
+
+    &:focus-visible {
+      border-radius: 4px;
+    }
+  }
+
+  @keyframes CategoryBlock-rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(120deg);
+    }
+    50% {
+      transform: rotate(200deg);
+    }
+    75% {
+      transform: rotate(290deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

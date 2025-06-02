@@ -1,0 +1,88 @@
+---
+import type { HTMLAttributes } from 'astro/types'
+
+type Props = HTMLAttributes<'div'>
+
+const { ...props } = Astro.props
+---
+
+<div {...props} aria-label="Ładowanie..." role="status">
+  <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"
+    ><circle cx="5.45455" cy="5.45455" r="5.45455" transform="matrix(1 0 0 -1 14.547 40)" fill="#F67258"
+    ></circle><circle cx="5.45455" cy="5.45455" r="5.45455" transform="matrix(1 0 0 -1 14.547 10.91)" fill="#F67258"
+    ></circle><circle cx="34.5455" cy="20" r="5.45455" transform="rotate(90 34.545 20)" fill="#F67258"></circle><circle
+      cx="5.4517"
+      cy="20"
+      r="5.45455"
+      transform="rotate(90 5.452 20)"
+      fill="#F67258"></circle></svg
+  >
+</div>
+
+<style lang="scss">
+  div {
+    animation: loader-fade-in 300ms forwards;
+    &[aria-label='Ładowanie...'] {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 30;
+      background-color: rgba(245, 241, 236, 0.3);
+      backdrop-filter: blur(4px);
+      border-radius: 8px;
+
+      svg {
+        animation: dynamic-rotate 1.6s infinite linear;
+        transform-origin: center;
+        max-width: 2.5rem;
+        aspect-ratio: 1;
+      }
+    }
+
+    @keyframes Loader-rotate {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes loader-fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes dynamic-rotate {
+      0% {
+        transform: rotate(0deg) scale(0.95);
+      }
+      10% {
+        transform: rotate(72deg) scale(1.05);
+      }
+      20% {
+        transform: rotate(120deg) scale(1);
+      }
+      30% {
+        transform: rotate(160deg) scale(0.95);
+      }
+      40% {
+        transform: rotate(216deg) scale(1.05);
+      }
+      60% {
+        transform: rotate(270deg) scale(1);
+      }
+      80% {
+        transform: rotate(324deg) scale(0.95);
+      }
+      90% {
+        transform: rotate(342deg) scale(1.05);
+      }
+      100% {
+        transform: rotate(360deg) scale(0.95);
+      }
+    }
+  }
+</style>

@@ -1,0 +1,130 @@
+---
+import TableOfContent, { TableOfContent_Query, type TableOfContentProps } from '../ui/TableOfContent.astro'
+import PortableText, { type PortableTextValue } from '../ui/portable-text'
+import ContentPT, { ContentPT_Query, type Props as ContentPTProps } from './content-pt/index.astro'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    navHeading: 'W regulaminie znajdziesz:',
+  },
+  en: {
+    navHeading: 'In the terms you will find:',
+  },
+}
+
+export type ContentProps = TableOfContentProps & {
+  content: ContentPTProps['value']
+  heading: PortableTextValue
+}
+
+export const Content_Query = `
+  "content": {
+    ${TableOfContent_Query}
+    ${ContentPT_Query}
+  },
+`
+
+const { headings, content, heading } = Astro.props as ContentProps
+---
+
+<article class="content max-width">
+  <TableOfContent title={translations[lang].navHeading} headings={headings} />
+  <PortableText value={heading} class="heading" heading="h1" />
+  <div class="content-body">
+    <ContentPT value={content} />
+  </div>
+</article>
+
+<style lang="scss">
+  .content {
+    display: grid;
+    padding: clamp(1rem, calc(2vw / 0.48), 2rem) 0 6rem;
+    grid-template-columns: 20.6875rem 1fr;
+    column-gap: clamp(2rem, calc(4.5vw / 0.48), 7.5rem);
+
+    .heading {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+      margin-bottom: clamp(2.25rem, calc(3vw / 0.48), 3.5rem);
+      font-size: var(--typography-heading-l, 2rem);
+    }
+
+    .content-body {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+      max-width: 41.8125rem;
+      justify-self: start;
+
+      > :global(:first-child) {
+        margin-top: 0;
+      }
+      :global(:last-child) {
+        margin-bottom: 0;
+      }
+
+      :global(> ul > li):first-child,
+      :global(> ol > li):first-child {
+        margin-top: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+      }
+
+      :global(strong) {
+        font-weight: 700;
+        color: var(--primary-800, #45051c);
+      }
+
+      :global(p),
+      :global(ul),
+      :global(ol) {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      :global(h2),
+      :global(h3) {
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+        line-height: 1.5;
+        font-variant-numeric: lining-nums proportional-nums;
+        color: var(--primary-800, #45051c);
+        text-transform: none;
+      }
+
+      :global(h2) {
+        font-size: var(--typography-body-2xl, 1.5rem);
+        margin: 3.5rem 0 clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+        line-height: 1.25;
+        letter-spacing: -0.04em;
+      }
+
+      :global(h3) {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        letter-spacing: -0.03em;
+        margin: clamp(2.25rem, calc(3vw / 0.48), 3.5rem) 0 clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+      }
+    }
+
+    @media (max-width: 69.3125rem) {
+      grid-template-columns: 1fr;
+      justify-items: center;
+
+      .heading {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        margin-top: clamp(2.25rem, calc(4vw / 0.48), 4rem);
+        max-width: 48rem;
+        width: 100%;
+      }
+
+      .content-body {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+        max-width: 48rem;
+        justify-self: center;
+      }
+    }
+  }
+</style>

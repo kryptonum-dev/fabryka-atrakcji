@@ -1,0 +1,385 @@
+<template id="gastronomy-template">
+  <div class="gastronomy-item">
+    <div class="item-info">
+      <h4 class="item-name"></h4>
+      <button type="button" class="edit-options-btn" style="display: none;" aria-label="Edit meal options">
+        <span class="icons icons-edit">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 17" fill="none">
+            <path
+              fill="#F67258"
+              d="M14.128 2.205a1.835 1.835 0 0 1 0 2.596l-.33.33a3.074 3.074 0 0 1-.356-.1 3.46 3.46 0 0 1-1.312-.828 3.46 3.46 0 0 1-.827-1.312 3.09 3.09 0 0 1-.1-.355l.33-.33a1.835 1.835 0 0 1 2.595 0ZM9.719 9.21c-.27.27-.404.404-.553.52a3.058 3.058 0 0 1-.565.349c-.17.081-.35.141-.712.262l-1.906.635a.495.495 0 0 1-.626-.626l.636-1.906c.12-.361.18-.542.261-.712.096-.2.213-.39.35-.565.115-.148.25-.283.52-.552L10.4 3.337a4.467 4.467 0 0 0 1.022 1.573c.538.538 1.11.847 1.573 1.022L9.72 9.21Z"
+            ></path>
+            <path
+              fill="#F67258"
+              d="M13.69 14.025c.975-.976.975-2.548.975-5.69 0-1.033 0-1.895-.034-2.623l-4.242 4.241c-.234.235-.41.41-.608.565a4.057 4.057 0 0 1-.75.464c-.226.108-.463.186-.777.291l-1.954.652a1.495 1.495 0 0 1-1.891-1.891l.651-1.955c.105-.314.184-.55.292-.777.126-.266.282-.517.463-.75.155-.198.33-.374.565-.608l4.241-4.241c-.727-.035-1.59-.035-2.622-.035-3.143 0-4.714 0-5.69.976-.977.977-.977 2.548-.977 5.69 0 3.143 0 4.715.976 5.691.977.976 2.548.976 5.69.976 3.143 0 4.715 0 5.691-.976Z"
+            ></path>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 17" fill="none">
+            <path
+              fill="#F67258"
+              d="M14.128 2.205a1.835 1.835 0 0 1 0 2.596l-.33.33a3.074 3.074 0 0 1-.356-.1 3.46 3.46 0 0 1-1.312-.828 3.46 3.46 0 0 1-.827-1.312 3.09 3.09 0 0 1-.1-.355l.33-.33a1.835 1.835 0 0 1 2.595 0ZM9.719 9.21c-.27.27-.404.404-.553.52a3.058 3.058 0 0 1-.565.349c-.17.081-.35.141-.712.262l-1.906.635a.495.495 0 0 1-.626-.626l.636-1.906c.12-.361.18-.542.261-.712.096-.2.213-.39.35-.565.115-.148.25-.283.52-.552L10.4 3.337a4.467 4.467 0 0 0 1.022 1.573c.538.538 1.11.847 1.573 1.022L9.72 9.21Z"
+            ></path>
+            <path
+              fill="#F67258"
+              d="M13.69 14.025c.975-.976.975-2.548.975-5.69 0-1.033 0-1.895-.034-2.623l-4.242 4.241c-.234.235-.41.41-.608.565a4.057 4.057 0 0 1-.75.464c-.226.108-.463.186-.777.291l-1.954.652a1.495 1.495 0 0 1-1.891-1.891l.651-1.955c.105-.314.184-.55.292-.777.126-.266.282-.517.463-.75.155-.198.33-.374.565-.608l4.241-4.241c-.727-.035-1.59-.035-2.622-.035-3.143 0-4.714 0-5.69.976-.977.977-.977 2.548-.977 5.69 0 3.143 0 4.715.976 5.691.977.976 2.548.976 5.69.976 3.143 0 4.715 0 5.691-.976Z"
+            ></path>
+          </svg>
+        </span>
+      </button>
+      <span class="item-options" style="display: none;"></span>
+    </div>
+    <div class="item-controls">
+      <div class="counter-control">
+        <button type="button" class="counter-decrease">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+            <path stroke="#F67258" stroke-linecap="round" d="M16 10H4"></path>
+          </svg>
+        </button>
+        <input type="number" min="1" class="count-input" />
+        <button type="button" class="counter-increase">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+            <path stroke="#F67258" stroke-linecap="round" d="M10 5v10m5-5H5"></path>
+          </svg>
+        </button>
+      </div>
+      <button type="button" class="remove-item-btn" aria-label="Remove item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M2.5 5.43653C2.5 5.10779 2.77226 4.84129 3.10811 4.84129H7.09823C7.10364 4.14027 7.17962 3.17922 7.87531 2.51392C8.4228 1.99034 9.1734 1.66669 9.99999 1.66669C10.8266 1.66669 11.5772 1.99034 12.1247 2.51392C12.8204 3.17922 12.8963 4.14027 12.9018 4.84129H16.8919C17.2277 4.84129 17.5 5.10779 17.5 5.43653C17.5 5.76527 17.2277 6.03177 16.8919 6.03177H3.10811C2.77226 6.03177 2.5 5.76527 2.5 5.43653Z"
+            fill="currentColor"></path>
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M9.663 18.3334H10.337C12.6559 18.3334 13.8154 18.3334 14.5693 17.5951C15.3231 16.8568 15.4003 15.6458 15.5545 13.2238L15.7768 9.73386C15.8605 8.41969 15.9023 7.76261 15.5241 7.34623C15.1459 6.92985 14.5073 6.92985 13.23 6.92985H6.77004C5.49272 6.92985 4.85407 6.92985 4.47588 7.34623C4.09769 7.76261 4.13953 8.41969 4.22323 9.73386L4.44549 13.2238C4.59975 15.6458 4.67687 16.8568 5.43074 17.5951C6.18461 18.3334 7.34407 18.3334 9.663 18.3334ZM8.53856 10.1571C8.50422 9.79554 8.19794 9.53176 7.85448 9.56792C7.51101 9.60407 7.26042 9.92647 7.29477 10.288L7.71143 14.674C7.74578 15.0355 8.05206 15.2993 8.39552 15.2631C8.73899 15.227 8.98958 14.9046 8.95523 14.543L8.53856 10.1571ZM12.1455 9.56792C12.489 9.60407 12.7396 9.92647 12.7052 10.288L12.2886 14.674C12.2542 15.0355 11.9479 15.2993 11.6045 15.2631C11.261 15.227 11.0104 14.9046 11.0448 14.543L11.4614 10.1571C11.4958 9.79554 11.8021 9.53176 12.1455 9.56792Z"
+            fill="currentColor"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</template>
+
+<style lang="scss">
+  .gastronomy-item {
+    background-color: var(--neutral-100);
+    border-radius: 0.375rem;
+    border: 1px solid var(--neutral-300);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .item-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+
+      .item-name {
+        font-size: var(--typography-body-m, 0.875rem);
+        font-weight: 700;
+        color: var(--primary-800);
+        margin: 0;
+        line-height: 1.4;
+      }
+
+      .item-options {
+        font-size: var(--typography-body-s, 0.75rem);
+        color: var(--primary-400);
+        background-color: var(--neutral-200);
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+
+        &::before {
+          content: '';
+          width: 1rem;
+          display: block;
+          height: 1rem;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none'%3E%3Cpath fill='%23F67258' fill-rule='evenodd' d='M1.332 6.665a3.333 3.333 0 0 1 3.825-3.297 3.001 3.001 0 0 1 5.684 0 3.333 3.333 0 0 1 1.825 6.353V11.5H3.331V9.72a3.334 3.334 0 0 1-2-3.056Zm6.029 2.447c-.586-.43-1.362-1.123-1.362-1.78 0-1.115 1.1-1.532 2-.67.9-.862 2-.445 2 .67 0 .657-.777 1.35-1.362 1.78-.28.205-.42.308-.638.308-.219 0-.359-.103-.638-.308Z' clip-rule='evenodd'/%3E%3Cpath fill='%23F67258' d='M3.723 14.275c-.335-.335-.383-.845-.39-1.776h9.331c-.007.931-.054 1.44-.39 1.776-.39.39-1.018.39-2.275.39h-4c-1.257 0-1.886 0-2.276-.39Z'/%3E%3C/svg%3E");
+          background-size: contain;
+          background-repeat: no-repeat;
+          flex-shrink: 0;
+        }
+      }
+
+      .edit-options-btn {
+        min-height: 2.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-800, #45051c);
+        font-size: var(--typography-body-m, 0.875rem);
+        font-weight: 700;
+        position: relative;
+        line-height: 1.7;
+        isolation: isolate;
+        border-radius: 0.25rem;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        margin-right: 0.5rem;
+
+        &::before {
+          content: '';
+          position: absolute;
+          inset: 0 -6px;
+          z-index: -1;
+          background: var(--neutral-300, #ede6de);
+          transform: scale(0);
+          transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.05);
+          border-radius: inherit;
+        }
+
+        .icons {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 1.5rem;
+          height: 1.5rem;
+          position: relative;
+          overflow: hidden;
+
+          svg {
+            transition: transform 400ms var(--easing);
+            width: 1.125rem;
+            height: 1.125rem;
+
+            &:nth-of-type(2) {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform-origin: bottom;
+              transform: translate(-150%, -50%) rotate(-60deg) scale(0.7);
+            }
+          }
+        }
+
+        &:hover {
+          .icons {
+            svg {
+              &:nth-of-type(1) {
+                transform: translateX(150%) rotate(60deg) scale(0.7);
+              }
+              &:nth-of-type(2) {
+                transform: translate(-50%, -50%);
+                transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+              }
+            }
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          &::before {
+            transform: scale(1);
+          }
+        }
+
+        &:focus-visible {
+          outline: 2px solid var(--primary-400);
+          outline-offset: 2px;
+        }
+      }
+    }
+
+    .item-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .counter-control {
+        display: flex;
+        align-items: center;
+
+        .counter-decrease {
+          width: 2.75rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--neutral-100);
+          border-radius: 0.3rem 0 0 0.3rem;
+          cursor: pointer;
+          border: 1px solid var(--neutral-300, #ede6de);
+          border-right: none;
+          min-height: 2.75rem;
+          transition: background-color 200ms;
+
+          &:hover {
+            background-color: var(--neutral-200);
+          }
+
+          &:focus-visible {
+            outline: 2px solid var(--primary-400);
+            outline-offset: 2px;
+          }
+        }
+
+        .counter-increase {
+          width: 2.75rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--neutral-100);
+          border-radius: 0 0.3rem 0.3rem 0;
+          cursor: pointer;
+          border: 1px solid var(--neutral-300, #ede6de);
+          border-left: none;
+          min-height: 2.75rem;
+          transition: background-color 200ms;
+
+          &:hover {
+            background-color: var(--neutral-200);
+          }
+
+          &:focus-visible {
+            outline: 2px solid var(--primary-400);
+            outline-offset: 2px;
+          }
+        }
+
+        .count-input {
+          width: 2.75rem;
+          text-align: center;
+          border: 1px solid var(--neutral-300);
+          border-right: 0;
+          border-left: 0;
+          min-height: 2.75rem;
+          padding: 0.125rem;
+          background-color: var(--neutral-100);
+          font-size: var(--typography-body-m, 0.875rem);
+          transition: background-color 200ms;
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+          -moz-appearance: textfield;
+          box-sizing: border-box;
+
+          &::-webkit-outer-spin-button,
+          &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+
+          &:hover {
+            background-color: var(--neutral-200);
+          }
+
+          &:focus {
+            outline: none !important;
+            border: 2px solid var(--primary-800);
+          }
+
+          &:focus-visible {
+            outline: 2px solid var(--primary-400);
+            border-color: var(--primary-400);
+          }
+        }
+      }
+
+      .remove-item-btn {
+        color: var(--primary-500, #45051c);
+        transition: color 200ms;
+        position: relative;
+        width: 2.75rem;
+        height: 2.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        isolation: isolate;
+        background: transparent;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+
+        &::before {
+          position: absolute;
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 50%;
+          background-color: var(--neutral-300);
+          content: '';
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(0);
+          z-index: -1;
+          transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+        }
+
+        &:hover {
+          color: var(--primary-700, #330416);
+        }
+
+        &:focus:not(:focus-visible) {
+          &::before {
+            transform: translate(-50%, -50%) scale(1);
+          }
+        }
+
+        &:focus-visible {
+          border-radius: 50%;
+          outline-offset: 0px;
+        }
+
+        svg {
+          width: 1.25rem;
+          height: 1.25rem;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 49.9375rem) {
+    .gastronomy-item {
+      .item-controls {
+        .counter-control {
+          .count-input,
+          .counter-decrease,
+          .counter-increase {
+            width: 2.25rem;
+            height: 2.25rem;
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 32.4375rem) {
+    .gastronomy-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0;
+
+      .item-info {
+        width: 100%;
+        padding: 1rem 0 0.675rem 0;
+        border-bottom: 1px solid var(--neutral-300);
+
+        .item-name {
+          padding-left: 1rem;
+        }
+
+        .item-options {
+          margin-left: auto;
+          margin-right: 1rem;
+        }
+
+        .edit-options-btn {
+          padding: 0.125rem 0.375rem;
+          min-height: 2.25rem;
+
+          &::before {
+            inset: 0px;
+          }
+        }
+      }
+
+      .item-controls {
+        width: 100%;
+        justify-content: space-between;
+        padding: 0 0.5rem 0.5rem 0.5rem;
+      }
+    }
+  }
+</style>

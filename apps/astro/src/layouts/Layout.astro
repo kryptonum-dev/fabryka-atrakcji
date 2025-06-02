@@ -1,21 +1,36 @@
 ---
 import '@/global/global.scss'
 import { LOCALE } from '../global/constants'
-import Head, { type Props as HeadProps } from './Head.astro'
+import Head, { type HeadProps } from './Head.astro'
+import OrganizationSchema from '../Schema/OrganizationSchema.astro'
+import Footer from './Footer.astro'
+import Header from './Header.astro'
+import Toast from '../components/ui/Toast.astro'
+import type { Language } from '../global/languages'
+import CookieConsent from './CookieConsent.astro'
+type Props = HeadProps & {
+  minify?: boolean
+}
 
-type Props = HeadProps
+const { minify = false, ...props } = Astro.props as Props
 
-const { ...props } = Astro.props
+const lang = (Astro.params.lang as Language) || 'pl'
 ---
 
 <!doctype html>
 <html lang={LOCALE}>
   <head>
     <Head {...props} />
+    <OrganizationSchema />
+    <slot name="head" />
   </head>
   <body>
+    <CookieConsent />
+    <Header minify={minify} />
     <main id="main">
       <slot />
     </main>
+    <Footer lang={lang} minify={minify} />
+    <Toast />
   </body>
 </html>

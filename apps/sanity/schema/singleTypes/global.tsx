@@ -1,82 +1,228 @@
-import { defineField, defineType } from 'sanity';
+import { BarChartIcon, CaseIcon, CommentIcon, SearchIcon, UsersIcon } from '@sanity/icons'
+import { CogIcon } from 'lucide-react'
+import { defineField, defineType } from 'sanity'
+import { getLanguagePreview } from '../../structure/languages'
 
 export default defineType({
   name: 'global',
   type: 'document',
-  title: 'Global',
-  icon: () => '🌍',
+  title: 'Ustawienia globalne',
+  icon: CogIcon,
   fields: [
+    defineField({
+      name: 'language',
+      type: 'string',
+      readOnly: true,
+      hidden: true,
+    }),
     defineField({
       name: 'email',
       type: 'string',
       title: 'Email',
-      validation: Rule => Rule.required().email(),
+      group: 'contact',
+      validation: (Rule) => Rule.required().email(),
     }),
     defineField({
       name: 'tel',
       type: 'string',
-      title: 'Phone number (optional)',
+      title: 'Telefon (opcjonalny)',
+      group: 'contact',
     }),
     defineField({
-      name: 'socials',
+      name: 'openHours',
       type: 'object',
-      title: 'Social media',
-      options: { collapsible: true },
+      title: 'Godziny otwarcia',
+      group: 'contact',
+      description: 'Wpisz czas w formacie HH:MM',
       fields: [
         defineField({
-          name: 'instagram',
-          type: 'url',
-          title: 'Instagram',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          name: 'from',
+          type: 'string',
+          title: 'Od',
+          validation: (Rule) =>
+            Rule.custom((value: any, context) => {
+              if (!value) {
+                return 'Czas jest wymagany'
+              }
+              if (value && !value.match(/^\d{2}:\d{2}$/)) {
+                return 'Czas musi być w formacie HH:MM'
+              }
+              const [hh, mm] = value.split(':').map(Number)
+              if (hh > 24 || mm > 60) {
+                return 'Czas musi być w formacie HH:MM, gdzie HH <= 24 i MM <= 60'
+              }
+              return true
+            }),
+          fieldset: 'openHours',
         }),
         defineField({
-          name: 'facebook',
-          type: 'url',
-          title: 'Facebook',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          name: 'to',
+          type: 'string',
+          title: 'Do',
+          validation: (Rule) =>
+            Rule.custom((value: any, context) => {
+              if (!value) {
+                return 'Czas jest wymagany'
+              }
+              if (value && !value.match(/^\d{2}:\d{2}$/)) {
+                return 'Czas musi być w formacie HH:MM'
+              }
+              const [hh, mm] = value.split(':').map(Number)
+              if (hh > 24 || mm > 60) {
+                return 'Czas musi być w formacie HH:MM, gdzie HH <= 24 i MM <= 60'
+              }
+              return true
+            }),
+          fieldset: 'openHours',
         }),
         defineField({
-          name: 'tiktok',
-          type: 'url',
-          title: 'TikTok',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          name: 'closedWeekends',
+          type: 'boolean',
+          title: 'Zamknięte w weekendy',
+          fieldset: 'openHours',
+        }),
+      ],
+      fieldsets: [
+        {
+          name: 'openHours',
+          title: 'Godziny otwarcia',
+          options: {
+            columns: 2,
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: 'newsletterPdf',
+      type: 'file',
+      title: 'PDF dla Newslettera',
+      group: 'forms',
+      options: {
+        accept: 'application/pdf',
+      },
+      description: 'Plik PDF do udostępnienia dla subskrybentów newslettera',
+    }),
+    defineField({
+      name: 'newsletterPdfGroups',
+      type: 'array',
+      title: 'Grupy z dostępem do PDF',
+      description:
+        'Lista ID grup z MailerLite, które mają dostęp do pliku PDF. Pozostaw puste, aby umożliwić dostęp wszystkim.',
+      of: [{ type: 'string' }],
+      group: 'forms',
+    }),
+    defineField({
+      name: 'analytics',
+      title: 'Analytika',
+      group: 'analytics',
+      type: 'object',
+      options: { collapsible: true, collapsed: false },
+      description: 'Skonfiguruj analitykę strony. Pozostaw pola puste, aby wyłączyć śledzenie.',
+      fields: [
+        defineField({
+          name: 'gtm_id',
+          type: 'string',
+          title: 'Google Tag Manager ID',
+          description:
+            'Format: GTM-XXXXXX. ID kontenera do zarządzania narzędziami analitycznymi (GA4, Facebook Pixel, etc.).',
+          validation: (Rule) =>
+            Rule.custom((value) => {
+              if (!value) return true
+              if (!/^GTM-[A-Za-z0-9]{6,8}$/.test(value)) {
+                return 'Nieprawidłowy format ID GTM. Powinien być w formacie GTM-XXXXXXXX, gdzie X to litera lub cyfra.'
+              }
+              return true
+            }),
         }),
         defineField({
-          name: 'linkedin',
-          type: 'url',
-          title: 'LinkedIn',
-          validation: Rule => Rule.uri({ scheme: ['https'] }).error('Provide a valid URL (starting with https://)'),
+          name: 'measurement_id',
+          type: 'string',
+          title: 'Google Analytics Measurement ID',
+          description: 'Format: G-XXXXXXXXXX. Używane do śledzenia Google Analytics.',
+          validation: (Rule) => Rule.required().error('Google Analytics Measurement ID jest wymagane'),
         }),
+        defineField({
+          name: 'meta_pixel_id',
+          type: 'string',
+          title: 'ID Meta (Facebook) Pixel',
+          description: 'Format: XXXXXXXXXX. Używane do śledzenia Meta Pixel i API konwersji.',
+          validation: (Rule) =>
+            Rule.custom((value) => {
+              if (!value) return true
+              if (!/^\d{15}$/.test(value)) {
+                return 'Nieprawidłowy format ID Meta Pixel. Powinien to być 15-cyfrowy numer.'
+              }
+              return true
+            }),
+        }),
+        defineField({
+          name: 'meta_conversion_token',
+          type: 'string',
+          title: 'Token API konwersji Meta',
+          description: 'Secret token for server-side Meta Conversion API tracking.',
+        }),
+      ],
+    }),
+    defineField({
+      name: 'googleData',
+      type: 'object',
+      title: 'Dane z Google',
+      group: 'analytics',
+      fields: [
+        defineField({
+          name: 'rating',
+          type: 'number',
+          title: 'Ocena (1.0 - 5.0)',
+          validation: (Rule) => Rule.required().min(1).max(5),
+          fieldset: 'rating',
+        }),
+        defineField({
+          name: 'ratingCount',
+          type: 'number',
+          title: 'Liczba opinii',
+          validation: (Rule) => Rule.required(),
+          fieldset: 'rating',
+        }),
+      ],
+      fieldsets: [
+        {
+          name: 'rating',
+          title: 'Ocena (opcjonalna)',
+          options: { columns: 2 },
+        },
       ],
     }),
     defineField({
       name: 'seo',
       type: 'object',
       title: 'Global SEO',
+      group: 'seo',
       fields: [
         defineField({
           name: 'img',
           type: 'image',
           title: 'Social Share Image',
-          description: 'Social Share Image is visible when sharing website on social media. The dimensions of the image should be 1200x630px. For maximum compatibility, use JPG or PNG formats, as WebP may not be supported everywhere.',
-          validation: Rule => Rule.required()
+          description:
+            'Social Share Image is visible when sharing website on social media. The dimensions of the image should be 1200x630px. For maximum compatibility, use JPG or PNG formats, as WebP may not be supported everywhere.',
+          validation: (Rule) => Rule.required(),
         }),
       ],
-      validation: Rule => Rule.required(),
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'OrganizationSchema',
       type: 'object',
-      title: 'Organization structured data',
+      title: 'Ustrukturyzowane dane organizacji',
+      group: 'organization',
       description: (
         <>
-          Learn more about{' '}
+          Dowiedz się więcej o{' '}
           <a
             href="https://developers.google.com/search/docs/appearance/structured-data/organization?hl=en"
             target="_blank"
             rel="noreferrer"
           >
-            Organization structured data
+            Ustrukturyzowanych danych organizacji
           </a>
         </>
       ),
@@ -85,25 +231,152 @@ export default defineType({
         defineField({
           name: 'name',
           type: 'string',
-          title: 'Name',
-          description: 'Enter the name of your organization as you want it to appear in search results.',
-          validation: Rule => Rule.required(),
+          title: 'Nazwa',
+          description: 'Wpisz nazwę swojej organizacji, tak jak chcesz, aby pojawiła się w wynikach wyszukiwania.',
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'description',
           type: 'text',
           rows: 3,
-          title: 'Description',
-          description: 'A brief description of your organization that will appear in search results.',
-          validation: Rule => Rule.required(),
+          title: 'Opis',
+          description: 'Krótki opis Twojej organizacji, który pojawi się w wynikach wyszukiwania.',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'address',
+          type: 'object',
+          title: 'Adres',
+          description: 'Adres fizyczny Twojej organizacji, który będzie widoczny w wynikach wyszukiwania.',
+          validation: (Rule) => Rule.required(),
+          fields: [
+            defineField({
+              name: 'street',
+              type: 'string',
+              title: 'Ulica i numer',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'city',
+              type: 'string',
+              title: 'Miasto',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'postalCode',
+              type: 'string',
+              title: 'Kod pocztowy',
+              validation: (Rule) => Rule.required().regex(/^\d{2}-\d{3}$/, 'Kod pocztowy musi być w formacie XX-XXX'),
+            }),
+          ],
+        }),
+        defineField({
+          name: 'businessDetails',
+          type: 'object',
+          title: 'Dane biznesowe (opcjonalne)',
+          description:
+            'Dodatkowe informacje biznesowe, które poprawiają widoczność Twojej organizacji w wynikach wyszukiwania i budują zaufanie z potencjalnymi klientami. Podanie tych danych może znacznie poprawić Twoją pozycję w SEO.',
+          options: { collapsible: true },
+          fields: [
+            defineField({
+              name: 'vatID',
+              type: 'string',
+              title: 'VAT ID (NIP)',
+              validation: (Rule) => Rule.regex(/^[0-9]{10}$/, 'NIP musi składać się z 10 cyfr'),
+            }),
+            defineField({
+              name: 'regon',
+              type: 'string',
+              title: 'REGON',
+              validation: (Rule) => Rule.regex(/^[0-9]{9}$/, 'REGON musi składać się z 9 cyfr'),
+            }),
+            defineField({
+              name: 'legalName',
+              type: 'string',
+              title: 'Pełna nazwa firmy',
+            }),
+            defineField({
+              name: 'foundingDate',
+              type: 'date',
+              title: 'Data założenia firmy',
+            }),
+            defineField({
+              name: 'founder',
+              type: 'string',
+              title: 'Założyciel (imię i nazwisko)',
+            }),
+            defineField({
+              name: 'priceRange',
+              type: 'number',
+              title: 'Zakres cenowy',
+              description: 'Wybierz zakres cenowy od 1 ($) do 4 ($$$$)',
+              options: {
+                list: [
+                  { title: '$ - Budżetowy', value: 1 },
+                  { title: '$$ - Średni', value: 2 },
+                  { title: '$$$ - Premium', value: 3 },
+                  { title: '$$$$ - Luksusowy', value: 4 },
+                ],
+              },
+            }),
+          ],
         }),
       ],
     }),
+    defineField({
+      name: 'contactRecipients',
+      type: 'array',
+      title: 'Odbiorcy formularza kontaktowego',
+      description:
+        'Adresy email, na które będą wysyłane wiadomości z formularza kontaktowego. Przynajmniej jeden adres jest wymagany.',
+      group: 'forms',
+      of: [
+        {
+          type: 'string',
+          validation: (Rule) =>
+            Rule.custom((email: string | undefined) => {
+              if (!email) return 'Email jest wymagany'
+              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
+              return emailRegex.test(email) ? true : 'Nieprawidłowy format adresu email'
+            }),
+        },
+      ],
+      validation: (Rule) => Rule.required().min(1),
+    }),
+  ],
+  groups: [
+    {
+      name: 'contact',
+      title: 'Dane kontaktowe',
+      icon: UsersIcon,
+    },
+    {
+      name: 'forms',
+      title: 'Formularze',
+      icon: CommentIcon,
+    },
+    {
+      name: 'analytics',
+      title: 'Analityka',
+      icon: BarChartIcon,
+    },
+    {
+      name: 'seo',
+      title: 'SEO',
+      icon: SearchIcon,
+    },
+    {
+      name: 'organization',
+      title: 'Dane organizacyjne',
+      icon: CaseIcon,
+    },
   ],
   preview: {
-    prepare: () => ({
-      title: 'Global settings',
-    })
-  }
+    select: {
+      language: 'language',
+    },
+    prepare: ({ language }) => {
+      return getLanguagePreview({ title: 'Ustawienia globalne', languageId: language })
+    },
+  },
 })
-

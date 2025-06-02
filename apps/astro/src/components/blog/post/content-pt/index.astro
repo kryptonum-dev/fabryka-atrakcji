@@ -1,0 +1,73 @@
+---
+import { PortableText } from 'astro-portabletext'
+import type { PortableTextProps } from 'astro-portabletext/types'
+import Mark from '@/src/components/ui/portable-text/Mark.astro'
+import Block from './Block.astro'
+import Normal from './Normal.astro'
+import BulletList from './BulletList.astro'
+import NumberedList from './NumberedList.astro'
+import Checklist, { Checklist_Query } from './Checklist.astro'
+import Buttons, { Buttons_Query } from './Buttons.astro'
+import Image, { Image_Query } from './Image.astro'
+import Quote, { Quote_Query } from './Quote.astro'
+import ComparisonTable, { ComparisonTable_Query } from './ComparisonTable.astro'
+import Faq, { Faq_Query } from './Faq.astro'
+import Newsletter, { Newsletter_Query } from './newsletter/index.astro'
+import Cta, { Cta_Query } from './Cta.astro'
+
+export const ContentPT_Query = `
+  content[] {
+    ...,
+    "markDefs": coalesce(markDefs[] {
+      ...,
+      _type == "link" => {
+        _type,
+        _key,
+        linkType,
+        "href": select(linkType == "internal" => internal -> slug.current, linkType == "external" => external, "#"),
+      },
+    }, []),
+    ${Checklist_Query}
+    ${Buttons_Query}
+    ${Image_Query}
+    ${Quote_Query}
+    ${ComparisonTable_Query}
+    ${Faq_Query}
+    ${Newsletter_Query}
+    ${Cta_Query}
+  },
+`
+
+export type Props = {
+  value: PortableTextProps['value']
+}
+
+const { value } = Astro.props
+---
+
+<PortableText
+  value={value}
+  components={{
+    mark: Mark,
+    block: {
+      normal: Normal,
+      h2: Block,
+      h3: Block,
+      h4: Block,
+    },
+    listItem: {
+      bullet: BulletList,
+      number: NumberedList,
+    },
+    type: {
+      Checklist,
+      Buttons,
+      Image,
+      Quote,
+      ComparisonTable,
+      Faq,
+      Newsletter,
+      Cta,
+    },
+  }}
+/>

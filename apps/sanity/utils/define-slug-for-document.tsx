@@ -1,41 +1,129 @@
-import { defineField } from "sanity";
-import { slugify } from "./slugify";
-import { isUniqueSlug } from "./is-unique-slug";
+import { defineField, type SlugDefinition, type SlugOptions } from 'sanity'
+import { LANGUAGES } from '../structure/languages'
+import { isUniqueSlug } from './is-unique-slug'
+import { PathnameFieldComponent } from './slug-field-component'
+import { slugify } from './slugify'
+const isProduction = process.env.NODE_ENV === 'production'
 
-export const defineSlugForDocument = ({ prefix = '', slug }: { prefix?: string, slug?: string }) => [
-  defineField({
-    name: 'title',
-    type: 'string',
-    title: 'Title',
-    description: 'The title of the document, used for display in the Breadcrumbs.',
-    validation: Rule => Rule.required(),
-  }),
+type LanguageValues = {
+  [key in (typeof LANGUAGES)[number]['id']]: string
+}
+
+type DefineSlugConfig = {
+  source?: string
+  group?: string
+} & (
+  | { prefixes: LanguageValues; slugs?: never; slugify?: never; validate?: never }
+  | { slugs: LanguageValues; prefixes?: never; slugify?: never; validate?: never }
+  | {
+      slugify: SlugOptions['slugify']
+      validate?: SlugDefinition['validation']
+      prefixes?: never
+      slugs?: never
+    }
+)
+
+export const defineSlugForDocument = ({
+  source,
+  prefixes,
+  slugs,
+  slugify: customSlugify,
+  validate: customValidate,
+  group,
+}: DefineSlugConfig) => [
+  ...(source
+    ? []
+    : [
+        defineField({
+          name: 'name',
+          type: 'string',
+          title: 'Nazwa',
+          ...(group ? { group } : {}),
+          description: 'Nazwa dokumentu, używana do wyświetlania w ścieżce nawigacyjnej.',
+          validation: (Rule) => Rule.required(),
+        }),
+      ]),
   defineField({
     name: 'slug',
     type: 'slug',
-    title: `Slug`,
-    description: (
-      <>
-        Slug is a unique identifier for the document, used for SEO and links.
-        {slug && <> <strong><em>That slug can&apos;t be changed.</em></strong></>}
-        {prefix && <> The slug should start with a prefix: <strong>{prefix}</strong></>}
-      </>
-    ),
-    ...!!slug && {
-      initialValue: { current: slug },
-      readOnly: true,
+    title: 'Slug',
+    ...(group ? { group } : {}),
+    components: {
+      field: (props) => <PathnameFieldComponent {...props} prefixes={prefixes} />,
     },
+    description: (
+      <span style={{ color: 'var(--card-fg-color)' }}>
+        Slug to unikalny identyfikator dokumentu, używany do SEO i linków.
+        {isProduction && slugs && (
+          <>
+            {' '}
+            <strong>
+              <em>Ten slug nie może być zmieniony.</em>
+            </strong>
+          </>
+        )}
+      </span>
+    ),
+    readOnly: isProduction && !!slugs,
     options: {
-      source: 'title',
-      slugify: (slug: string) => `${prefix || '/'}${slugify(slug)}`,
+      source: source || 'name',
+      slugify:
+        customSlugify ||
+        ((slug, _, context) => {
+          const language = (context.parent as { language: (typeof LANGUAGES)[number]['id'] })?.language ?? 'pl'
+          if (slugs) {
+            const slugValue = slugs[language]
+            // Ensure trailing slash for predefined slugs (except root)
+            return slugValue === '/' ? slugValue : `${slugValue.replace(/\/$/, '')}/`
+          }
+          const currentPrefix = prefixes?.[language] ?? ''
+          const slugified = `${currentPrefix}${slugify(slug)}`
+          // Ensure trailing slash for generated slugs (except root)
+          return slugified === '/' ? slugified : `${slugified.replace(/\/$/, '')}/`
+        }),
       isUnique: isUniqueSlug,
     },
-    validation: (Rule) =>
-      Rule.required().custom((value) => {
-        if (prefix && value?.current && !value.current.startsWith(prefix)) {
-          return `Slug should start with ${prefix}`;
-        }
-        return true;
-      })
+    validation:
+      customValidate ||
+      ((Rule) =>
+        Rule.custom(async (value, context) => {
+          const language = (context.parent as { language: (typeof LANGUAGES)[number]['id'] })?.language ?? 'pl'
+          const currentPrefix = prefixes?.[language] ?? ''
+
+          if (currentPrefix && value?.current && !value.current.startsWith(currentPrefix)) {
+            return `Slug powinien zaczynać się od ${currentPrefix}`
+          }
+
+          if (slugs) {
+            const expectedSlug = slugs[language]
+            const expectedWithTrailingSlash =
+              expectedSlug === '/' ? expectedSlug : `${expectedSlug.replace(/\/$/, '')}/`
+            if (value?.current !== expectedWithTrailingSlash) {
+              return `Slug musi być dokładnie "${expectedWithTrailingSlash}"`
+            }
+            return true
+          }
+
+          if (prefixes && value?.current) {
+            const contentAfterPrefix = value.current.replace(currentPrefix, '').trim()
+            if (!contentAfterPrefix || contentAfterPrefix === '/') {
+              return `Slug musi zawierać treść po ${currentPrefix}. Sam ukośnik nie wystarczy.`
+            }
+          }
+
+          // Check for trailing slash requirement (except for root)
+          if (value?.current && value.current !== '/' && !value.current.endsWith('/')) {
+            return 'Slug musi kończyć się ukośnikiem (/)'
+          }
+
+          if (
+            value?.current &&
+            value.current.replace(currentPrefix, '') !==
+              slugify(value.current.replace(currentPrefix, '').replace(/\/$/, '')) + (value.current === '/' ? '' : '/')
+          ) {
+            return 'W slugu jest literówka. Pamiętaj, że slug może zawierać tylko małe litery, cyfry i myślniki, oraz musi kończyć się ukośnikiem.'
+          }
+          return true
+        }).required()),
   }),
 ]

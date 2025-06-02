@@ -1,0 +1,195 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import sanityFetch from '@/utils/sanity.fetch'
+import metadataFetch from '@/utils/metadata.fetch'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Listing, { Listing_Query, type ListingProps } from '@/src/components/hotels/Listing.astro'
+import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
+
+export const ITEMS_PER_PAGE = 16
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
+  currentPage: number
+}
+
+export async function fetchData(lang: Language, pageNumber: number, searchParams?: URLSearchParams) {
+  const searchQuery = searchParams?.get('search')
+  const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
+  const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
+
+  const filters = parseFilters(searchParams || new URLSearchParams())
+
+  // In search mode, if no order specified, default to searchMatching
+  if (searchQuery && !filters.order) {
+    filters.order = 'searchMatching'
+  }
+
+  const orderClause = getOrderClause(filters.order, !!searchQuery, 'hotels')
+  const data = searchQuery ? await fetchEmbeddings(searchQuery, 'hotels') : null
+
+  // Get all hotel filters
+
+  const page = await sanityFetch<
+    {
+      name: string
+      slug: string
+      heading: PortableTextValue
+      paragraph: PortableTextValue
+      checklist: string[]
+      components: ComponentsProps
+      noResults: {
+        components: ComponentsProps
+      }
+    } & ListingProps
+  >({
+    query: `
+      *[_type == "Hotels_Page" && language == $language][0] {
+        name,
+        "slug": slug.current,
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+        checklist[],
+        noResults {
+          ${Components_Query}
+        },
+        ${Listing_Query(orderClause)}
+        ${Components_Query}
+      }
+    `,
+    params: {
+      language: lang,
+      PAGINATION_BEFORE,
+      PAGINATION_AFTER,
+      location: filters.location ?? null,
+      amenities: filters.amenities ?? null,
+      stars: filters.stars ?? null,
+      minRooms: filters.minRooms ?? null,
+      maxRooms: filters.maxRooms ?? null,
+      minPrice: filters.minPrice ?? null,
+      maxPrice: filters.maxPrice ?? null,
+      embeddingResults: data ?? null,
+    },
+  })
+
+  if (!page || (pageNumber > 1 && !page.listing.length)) return null
+  const metadata = await metadataFetch(page.slug)
+  return { page, metadata }
+}
+
+export async function staticPaths(lang: Language) {
+  const totalHotels = await sanityFetch<number>({
+    query: `count(*[_type == "Hotels_Collection" && language == $language])`,
+    params: { language: lang },
+  })
+
+  const totalPages = Math.ceil(totalHotels / ITEMS_PER_PAGE)
+
+  return Array.from({ length: totalPages - 1 }, (_, i) => ({
+    params: { page: (i + 2).toString() },
+  }))
+}
+
+const { page, metadata: _metadata, currentPage } = Astro.props
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translation = {
+  pl: {
+    pageUpper: 'Strona',
+    pageLower: 'strona',
+    prefix: '/pl/hotele',
+    sort: {
+      popularity: 'Najpopularniejsze',
+      priceDesc: 'Cena: od najwyższej',
+      priceAsc: 'Cena: od najniższej',
+      newest: 'Od najnowszych',
+    },
+  },
+} as const
+
+const t = translation[lang]
+const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
+
+const metadata = {
+  ..._metadata,
+  title: currentPage > 1 ? `${_metadata.title} | ${t.pageUpper} ${currentPage}` : _metadata.title,
+  description: _metadata.description,
+  openGraphImage: _metadata.openGraphImage,
+  path: Astro.url.pathname,
+}
+
+const getPaginationUrl = (page: number) => {
+  return `${t.prefix}/${t.pageLower}/${page}`
+}
+
+const breadcrumbs = [
+  { name: page.name, path: page.slug },
+  ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
+]
+---
+
+<Layout {...metadata}>
+  <Fragment slot="Head">
+    {currentPage > 1 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
+    {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
+  </Fragment>
+
+  <Breadcrumbs data={breadcrumbs} firstItemType="HotelsListing" />
+  <Listing
+    heading={page.heading}
+    paragraph={page.paragraph}
+    totalItems={page.totalItems}
+    listing={page.listing}
+    currentPage={currentPage}
+    locations={page.locations}
+    amenities={page.amenities}
+    roomsRange={page.roomsRange}
+    priceRange={page.priceRange}
+    checklist={page.checklist}
+    stars={page.stars}
+    roomRangeCounts={page.roomRangeCounts}
+  />
+  <Components data={page.listing.length > 0 ? page.components : page?.noResults?.components} hasPreviousSections />
+</Layout>
+
+<script>
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+
+  // Track hotels list view
+  document.addEventListener('DOMContentLoaded', () => {
+    // Get hotel items from the page
+    const hotelItems = document.querySelectorAll('.HotelCard') as NodeListOf<HTMLElement>
+    if (!hotelItems.length) return
+
+    // Create array of items for tracking
+    const items = Array.from(hotelItems)
+      .slice(0, 10)
+      .map((hotel, index) => {
+        const hotelName = hotel.querySelector('.title')?.textContent?.trim() || ''
+        const hotelId = hotel.dataset.id || ''
+        const hotelPricing = hotel.dataset.pricing || 200
+
+        return {
+          item_name: hotelName,
+          item_id: hotelId,
+          item_price: hotelPricing,
+          index,
+        }
+      })
+
+    if (items.length > 0) {
+      trackEvent({
+        ga: {
+          event_name: 'view_item_list',
+          params: {
+            items: items,
+            currency: 'PLN',
+            item_list_name: 'Hotels Listing',
+          },
+        },
+      })
+    }
+  })
+</script>

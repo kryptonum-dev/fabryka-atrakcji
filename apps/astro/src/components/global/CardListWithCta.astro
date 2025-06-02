@@ -1,0 +1,172 @@
+---
+import Button, { ButtonDataQuery, type ButtonDataProps } from '@/components/ui/Button'
+import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
+
+export const CardListWithCta_Query = `
+  _type == "CardListWithCta" => {
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    ${ButtonDataQuery('ctas[]')}
+    cards[]{
+      ${ImageDataQuery('image')}
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+    }
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  ctas: ButtonDataProps[]
+  cards: {
+    image: ImageDataProps
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+  }[]
+}
+
+const { index, sectionId, heading, paragraph, ctas, cards } = Astro.props
+---
+
+<section class="CardListWithCta max-width" id={sectionId}>
+  <header class="header">
+    <PortableText value={heading} heading={index === 0 ? 'h1' : 'h2'} class="heading" />
+    <PortableText value={paragraph} class="paragraph" />
+  </header>
+  <div class="ctas">
+    {ctas.map((cta, buttonIndex) => <Button shade={buttonIndex === 0 ? 'dark' : 'light'} {...cta} />)}
+  </div>
+  <ul class="cards">
+    {
+      cards.map(({ image, heading, paragraph }, imageIndex) => (
+        <li class="card">
+          <Image
+            {...image}
+            sizes="(max-width: 28rem) 94vw, (max-width: 42.25rem) 416px, (max-width: 65rem) 32vw, 322px"
+            loading={index === 0 ? 'eager' : 'lazy'}
+            priority={index === 0 && imageIndex === 0}
+          />
+          <PortableText value={heading} class="card-heading" />
+          <PortableText value={paragraph} class="card-paragraph" />
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style lang="scss">
+  .CardListWithCta {
+    padding: clamp(3rem, calc(4vw / 0.48), 4rem) 0;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: space-between;
+    align-items: start;
+
+    .header {
+      :global(.animated-heading) {
+        margin-bottom: 1rem;
+      }
+      .paragraph {
+        max-width: 33.875rem;
+      }
+      > :global(.animated-heading),
+      .paragraph {
+        max-width: 33.875rem;
+      }
+    }
+
+    .ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .cards {
+      margin-top: clamp(2.5rem, calc(4vw / 0.48), 4rem);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 61.875rem;
+      gap: clamp(1.25rem, calc(2vw / 0.48), 2rem) 0.75rem;
+      grid-column: 1/3;
+      position: relative;
+
+      .card {
+        position: relative;
+
+        img {
+          width: 100%;
+          height: 405px;
+          border-radius: clamp(8px, calc(12vw / 7.68), 12px);
+          display: block;
+          margin-bottom: 0.75rem;
+        }
+
+        .card-heading {
+          margin-bottom: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+          font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+          font-weight: 700;
+          font-size: var(--typography-body-l, 1rem);
+          color: var(--primary-800, #45051c);
+          line-height: 1.55;
+          letter-spacing: -0.03em;
+        }
+      }
+    }
+
+    @media (max-width: 67.4375rem) {
+      grid-template-columns: 1fr;
+      .header {
+        margin-bottom: clamp(1.5rem, calc(2vw / 0.48), 2rem);
+
+        .paragraph {
+          max-width: 38rem;
+        }
+      }
+
+      .ctas {
+        grid-column: 1/2;
+      }
+
+      .cards {
+        grid-column: 1/2;
+      }
+    }
+    @media (max-width: 56.1875rem) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 42.4375rem) {
+      .cards {
+        grid-template-columns: 1fr;
+        max-width: 26rem;
+      }
+    }
+
+    @media (max-width: 28.6875rem) {
+      .ctas {
+        :global(a) {
+          max-width: 100%;
+          width: 100%;
+
+          &[data-theme='secondary'] {
+            display: flex;
+            justify-content: center;
+          }
+
+          &[data-theme='primary'] {
+            :global(span) {
+              margin: 0 auto;
+              padding-right: 1.75rem;
+            }
+          }
+        }
+      }
+    }
+  }
+</style>

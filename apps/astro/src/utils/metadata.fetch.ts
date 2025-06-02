@@ -1,28 +1,38 @@
+import type { Language } from '@/global/languages'
+import sanityFetch from '@/utils/sanity.fetch'
 
-import type { Props } from "@/src/layouts/Head.astro";
-import sanityFetch from "@/utils/sanity.fetch";
+export type MetadataProps = ({ path: string; url?: never } | { url: string; path?: never }) & {
+  title: string
+  description: string
+  openGraphImage?: string
+  alternates?: Array<{ lang: Language; url: string }>
+  doNotIndex?: boolean
+}
 
-export default async function metadataFetch(type: string, slug?: string): Promise<Props> {
-  const filter = slug
-    ? `*[_type == '${type}' && slug.current == $slug][0]`
-    : `*[_type == "${type}"][0]`;
-
-  const seo = await sanityFetch<Props>({
+export default async function metadataFetch(slug: string) {
+  const seo = await sanityFetch<MetadataProps>({
     query: /* groq */ `
-      ${filter} {
+      *[slug.current == $slug][0] {
         "path": slug.current,
         "title": seo.title,
         "description": seo.description,
-        "openGraphImage": {
-          "url": seo.img.asset -> url + "?w=1200",
-          "height": round(1200 / seo.img.asset -> metadata.dimensions.aspectRatio),
-        },
+        "openGraphImage": seo.img.asset -> url + "?w=1200",
+        "doNotIndex": seo.doNotIndex,
+        "alternates": coalesce(
+          *[_type == 'translation.metadata' && references(^._id)][0] {
+            "urls": translations[] {
+              "lang": _key,
+              "url": *[_id == ^.value._ref][0].slug.current
+            }
+          }.urls,
+          []
+        ),
       }
     `,
-    ...(slug && { params: { slug: slug } }),
-  });
-  if (!seo?.path) throw new Error(`The path for '${type}' is not specified`);
-  if (!seo?.title) throw new Error(`The title for '${type}' is not specified`);
-  if (!seo?.description) throw new Error(`The description for '${type}' is not specified`);
-  return seo;
+    params: { slug: slug },
+  })
+  if (!seo?.path) throw new Error(`Missing required field \`path\` for slug \`${slug}\``)
+  if (!seo?.title) throw new Error(`Missing required field \`title\` for slug \`${slug}\``)
+  if (!seo?.description) throw new Error(`Missing required field \`description\` for slug \`${slug}\``)
+  return seo
 }

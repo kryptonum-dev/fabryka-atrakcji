@@ -1,0 +1,112 @@
+---
+import type { HTMLAttributes } from 'astro/types'
+
+type Props = {
+  asLabel?: boolean
+  inputProps?: HTMLAttributes<'input'>
+  size?: 'sm' | 'md'
+} & HTMLAttributes<'label'>
+
+const { inputProps, asLabel, size = 'md', ...props } = Astro.props
+
+const Element = asLabel ? 'label' : 'div'
+---
+
+<Element class="switch" {...props} data-size={size}>
+  <input type="checkbox" {...inputProps} />
+  <div class="dot">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+      ><path
+        stroke="#F67258"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        d="m13.33 4-7.333 7.333L2.664 8"></path></svg
+    >
+  </div>
+</Element>
+
+<style lang="scss">
+  .switch {
+    input {
+      position: absolute;
+      opacity: 0;
+      clip: rect(0 0 0 0);
+    }
+    &:has(input:disabled) {
+      opacity: 0.62;
+    }
+    cursor: pointer;
+    border-radius: 999rem;
+    border: 1px solid var(--primary-400, #74535e);
+    background-color: var(--neutral-100, #faf7f7);
+    transition:
+      background-color 300ms,
+      border-color 300ms;
+    &:hover {
+      border-color: var(--primary-500);
+
+      .dot {
+        transform: scale(0.83);
+        background-color: var(--primary-500);
+      }
+    }
+    &:has(input:focus-visible) {
+      outline: 2px solid var(--primary-800);
+      outline-offset: 2px;
+    }
+    &:has(input:checked) {
+      border-color: var(--primary-500);
+      background-color: var(--primary-500);
+      .dot {
+        transform: scale(1.16) translateX(19px);
+        background-color: var(--neutral-100);
+        :global(svg) {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+    }
+
+    .dot {
+      margin: 3px;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      background-color: var(--primary-400);
+      transition:
+        transform 300ms var(--easing),
+        background-color 250ms;
+      display: grid;
+      place-items: center;
+      :global(svg) {
+        opacity: 0;
+        transform: scale(0.7) translateX(-10px);
+        transition:
+          opacity 300ms,
+          transform 400ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+      }
+    }
+
+    &[data-size='sm'] {
+      height: 1.75rem;
+      width: 3rem;
+
+      .dot {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      &:has(input:checked) {
+        .dot {
+          transform: scale(1.2) translateX(17px);
+        }
+      }
+    }
+
+    &[data-size='md'] {
+      height: 2rem;
+      width: 3.375rem;
+    }
+  }
+</style>

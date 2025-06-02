@@ -1,0 +1,40 @@
+---
+// eslint-disable-next-line no-unused-vars
+const { node, index, ...attrs } = Astro.props
+---
+
+<li {...attrs}>
+  <slot />
+</li>
+
+<style lang="scss">
+  li {
+    padding-left: 1rem;
+    position: relative;
+
+    &:not(:last-child) {
+      margin-bottom: 0.75rem;
+    }
+
+    &::before {
+      position: absolute;
+      left: 0rem;
+      top: 0.75rem;
+      content: '';
+      width: 0.25rem;
+      height: 0.25rem;
+      border-radius: 50%;
+      background-color: var(--primary-200);
+    }
+
+    :global(ul) {
+      grid-column: 2 / 3;
+
+      :global(li) {
+        &:first-child {
+          margin-top: 0.5rem;
+        }
+      }
+    }
+  }
+</style>

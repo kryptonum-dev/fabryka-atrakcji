@@ -1,0 +1,343 @@
+---
+import { getLangFromPath, type Language } from '@/global/languages'
+
+interface Props {
+  slugBase: string
+  totalItems: number
+  itemsPerPage: number
+  currentPage: number
+  searchParams?: URLSearchParams
+}
+
+const { slugBase, totalItems, itemsPerPage, currentPage, searchParams } = Astro.props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const LABELS = {
+  en: {
+    page: 'page',
+    nav: { prev: 'Go to previous page', next: 'Go to next page' },
+  },
+  pl: {
+    page: 'strona',
+    nav: { prev: 'Przejdź do poprzedniej strony', next: 'Przejdź do następnej strony' },
+  },
+} as const
+
+const totalPages = Math.ceil(totalItems / itemsPerPage)
+
+const ArrowLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12.503 14.167 8.336 10l4.167-4.166"/></svg>`
+const ArrowRight = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.333 5.833 12.5 10l-4.167 4.166"/></svg>`
+
+const getPagePath = (pageNum?: number) => {
+  if (!pageNum || pageNum < 1) return ''
+  const pagePath = pageNum > 1 ? `${slugBase}/${LABELS[lang].page}/${pageNum}` : slugBase
+  if (searchParams) {
+    const params = new URLSearchParams(searchParams)
+    return `${pagePath}?${params.toString()}`
+  }
+  return pagePath
+}
+
+const getPaginationCase = () => {
+  if (totalPages <= 5) return 'FEW_PAGES'
+  if (currentPage <= 2) return 'NEAR_START'
+  if (currentPage >= 3 && totalPages - currentPage >= 3) return 'IN_MIDDLE'
+  return 'NEAR_END'
+}
+
+const createPageLink = (pageNum: number) =>
+  `<a href="${getPagePath(pageNum)}" ${currentPage === pageNum ? 'aria-current="page"' : ''} class="number"><div class='gradient'></div>${pageNum}</a>`
+
+const generatePagination = () => {
+  switch (getPaginationCase()) {
+    case 'FEW_PAGES':
+      return Array.from({ length: totalPages }, (_, i) => createPageLink(i + 1)).join('')
+
+    case 'NEAR_START':
+      return [
+        ...Array.from({ length: 3 }, (_, i) => createPageLink(i + 1)),
+        '<div>...</div>',
+        createPageLink(totalPages),
+      ].join('')
+
+    case 'IN_MIDDLE':
+      return [
+        createPageLink(1),
+        '<div>...</div>',
+        `<a href="${getPagePath(currentPage)}" aria-current="page" class="number"><div class='gradient'></div>${currentPage}</a>`,
+        '<div>...</div>',
+        createPageLink(totalPages),
+      ].join('')
+
+    case 'NEAR_END':
+      return [
+        createPageLink(1),
+        '<div>...</div>',
+        ...Array.from({ length: 3 }, (_, i) => createPageLink(totalPages - 2 + i)),
+      ].join('')
+  }
+}
+---
+
+{
+  totalPages > 1 && (
+    <nav class="Pagination">
+      {currentPage > 1 ? (
+        <a
+          href={getPagePath(currentPage - 1)}
+          aria-label={LABELS[lang].nav.prev}
+          data-prev
+          class="arrow"
+          set:html={`${ArrowLeft}${ArrowLeft}<div class='gradient'></div>`}
+        />
+      ) : (
+        <div class="arrow" set:html={ArrowLeft} />
+      )}
+
+      <Fragment set:html={generatePagination()} />
+
+      {currentPage < totalPages ? (
+        <a
+          href={getPagePath(currentPage + 1)}
+          aria-label={LABELS[lang].nav.next}
+          data-next
+          class="arrow"
+          set:html={`${ArrowRight}${ArrowRight}<div class='gradient'></div>`}
+        />
+      ) : (
+        <div class="arrow" set:html={ArrowRight} />
+      )}
+    </nav>
+  )
+}
+
+<style lang="scss">
+  .Pagination {
+    margin: 0 auto;
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    align-items: center;
+    $gap: 0.25rem;
+    gap: $gap;
+    :global(> a),
+    :global(> div) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      font-size: var(--typography-body-m, 0.875rem);
+      border-radius: 50%;
+      position: relative;
+      letter-spacing: -0.01em;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        background: var(--neutral-100);
+        border-radius: 50%;
+        z-index: -2;
+      }
+
+      &::before {
+        inset: 0px;
+        background: conic-gradient(
+          from 135deg at 50% 50%,
+          #798ddc 0deg,
+          #e7c78f 90deg,
+          #fa7468 266.40000343322754deg,
+          #798ddc 360deg
+        );
+        transition: background-color 150ms;
+      }
+
+      &:first-child {
+        margin-right: $gap;
+      }
+      &:last-child {
+        margin-left: $gap;
+      }
+    }
+    :global(a) {
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+
+      &.number {
+        transition: color 150ms;
+        :global(.gradient) {
+          position: absolute;
+          inset: 0;
+
+          &::before,
+          &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--neutral-300);
+            border-radius: 50%;
+            transform: scale(0);
+            z-index: -1;
+            transition:
+              transform 300ms var(--easing),
+              background-color 200ms;
+          }
+
+          &::after {
+            background-color: var(--primary-500);
+            transform: translateY(-100%);
+          }
+        }
+        &:hover {
+          :global(.gradient) {
+            &::before {
+              transform: scale(0.75);
+              transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+            }
+          }
+        }
+
+        &:focus:not(:focus-visible) {
+          color: var(--neutral-100);
+          :global(.gradient) {
+            &::after {
+              transform: translateY(0);
+            }
+          }
+        }
+
+        &[aria-current='page'] {
+          color: var(--neutral-100);
+          :global(.gradient) {
+            &::after {
+              transform: translateY(0);
+              background-color: var(--primary-700, #600d2a);
+            }
+          }
+        }
+      }
+
+      &.arrow {
+        :global(svg) {
+          transition:
+            transform 300ms var(--easing),
+            opacity 150ms,
+            color 150ms;
+        }
+
+        :global(.gradient) {
+          position: absolute;
+          inset: 0;
+          background: var(--primary-500);
+          border-radius: 50%;
+          transform: translateY(-100%);
+          z-index: -1;
+          transition:
+            transform 300ms var(--easing),
+            background-color 200ms;
+        }
+
+        &:focus:not(:focus-visible) {
+          :global(.gradient) {
+            transform: translateY(0);
+          }
+
+          :global(svg) {
+            color: var(--neutral-100);
+          }
+        }
+
+        &[data-prev] {
+          :global(svg) {
+            &:nth-of-type(2) {
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              opacity: 0;
+              transform: translate(115%, -50%) scale(0.8);
+            }
+          }
+
+          &:hover {
+            :global(svg) {
+              &:nth-of-type(1) {
+                transform: translateX(-135%);
+              }
+              &:nth-of-type(2) {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+                transition:
+                  transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.17),
+                  opacity 150ms;
+              }
+            }
+          }
+        }
+
+        &[data-next] {
+          :global(svg) {
+            &:nth-of-type(1) {
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              opacity: 0;
+              transform: translate(-115%, -50%) scale(0.8);
+            }
+          }
+
+          &:hover {
+            :global(svg) {
+              &:nth-of-type(1) {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+                transition:
+                  transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.17),
+                  opacity 150ms;
+              }
+
+              &:nth-of-type(2) {
+                transform: translateX(135%);
+              }
+            }
+          }
+        }
+      }
+    }
+    :global(div.arrow) {
+      opacity: 0.62;
+      pointer-events: none;
+      svg {
+        color: var(--neutral-500);
+      }
+
+      &::before {
+        background: var(--neutral-500);
+      }
+    }
+
+    @media (max-width: 31.1875rem) {
+      :global(> a),
+      :global(> div) {
+        &:first-child,
+        &:last-child {
+          margin-right: 0;
+          margin-left: 0;
+        }
+      }
+    }
+
+    @media (max-width: 22.4375rem) {
+      gap: 0.125rem;
+
+      :global(> a),
+      :global(> div) {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+    }
+  }
+</style>

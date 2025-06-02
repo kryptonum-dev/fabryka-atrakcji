@@ -1,0 +1,257 @@
+---
+import type { HeroProps } from '@/src/components/blog/post/Hero.astro'
+import Hero from '@/src/components/blog/post/Hero.astro'
+import { ImageDataQuery } from '@/src/components/ui/image'
+import { PortableTextQuery } from '@/src/components/ui/portable-text'
+import { type Language } from '@/src/global/languages'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import Layout from '@/src/layouts/Layout.astro'
+import metadataFetch from '@/src/utils/metadata.fetch'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import TableOfContent, {
+  TableOfContent_Query,
+  type TableOfContentProps,
+} from '@/src/components/ui/TableOfContent.astro'
+import ContentPT, {
+  ContentPT_Query,
+  type Props as ContentPTProps,
+} from '@/src/components/blog/post/content-pt/index.astro'
+import { ArticleToPlainText, getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
+import Author, { AuthorQuery, type AuthorProps } from '@/src/components/blog/post/Author.astro'
+import BlogPostingSchema from '@/src/Schema/BlogPostingSchema.astro'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
+  lang: Language
+  slug: string
+}
+
+export async function fetchData(slug: string, lang: Language) {
+  const fullSlug = `/${lang}/blog/${slug}/`
+  console.log(fullSlug)
+
+  const page = await sanityFetch<
+    {
+      name: string
+      blogPage: {
+        name: string
+        slug: string
+      }
+      content: ContentPTProps['value']
+      author: AuthorProps
+      components: ComponentsProps
+    } & HeroProps &
+      TableOfContentProps
+  >({
+    query: `
+      *[_type == 'BlogPost_Collection' && slug.current == $slug && language == $language][0] {
+        name,
+        _createdAt,
+        _updatedAt,
+        ${PortableTextQuery('title')}
+        description,
+        ${ImageDataQuery('image')}
+        "blogPage": *[_type == "Blog_Page" && language == $language][0] {
+          name,
+          "slug": slug.current
+        },
+        ${TableOfContent_Query}
+        ${ContentPT_Query}
+        ${AuthorQuery}
+        ${Components_Query}
+      }
+    `,
+    params: { slug: fullSlug, language: lang },
+  })
+
+  if (!page) return null
+
+  const metadata = await metadataFetch(fullSlug)
+
+  if (!metadata) return null
+
+  return {
+    page,
+    metadata,
+  }
+}
+
+export async function staticPaths(lang: Language) {
+  const pages = await sanityFetch<{ slug: string; language: Language }[]>({
+    query: `
+      *[_type == 'BlogPost_Collection' && language == $language][] {
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+  return pages?.map(({ slug }) => ({
+    params: { slug: slug.split('/').pop() },
+  }))
+}
+
+const { metadata, page, lang, slug } = Astro.props
+
+const translations = {
+  pl: {
+    tableOfContents: 'W artykule znajdziesz',
+  },
+  en: {
+    tableOfContents: 'In this article you will find',
+  },
+}
+
+const t = translations[lang]
+
+const breadcrumbs = [
+  { name: page.blogPage.name, path: page.blogPage.slug },
+  { name: page.name, path: slug },
+]
+
+const readingTime = getEstimatedReadingTime({ content: page.content, lang })
+
+const blogSchema = {
+  title: metadata.title,
+  description: metadata.description,
+  publishDate: page._createdAt,
+  updatedDate: page._updatedAt,
+  content: ArticleToPlainText(page.content),
+  image: page.image.asset.url,
+  url: Astro.url.pathname,
+}
+---
+
+<Layout {...metadata}>
+  <BlogPostingSchema slot="head" {...blogSchema} />
+  <Breadcrumbs data={breadcrumbs} />
+  <article class="content max-width">
+    <TableOfContent title={t.tableOfContents} headings={page.headings} />
+    <Hero {...page} readingTime={readingTime} />
+    <section class="content-body">
+      <ContentPT value={page.content} />
+    </section>
+    <Author {...page.author} />
+  </article>
+  <Components data={page.components} hasPreviousSections />
+</Layout>
+
+<style lang="scss">
+  .content {
+    display: grid;
+    padding: clamp(1rem, calc(1.5vw / 0.48), 1.5rem) 0 4rem;
+    grid-template-columns: 20.6875rem 1fr;
+    column-gap: clamp(2rem, calc(4vw / 0.48), 7.5rem);
+
+    :global(.Hero) {
+      max-width: 40.9375rem;
+      justify-self: start;
+    }
+
+    :global(.Author) {
+      grid-column: 2 / 3;
+      grid-row: 3 / 4;
+      width: 100%;
+      max-width: 40.9375rem;
+      justify-self: start;
+    }
+
+    .content-body {
+      max-width: 40.9375rem;
+      justify-self: start;
+      margin-top: clamp(3rem, calc(3.25vw / 0.48), 3.25rem);
+
+      :global(> :first-child) {
+        margin-top: 0;
+      }
+
+      :global(> :last-child) {
+        margin-bottom: 0;
+      }
+
+      :global(> ul > li):first-child,
+      :global(> ol > li):first-child {
+        margin-top: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
+      }
+
+      :global(strong:not(h1 strong, h2 strong)) {
+        font-weight: 700;
+        color: var(--primary-800, #45051c);
+      }
+
+      :global(> p),
+      :global(> ul),
+      :global(> ol),
+      :global(> ul li),
+      :global(> ol li),
+      :global(> ul p),
+      :global(> ol p) {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      :global(> h2) {
+        margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
+        font-size: var(--typography-heading-l);
+      }
+
+      :global(> h3) {
+        color: var(--primary-700, #600d2a);
+        font-size: var(--typography-body-2xl, 1.5rem);
+        line-height: 1.25;
+        margin: 1.5rem 0 1rem;
+        letter-spacing: -0.04em;
+        font-variant-numeric: lining-nums proportional-nums;
+
+        font-weight: 700;
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+      }
+
+      :global(li:last-child) {
+        margin-bottom: 0;
+      }
+    }
+
+    @media (max-width: 69.3125rem) {
+      grid-template-columns: 1fr;
+      justify-items: center;
+
+      :global(.Hero) {
+        margin: 0 auto clamp(3rem, calc(3.25vw / 0.48), 3.25rem);
+        grid-row: 1/2;
+        max-width: 48rem;
+      }
+
+      :global(.Author) {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+        width: 100%;
+        max-width: 48rem;
+        justify-self: center;
+      }
+
+      :global(.TableOfContent) {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+      }
+
+      .content-body {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+        max-width: 48rem;
+        justify-self: center;
+      }
+    }
+
+    @media (max-width: 52.4375rem) {
+      :global(.Author) {
+        margin-left: calc(-1 * var(--pageMargin));
+        margin-right: calc(-1 * var(--pageMargin));
+        padding-left: var(--pageMargin);
+        width: 100vw;
+        max-width: none;
+        padding-right: var(--pageMargin);
+      }
+    }
+  }
+</style>

@@ -1,46 +1,50 @@
 ---
 import { getImage } from 'astro:assets'
-import icon from '@/assets/icon.png'
-import faviconSvg from '@/assets/favicon.svg'
 import { DOMAIN, LOCALE, THEME_COLOR } from '@/global/constants'
 import sanityFetch from '@/utils/sanity.fetch'
+import icon from '../assets/icon.png'
+import faviconSvg from '../assets/favicon.svg'
+import { type Language } from '@/global/languages'
 
 const icons = {
   favicon: await getImage({ src: faviconSvg, format: 'svg' }),
   appleTouchIcon: await getImage({ src: icon, width: 180, height: 180, format: 'png' }),
 }
 
-export type OpenGraphImageProps = {
-  url: string
-  height: string
-}
-
-const seo = await sanityFetch<{ openGraphImage: OpenGraphImageProps }>({
+const seo = await sanityFetch<{ openGraphImage: string }>({
   query: `
     *[_type == "global"][0].seo {
-      "openGraphImage": {
-        "url": img.asset -> url + "?w=1200",
-        "height": round(1200 / img.asset -> metadata.dimensions.aspectRatio),
-      },
+      "openGraphImage": img.asset -> url + "?w=1200",
     }
   `,
 })
 
-export type Props = {
-  path: string
+export type HeadProps = ({ path: string; url?: never } | { url: string; path?: never }) & {
   title: string
   description: string
-  openGraphImage?: OpenGraphImageProps
+  openGraphImage?: string
+  alternates?: Array<{ lang: Language; url: string }>
+  doNotIndex?: boolean
 }
 
-const { path, title, description, openGraphImage } = Astro.props
+const { path, url: _url, title, description, openGraphImage, alternates, doNotIndex } = Astro.props as HeadProps
 
-const OpenGraphImage = {
-  url: openGraphImage?.url || seo.openGraphImage?.url,
-  height: openGraphImage?.height || seo.openGraphImage?.height,
+const getOgImage = async () => {
+  const asset = await getImage({
+    src: openGraphImage || seo.openGraphImage,
+    width: 1200,
+    format: 'png',
+    inferSize: true,
+  })
+  return {
+    url: `${DOMAIN}${asset.src}`,
+    width: asset.attributes.width,
+    height: asset.attributes.height,
+  }
 }
+const ogImage = await getOgImage()
 
-const url = `${DOMAIN}${path}`
+const url = _url || `${DOMAIN}${path}`
 ---
 
 <meta charset="utf-8" />
@@ -48,25 +52,32 @@ const url = `${DOMAIN}${path}`
 <meta name="description" content={description} />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="generator" content={Astro.generator} />
+{doNotIndex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow" />}
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href={icons.favicon.src} type="image/svg+xml" />
 <link rel="apple-touch-icon" href={icons.appleTouchIcon.src} />
+
+<link rel="preload" href="/fonts/pf-grand-gothic.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/neue-haas-unica-regular.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/neue-haas-unica-bold.woff2" as="font" type="font/woff2" crossorigin />
+
 <meta name="theme-color" content={THEME_COLOR} />
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="canonical" href={url} />
+{alternates && alternates.map(({ lang, url }) => <link rel="alternate" hreflang={lang} href={`${DOMAIN}${url}`} />)}
 <meta property="og:url" content={url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:site_name" content={title} />
 <meta property="og:locale" content={LOCALE} />
-<meta property="og:image" content={OpenGraphImage.url} />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content={OpenGraphImage.height} />
+<meta property="og:image" content={ogImage.url} />
+<meta property="og:image:width" content={ogImage.width} />
+<meta property="og:image:height" content={ogImage.height} />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-<meta name="twitter:image" content={OpenGraphImage.url} />
-<meta name="twitter:image:width" content="1200" />
-<meta name="twitter:image:height" content={OpenGraphImage.height} />
+<meta name="twitter:image" content={ogImage.url} />
+<meta name="twitter:image:width" content={ogImage.width} />
+<meta name="twitter:image:height" content={ogImage.height} />
 <link rel="sitemap" href="/sitemap-index.xml" />

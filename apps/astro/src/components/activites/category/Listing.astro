@@ -1,0 +1,1525 @@
+---
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import { ITEMS_PER_PAGE } from '@/src/templates/activities/ActivitiesPage.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Pagination from '../../ui/Pagination.astro'
+import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
+import Image from '@/src/components/ui/image'
+import Dropdown from '@/src/components/ui/Dropdown.astro'
+import PriceRangeDropdown from '@/src/components/ui/PriceRangeDropdown.astro'
+import NoSearchResults, { type NoSearchResultsProps } from '../NoSearchResults.astro'
+import Button from '@/src/components/ui/Button'
+import FilterGroup from './FilterGroup.astro'
+import PriceRangeFilter from './PriceRangeFilter.astro'
+import { buildFilterUrl } from '@/utils/filters'
+
+type Props = {
+  heading?: PortableTextValue
+  description?: string
+  totalActivitiesByCategory: number
+  listing: ActivityCardProps[]
+  currentPage: number
+  currentCategory: string | null
+  selectedCategory?: string | null
+  participantRangeCounts: {
+    range1_30: number
+    range31_80: number
+    range81_150: number
+    range150plus: number
+  }
+  activityTypes: {
+    name: string
+    slug: string
+    count: number
+  }[]
+  durationCounts: {
+    fullDay: number
+    hourly: {
+      hours: number
+      count: number
+    }[]
+  }
+  priceRange: {
+    min: number
+    max: number
+  }
+} & NoSearchResultsProps
+export type ListingProps = Props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translations = {
+  pl: {
+    pathPrefix: '/pl/integracje/kategoria',
+    pathPrefixDefault: '/pl/integracje',
+    found: 'Znaleziono',
+    foundActivitiesSingle: 'integrację',
+    foundActivitiesMultipleLow: 'integracje',
+    foundActivitiesMultipleHigh: 'integracji',
+    participantsLabel: 'Liczba osób',
+    activityTypeLabel: 'Rodzaj aktywności',
+    durationLabel: 'Czas trwania',
+    fullDay: 'Cały dzień',
+    hour: {
+      singular: 'godzina',
+      plural2to4: 'godziny',
+      plural: 'godzin',
+    },
+    priceLabel: 'Cena za osobę',
+    noResults: {
+      heading: '<span>Nie znaleziono wyników dla</span> <strong>podanych filtrów</strong>',
+      list: [
+        'Sprawdź poprawność wprowadzonych danych',
+        'Zmień kryteria wyszukiwania',
+        'Lub znajdź interesujące Cię integracje za pomocą kategorii',
+      ],
+    },
+    filterButton: 'Filtry',
+    filtersTitle: 'Filtry',
+    apply: 'Zastosuj',
+    closeFilters: 'Zamknij filtry',
+  },
+  en: {
+    pathPrefix: '/en/activities/category',
+    pathPrefixDefault: '/en/activities',
+    found: 'Found',
+    foundActivitiesSingle: 'activity',
+    foundActivitiesMultipleLow: 'activities',
+    foundActivitiesMultipleHigh: 'activities',
+    participantsLabel: 'Number of participants',
+    activityTypeLabel: 'Activity type',
+    durationLabel: 'Duration',
+    fullDay: 'Full day',
+    hour: {
+      singular: 'hour',
+      plural2to4: 'hours',
+      plural: 'hours',
+    },
+    priceLabel: 'Price per person',
+    noResults: {
+      heading: '<span>No results found for</span> <strong>the given filters</strong>',
+      list: [
+        'Check the correctness of the entered data',
+        'Change the search criteria',
+        'Or find interesting activities using categories',
+      ],
+    },
+    filterButton: 'Filters',
+    filtersTitle: 'Filters',
+    apply: 'Apply',
+    closeFilters: 'Close filters',
+  },
+}
+
+const t = translations[lang]
+
+// Helper function to get the correct hour form in Polish and English
+const getHourForm = (hours: number, lang: Language) => {
+  // Handle singular form for both languages
+  if (hours === 1) return t.hour.singular
+
+  if (lang !== 'pl') return t.hour.plural
+
+  // Polish grammar rules for plural forms
+  if (hours % 10 >= 2 && hours % 10 <= 4 && (hours % 100 < 10 || hours % 100 >= 20)) return t.hour.plural2to4
+  return t.hour.plural
+}
+
+export const Listing_Query = (orderClause: string) => {
+  const participantsFilter = `
+    (!defined($minParticipants) || (
+      participantsCount.max >= $minParticipants && 
+      participantsCount.min <= $minParticipants
+    ))
+    && (!defined($maxParticipants) || (
+      participantsCount.min <= $maxParticipants && 
+      participantsCount.max >= $maxParticipants
+    ))
+  `
+
+  const priceFilter = `
+    (!defined($minPrice) || pricing.additionalPersonPrice >= $minPrice)
+    && (!defined($maxPrice) || pricing.additionalPersonPrice <= $maxPrice)
+  `
+
+  const activityTypeFilter = `
+    (!defined($activityType) || $activityType in activityType[]->slug.current)
+  `
+
+  const durationFilter = `
+    (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration && (duration.isFullDay == false || !defined(duration.isFullDay))))
+  `
+
+  // Add embeddings filter
+  const embeddingsFilter = `
+    (!defined($embeddingResults) || _id in $embeddingResults[].value.documentId)
+  `
+
+  const createBaseFilter = (
+    includeFilters: {
+      participants?: boolean
+      price?: boolean
+      activityType?: boolean
+      duration?: boolean
+    } = {
+      participants: true,
+      price: true,
+      activityType: true,
+      duration: true,
+    }
+  ) => `
+    && language == $language
+    && select(defined($category) => categories[] -> slug.current match $category + "$", true)
+    ${includeFilters.participants ? `&& ${participantsFilter}` : ''}
+    ${includeFilters.price ? `&& ${priceFilter}` : ''}
+    ${includeFilters.activityType ? `&& ${activityTypeFilter}` : ''}
+    ${includeFilters.duration ? `&& ${durationFilter}` : ''}
+    && ${embeddingsFilter}
+  `
+
+  return `
+    "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${createBaseFilter()}]),
+    "participantRangeCounts": {
+      "range1_30": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        price: true,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.max >= 30 && participantsCount.min <= 30]),
+      "range31_80": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        price: true,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.min < 30 && participantsCount.max <= 80]),
+      "range81_150": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        price: true,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.min < 81 && participantsCount.max >= 150]),
+      "range150plus": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        price: true,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.min <= 151 && participantsCount.max >= 151])
+    },
+    "activityTypes": *[_type == 'ActivitiesType_Collection' && language == $language] {
+      name,
+      "slug": slug.current,
+      "count": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        price: true,
+        activityType: false,
+        duration: true,
+      })} && ^.slug.current in activityType[]->slug.current])
+    },
+    "durationCounts": {
+      "fullDay": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        price: true,
+        activityType: true,
+        duration: false,
+      })} && duration.isFullDay == true]),
+      "hourly": *[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        price: true,
+        activityType: true,
+        duration: false,
+      })} && (duration.isFullDay == false || !defined(duration.isFullDay))] {
+        "hours": duration.hours,
+        "count": 1
+      } | order(hours asc)
+    },
+    "priceRange": {
+      "min": *[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: true,
+        price: false,
+      })}] | order(pricing.additionalPersonPrice asc)[0].pricing.additionalPersonPrice,
+      "max": *[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: true,
+        price: false,
+      })}] | order(pricing.additionalPersonPrice desc)[0].pricing.additionalPersonPrice
+    },
+    "listing": *[_type == 'Activities_Collection' ${createBaseFilter({
+      participants: true,
+      price: true,
+      activityType: true,
+      duration: true,
+    })}] {
+      ${ActivityCardQuery}
+      "_score": $embeddingResults[value.documentId == ^._id][0].score
+    } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
+  `
+}
+
+const {
+  listing,
+  currentPage,
+  currentCategory,
+  heading,
+  description,
+  totalActivitiesByCategory,
+  participantRangeCounts,
+  activityTypes,
+  durationCounts,
+  priceRange,
+  noResults,
+  selectedCategory,
+} = Astro.props
+
+const params = Astro.url.searchParams
+const currentMinPrice = params.get('minPrice') ? parseInt(params.get('minPrice')!) : undefined
+const currentMaxPrice = params.get('maxPrice') ? parseInt(params.get('maxPrice')!) : undefined
+
+// Create filter items for participants dropdown
+const dropdownItems = [
+  {
+    name: '1–30',
+    count: participantRangeCounts.range1_30,
+    isSelected: params.get('maxParticipants') === '30',
+    href: buildFilterUrl({ maxParticipants: 30, searchParams: params, currentPath: Astro.url.pathname }),
+  },
+  {
+    name: '31–80',
+    count: participantRangeCounts.range31_80,
+    isSelected: params.get('minParticipants') === '31' && params.get('maxParticipants') === '80',
+    href: buildFilterUrl({
+      minParticipants: 31,
+      maxParticipants: 80,
+      searchParams: params,
+      currentPath: Astro.url.pathname,
+    }),
+  },
+  {
+    name: '81–150',
+    count: participantRangeCounts.range81_150,
+    isSelected: params.get('minParticipants') === '81' && params.get('maxParticipants') === '150',
+    href: buildFilterUrl({
+      minParticipants: 81,
+      maxParticipants: 150,
+      searchParams: params,
+      currentPath: Astro.url.pathname,
+    }),
+  },
+  {
+    name: '150+',
+    count: participantRangeCounts.range150plus,
+    isSelected: params.get('minParticipants') === '150',
+    href: buildFilterUrl({ minParticipants: 150, searchParams: params, currentPath: Astro.url.pathname }),
+  },
+].filter((item) => item.isSelected || item.count > 0)
+
+// Create filter items for sidebar
+const sidebarParticipantItems = [
+  {
+    name: '1–30',
+    count: participantRangeCounts.range1_30,
+    isSelected: params.get('maxParticipants') === '30',
+    value: '1-30',
+  },
+  {
+    name: '31–80',
+    count: participantRangeCounts.range31_80,
+    isSelected: params.get('minParticipants') === '31' && params.get('maxParticipants') === '80',
+    value: '31-80',
+  },
+  {
+    name: '81–150',
+    count: participantRangeCounts.range81_150,
+    isSelected: params.get('minParticipants') === '81' && params.get('maxParticipants') === '150',
+    value: '81-150',
+  },
+  {
+    name: '150+',
+    count: participantRangeCounts.range150plus,
+    isSelected: params.get('minParticipants') === '150',
+    value: '150-',
+  },
+].filter((item) => item.isSelected || item.count > 0)
+
+// Create items for activity type dropdown
+const activityTypeItems = activityTypes
+  .map((type) => ({
+    name: type.name,
+    count: type.count,
+    isSelected: params.get('activityType') === type.slug,
+    href: buildFilterUrl({ activityType: type.slug, searchParams: params, currentPath: Astro.url.pathname }),
+  }))
+  .filter((item) => item.isSelected || item.count > 0)
+
+// Create items for sidebar activity type
+const sidebarActivityTypeItems = activityTypes
+  .map((type) => ({
+    name: type.name,
+    count: type.count,
+    isSelected: params.get('activityType') === type.slug,
+    value: type.slug,
+  }))
+  .filter((item) => item.isSelected || item.count > 0)
+
+const processedHourly = durationCounts.hourly.reduce(
+  (acc, curr) => {
+    const existing = acc.find((item) => item.hours === curr.hours)
+    if (existing) {
+      existing.count++
+    } else {
+      acc.push({ hours: curr.hours, count: 1 })
+    }
+    return acc
+  },
+  [] as { hours: number; count: number }[]
+)
+
+// Create items for duration dropdown
+const durationItems = [
+  // Add hourly options first
+  ...processedHourly
+    .sort((a, b) => a.hours - b.hours)
+    .map((item) => {
+      const isSelected = params.get('duration') === item.hours.toString()
+      return {
+        name: `${item.hours} ${getHourForm(item.hours, lang)}`,
+        count: item.count,
+        isSelected,
+        href: buildFilterUrl({ duration: item.hours, searchParams: params, currentPath: Astro.url.pathname }),
+      }
+    }),
+  // Add full day option at the end if there are any full day activities
+  ...(durationCounts.fullDay > 0 || params.get('duration') === '24'
+    ? [
+        {
+          name: t.fullDay,
+          count: durationCounts.fullDay,
+          isSelected: params.get('duration') === '24',
+          href: buildFilterUrl({ duration: 24, searchParams: params, currentPath: Astro.url.pathname }),
+        },
+      ]
+    : []),
+].filter((item) => item.isSelected || item.count > 0)
+
+// Create items for sidebar duration
+const sidebarDurationItems = [
+  // Add hourly options first
+  ...processedHourly
+    .sort((a, b) => a.hours - b.hours)
+    .map((item) => {
+      const isSelected = params.get('duration') === item.hours.toString()
+      return {
+        name: `${item.hours} ${getHourForm(item.hours, lang)}`,
+        count: item.count,
+        isSelected,
+        value: item.hours.toString(),
+      }
+    }),
+  // Add full day option at the end if there are any full day activities
+  ...(durationCounts.fullDay > 0 || params.get('duration') === '24'
+    ? [
+        {
+          name: t.fullDay,
+          count: durationCounts.fullDay,
+          isSelected: params.get('duration') === '24',
+          value: '24',
+        },
+      ]
+    : []),
+].filter((item) => item.isSelected || item.count > 0)
+
+const slugBase = Astro.params.category ? `${t.pathPrefix}/${currentCategory}` : `${t.pathPrefixDefault}`
+
+const getActivitiesCount = () => {
+  switch (totalActivitiesByCategory) {
+    case 1:
+      return t.foundActivitiesSingle
+    case 2:
+    case 3:
+    case 4:
+      return t.foundActivitiesMultipleLow
+    default:
+      return t.foundActivitiesMultipleHigh
+  }
+}
+---
+
+<section
+  class="Listing max-width"
+  data-no-results={totalActivitiesByCategory === 0}
+  data-mobile-open="false"
+  data-category-name={selectedCategory || currentCategory}
+>
+  {
+    (heading || description) && (
+      <header class="header">
+        {heading && <PortableText value={heading} class="heading" heading="h1" />}
+        {description && <p class="description">{description}</p>}
+      </header>
+    )
+  }
+
+  <div class="filters">
+    <div class="desktop-filters">
+      <Dropdown heading={t.participantsLabel} items={dropdownItems} params={['minParticipants', 'maxParticipants']} />
+      <Dropdown heading={t.activityTypeLabel} items={activityTypeItems} params={['activityType']} />
+      <PriceRangeDropdown
+        heading={t.priceLabel}
+        minPrice={priceRange.min}
+        maxPrice={priceRange.max}
+        currentMin={currentMinPrice}
+        currentMax={currentMaxPrice}
+        isDisabled={!priceRange.min || !priceRange.max}
+        params={['minPrice', 'maxPrice']}
+      />
+      <Dropdown heading={t.durationLabel} items={durationItems} params={['duration']} />
+    </div>
+    <button class="mobile-filter-button">
+      <span>{t.filterButton}</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none"
+        ><path
+          fill="#F67258"
+          d="M6.168 9.583a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM9.501 2.916a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM5.835 4.388a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1 0-1h4.667ZM9.835 11.055a.5.5 0 0 0 0 1H14.5a.5.5 0 1 0 0-1H9.835ZM.668 11.555a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1-.5-.5ZM14.501 4.388a.5.5 0 0 1 0 1h-1.333a.5.5 0 1 1 0-1h1.333Z"
+        >
+        </path>
+      </svg>
+    </button>
+    <Dropdown isSortingDropdown />
+    <p class="count">
+      {t.found}&nbsp;
+      <strong>
+        {totalActivitiesByCategory}
+        {getActivitiesCount()}
+      </strong>
+    </p>
+  </div>
+  {
+    totalActivitiesByCategory > 0 ? (
+      <>
+        <div class="list">
+          {listing.map((item, index) => (
+            <ActivityCard headingLevel="h2" {...item}>
+              {
+                <Image
+                  {...item.imageList[0]}
+                  sizes="(max-width: 27.4375rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 49.3125rem) 40vw, (max-width: 63.9375rem) 32vw, (max-width: 85.375rem) 24vw, 324px"
+                  loading={index < 8 ? 'eager' : 'lazy'}
+                  fetchpriority={index === 0 ? 'high' : 'auto'}
+                />
+              }
+            </ActivityCard>
+          ))}
+        </div>
+        <Pagination
+          slugBase={slugBase}
+          totalItems={totalActivitiesByCategory}
+          itemsPerPage={ITEMS_PER_PAGE}
+          currentPage={currentPage}
+          searchParams={Astro.url.searchParams}
+        />
+      </>
+    ) : (
+      <NoSearchResults
+        headingText={t.noResults.heading}
+        headingList={t.noResults.list}
+        isFirstIndex={false}
+        noResults={noResults}
+      />
+    )
+  }
+  <div class="filter-sidebar" aria-hidden="true">
+    <div class="sidebar-header">
+      <span>{t.filtersTitle}</span>
+      <button class="close-sidebar" aria-label="Close filters">
+        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
+          <circle cx={12} cy={12} r={10} stroke="#F67258" stroke-width={1.5}></circle>
+          <path
+            d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+            stroke="#F67258"
+            stroke-width={1.5}
+            stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="sidebar-content">
+      <FilterGroup heading={t.activityTypeLabel} items={sidebarActivityTypeItems} paramName="activityType" />
+      <FilterGroup heading={t.participantsLabel} items={sidebarParticipantItems} paramName="participants" />
+      <FilterGroup heading={t.durationLabel} items={sidebarDurationItems} paramName="duration" />
+      <PriceRangeFilter
+        heading={t.priceLabel}
+        minPrice={priceRange.min}
+        maxPrice={priceRange.max}
+        currentMin={currentMinPrice}
+        currentMax={currentMaxPrice}
+        paramName="price"
+      />
+    </div>
+    <Button theme="primary" shade="dark" className="apply-filters">{t.apply}</Button>
+  </div>
+  <div class="overlay"></div>
+</section>
+
+<style lang="scss">
+  .Listing {
+    padding: clamp(3.5rem, calc(5vw / 0.48), 6rem) 0 clamp(4rem, calc(6vw / 0.48), 8rem);
+    position: relative;
+
+    &[data-no-results='true'] {
+      padding-bottom: 0;
+    }
+
+    .header {
+      margin-bottom: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      max-width: 40.9375rem;
+
+      .heading {
+        margin-bottom: 0.75rem;
+        font-size: var(--typography-heading-l, 2rem);
+      }
+
+      .description {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        max-width: 35.6875rem;
+      }
+    }
+
+    .filters {
+      margin-bottom: 0.75rem;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(4, 1fr);
+      justify-content: space-between;
+      gap: 0.75rem 0.5rem;
+      grid-template-rows: auto auto;
+
+      .desktop-filters {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem 0.5rem;
+        grid-column: 1/5;
+        grid-row: 1/2;
+        z-index: 50;
+      }
+
+      :global(> .filter-dropdown) {
+        grid-column: 4/5;
+        grid-row: 2/3;
+        min-width: 20rem;
+        align-self: start;
+      }
+
+      .count {
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+        grid-column: 1 / 2;
+        grid-row: 2/3;
+        align-self: center;
+
+        strong {
+          font-size: var(--typography-body-m, 0.875rem);
+          color: var(--primary-800, #45051c);
+          display: inline-block;
+        }
+      }
+
+      .mobile-filter-button {
+        display: none;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 2.75rem;
+        padding: 0 0.625rem;
+        border-radius: 0.5rem;
+        color: var(--primary-800, #45051c);
+        line-height: 1.7;
+        font-size: var(--typography-body-m, 0.875rem);
+        letter-spacing: -0.01em;
+        min-width: 5rem;
+        justify-content: center;
+        border: 1px solid var(--neutral-500, #d2c1b0);
+        cursor: pointer;
+        transition: border-color 150ms;
+        svg {
+          margin-top: 3px;
+          transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+        }
+
+        &:hover {
+          border-color: var(--primary-700, #600d2a);
+
+          svg {
+            transform: scale(1.1);
+          }
+        }
+      }
+
+      :global(details):nth-of-type(5) {
+        grid-column: 4 / 5;
+        grid-row: 2/3;
+        z-index: 10;
+        align-self: start;
+      }
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(1rem, calc(1.5vw / 0.48), 1.5rem) 0.5rem;
+
+      :global(article) {
+        :global(a) {
+          :global(> div:first-child) {
+            border-radius: 0.25rem;
+          }
+
+          :global(> p) {
+            overflow: hidden;
+          }
+        }
+      }
+    }
+
+    :global(.Pagination) {
+      margin-top: 3rem;
+    }
+
+    .filter-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 150;
+      width: 100%;
+      max-width: clamp(22.5rem, calc(33.3125vw / 0.48), 33.3125rem);
+      height: 100vh;
+      background: var(--neutral-200);
+      transform: translateX(-50%);
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 100ms,
+        visibility 100ms,
+        transform 250ms var(--easing);
+      display: flex;
+      flex-direction: column;
+      border-right: 02px solid;
+      border-image: linear-gradient(0deg, #798ddc 0%, #e7c78f 25%, #fa7468 74%, #798ddc 100%) 1;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: clamp(1.5rem, calc(4vw / 0.48), 4rem) clamp(1rem, calc(4vw / 0.48), 4rem);
+
+      &[aria-hidden='false'] {
+        transform: translateX(0);
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.625rem;
+
+        span {
+          font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+          color: var(--primary-700, #600d2a);
+          line-height: 0.9;
+          letter-spacing: -0.065em;
+          font-size: var(--typography-heading-l, 2rem);
+          text-transform: uppercase;
+          font-weight: 760;
+          margin-top: 8px;
+        }
+
+        .close-sidebar {
+          position: relative;
+          isolation: isolate;
+          border-radius: 50%;
+          min-width: 2.75rem;
+          min-height: 2.75rem;
+          display: grid;
+          place-items: center;
+          transition: transform 300ms var(--easing);
+
+          &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--neutral-100, #f5f1ec);
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 300ms var(--easing);
+            z-index: -1;
+          }
+
+          &:hover {
+            transform: scale(1.2);
+            &::before {
+              transform: scale(1);
+            }
+          }
+
+          &:focus:not(:focus-visible) {
+            transform: scale(1);
+          }
+
+          &:focus-visible {
+            outline-offset: -2px;
+          }
+        }
+      }
+
+      .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 0.75rem;
+      }
+
+      :global(> button) {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 1.5rem;
+
+        :global(span) {
+          margin: 0 auto;
+          padding-right: 1.75rem;
+        }
+      }
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(237, 230, 222, 0.25);
+      backdrop-filter: blur(6px);
+      top: 0;
+      z-index: 100;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 200ms,
+        visibility 200ms;
+
+      &[aria-hidden='false'] {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    @media (max-width: 63.9375rem) {
+      .list {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 58.6875rem) {
+      .filters {
+        gap: 0.75rem;
+        min-height: 3rem;
+        align-content: center;
+        grid-template-columns: 1fr auto auto;
+        row-gap: 0;
+        .desktop-filters {
+          display: none;
+        }
+
+        .mobile-filter-button {
+          display: flex;
+          grid-column: 2 / 3;
+          grid-row: 1 / 2;
+        }
+
+        :global(> .filter-dropdown) {
+          grid-column: 3 / 4;
+          grid-row: 1 / 2;
+          max-width: clamp(18.625rem, calc(18.625vw / 0.48), 20rem);
+          width: 100%;
+          min-width: auto;
+        }
+
+        .count {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+      }
+    }
+
+    @media (max-width: 49.3125rem) {
+      .header {
+        max-width: none;
+
+        .description {
+          max-width: none;
+        }
+      }
+      .list {
+        grid-template-columns: repeat(2, 1fr);
+        column-gap: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+    }
+
+    @media (max-width: 45.5625rem) {
+      .filters {
+        grid-template-columns: auto 1fr;
+        justify-content: start;
+        gap: 0.75rem 0.5rem;
+
+        .count {
+          grid-column: 1 / 3;
+          grid-row: 2 / 3;
+          justify-content: start;
+        }
+        .mobile-filter-button {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+
+        :global(> .filter-dropdown) {
+          grid-column: 2 / 3;
+          grid-row: 1 / 2;
+        }
+      }
+    }
+
+    @media (max-width: 27.4375rem) {
+      .list {
+        grid-template-columns: repeat(1, 1fr);
+      }
+
+      .filter-sidebar {
+        max-width: 86vw;
+        padding: 1.5rem 1rem;
+      }
+    }
+
+    @media (max-width: 23.0625rem) {
+      .filters {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(3, auto);
+
+        .mobile-filter-button {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+        }
+
+        :global(> .filter-dropdown) {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+          max-width: 100%;
+        }
+        .count {
+          grid-column: 1 / 2;
+          grid-row: 3 / 4;
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  // Define the proper TypeScript types for our state
+  type FilterState = {
+    participants: string | null
+    activityType: string | null
+    price: {
+      min: number | null
+      max: number | null
+    }
+    duration: string | null
+  }
+
+  // Create a map to store filter display values
+  type FilterLabels = {
+    [key: string]: string
+  }
+
+  // Store the human-readable labels for each selected filter
+  let filterLabels: FilterLabels = {}
+
+  // Initialize filter state object to store temporary filter selections
+  let filterState: FilterState = {
+    participants: null,
+    activityType: null,
+    price: { min: null, max: null },
+    duration: null,
+  }
+
+  // Parse current URL params to initialize state
+  function initializeFilterState() {
+    const params = new URLSearchParams(window.location.search)
+
+    // Participants
+    if (params.has('minParticipants') || params.has('maxParticipants')) {
+      const min = params.get('minParticipants')
+      const max = params.get('maxParticipants')
+
+      if (min === '150' && !max) {
+        filterState.participants = '150-'
+      } else if (min === '81' && max === '150') {
+        filterState.participants = '81-150'
+      } else if (min === '31' && max === '80') {
+        filterState.participants = '31-80'
+      } else if (max === '30' && !min) {
+        filterState.participants = '1-30'
+      }
+    }
+
+    // Activity type
+    if (params.has('activityType')) {
+      const activityType = params.get('activityType')
+      if (activityType) {
+        filterState.activityType = activityType
+      }
+    }
+
+    // Price range - don't set values here, we handle this in the price range initialization
+    // to ensure we respect the min/max bounds from Sanity
+    // We store the URL parameters in filterState only for URL generation purposes
+    if (params.has('minPrice') || params.has('maxPrice')) {
+      // We'll load these values properly when initializing the price range filter
+      // by checking against the allowed min/max values
+    }
+
+    // Duration
+    if (params.has('duration')) {
+      const duration = params.get('duration')
+      if (duration) {
+        filterState.duration = duration
+      }
+    }
+
+    // Initialize filter display labels by reading the DOM
+    initializeFilterLabels()
+
+    // Verify the values against available options
+    verifyFilterValues()
+
+    // Update UI to reflect current state
+    updateFilterUI()
+  }
+
+  // Verify filter values against available options
+  function verifyFilterValues() {
+    // For each filter type, check if the value exists in available options
+    for (const paramName of Object.keys(filterState)) {
+      if (paramName === 'price') {
+        // Price is handled separately
+        // We want to preserve the price values for URL params
+        // even when the price filter is disabled
+        continue
+      }
+
+      const value = (filterState as any)[paramName]
+      if (!value) continue
+
+      const filterGroup = document.querySelector<HTMLDetailsElement>(`.filter-group[data-param-name="${paramName}"]`)
+      if (!filterGroup) continue
+
+      // Check if this value exists in the filter options
+      const validOption = filterGroup.querySelector<HTMLInputElement>(`input[value="${value}"]`)
+      if (!validOption) {
+        // Value doesn't exist in options, reset it
+        ;(filterState as any)[paramName] = null
+        delete filterLabels[paramName]
+      } else {
+        // Check if this option has a count of 0 and is not selected (via URL)
+        const countElement = validOption.closest('label')?.querySelector('.count')
+        if (countElement && countElement.textContent === '(0)' && !validOption.checked) {
+          // Hide options with zero count by marking their parent label
+          const label = validOption.closest('label')
+          if (label) {
+            label.classList.add('zero-count')
+          }
+        }
+      }
+    }
+  }
+
+  // Get display labels for all selected filters
+  function initializeFilterLabels() {
+    // For each filter type, find the selected option and get its label
+    for (const paramName of Object.keys(filterState)) {
+      if (paramName === 'price') continue // Price is handled separately
+
+      const value = (filterState as any)[paramName]
+      if (!value) continue
+
+      const input = document.querySelector<HTMLInputElement>(
+        `.filter-group[data-param-name="${paramName}"] input[value="${value}"]`
+      )
+
+      if (input) {
+        const labelElement = input.parentElement?.querySelector('.value')
+        if (labelElement) {
+          filterLabels[paramName] = labelElement.textContent || ''
+        }
+      }
+    }
+  }
+
+  // Toggle filter sidebar
+  const listingSection = document.querySelector<HTMLElement>('.Listing')! as HTMLElement
+  const filterButton = listingSection.querySelector<HTMLButtonElement>('.mobile-filter-button')! as HTMLButtonElement
+  const sidebar = listingSection.querySelector<HTMLDivElement>('.filter-sidebar')! as HTMLDivElement
+  const closeButton = listingSection.querySelector<HTMLButtonElement>('.close-sidebar')! as HTMLButtonElement
+  const overlay = listingSection.querySelector<HTMLDivElement>('.overlay')! as HTMLDivElement
+
+  filterButton.addEventListener('click', () => {
+    listingSection.setAttribute('data-mobile-open', 'true')
+    sidebar.setAttribute('aria-hidden', 'false')
+    overlay.setAttribute('aria-hidden', 'false')
+    // document.body.style.overflow = 'hidden'
+  })
+
+  closeButton.addEventListener('click', () => {
+    listingSection.setAttribute('data-mobile-open', 'false')
+    sidebar.setAttribute('aria-hidden', 'true')
+    overlay.setAttribute('aria-hidden', 'true')
+    // document.body.style.overflow = ''
+  })
+
+  overlay.addEventListener('click', () => {
+    listingSection.setAttribute('data-mobile-open', 'false')
+    sidebar.setAttribute('aria-hidden', 'true')
+    overlay.setAttribute('aria-hidden', 'true')
+    // document.body.style.overflow = ''
+  })
+
+  // Listen for filter changes from FilterGroup components
+  window.addEventListener('filterChange', ((event: CustomEvent) => {
+    const { paramName, value, label } = event.detail
+
+    if (paramName && value) {
+      // Update the filterState
+      ;(filterState as any)[paramName] = value
+
+      // Store the label for this filter value
+      if (label) {
+        filterLabels[paramName] = label
+      }
+
+      // Update the UI to reflect new filter state
+      updateFilterUI()
+    }
+  }) as EventListener)
+
+  // Listen for filter clear events from FilterGroup components
+  window.addEventListener('filterClear', ((event: CustomEvent) => {
+    const { paramName } = event.detail
+
+    if (paramName) {
+      // Clear the filter value
+      ;(filterState as any)[paramName] = null
+
+      // Remove the label
+      delete filterLabels[paramName]
+
+      // Update the UI to reflect new filter state
+      updateFilterUI()
+    }
+  }) as EventListener)
+
+  // Handle price range changes
+  const priceRangeFilter = document.querySelector<HTMLDetailsElement>('.price-range-filter')
+  if (priceRangeFilter) {
+    // Check if the price filter is disabled
+    const isDisabled = priceRangeFilter.dataset.disabled === 'true'
+
+    // Only set up event listeners if not disabled
+    if (!isDisabled) {
+      const minRange = priceRangeFilter.querySelector<HTMLInputElement>('.price-min-range')
+      const maxRange = priceRangeFilter.querySelector<HTMLInputElement>('.price-max-range')
+      const minInput = priceRangeFilter.querySelector<HTMLInputElement>('.price-min')
+      const maxInput = priceRangeFilter.querySelector<HTMLInputElement>('.price-max')
+      const sliderRange = priceRangeFilter.querySelector<HTMLDivElement>('.slider-range')
+      const errorMessage = priceRangeFilter.querySelector<HTMLDivElement>('.error-message')
+
+      // Use type assertion for dataset to avoid null checks
+      const dataMin = priceRangeFilter.dataset.min || '0'
+      const dataMax = priceRangeFilter.dataset.max || '0'
+      const minAllowed = parseInt(dataMin)
+      const maxAllowed = parseInt(dataMax)
+      const errorInvalid = priceRangeFilter.dataset.errorInvalid || ''
+      const errorRange = priceRangeFilter.dataset.errorRange || ''
+      const errorBounds = priceRangeFilter.dataset.errorBounds || ''
+
+      // Set the initial values from URL params if they exist
+      const urlParams = new URLSearchParams(window.location.search)
+      const urlMinPrice = urlParams.get('minPrice') ? parseInt(urlParams.get('minPrice')!) : null
+      const urlMaxPrice = urlParams.get('maxPrice') ? parseInt(urlParams.get('maxPrice')!) : null
+
+      // Store the initial URL values in filterState
+      if (urlMinPrice !== null && urlMinPrice >= minAllowed && urlMinPrice <= maxAllowed) {
+        filterState.price.min = urlMinPrice
+      } else {
+        filterState.price.min = minAllowed
+      }
+
+      if (urlMaxPrice !== null && urlMaxPrice >= minAllowed && urlMaxPrice <= maxAllowed) {
+        filterState.price.max = urlMaxPrice
+      } else {
+        filterState.price.max = maxAllowed
+      }
+
+      // Function to update range indicator
+      function updateRangeIndicator() {
+        if (!minRange || !maxRange || !sliderRange) return
+
+        const minVal = parseInt(minRange.value)
+        const maxVal = parseInt(maxRange.value)
+        const totalRange = maxAllowed - minAllowed
+
+        // Calculate percentages for positioning
+        const minPercent = ((minVal - minAllowed) / totalRange) * 100
+        const maxPercent = ((maxVal - minAllowed) / totalRange) * 100
+
+        sliderRange.style.left = minPercent + '%'
+        sliderRange.style.width = maxPercent - minPercent + '%'
+      }
+
+      // Function to validate price inputs
+      function validatePriceInputs() {
+        if (!minInput || !maxInput || !errorMessage) return false
+
+        const min = parseInt(minInput.value)
+        const max = parseInt(maxInput.value)
+
+        if (isNaN(min) || isNaN(max)) {
+          errorMessage.textContent = errorInvalid
+          return false
+        }
+
+        if (min > max) {
+          errorMessage.textContent = errorRange
+          return false
+        }
+
+        if (min < minAllowed || max > maxAllowed) {
+          errorMessage.textContent = errorBounds
+          return false
+        }
+
+        errorMessage.textContent = ''
+        return true
+      }
+
+      // Initialize range sliders and inputs with filterState values
+      if (minRange && maxRange && minInput && maxInput) {
+        // Set the range and input values based on filterState
+        // This ensures the sliders cover the full possible range from Sanity
+        minRange.min = minAllowed.toString()
+        minRange.max = maxAllowed.toString()
+        maxRange.min = minAllowed.toString()
+        maxRange.max = maxAllowed.toString()
+
+        minInput.min = minAllowed.toString()
+        minInput.max = maxAllowed.toString()
+        maxInput.min = minAllowed.toString()
+        maxInput.max = maxAllowed.toString()
+
+        // Set the values of the range sliders and inputs
+        if (filterState.price.min !== null) {
+          minRange.value = filterState.price.min.toString()
+          minInput.value = filterState.price.min.toString()
+        } else {
+          minRange.value = minAllowed.toString()
+          minInput.value = minAllowed.toString()
+        }
+
+        if (filterState.price.max !== null) {
+          maxRange.value = filterState.price.max.toString()
+          maxInput.value = filterState.price.max.toString()
+        } else {
+          maxRange.value = maxAllowed.toString()
+          maxInput.value = maxAllowed.toString()
+        }
+
+        // Initialize range indicator with current values
+        updateRangeIndicator()
+      }
+
+      // Set up event listeners for range sliders
+      if (minRange && maxRange) {
+        minRange.addEventListener('input', () => {
+          const min = parseInt(minRange.value)
+          const max = parseInt(maxRange.value)
+
+          if (min > max) {
+            minRange.value = maxRange.value
+          }
+
+          if (minInput) minInput.value = minRange.value
+          updateRangeIndicator()
+          validatePriceInputs()
+
+          // Update temporary state
+          filterState.price.min = parseInt(minRange.value)
+        })
+
+        maxRange.addEventListener('input', () => {
+          const min = parseInt(minRange.value)
+          const max = parseInt(maxRange.value)
+
+          if (max < min) {
+            maxRange.value = minRange.value
+          }
+
+          if (maxInput) maxInput.value = maxRange.value
+          updateRangeIndicator()
+          validatePriceInputs()
+
+          // Update temporary state
+          filterState.price.max = parseInt(maxRange.value)
+        })
+      }
+
+      // Set up event listeners for number inputs
+      if (minInput && maxInput) {
+        minInput.addEventListener('input', () => {
+          const value = parseInt(minInput.value)
+
+          if (!isNaN(value) && value >= minAllowed && value <= maxAllowed) {
+            if (minRange) minRange.value = value.toString()
+            updateRangeIndicator()
+          }
+
+          validatePriceInputs()
+
+          // Update temporary state
+          filterState.price.min = isNaN(value) ? null : value
+        })
+
+        maxInput.addEventListener('input', () => {
+          const value = parseInt(maxInput.value)
+
+          if (!isNaN(value) && value >= minAllowed && value <= maxAllowed) {
+            if (maxRange) maxRange.value = value.toString()
+            updateRangeIndicator()
+          }
+
+          validatePriceInputs()
+
+          // Update temporary state
+          filterState.price.max = isNaN(value) ? null : value
+        })
+      }
+    }
+  }
+
+  // Apply button - construct URL with all filters and redirect
+  const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
+
+  applyButton.addEventListener('click', () => {
+    const url = new URL(window.location.href.split('/').slice(0, 7).join('/'))
+    const params = url.searchParams
+
+    // Store the current price values before clearing
+    const currentMinPrice = params.get('minPrice')
+    const currentMaxPrice = params.get('maxPrice')
+    const currentDuration = params.get('duration')
+
+    // Clear existing filter params
+    ;['minParticipants', 'maxParticipants', 'activityType', 'duration'].forEach((param) => {
+      params.delete(param)
+    })
+
+    // Add participants filter
+    if (filterState.participants) {
+      if (filterState.participants === '1-30') {
+        params.set('maxParticipants', '30')
+      } else if (filterState.participants === '31-80') {
+        params.set('minParticipants', '31')
+        params.set('maxParticipants', '80')
+      } else if (filterState.participants === '81-150') {
+        params.set('minParticipants', '81')
+        params.set('maxParticipants', '150')
+      } else if (filterState.participants === '150-') {
+        params.set('minParticipants', '150')
+      }
+    }
+
+    // Add activity type filter
+    if (filterState.activityType) {
+      params.set('activityType', filterState.activityType)
+    }
+
+    // Handle price range filter
+    const priceRangeFilter = document.querySelector<HTMLDetailsElement>('.price-range-filter')
+    const isPriceFilterDisabled = priceRangeFilter && priceRangeFilter.dataset.disabled === 'true'
+
+    // Clear price params
+    params.delete('minPrice')
+    params.delete('maxPrice')
+
+    if (!isPriceFilterDisabled) {
+      // If price filter is enabled, use the new values from filterState
+      if (filterState.price.min !== null) {
+        params.set('minPrice', filterState.price.min.toString())
+      }
+      if (filterState.price.max !== null) {
+        params.set('maxPrice', filterState.price.max.toString())
+      }
+    } else {
+      // If price filter is disabled, retain the original URL values if they existed
+      if (currentMinPrice) {
+        params.set('minPrice', currentMinPrice)
+      }
+      if (currentMaxPrice) {
+        params.set('maxPrice', currentMaxPrice)
+      }
+    }
+
+    // Add duration filter
+    if (filterState.duration) {
+      params.set('duration', filterState.duration)
+    } else {
+      // Handle case where duration filter is disabled but has a selected value
+      const durationFilter = document.querySelector<HTMLDetailsElement>(`.filter-group[data-param-name="duration"]`)
+      const isDurationFilterDisabled = durationFilter && durationFilter.dataset.disabled === 'true'
+      const hasDurationSelection = durationFilter && durationFilter.dataset.hasSelection === 'true'
+
+      if (isDurationFilterDisabled && hasDurationSelection && currentDuration) {
+        params.set('duration', currentDuration)
+      }
+    }
+
+    // Redirect to filtered URL
+    window.location.href = url.toString()
+  })
+
+  // Update filter UI based on current state
+  function updateFilterUI() {
+    // Update FilterGroup components to show the selected values
+    updateFilterGroups()
+
+    // Check for disabled but selected filters
+    document.querySelectorAll('.filter-group[data-disabled="true"][data-has-selection="true"]').forEach((details) => {
+      ;(details as HTMLDetailsElement).open = true
+      details.setAttribute('data-expanded', 'true')
+    })
+
+    // Update radio buttons for participants
+    if (filterState.participants) {
+      const input = document.querySelector<HTMLInputElement>(
+        `.filter-group[data-param-name="participants"] input[value="${filterState.participants}"]`
+      )
+      if (input) input.checked = true
+    }
+
+    // Update radio buttons for activity type
+    if (filterState.activityType) {
+      const input = document.querySelector<HTMLInputElement>(
+        `.filter-group[data-param-name="activityType"] input[value="${filterState.activityType}"]`
+      )
+      if (input) input.checked = true
+    }
+
+    // Update radio buttons for duration
+    if (filterState.duration) {
+      const input = document.querySelector<HTMLInputElement>(
+        `.filter-group[data-param-name="duration"] input[value="${filterState.duration}"]`
+      )
+      if (input) input.checked = true
+    }
+
+    // Handle price range filter
+    const priceRangeFilter = document.querySelector<HTMLDetailsElement>('.price-range-filter')
+    if (
+      priceRangeFilter &&
+      priceRangeFilter.dataset.hasValues === 'true' &&
+      priceRangeFilter.dataset.disabled === 'true'
+    ) {
+      // If the price filter is disabled but has values, make sure it's open
+      priceRangeFilter.open = true
+      priceRangeFilter.setAttribute('data-expanded', 'true')
+    }
+  }
+
+  // Update FilterGroup components based on current filter state
+  function updateFilterGroups() {
+    document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((details) => {
+      const paramName = details.dataset.paramName || ''
+      if (!paramName) return
+
+      const selectedValueBox = details.querySelector<HTMLButtonElement>('.selected-value')
+      if (!selectedValueBox) return
+
+      const selectedValueText = selectedValueBox.querySelector<HTMLSpanElement>('span')
+      if (!selectedValueText) return
+
+      const value = (filterState as any)[paramName]
+      const label = filterLabels[paramName]
+
+      // Check if selection state is changing
+      const hadSelection = details.getAttribute('data-has-selection') === 'true'
+      const hasSelection = value && label
+
+      if (hasSelection) {
+        // We have a valid selection - show the selection button
+        details.setAttribute('data-has-selection', 'true')
+
+        // If it wasn't previously displayed, set initial animation state
+        if (!hadSelection || selectedValueBox.style.display === 'none') {
+          selectedValueBox.style.opacity = '0'
+          selectedValueBox.style.transform = 'translateX(-0.5rem)'
+          selectedValueBox.style.display = 'flex'
+
+          // Trigger animation with a slight delay for the browser to recognize the display change
+          setTimeout(() => {
+            selectedValueBox.style.opacity = '1'
+            selectedValueBox.style.transform = 'translateX(0)'
+          }, 10)
+        } else {
+          selectedValueBox.style.display = 'flex'
+        }
+
+        selectedValueText.textContent = label
+
+        // Set checked on the right input
+        const selectedInput = details.querySelector<HTMLInputElement>(`input[value="${value}"]`)
+        if (selectedInput) {
+          selectedInput.checked = true
+        }
+      } else {
+        // No selection - hide the selection button (without animation since CSS handles it)
+        details.setAttribute('data-has-selection', 'false')
+        selectedValueBox.style.display = 'none'
+
+        // Uncheck all inputs in this group
+        const inputs = details.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+        inputs.forEach((input) => {
+          input.checked = false
+        })
+      }
+    })
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initializeFilterState)
+
+  // Handle resize events for responsive behavior
+  let currentWidth = window.innerWidth
+  window.addEventListener('resize', () => {
+    // Only check if width changed (to avoid triggering on height changes like mobile keyboard)
+    if (currentWidth !== window.innerWidth) {
+      currentWidth = window.innerWidth
+      const isMobile = currentWidth < 940
+
+      if (!isMobile && listingSection) {
+        const sidebar = document.querySelector<HTMLDivElement>('.filter-sidebar')
+        const overlay = document.querySelector<HTMLDivElement>('.Listing .overlay')
+
+        // Close sidebar if user resizes to desktop while sidebar is open
+        if (sidebar && overlay && sidebar.getAttribute('aria-hidden') === 'false') {
+          listingSection.setAttribute('data-mobile-open', 'false')
+          sidebar.setAttribute('aria-hidden', 'true')
+          overlay.setAttribute('aria-hidden', 'true')
+        }
+      }
+    }
+  })
+</script>

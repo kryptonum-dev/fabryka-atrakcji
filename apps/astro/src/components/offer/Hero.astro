@@ -1,0 +1,1325 @@
+---
+import type { SingleActivityProps } from '@/src/templates/activities/SingleActivityPage.astro'
+import PortableText from '@/src/components/ui/portable-text'
+import Button from '@/src/components/ui/Button'
+import { getLangFromPath, type Language } from '@/src/global/languages'
+import Image from '@/src/components/ui/image/index.astro'
+import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
+import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
+import type { SingleHotelProps } from '@/src/templates/hotels/SingleHotelPage.astro'
+import Loader from '@/src/components/ui/Loader.astro'
+
+type HeroProps = SingleActivityProps | SingleHotelProps
+
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const translations = {
+  pl: {
+    activities: {
+      readMore: 'Przeczytaj więcej o integracji',
+      viewAll: 'Wszystkie zdjęcia',
+      outdoor: 'Na zewnątrz',
+      indoor: 'Wewnątrz',
+      participants: 'osób',
+      location: {
+        wholeCountry: 'W całej Polsce',
+      },
+      duration: {
+        hoursSingle: 'godzina',
+        hoursFew: 'godziny',
+        hoursPlural: 'godzin',
+        fullDay: 'Cały dzień',
+      },
+      popup: {
+        title: 'Wszystkie zdjęcia',
+      },
+    },
+    hotels: {
+      readMore: 'Przeczytaj więcej o hotelu',
+      showOnMap: 'Pokaż na mapie',
+      maxPrefix: 'Maks.',
+      participants: {
+        single: 'osoba',
+        few: 'osoby',
+        plural: 'osób',
+      },
+      onConference: 'na konferencji',
+      onBanquet: 'na bankiecie',
+    },
+    getPrice: 'Wybierz do kompleksowej wyceny',
+    removeFromQuote: 'Usuń z wyceny',
+    addedAlert: 'Dodano do wyceny',
+    removedAlert: 'Usunięto z wyceny',
+  },
+  en: {
+    activities: {
+      readMore: 'Read more about the activity',
+      viewAll: 'All photos',
+      outdoor: 'Outdoor',
+      indoor: 'Indoor',
+      participants: 'people',
+      location: {
+        wholeCountry: 'the whole of Poland',
+      },
+      duration: {
+        hoursSingle: 'hour',
+        hoursFew: 'hours',
+        hoursPlural: 'hours',
+        fullDay: 'Full day',
+      },
+      popup: {
+        title: 'All photos',
+      },
+    },
+    hotels: {
+      readMore: 'Read more about the hotel',
+      showOnMap: 'Show on map',
+      maxPrefix: 'Max.',
+      participants: {
+        single: 'person',
+        few: 'people',
+        plural: 'people',
+      },
+      onConference: 'on conference',
+      onBanquet: 'on banquet',
+    },
+    getPrice: 'Get a comprehensive price estimate',
+    removeFromQuote: 'Remove from quote',
+    addedAlert: 'Added to quote',
+    removedAlert: 'Removed from quote',
+  },
+}
+
+const t = translations[lang]
+
+const imageSizes = {
+  activities: {
+    2: [
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 32vw, 438px',
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 64vw, 875px',
+    ],
+    3: [
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 19vw, 262px',
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 38vw, 522px',
+      '(max-width: 1089px) 0px, (max-width: 1366px) 38vw, 522px',
+    ],
+    4: [
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 23vw, 312px',
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 49vw, 662px',
+      '(max-width: 1089px) 0px, (max-width: 1366px) 24vw, 332px',
+    ],
+  },
+
+  hotels: {
+    2: [
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 64vw, 875px',
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 32vw, 438px',
+    ],
+    3: [
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 38vw, 522px',
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 19vw, 262px',
+
+      '(max-width: 1089px) 0px, (max-width: 1366px) 38vw, 522px',
+    ],
+    4: [
+      '(max-width: 549px) 0px, (max-width: 899px) 66vw, (max-width: 1089px) 540px, (max-width: 1366px) 49vw, 662px',
+      '(max-width: 549px) 94vw, (max-width: 899px) 34vw, (max-width: 1089px) 270px, (max-width: 1366px) 23vw, 312px',
+      '(max-width: 1089px) 0px, (max-width: 1366px) 24vw, 332px',
+    ],
+  },
+}
+
+function getHoursText(hours: number, lang: Language) {
+  if (lang === 'pl') {
+    if (hours === 1) return t.activities.duration.hoursSingle
+    if (hours % 10 >= 2 && hours % 10 <= 4 && (hours % 100 < 10 || hours % 100 >= 20)) {
+      return t.activities.duration.hoursFew
+    }
+    return t.activities.duration.hoursPlural
+  }
+  return hours === 1 ? t.activities.duration.hoursSingle : t.activities.duration.hoursPlural
+}
+
+function getParticipantsText(participants: number, lang: Language) {
+  if (lang === 'pl') {
+    if (participants === 1) return t.hotels.participants.single
+    if (participants % 10 >= 2 && participants % 10 <= 4 && (participants % 100 < 10 || participants % 100 >= 20)) {
+      return t.hotels.participants.few
+    }
+    return t.hotels.participants.plural
+  }
+  return participants === 1 ? t.hotels.participants.single : t.hotels.participants.plural
+}
+
+function getVoivodeshipName(key: string): string {
+  const voivodeships: Record<string, string> = {
+    dolnoslaskie: 'Dolnośląskie',
+    'kujawsko-pomorskie': 'Kujawsko-pomorskie',
+    lubelskie: 'Lubelskie',
+    lubuskie: 'Lubuskie',
+    lodzkie: 'Łódzkie',
+    malopolskie: 'Małopolskie',
+    mazowieckie: 'Mazowieckie',
+    opolskie: 'Opolskie',
+    podkarpackie: 'Podkarpackie',
+    podlaskie: 'Podlaskie',
+    pomorskie: 'Pomorskie',
+    slaskie: 'Śląskie',
+    swietokrzyskie: 'Świętokrzyskie',
+    'warminsko-mazurskie': 'Warmińsko-mazurskie',
+    wielkopolskie: 'Wielkopolskie',
+    zachodniopomorskie: 'Zachodniopomorskie',
+  }
+  return voivodeships[key] || key
+}
+
+const props = Astro.props as HeroProps
+const { title, description, imageList, _type, addons, _id, name, pricing } = props
+const pricePerPerson = (pricing as any)?.additionalPersonPrice || (pricing as any)?.pricePerPerson
+
+const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <mask id="path-1-inside-1_6107_29788" fill="white">
+            <path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/>
+          </mask>
+          <g clip-path="url(#paint0_angular_6107_29788_clip_path)" data-figma-skip-parse="true"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}"/>
+          <g clip-path="url(#paint1_angular_6107_29788_clip_path)" data-figma-skip-parse="true" mask="url(#path-1-inside-1_6107_29788)"><g transform="matrix(0.00419478 0.00399985 -0.00419476 0.00399987 7.00219 6.45099)"><foreignObject x="-3208.38" y="-3208.38" width="6416.76" height="6416.76"><div  style="background:conic-gradient(from 90deg,rgba(121, 141, 220, 1) 0deg,rgba(231, 199, 143, 1) 90deg,rgba(250, 116, 104, 1) 266.4deg,rgba(121, 141, 220, 1) 360deg);height:100%;width:100%;opacity:1"></div></foreignObject></g></g><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" data-figma-gradient-fill="{&quot;type&quot;:&quot;GRADIENT_ANGULAR&quot;,&quot;stops&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;stopsVar&quot;:[{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:0.0},{&quot;color&quot;:{&quot;r&quot;:0.90588235855102539,&quot;g&quot;:0.78039216995239258,&quot;b&quot;:0.56078433990478516,&quot;a&quot;:1.0},&quot;position&quot;:0.250},{&quot;color&quot;:{&quot;r&quot;:0.98039215803146362,&quot;g&quot;:0.45490196347236633,&quot;b&quot;:0.40784314274787903,&quot;a&quot;:1.0},&quot;position&quot;:0.74000000953674316},{&quot;color&quot;:{&quot;r&quot;:0.47450980544090271,&quot;g&quot;:0.55294120311737061,&quot;b&quot;:0.86274510622024536,&quot;a&quot;:1.0},&quot;position&quot;:1.0}],&quot;transform&quot;:{&quot;m00&quot;:8.3895521163940430,&quot;m01&quot;:-8.38952636718750,&quot;m02&quot;:7.0021796226501465,&quot;m10&quot;:7.9997086524963379,&quot;m11&quot;:7.9997329711914062,&quot;m12&quot;:-1.5487323999404907},&quot;opacity&quot;:1.0,&quot;blendMode&quot;:&quot;NORMAL&quot;,&quot;visible&quot;:true}" mask="url(#path-1-inside-1_6107_29788)"/>
+          <defs>
+            <clipPath id="paint0_angular_6107_29788_clip_path"><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/></clipPath><clipPath id="paint1_angular_6107_29788_clip_path"><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" mask="url(#path-1-inside-1_6107_29788)"/></clipPath></defs>
+            </svg>`
+---
+
+<section
+  class="Hero max-width"
+  data-type={_type}
+  data-id={_id}
+  data-has-addons={addons?.hasAddons ? 'true' : 'false'}
+  data-min-one-addon={addons?.minOneAddon ? 'true' : 'false'}
+  data-addons-choice={addons?.addonsChoice || 'unlimited'}
+  data-lang={lang}
+  data-name={name}
+  data-price={pricePerPerson}
+  data-text={JSON.stringify({
+    addToCart: t.getPrice,
+    removeFromCart: t.removeFromQuote,
+    addToCartAlert: t.addedAlert,
+    removeFromCartAlert: t.removedAlert,
+  })}
+>
+  {
+    _type === 'Hotels_Collection' && (
+      <>
+        <span class="stars">
+          {Array.from({ length: props.stars }, () => (
+            <Fragment set:html={hotelStar} />
+          ))}
+        </span>
+        <p class="address">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+            <path
+              fill="#F67258"
+              d="M7.999 14.667c3.682 0 6.666-1.343 6.666-3 0-.845-.775-1.607-2.023-2.153-.761 1.398-1.922 2.602-3.397 3.232-.793.339-1.7.339-2.493 0-1.474-.63-2.636-1.834-3.397-3.232-1.248.546-2.023 1.309-2.023 2.153 0 1.657 2.985 3 6.667 3Z"
+            />
+            <path
+              fill="#F67258"
+              fill-rule="evenodd"
+              d="M3.332 5.676c0-2.398 2.09-4.343 4.667-4.343s4.666 1.945 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.666 1.333 1.333 0 0 0 0 2.666Z"
+              clip-rule="evenodd"
+            />{' '}
+          </svg>
+          <span>
+            {props.address.street}
+            {', '}
+            {props.address.postalCode} {props.address.city}
+            {', '}
+            {props.address.voivodeship}
+          </span>
+        </p>
+        <a
+          href={props.googleMaps.googleMapsLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link"
+          data-shade="light"
+        >
+          {t.hotels.showOnMap}
+        </a>
+      </>
+    )
+  }
+  <PortableText value={title} heading="h1" class="heading" />
+  <p class="description">{description}</p>
+  <div class="buttons">
+    <Button theme="primary" shade="dark" href="#content"
+      >{_type === 'Activities_Collection' ? t.activities.readMore : t.hotels.readMore}</Button
+    >
+    <Button
+      theme="primary"
+      shade="light"
+      disabled
+      data-type={_type === 'Activities_Collection' ? 'activities' : 'hotels'}
+    >
+      <Loader />
+      <span>
+        {t.getPrice}
+      </span>
+    </Button>
+  </div>
+  <ul class="details">
+    {
+      _type === 'Activities_Collection' && (
+        <>
+          <li class="activity-category-details">{props.categories[0].name}</li>
+          <li class="separator" />
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+              <path
+                fill="#F67258"
+                d="M8 15.167c3.682 0 6.667-1.343 6.667-3 0-.845-.775-1.607-2.023-2.153-.761 1.398-1.922 2.602-3.397 3.232-.793.339-1.7.339-2.493 0-1.474-.63-2.636-1.834-3.397-3.232-1.248.546-2.023 1.309-2.023 2.153 0 1.657 2.985 3 6.667 3Z"
+              />
+              <path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M3.334 6.176c0-2.398 2.09-4.343 4.667-4.343s4.666 1.945 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.666 1.333 1.333 0 0 0 0 2.666Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span>
+              {props.location.isNationwide
+                ? t.activities.location.wholeCountry
+                : `${props.location.address?.city}, ${getVoivodeshipName(props.location.address?.voivodeship || '')}`}
+            </span>
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            {props.location.isIndoor === 'indoor' ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" fill="none">
+                  <path
+                    fill="#F67258"
+                    fill-rule="evenodd"
+                    d="M7.738 14.167H6.263c-2.297 0-3.446 0-4.23-.675-.783-.674-.946-1.804-1.27-4.062L.577 8.14C.324 6.38.197 5.502.557 4.749.918 4 1.686 3.543 3.22 2.629l.923-.55C5.535 1.248 6.232.833 7 .833c.77 0 1.466.415 2.858 1.245l.924.55c1.534.914 2.3 1.37 2.66 2.122.361.752.235 1.63-.018 3.389l-.186 1.291c-.325 2.258-.488 3.388-1.271 4.062-.783.675-1.932.675-4.23.675ZM4.599 9.869a.5.5 0 0 1 .7-.104c.485.36 1.071.568 1.702.568.63 0 1.216-.208 1.702-.568a.5.5 0 1 1 .595.803 3.844 3.844 0 0 1-2.297.765c-.857 0-1.65-.284-2.298-.765a.5.5 0 0 1-.104-.7Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>{t.activities.indoor}</span>
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                  <path fill="#F67258" d="M11.334 8.5a3.333 3.333 0 1 1-6.667 0 3.333 3.333 0 0 1 6.667 0Z" />
+                  <path
+                    fill="#F67258"
+                    fill-rule="evenodd"
+                    d="M8 1.333a.5.5 0 0 1 .5.5v1.334a.5.5 0 0 1-1 0V1.833a.5.5 0 0 1 .5-.5ZM2.447 2.977a.5.5 0 0 1 .707-.031L4.634 4.3a.5.5 0 1 1-.675.738L2.478 3.684a.5.5 0 0 1-.032-.707Zm11.109 0a.5.5 0 0 1-.032.707l-1.481 1.354a.5.5 0 0 1-.675-.738l1.481-1.354a.5.5 0 0 1 .707.031ZM.834 8.5a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.334a.5.5 0 0 1-.5-.5Zm12 0a.5.5 0 0 1 .5-.5h1.333a.5.5 0 1 1 0 1h-1.333a.5.5 0 0 1-.5-.5Zm-1.483 3.35a.5.5 0 0 1 .707 0l1.481 1.482a.5.5 0 1 1-.707.707l-1.481-1.482a.5.5 0 0 1 0-.707Zm-6.7 0a.5.5 0 0 1 0 .707L3.168 14.04a.5.5 0 1 1-.707-.707l1.481-1.482a.5.5 0 0 1 .707 0ZM8 13.333a.5.5 0 0 1 .5.5v1.334a.5.5 0 1 1-1 0v-1.334a.5.5 0 0 1 .5-.5Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>{t.activities.outdoor}</span>
+              </>
+            )}
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+              <path
+                d="M10.3327 5.50002C10.3327 6.78868 9.28801 7.83335 7.99935 7.83335C6.71068 7.83335 5.66602 6.78868 5.66602 5.50002C5.66602 4.21136 6.71068 3.16669 7.99935 3.16669C9.28801 3.16669 10.3327 4.21136 10.3327 5.50002Z"
+                fill="#F67258"
+              />
+              <path
+                d="M12 11.5C12 12.7887 10.2091 13.8334 8 13.8334C5.79086 13.8334 4 12.7887 4 11.5C4 10.2114 5.79086 9.16669 8 9.16669C10.2091 9.16669 12 10.2114 12 11.5Z"
+                fill="#F67258"
+              />
+              <path
+                d="M4.74868 3.83331C4.86699 3.83331 4.98249 3.84492 5.09402 3.86702C4.82231 4.34962 4.66732 4.9067 4.66732 5.49998C4.66732 6.07882 4.81486 6.62319 5.07438 7.09755C4.96895 7.1172 4.86006 7.12749 4.74868 7.12749C3.80574 7.12749 3.04133 6.39006 3.04133 5.4804C3.04133 4.57074 3.80574 3.83331 4.74868 3.83331Z"
+                fill="#F67258"
+              />
+              <path
+                d="M3.63221 13.1573C3.2536 12.7047 3.00065 12.1493 3.00065 11.5C3.00065 10.8705 3.23837 10.3293 3.59784 9.88447C2.32805 9.98296 1.33398 10.6775 1.33398 11.5196C1.33398 12.3696 2.34552 13.0692 3.63221 13.1573Z"
+                fill="#F67258"
+              />
+              <path
+                d="M11.333 5.49998C11.333 6.07882 11.1854 6.62319 10.9259 7.09755C11.0313 7.1172 11.1402 7.12749 11.2516 7.12749C12.1945 7.12749 12.9589 6.39006 12.9589 5.4804C12.9589 4.57074 12.1945 3.83331 11.2516 3.83331C11.1333 3.83331 11.0178 3.84492 10.9062 3.86702C11.178 4.34962 11.333 4.9067 11.333 5.49998Z"
+                fill="#F67258"
+              />
+              <path
+                d="M12.3681 13.1573C13.6548 13.0692 14.6663 12.3696 14.6663 11.5196C14.6663 10.6775 13.6722 9.98296 12.4024 9.88447C12.7619 10.3293 12.9996 10.8705 12.9996 11.5C12.9996 12.1493 12.7467 12.7047 12.3681 13.1573Z"
+                fill="#F67258"
+              />
+            </svg>
+            <span>
+              {props.participantsCount.min} - {props.participantsCount.max} {t.activities.participants}
+            </span>
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+              <path fill="#F67258" d="M14.667 8.5a6.667 6.667 0 1 1-13.333 0 6.667 6.667 0 0 1 13.333 0Z" />
+              <path
+                fill="#FAF7F7"
+                fill-rule="evenodd"
+                d="M8 5.333a.5.5 0 0 1 .5.5v2.46l1.52 1.52a.5.5 0 0 1-.706.707L7.647 8.854a.5.5 0 0 1-.146-.354V5.833a.5.5 0 0 1 .5-.5Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span>
+              {props.duration.isFullDay
+                ? t.activities.duration.fullDay
+                : `${props.duration.hours} ${getHoursText(props.duration.hours || 0, lang)}`}
+            </span>
+          </li>{' '}
+          <li class="separator" />
+          <li>
+            {props.languages.includes('pl') && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <g clip-path="url(#a)">
+                  <path fill="#F0F0F0" d="M8 16.5a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" />
+                  <path fill="#D80027" d="M16 8.5a8 8 0 1 1-16 0" />
+                </g>
+                <defs>
+                  <clipPath id="a">
+                    <path fill="#fff" d="M0 .5h16v16H0z" />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
+            {props.languages.includes('en') && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <g clip-path="url(#a)">
+                  <path fill="#F0F0F0" d="M8 16.5a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" />
+                  <path
+                    fill="#0052B4"
+                    d="M1.654 3.63A7.97 7.97 0 0 0 .275 6.412h4.162L1.654 3.63ZM15.724 6.413a7.97 7.97 0 0 0-1.378-2.784l-2.784 2.784h4.162ZM.275 10.587a7.972 7.972 0 0 0 1.379 2.784l2.783-2.784H.275ZM12.87 2.154A7.971 7.971 0 0 0 10.086.776v4.161l2.784-2.783ZM3.129 14.846a7.973 7.973 0 0 0 2.784 1.378v-4.161l-2.784 2.783ZM5.912.776A7.971 7.971 0 0 0 3.13 2.154l2.783 2.783V.776ZM10.086 16.224a7.972 7.972 0 0 0 2.784-1.378l-2.784-2.783v4.161ZM11.563 10.587l2.783 2.784a7.97 7.97 0 0 0 1.378-2.784h-4.162Z"
+                  />
+                  <path
+                    fill="#D80027"
+                    d="M15.932 7.457H9.044V.567a8.08 8.08 0 0 0-2.087 0v6.89H.067a8.08 8.08 0 0 0 0 2.086h6.89v6.89a8.074 8.074 0 0 0 2.086 0v-6.89h6.89a8.074 8.074 0 0 0 0-2.086Z"
+                  />
+                  <path
+                    fill="#D80027"
+                    d="m10.088 10.587 3.57 3.57c.164-.164.32-.336.47-.514l-3.056-3.056h-.984ZM5.914 10.587l-3.57 3.57c.164.164.335.32.513.47l3.057-3.056v-.984ZM5.913 6.413l-3.57-3.57c-.164.164-.32.336-.47.514L4.93 6.413h.984ZM10.088 6.413l3.57-3.57a8 8 0 0 0-.514-.47l-3.056 3.056v.984Z"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="a">
+                    <path fill="#fff" d="M0 .5h16v16H0z" />
+                  </clipPath>
+                </defs>
+              </svg>
+            )}
+            <span>{props.languages.map((lang) => lang.toLocaleUpperCase()).join('/')}</span>
+          </li>
+        </>
+      )
+    }
+    {
+      props._type === 'Hotels_Collection' && (
+        <>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+              <path
+                fill="#F67258"
+                d="M4.668 9.167V8.5a2 2 0 0 0-1.995-2c.005-.219.018-.377.046-.52a2.667 2.667 0 0 1 2.095-2.095c.258-.052.568-.052 1.187-.052h1.5v5.334H4.668ZM8.501 9.167h2.834V8.5a2 2 0 0 1 1.995-2 3.055 3.055 0 0 0-.047-.52 2.667 2.667 0 0 0-2.095-2.095c-.257-.052-.567-.052-1.187-.052h-1.5v5.334Z"
+              />
+              <path
+                fill="#F67258"
+                d="M12.295 12.5H3.702c-.184 0-.364-.021-.537-.061v.728a.5.5 0 0 1-1 0v-1.233a2.365 2.365 0 0 1-.833-1.804V8.5a1.333 1.333 0 1 1 2.667 0v.8c0 .295.238.533.533.533h6.933A.533.533 0 0 0 12 9.3v-.8a1.333 1.333 0 0 1 2.666 0v1.63c0 .722-.323 1.37-.833 1.804v1.233a.5.5 0 1 1-1 0v-.728c-.173.04-.352.061-.537.061Z"
+              />
+            </svg>
+            <span>
+              {t.hotels.maxPrefix}
+              <strong>
+                {props.maxPeople.overnight} {getParticipantsText(props.maxPeople.overnight, lang)}
+              </strong>
+            </span>
+          </li>
+          {props.maxPeople.conference && (
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <path
+                  fill="#F67258"
+                  d="M4.932 3.5c-.268.464-.268 1.087-.268 2.333v2.018c.287-.018.61-.018.957-.018h4.753c.347 0 .67 0 .957.018V5.833c0-1.246 0-1.869-.268-2.333a2 2 0 0 0-.732-.732C9.867 2.5 9.244 2.5 7.997 2.5c-1.246 0-1.869 0-2.333.268a2 2 0 0 0-.732.732ZM4.17 11.16c-.335-.013-.538-.058-.677-.21-.198-.215-.172-.515-.12-1.116.037-.434.121-.726.311-.943.342-.391.89-.391 1.989-.391h4.66c1.098 0 1.647 0 1.988.39.19.218.274.51.311.944.052.6.078.9-.12 1.117-.139.151-.341.196-.676.21V14.5a.5.5 0 1 1-1 0v-3.333H5.169V14.5a.5.5 0 0 1-1 0v-3.34Z"
+                />
+              </svg>
+              <span>
+                {t.hotels.maxPrefix}
+                <strong>
+                  {props.maxPeople.conference} {getParticipantsText(props.maxPeople.conference, lang)}
+                </strong>
+                {t.hotels.onConference}
+              </span>
+            </li>
+          )}
+          {props.maxPeople.banquet && (
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                <path
+                  fill="#F67258"
+                  d="M12.866 2.5H3.134c-1 0-1.509 1.196-.811 1.91L4.157 6.5h7.686l1.835-2.09c.697-.714.189-1.91-.812-1.91ZM10.966 7.5H5.034L7.5 10.31V14H5.17a.5.5 0 0 0 0 1h5.66a.5.5 0 0 0 0-1H8.5V10.31L10.966 7.5Z"
+                />
+              </svg>
+              <span>
+                {t.hotels.maxPrefix}
+                <strong>
+                  {props.maxPeople.banquet} {getParticipantsText(props.maxPeople.banquet, lang)}
+                </strong>
+                {t.hotels.onBanquet}
+              </span>
+            </li>
+          )}
+        </>
+      )
+    }
+  </ul>
+  <div class="gallery" data-image-count={imageList.length > 4 ? 4 : imageList.length}>
+    {
+      imageList.slice(0, 4).map((image, index) => {
+        const count = imageList.length > 4 ? 4 : imageList.length
+        const imageIndex = index > 2 ? 2 : index
+        const sizes =
+          props._type === 'Activities_Collection'
+            ? imageSizes.activities[count as keyof typeof imageSizes.activities][imageIndex]
+            : ''
+        return (
+          <div class="image-wrapper">
+            <Image {...image} sizes={sizes} />
+          </div>
+        )
+      })
+    }
+    <PopupWindow>
+      <Button slot="open" theme="secondary" shade="light">
+        <span>{t.activities.viewAll} <strong>({imageList.length})</strong></span>
+        <span>1/{imageList.length}</span>
+      </Button>
+      <div slot="content" class="masonry-grid">
+        <h2>
+          {t.activities.popup.title}
+          <strong>({imageList.length})</strong>
+        </h2>
+        <CloseButton />
+        <div class="images-wrapper">
+          <div class="images">
+            {
+              imageList.map((image) => (
+                <Image
+                  {...image}
+                  sizes="(max-width: 549px) 79vw, (max-width: 1089px) 36vw, (max-width: 1144px) 44vw, 502px"
+                />
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </PopupWindow>
+  </div>
+</section>
+
+<style lang="scss">
+  .Hero {
+    padding: clamp(3.5rem, calc(5vw / 0.48), 5rem) 0 clamp(1.5rem, calc(2.25vw / 0.48), 2.25rem);
+    display: grid;
+    grid-template-columns:
+      clamp(25rem, calc(24vw / 0.48), 40.9375rem)
+      auto;
+    justify-content: space-between;
+    column-gap: 0.75rem;
+
+    .heading {
+      margin-bottom: 1rem;
+      grid-area: heading;
+      max-width: 40.9375rem;
+    }
+
+    .description {
+      margin-bottom: clamp(1.25rem, calc(2vw / 0.48), 2rem);
+      font-size: var(--typography-body-l, 1rem);
+      grid-area: description;
+    }
+
+    .buttons {
+      grid-area: buttons;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+
+      :global(button[data-theme='primary'][data-shade='light']) {
+        position: relative;
+
+        :global(div[aria-label='Ładowanie...']) {
+          position: absolute;
+          inset: 0;
+          margin: auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 1 !important;
+          visibility: visible !important;
+          transition:
+            opacity 300ms ease,
+            visibility 300ms ease;
+          background: none;
+          backdrop-filter: none;
+          width: 1.5rem;
+          height: 1.5rem;
+          border-radius: 0;
+
+          :global(svg) {
+            width: 1.5rem;
+            height: 1.5rem;
+          }
+        }
+
+        // Group all initially hidden elements
+        :global(span span),
+        :global(div:first-of-type),
+        :global(div:first-of-type div) {
+          opacity: 0;
+          visibility: hidden;
+          transition:
+            opacity 300ms ease,
+            visibility 300ms ease;
+        }
+
+        &[data-loaded='true'] {
+          :global(div[aria-label='Ładowanie...']) {
+            opacity: 0 !important;
+            visibility: hidden !important;
+          }
+
+          // Show all elements together
+          :global(span span),
+          :global(div:first-of-type),
+          :global(div:first-of-type div > svg) {
+            opacity: 1;
+            visibility: visible;
+          }
+        }
+      }
+    }
+
+    .gallery {
+      margin-top: clamp(1rem, calc(2vw / 0.48), 3rem);
+      min-height: 15rem;
+      grid-area: gallery;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      height: 26rem;
+
+      gap: clamp(0.25rem, calc(0.25vw / 0.48), 0.375rem);
+      position: relative;
+      grid-template-rows: 1fr;
+
+      .image-wrapper {
+        height: 100%;
+        width: 100%;
+        border-radius: 0.5rem;
+        overflow: hidden;
+
+        &:first-child {
+          grid-column: 1 / 2;
+          grid-row: 1 / 3;
+        }
+
+        &:nth-child(2) {
+          grid-column: 2 / 3;
+          grid-row: 1 / 3;
+        }
+
+        &:nth-child(3) {
+          grid-column: 3 / 4;
+          grid-row: 1 / 2;
+        }
+
+        &:nth-child(4) {
+          grid-column: 3 / 4;
+          grid-row: 2 / 3;
+        }
+
+        img {
+          height: 100%;
+          border-radius: 0.5rem;
+          width: 100%;
+        }
+      }
+
+      &[data-image-count='2'] {
+        .image-wrapper {
+          &:first-child {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+          }
+
+          &:nth-child(2) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+          }
+        }
+      }
+
+      &[data-image-count='3'] {
+        .image-wrapper {
+          &:first-child {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+          }
+
+          &:nth-child(2) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+          }
+
+          &:nth-child(3) {
+            grid-column: 3 / 4;
+            grid-row: 1 / 2;
+          }
+        }
+      }
+      &[data-image-count='4'] {
+        grid-template-rows: repeat(2, 1fr);
+      }
+
+      :global(.Wrapper) {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+
+        :global(> button > span) {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 1px;
+
+          strong {
+            color: var(--primary-400, #74535e);
+            transition: color 200ms;
+          }
+
+          > span {
+            margin-top: 1px;
+          }
+
+          > span:last-child {
+            display: none;
+          }
+
+          &::after {
+            margin-top: 6px;
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none'%3E%3Cpath fill='%23F67258' d='M14.166 7.5a1.667 1.667 0 1 1-3.333 0 1.667 1.667 0 0 1 3.333 0Z'/%3E%3Cpath fill='%23F67258' fill-rule='evenodd' d='M10 1.041a8.958 8.958 0 1 0 0 17.917A8.958 8.958 0 0 0 10 1.04Zm-.682 11.76L5.743 9.226a1.917 1.917 0 0 0-2.617-.087l-.834.746a7.708 7.708 0 1 1 14.048 4.499l-1.527-1.386a2.5 2.5 0 0 0-3.11-.187l-.248.175a1.667 1.667 0 0 1-2.137-.185Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+          }
+        }
+
+        :global(> button:hover),
+        :global(> button:focus) {
+          > :global(span) strong {
+            color: var(--neutral-100) !important;
+          }
+        }
+
+        .masonry-grid {
+          padding: 2.5rem 2.5rem 0;
+          max-width: 68.5rem;
+          overflow: hidden;
+          grid-template-columns: 1fr auto;
+          grid-template-rows: auto 1fr;
+          max-height: 42.4rem;
+          display: grid;
+          row-gap: clamp(1rem, calc(2vw / 0.48), 2rem);
+          height: calc(100dvh - 6rem);
+
+          h2 {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            margin-top: 4px;
+            line-height: 1.1;
+          }
+
+          :global(.CloseButton) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+          }
+
+          .images-wrapper {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            margin-right: -0.5rem;
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+
+            .images {
+              columns: 2;
+              overflow-y: auto;
+              gap: 0.5rem;
+
+              padding-right: 0.5rem;
+
+              &::-webkit-scrollbar {
+                width: 0.25rem;
+              }
+
+              &::-webkit-scrollbar-track {
+                background: var(--neutral-300, #ede6de);
+                border-radius: 16px;
+              }
+
+              &::-webkit-scrollbar-thumb {
+                background: var(--primary-400, #74535e);
+                border-radius: 16px;
+              }
+
+              &::-webkit-scrollbar-thumb:hover {
+                background: var(--primary-700, #600d2a);
+              }
+
+              img {
+                width: 100%;
+                height: auto;
+                border-radius: 0.5rem;
+                margin-bottom: 0.5rem;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    &[data-type='Hotels_Collection'] {
+      grid-template-rows: repeat(4, auto) 1fr;
+      grid-template-columns: auto auto 1fr auto;
+      grid-template-areas:
+        'stars address map map'
+        'heading heading heading details'
+        'description description description details'
+        'buttons buttons buttons details'
+        'gallery gallery gallery gallery';
+      column-gap: 0rem;
+
+      .stars {
+        display: flex;
+        align-items: center;
+        gap: 0.1875rem;
+        margin-right: 1.25rem;
+        grid-area: stars;
+
+        :global(svg) {
+          width: 1rem;
+          height: 1rem;
+        }
+      }
+
+      .address {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.375rem, calc(0.375vw / 0.48), 0.5rem);
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+        grid-area: address;
+        margin-right: 0.5rem;
+        svg {
+          margin-top: 1px;
+        }
+      }
+
+      :global(.link) {
+        grid-area: map;
+        color: var(--primary-800, #45051c);
+      }
+
+      .heading {
+        margin-top: clamp(0.5rem, calc(0.625vw / 0.48), 1rem);
+        max-width: 40.9375rem;
+      }
+
+      .description {
+        max-width: 40.9375rem;
+      }
+
+      .buttons {
+        max-width: 40.9375rem;
+      }
+
+      .details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem 0.25rem;
+        align-self: end;
+        grid-area: details;
+
+        li {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          svg {
+            margin-bottom: 1px;
+          }
+        }
+      }
+
+      .gallery {
+        grid-template-columns: 39.75fr 20.6875fr 21.2625fr;
+
+        &[data-image-count='2'] {
+          grid-template-columns: 2fr 1fr;
+        }
+
+        &[data-image-count='3'] {
+          grid-template-columns: 2fr 1fr 1fr;
+        }
+      }
+    }
+
+    &[data-type='Activities_Collection'] {
+      grid-template-rows: repeat(3, auto) 1fr;
+      grid-template-areas:
+        'heading details'
+        'description details'
+        'buttons details'
+        'gallery gallery';
+
+      .details {
+        grid-area: details;
+        align-self: end;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.25rem;
+        max-width: 27.0625rem;
+        justify-content: flex-end;
+        align-items: center;
+        justify-self: end;
+
+        li:not(.separator) {
+          background-color: var(--neutral-200, #f5f1ec);
+          border-radius: 999rem;
+          min-height: 2.5rem;
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+          padding: 0 0.75rem 0 0.625rem;
+          font-size: var(--typography-body-m, 0.875rem);
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+
+          svg {
+            margin-top: 1px;
+          }
+        }
+
+        .separator {
+          width: 0.25rem;
+          height: 0.25rem;
+          border-radius: 50%;
+          background-color: var(--neutral-400,);
+        }
+      }
+
+      .gallery {
+        grid-template-columns: 19.5fr 41.4fr 20.75fr;
+
+        &[data-image-count='2'] {
+          grid-template-columns: 1fr 2fr;
+        }
+
+        &[data-image-count='3'] {
+          grid-template-columns: 1fr 2fr 2fr;
+        }
+      }
+    }
+
+    @media (max-width: 68.0625rem) {
+      max-width: 48rem;
+
+      &[data-type='Hotels_Collection'] {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: repeat(6, auto) 1fr;
+        grid-template-areas:
+          'stars stars'
+          'heading heading'
+          'address map'
+          'details details'
+          'description description'
+          'buttons buttons'
+          'gallery gallery';
+
+        .heading,
+        .description,
+        .buttons {
+          max-width: 100%;
+        }
+
+        .address {
+          margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+        }
+
+        :global(.link) {
+          align-self: start;
+        }
+
+        .details {
+          flex-direction: row;
+          margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+
+          li {
+            background: var(--neutral-200, #f5f1ec);
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+            padding: 0.75rem 0.625rem;
+            border-radius: 0.25rem;
+
+            svg {
+              margin-bottom: 0;
+            }
+          }
+        }
+
+        .gallery {
+          &[data-image-count='2'],
+          &[data-image-count='3'],
+          &[data-image-count='4'] {
+            grid-template-columns: 31.75fr 15.9375fr;
+            grid-template-rows: 1fr;
+          }
+        }
+      }
+
+      &[data-type='Activities_Collection'] {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          'heading'
+          'details'
+          'description'
+          'buttons'
+          'gallery';
+
+        .details {
+          margin-bottom: clamp(0.75rem, calc(1.5vw / 0.48), 1.5rem);
+          overflow-x: auto;
+          justify-self: stretch;
+          justify-content: flex-start;
+          max-width: 100%;
+          flex-wrap: nowrap;
+
+          li {
+            flex-shrink: 0;
+          }
+        }
+
+        .gallery {
+          &[data-image-count='2'],
+          &[data-image-count='3'],
+          &[data-image-count='4'] {
+            grid-template-columns: 15.9375fr 31.75fr;
+            grid-template-rows: 1fr;
+          }
+        }
+      }
+
+      .heading {
+        margin-bottom: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        :global(> button),
+        :global(> a) {
+          width: 100%;
+          flex: 1;
+          max-width: 100%;
+
+          &[data-theme='secondary'] {
+            display: flex;
+            justify-content: center;
+          }
+
+          &[data-theme='primary'] {
+            :global(span) {
+              margin: 0 auto;
+            }
+          }
+        }
+      }
+
+      .gallery {
+        margin-left: calc(-1 * var(--pageMargin));
+        margin-right: calc(-1 * var(--pageMargin));
+
+        > .image-wrapper {
+          &:first-child {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+          }
+
+          &:nth-child(2) {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+          }
+
+          &:nth-of-type(3),
+          &:nth-of-type(4) {
+            display: none;
+          }
+        }
+
+        :global(.Wrapper) {
+          bottom: 0.75rem;
+          right: 0.75rem;
+        }
+      }
+    }
+
+    @media (max-width: 47.4375rem) {
+      .buttons {
+        grid-template-columns: 1fr;
+        max-width: 30rem;
+      }
+
+      .gallery > :global(.Wrapper) .masonry-grid {
+        :global(.CloseButton) {
+          margin-top: -6px;
+          margin-right: -14px;
+        }
+
+        .images-wrapper {
+          .images {
+            columns: 1;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 34.3125rem) {
+      &[data-type='Hotels_Collection'] {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          'stars'
+          'heading'
+          'gallery'
+          'address'
+          'map'
+          'details' 'description' 'buttons';
+
+        .address {
+          margin-bottom: 0;
+          gap: 0.375rem;
+        }
+
+        :global(.link) {
+          margin-left: 1.375rem;
+          margin-bottom: 0.75rem;
+        }
+
+        .details {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.375rem;
+
+          li {
+            flex-direction: row;
+            background: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--neutral-300, #ede6de);
+            width: 100%;
+
+            span {
+              order: 1;
+            }
+
+            svg {
+              order: 2;
+            }
+          }
+        }
+      }
+
+      &[data-type='Activities_Collection'] {
+        grid-template-areas: 'heading' 'gallery' 'details' 'description' 'buttons';
+      }
+
+      .gallery {
+        margin-top: 0;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0.75rem;
+        display: block;
+        height: auto;
+
+        .image-wrapper:nth-child(2) {
+          display: none;
+        }
+
+        :global(.Wrapper) {
+          bottom: 0.5rem;
+          right: 0.5rem;
+
+          :global(> button > span) {
+            > span {
+              &:first-child {
+                display: none;
+              }
+
+              &:last-child {
+                display: inline;
+              }
+            }
+          }
+        }
+      }
+
+      .buttons {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 31.1875rem) {
+      .gallery > :global(.Wrapper) {
+        .masonry-grid {
+          padding: 1.5rem var(--pageMargin) 0;
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  import { addToCart, isInCart } from '@/src/store/cart'
+  import { dispatchCartUpdate, dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
+  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+
+  // Get references to the hero section and button
+  const heroSection = document.querySelector('.Hero')! as HTMLElement
+  const toggleButton = document.querySelector('button[data-theme="primary"][data-shade="light"]')! as HTMLButtonElement
+
+  // Get data attributes
+  const itemId = heroSection.dataset.id
+  const itemType = heroSection.dataset.type === 'Hotels_Collection' ? 'hotels' : 'activities'
+  const hasAddons = heroSection.dataset.hasAddons === 'true'
+  const requiresAddons = hasAddons && heroSection.dataset.minOneAddon === 'true'
+  const translations = JSON.parse(heroSection.getAttribute('data-text') || '{}')
+  const itemName = heroSection.dataset.name || ''
+
+  // Function to update the button text based on cart state
+  function updateButtonState() {
+    if (!itemId || !itemType) return
+
+    const inCart = isInCart(itemId, itemType)
+    const textState = toggleButton.querySelector('span:last-of-type span')
+
+    if (textState) {
+      textState.textContent = inCart ? translations.removeFromCart : translations.addToCart
+      toggleButton.dataset.cart = inCart ? 'true' : 'false'
+    }
+
+    if (inCart) {
+      setTimeout(() => {
+        toggleButton.setAttribute('data-remove-trigger', 'true')
+      }, 50)
+    } else {
+      setTimeout(() => {
+        toggleButton.removeAttribute('data-remove-trigger')
+      }, 50)
+    }
+
+    // Enable button and show content
+    toggleButton.disabled = false
+    toggleButton.dataset.loaded = 'true'
+  }
+
+  // Handle click on the toggle button
+  toggleButton.addEventListener('click', () => {
+    if (!itemId || !itemType) return
+
+    const inCart = isInCart(itemId, itemType)
+    const itemPrice = heroSection.dataset.price || 200
+    if (inCart) return
+
+    // If item has addons and requires them, open the addons popup
+    if (requiresAddons) {
+      // Open the addon selection popup without adding to cart immediately
+      dispatchAddonsPopup({
+        itemId,
+        itemType,
+        hasAddons,
+        isEditing: false,
+        minOneAddon: heroSection.dataset.minOneAddon === 'true',
+        requiresAddons,
+        addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
+        name: itemName,
+      })
+    } else {
+      // Add to cart immediately if no addons required
+      addToCart({
+        id: itemId,
+        type: itemType,
+        addOns: [],
+      })
+
+      // Track the add to cart event
+
+      trackEvent({
+        ga: {
+          event_name: 'add_to_cart',
+          params: {
+            currency: 'PLN',
+            value: itemPrice,
+            items: [
+              {
+                item_id: itemId,
+                item_name: itemName,
+              },
+            ],
+          },
+        },
+        meta: {
+          event_name: 'AddToCart',
+          content_name: itemName,
+          params: {
+            content_ids: [itemId],
+          },
+        },
+      })
+      // If has optional addons, open the popup
+      dispatchAddonsPopup({
+        itemId,
+        itemType,
+        hasAddons,
+        isEditing: false,
+        minOneAddon: false,
+        requiresAddons: false,
+        addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
+        name: itemName,
+      })
+
+      // Update button text
+      updateButtonState()
+
+      // Dispatch cart update event
+      dispatchCartUpdate(itemId, itemType, 'add')
+
+      // Also dispatch addons-popup-confirmed event for the badge animation
+      document.dispatchEvent(
+        new CustomEvent('addons-popup-confirmed', {
+          detail: {
+            itemId,
+            itemType,
+            addons: [],
+          },
+        })
+      )
+    }
+  })
+
+  // Listen for cart updates
+  listenToCartUpdates(updateButtonState)
+
+  // Initialize button state on page load
+  document.addEventListener('DOMContentLoaded', updateButtonState)
+
+  // Also check immediately in case the DOM is already loaded
+  updateButtonState()
+</script>

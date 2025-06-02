@@ -1,0 +1,446 @@
+---
+type FilterItem = {
+  name: string
+  count: number
+  value: string
+  isSelected: boolean
+}
+
+type Props = {
+  heading: string
+  items: FilterItem[]
+  paramName: string
+}
+
+const { heading, items, paramName } = Astro.props
+
+const selectedItem = items.find((item) => item.isSelected)
+const hasSelection = !!selectedItem
+const availableItems = items.filter((item) => item.count > 0 || item.isSelected)
+const isDisabled = availableItems.length === 0 && !hasSelection
+---
+
+<details
+  class="filter-group"
+  data-has-selection={hasSelection}
+  data-disabled={isDisabled}
+  data-param-name={paramName}
+  open
+>
+  <summary>
+    <span>{heading}</span>
+    <button
+      class="selected-value"
+      type="button"
+      style={hasSelection ? '' : 'display: none;'}
+      data-disabled={isDisabled}
+    >
+      <span>{selectedItem?.name || ''}</span>
+      <div class="clear-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e"></circle>
+          <path
+            d="M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836"
+            stroke="#74535e"
+            stroke-linecap="round"></path>
+        </svg>
+      </div>
+    </button>
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4">
+        </path>
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4">
+        </path>
+      </svg>
+    </div>
+  </summary>
+  {
+    !isDisabled ? (
+      <div class="filter-content">
+        <div class="filter-options">
+          {items.map((item) => (
+            <label
+              class="filter-option"
+              data-selected={item.isSelected}
+              data-zero-count={item.count === 0 && !item.isSelected}
+            >
+              <input
+                type="radio"
+                name={paramName}
+                value={item.value}
+                checked={item.isSelected}
+                data-count={item.count}
+              />
+              <span class="value">{item.name}</span>
+              <span class="count">{item.count}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    ) : (
+      selectedItem && (
+        <div class="disabled-content">
+          <p>No additional options available with current filters.</p>
+        </div>
+      )
+    )
+  }
+</details>
+
+<style lang="scss">
+  .filter-group {
+    margin-bottom: 0.625rem;
+    border: 1px solid var(--neutral-500);
+    border-radius: 0.25rem;
+    overflow: hidden;
+    background-color: var(--neutral-100);
+    color: var(--primary-800);
+    transition: border-color 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+
+    &[data-disabled='true'] {
+      summary {
+        cursor: default;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .selected-value[data-disabled='true'] {
+        opacity: 0.7;
+        pointer-events: none;
+        cursor: default;
+      }
+
+      .disabled-content {
+        padding: 1rem;
+        font-size: var(--typography-body-s);
+        color: var(--primary-400);
+        text-align: center;
+      }
+    }
+
+    &[data-has-selection='true'] {
+      border-color: var(--neutral-300);
+
+      summary {
+        background-color: var(--neutral-200);
+        transition: background-color 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+      }
+    }
+
+    summary {
+      padding: 0 0.625rem;
+      min-height: 2.5rem;
+      font-size: var(--typography-body-m);
+      cursor: pointer;
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      gap: 0.5rem;
+      transition:
+        border-color 150ms,
+        background-color 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+
+      > span {
+        flex-shrink: 0;
+      }
+
+      .selected-value {
+        margin-right: auto;
+        font-size: var(--typography-body-s);
+        padding: 0.1875rem 0.25rem;
+        background-color: var(--neutral-300);
+        line-height: 1.6;
+        border-radius: 0.25rem;
+        border: 1px solid var(--neutral-500);
+        letter-spacing: -0.01em;
+        transition:
+          opacity 300ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1)),
+          transform 300ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-800);
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        max-width: 12.5rem;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateX(-0.5rem);
+
+        &[style*='display: flex'] {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .clear-icon {
+          position: absolute;
+          inset: 0;
+          background-color: var(--neutral-300);
+          display: grid;
+          place-items: center;
+          opacity: 0;
+          transition: opacity 150ms;
+        }
+
+        svg {
+          transform: scale(0.6) rotate(180deg);
+          transition: transform 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+        }
+
+        &:hover:not([data-disabled='true']) {
+          .clear-icon {
+            opacity: 1;
+
+            svg {
+              transform: scale(1) rotate(0deg);
+            }
+          }
+        }
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-800);
+        border-radius: 0.25rem;
+      }
+
+      .icon {
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+
+        svg {
+          transition: transform 300ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+          &:nth-of-type(1) {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: rotate(180deg) translate(50%, 150%);
+          }
+
+          &:nth-of-type(2) {
+            transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
+          }
+        }
+      }
+    }
+
+    .filter-content {
+      transition: height 200ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+      overflow: hidden;
+    }
+
+    .filter-options {
+      .filter-option {
+        display: flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding: 0 0.625rem;
+        justify-content: space-between;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-size: var(--typography-body-m);
+        transition: background-color 150ms;
+
+        &[data-zero-count='true'] {
+          display: none;
+        }
+
+        input {
+          width: 1.125rem;
+          height: 1.125rem;
+          accent-color: var(--primary-500);
+          position: absolute;
+          opacity: 0;
+          visibility: hidden;
+        }
+
+        .value {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .count {
+          color: var(--primary-400);
+          display: grid;
+          place-items: center;
+          min-width: 2rem;
+          text-align: right;
+        }
+
+        &:focus-visible {
+          outline-offset: -2px;
+          border-radius: 0.25rem;
+        }
+
+        &:has(input:checked)[data-selected='false'] {
+          background-color: var(--neutral-200);
+        }
+
+        &[data-selected='true'] {
+          background-color: var(--neutral-300);
+
+          .value {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            &::after {
+              margin-top: 0.25rem;
+              content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none'%3E%3Cpath fill='%23F67258' fill-rule='evenodd' d='M12.83 7A5.833 5.833 0 1 1 1.165 7a5.833 5.833 0 0 1 11.667 0ZM9.349 5.232c.171.171.171.448 0 .62L6.432 8.767a.437.437 0 0 1-.619 0L4.646 7.6a.438.438 0 0 1 .62-.619l.856.858 1.304-1.304L8.73 5.232c.17-.17.448-.17.618 0Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            }
+          }
+        }
+      }
+    }
+
+    &[data-expanded='true'] {
+      summary {
+        .icon {
+          svg {
+            &:nth-of-type(1) {
+              transform: rotate(180deg) translate(50%, 50%);
+            }
+
+            &:nth-of-type(2) {
+              transform: translateY(100%);
+            }
+          }
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((details) => {
+    const summary = details.querySelector<HTMLElement>('summary')!
+    const content = details.querySelector<HTMLDivElement>('.filter-content')
+    const clearButton = details.querySelector<HTMLButtonElement>('.selected-value')!
+    const inputs = details.querySelectorAll<HTMLInputElement>('input[type="radio"]')!
+    const isDisabled = details.dataset.disabled === 'true'
+
+    let isAnimating = false
+
+    // Animation logic for the dropdown opening/closing
+    if (summary && content && !isDisabled) {
+      summary.addEventListener('click', (event) => {
+        event.preventDefault()
+
+        if (isAnimating) return
+
+        isAnimating = true
+        details.setAttribute('data-expanded', (!details.open).toString())
+
+        if (details.open) {
+          content.style.height = content.scrollHeight + 'px'
+          requestAnimationFrame(() => {
+            content.style.height = '0'
+          })
+
+          content.addEventListener(
+            'transitionend',
+            () => {
+              details.open = false
+              content.style.height = ''
+              isAnimating = false
+            },
+            { once: true }
+          )
+        } else {
+          details.open = true
+          const startHeight = content.scrollHeight
+          content.style.height = '0'
+          requestAnimationFrame(() => {
+            content.style.height = startHeight + 'px'
+          })
+
+          content.addEventListener(
+            'transitionend',
+            () => {
+              content.style.height = ''
+              isAnimating = false
+            },
+            { once: true }
+          )
+        }
+      })
+    }
+
+    // Keep disabled details open to show the selected value
+    if (
+      isDisabled &&
+      details.hasAttribute('data-has-selection') &&
+      details.getAttribute('data-has-selection') === 'true'
+    ) {
+      details.open = true
+      details.setAttribute('data-expanded', 'true')
+    } else {
+      details.setAttribute('data-expanded', details.open ? 'true' : 'false')
+    }
+
+    // Handle clear button click
+    clearButton?.addEventListener('click', (event) => {
+      event.stopPropagation()
+
+      // Don't process if disabled
+      if (isDisabled) return
+
+      // Add exit animation
+      clearButton.style.opacity = '0'
+      clearButton.style.transform = 'translateX(-0.5rem)'
+
+      // Wait for animation to complete before dispatching event
+      setTimeout(() => {
+        // Uncheck all radio inputs
+        inputs.forEach((input) => {
+          input.checked = false
+        })
+
+        // Dispatch custom event for filter state change
+        window.dispatchEvent(
+          new CustomEvent('filterClear', {
+            detail: { paramName: details.dataset.paramName },
+          })
+        )
+      }, 150) // Half the opacity transition time for a snappy feel
+    })
+
+    // Handle radio input changes
+    inputs.forEach((input) => {
+      input.addEventListener('change', () => {
+        // Don't process if disabled
+        if (isDisabled) return
+
+        if (input.checked) {
+          // Get the label text for this option
+          const labelText = input.parentElement?.querySelector('.value')?.textContent || ''
+
+          // Dispatch custom event for filter state change
+          window.dispatchEvent(
+            new CustomEvent('filterChange', {
+              detail: {
+                paramName: details.dataset.paramName,
+                value: input.value,
+                label: labelText,
+              },
+            })
+          )
+        }
+      })
+    })
+  })
+</script>

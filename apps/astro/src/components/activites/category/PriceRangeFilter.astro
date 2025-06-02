@@ -1,0 +1,539 @@
+---
+import { getLangFromPath, type Language } from '@/global/languages'
+
+type Props = {
+  heading: string
+  minPrice: number
+  maxPrice: number
+  currentMin?: number
+  currentMax?: number
+  paramName: string
+}
+
+const { heading, minPrice, maxPrice, currentMin, currentMax, paramName } = Astro.props
+
+// Check if price filter should be disabled (no min/max price or they are equal)
+const isDisabled = !minPrice || !maxPrice || minPrice === maxPrice
+
+// Ensure values are properly bounded by the min/max from Sanity
+let safeCurrentMin = currentMin
+let safeCurrentMax = currentMax
+
+if (minPrice && maxPrice) {
+  // If we have URL parameter values, ensure they're within the bounds
+  if (safeCurrentMin && safeCurrentMin < minPrice) {
+    safeCurrentMin = minPrice
+  }
+  if (safeCurrentMax && safeCurrentMax > maxPrice) {
+    safeCurrentMax = maxPrice
+  }
+}
+
+// Check if we have values set from URL parameters
+const hasValues = !!(currentMin && currentMax)
+
+const translations = {
+  pl: {
+    min: 'od',
+    max: 'do',
+    currency: 'zł',
+    error: {
+      range: 'Wartość minimalna nie może być większa od maksymalnej',
+      bounds: 'Wartości muszą być w zakresie od {min} do {max} PLN',
+      invalid: 'Proszę wprowadzić prawidłową liczbę całkowitą',
+    },
+    noOptions: 'Brak opcji cenowych dla wybranych filtrów',
+    currentSelection: 'Aktualne ustawienie: {min} - {max} zł',
+  },
+  en: {
+    min: 'from',
+    max: 'to',
+    currency: 'PLN',
+    error: {
+      range: 'Minimum value cannot be greater than maximum',
+      bounds: 'Values must be between {min} and {max} PLN',
+      invalid: 'Please enter a valid integer number',
+    },
+    noOptions: 'No price options available for selected filters',
+    currentSelection: 'Current selection: {min} - {max} PLN',
+  },
+}
+
+// Get language from URL
+const lang = getLangFromPath(Astro.url.pathname) as Language
+const t = translations[lang]
+
+// Prepare current selection message for disabled state
+let currentSelectionMessage = ''
+if (hasValues) {
+  currentSelectionMessage = t.currentSelection
+    .replace('{min}', currentMin!.toString())
+    .replace('{max}', currentMax!.toString())
+}
+
+// Show the available price range for information
+---
+
+<details
+  class="price-range-filter"
+  data-filter-param={paramName}
+  data-min={minPrice}
+  data-max={maxPrice}
+  data-error-range={t.error.range}
+  data-error-bounds={t.error.bounds
+    .replace('{min}', minPrice?.toString() ?? '')
+    .replace('{max}', maxPrice?.toString() ?? '')}
+  data-error-invalid={t.error.invalid}
+  data-disabled={isDisabled.toString()}
+  data-has-values={hasValues.toString()}
+  open
+>
+  <summary>
+    <span>{heading}</span>
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4">
+        </path>
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4">
+        </path>
+      </svg>
+    </div>
+  </summary>
+
+  <div class="filter-content">
+    <div class="wrapper">
+      {
+        isDisabled ? (
+          <div class="disabled-content">
+            <p class="disabled-message">{t.noOptions}</p>
+            {currentSelectionMessage && <p class="current-selection">{currentSelectionMessage}</p>}
+          </div>
+        ) : (
+          <>
+            <div class="range-container">
+              <div class="slider-track" />
+              <div class="slider-range" />
+              <input
+                type="range"
+                class="price-range price-min-range"
+                min={minPrice}
+                max={maxPrice}
+                step="10"
+                value={safeCurrentMin || minPrice}
+              />
+              <input
+                type="range"
+                class="price-range price-max-range"
+                min={minPrice}
+                max={maxPrice}
+                step="10"
+                value={safeCurrentMax || maxPrice}
+              />
+            </div>
+
+            <div class="inputs-container">
+              <div class="input-group">
+                <label>
+                  <span>{t.min}</span>
+                  <div class="input-wrapper">
+                    <input
+                      type="number"
+                      class="price-input price-min"
+                      min={minPrice}
+                      max={maxPrice}
+                      value={safeCurrentMin || minPrice}
+                    />
+                    <span class="currency">{t.currency}</span>
+                  </div>
+                </label>
+              </div>
+
+              <span class="separator">-</span>
+
+              <div class="input-group">
+                <label>
+                  <span>{t.max}</span>
+                  <div class="input-wrapper">
+                    <input
+                      type="number"
+                      class="price-input price-max"
+                      min={minPrice}
+                      max={maxPrice}
+                      value={safeCurrentMax || maxPrice}
+                    />
+                    <span class="currency">{t.currency}</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="error-message" aria-live="polite" />
+          </>
+        )
+      }
+    </div>
+  </div>
+</details>
+
+<style lang="scss">
+  .price-range-filter {
+    color: var(--primary-800);
+    border: 1px solid var(--neutral-500);
+    border-radius: 0.25rem;
+    overflow: hidden;
+    background-color: var(--neutral-100);
+    transition: border-color 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+
+    &[data-disabled='true'] {
+      opacity: 0.7;
+
+      summary {
+        cursor: default;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .disabled-content {
+        padding: 1rem;
+        text-align: center;
+
+        .disabled-message {
+          font-size: var(--typography-body-s);
+          line-height: 1.6;
+          color: var(--primary-400);
+        }
+
+        .current-selection {
+          font-size: var(--typography-body-s);
+          line-height: 1.6;
+          color: var(--primary-600);
+          margin-top: 0.5rem;
+        }
+      }
+    }
+
+    summary {
+      padding: 0 0.625rem;
+      min-height: 2.5rem;
+      font-size: var(--typography-body-m);
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      background-color: var(--neutral-100);
+      transition: background-color 250ms var(--easing, cubic-bezier(0.65, 0, 0.35, 1));
+      gap: 0.5rem;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      .icon {
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+
+        svg {
+          transition: transform 300ms var(--easing);
+          &:nth-of-type(1) {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: rotate(180deg) translate(50%, 150%);
+          }
+
+          &:nth-of-type(2) {
+            transition: transform 250ms cubic-bezier(0.18, 0.89, 0.32, 1.2);
+          }
+        }
+      }
+    }
+
+    .filter-content {
+      transition: height 200ms var(--easing);
+      overflow: hidden;
+      background-color: var(--neutral-100);
+
+      .wrapper {
+        padding: 0.75rem 0.625rem 1rem;
+      }
+    }
+
+    &[data-expanded='true'] {
+      summary {
+        border-bottom: 1px solid var(--neutral-500);
+
+        .icon {
+          svg {
+            &:nth-of-type(1) {
+              transform: rotate(180deg) translate(50%, 50%);
+            }
+
+            &:nth-of-type(2) {
+              transform: translateY(100%);
+            }
+          }
+        }
+      }
+    }
+
+    .range-container {
+      position: relative;
+      height: 2.75rem;
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+
+      .slider-track {
+        position: absolute;
+        width: 100%;
+        height: 0.125rem;
+        background: var(--neutral-300);
+        border-radius: 0.125rem;
+        z-index: 1;
+      }
+
+      .slider-range {
+        position: absolute;
+        height: 0.125rem;
+        background: var(--primary-500);
+        border-radius: 0.125rem;
+        z-index: 2;
+      }
+
+      input[type='range'] {
+        position: absolute;
+        width: 100%;
+        pointer-events: none;
+        appearance: none;
+        height: 0.125rem;
+        background: none;
+        z-index: 3;
+
+        &::-webkit-slider-runnable-track {
+          background: none;
+        }
+
+        &::-moz-range-track {
+          background: none;
+        }
+
+        &::-webkit-slider-thumb {
+          pointer-events: auto;
+          appearance: none;
+          width: 1rem;
+          height: 1rem;
+          background-color: var(--primary-500);
+          border-radius: 50%;
+          cursor: pointer;
+          transition:
+            background-color 150ms,
+            transform 200ms var(--easing);
+
+          &:hover {
+            transform: scale(1.1);
+            background-color: var(--primary-700);
+          }
+        }
+
+        &::-moz-range-thumb {
+          pointer-events: auto;
+          appearance: none;
+          width: 1rem;
+          height: 1rem;
+          background-color: var(--primary-500);
+          border-radius: 50%;
+          cursor: pointer;
+          transition:
+            background-color 150ms,
+            transform 200ms var(--easing);
+
+          &:hover {
+            transform: scale(1.1);
+            background-color: var(--primary-700);
+          }
+        }
+
+        &:focus-visible {
+          outline: none;
+          &::-webkit-slider-thumb {
+            outline-offset: 3px;
+            outline: 3px solid var(--primary-800);
+          }
+        }
+      }
+    }
+
+    .inputs-container {
+      display: flex;
+      gap: 0.375rem;
+      justify-content: space-between;
+      align-items: center;
+
+      .separator {
+        align-self: flex-end;
+        margin-bottom: 0.55rem;
+      }
+
+      .input-group {
+        flex: 1;
+
+        label {
+          line-height: 1.6;
+          letter-spacing: -0.01em;
+          margin-bottom: 0;
+          display: block;
+          cursor: pointer;
+
+          > span {
+            display: block;
+            margin-bottom: 0.125rem;
+            font-size: var(--typography-body-s);
+          }
+        }
+
+        .input-wrapper {
+          position: relative;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: center;
+          background-color: var(--neutral-100);
+          border: 1px solid var(--neutral-500);
+          border-radius: 0.25rem;
+          min-height: 2.5rem;
+
+          input {
+            width: 100%;
+            padding: 0 0.625rem;
+            color: var(--primary-800);
+            background: none;
+            border: none;
+
+            &:focus {
+              outline: none;
+            }
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+              position: relative;
+              transform: translateX(2rem);
+            }
+          }
+
+          .currency {
+            pointer-events: none;
+            color: var(--primary-400);
+            letter-spacing: -0.01em;
+            width: 2.5rem;
+            height: 2.25rem;
+            display: grid;
+            place-content: center;
+            border-left: 1px solid var(--neutral-500);
+          }
+        }
+      }
+    }
+
+    .error-message {
+      color: var(--error-500);
+      text-align: center;
+      font-size: var(--typography-body-s);
+      min-height: 1.5rem;
+      display: none;
+      margin-top: 0.5rem;
+
+      &:not(:empty) {
+        display: block;
+      }
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLDetailsElement>('.price-range-filter').forEach((details) => {
+    const summary = details.querySelector<HTMLElement>('summary')
+    const content = details.querySelector<HTMLElement>('.filter-content')
+    if (!summary || !content) return
+
+    const isDisabled = details.dataset.disabled === 'true'
+    const hasValues = details.dataset.hasValues === 'true'
+
+    // Skip animation for disabled filters but keep them open
+    if (isDisabled) {
+      details.open = hasValues
+      details.setAttribute('data-expanded', hasValues ? 'true' : 'false')
+      return
+    }
+
+    // Initialize range indicator on page load
+    const minRange = details.querySelector<HTMLInputElement>('.price-min-range')
+    const maxRange = details.querySelector<HTMLInputElement>('.price-max-range')
+    const sliderRange = details.querySelector<HTMLDivElement>('.slider-range')
+
+    if (minRange && maxRange && sliderRange) {
+      const minVal = parseInt(minRange.value)
+      const maxVal = parseInt(maxRange.value)
+      const minAllowed = parseInt(minRange.min)
+      const maxAllowed = parseInt(maxRange.max)
+      const totalRange = maxAllowed - minAllowed
+
+      const minPercent = ((minVal - minAllowed) / totalRange) * 100
+      const maxPercent = ((maxVal - minAllowed) / totalRange) * 100
+
+      sliderRange.style.left = minPercent + '%'
+      sliderRange.style.width = maxPercent - minPercent + '%'
+    }
+
+    let isAnimating = false
+
+    summary.addEventListener('click', (event) => {
+      event.preventDefault()
+
+      if (isAnimating) return
+
+      isAnimating = true
+      details.setAttribute('data-expanded', (!details.open).toString())
+
+      if (details.open) {
+        content.style.height = content.scrollHeight + 'px'
+        requestAnimationFrame(() => {
+          content.style.height = '0'
+        })
+
+        content.addEventListener(
+          'transitionend',
+          () => {
+            details.open = false
+            content.style.height = ''
+            isAnimating = false
+          },
+          { once: true }
+        )
+      } else {
+        details.open = true
+        const startHeight = content.scrollHeight
+        content.style.height = '0'
+        requestAnimationFrame(() => {
+          content.style.height = startHeight + 'px'
+        })
+
+        content.addEventListener(
+          'transitionend',
+          () => {
+            content.style.height = ''
+            isAnimating = false
+          },
+          { once: true }
+        )
+      }
+    })
+
+    // Set initial state
+    details.setAttribute('data-expanded', details.open ? 'true' : 'false')
+  })
+</script>

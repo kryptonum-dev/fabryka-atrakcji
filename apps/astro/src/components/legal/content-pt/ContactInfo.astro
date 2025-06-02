@@ -1,0 +1,331 @@
+---
+import type { Language } from '@/src/global/languages'
+
+const lang = (Astro.params.lang as Language) || 'pl'
+
+const translations = {
+  pl: {
+    postal: 'Adres pocztowy',
+    email: 'Mailowo na adres',
+    tel: 'Telefonicznie',
+    mapLabel: 'Otwórz w Google Maps',
+    phoneLabel: 'Zadzwoń do nas',
+    emailLabel: 'Wyślij wiadomość',
+  },
+  en: {
+    postal: 'Postal address',
+    email: 'Email',
+    tel: 'Phone',
+    mapLabel: 'Open in Google Maps',
+    phoneLabel: 'Call us',
+    emailLabel: 'Send us an email',
+  },
+}
+
+const t = translations[lang]
+
+export const ContactInfo_Query = `
+  _type == "ContactInfo" => {
+    email,
+    tel,
+    physicalAddress,
+    googleMapsLink,
+  },
+`
+
+type Props = {
+  node: {
+    email: string
+    tel: string
+    physicalAddress: string
+    googleMapsLink?: string
+  }
+}
+
+const { node } = Astro.props
+---
+
+<section class="ContactInfo">
+  <a href={node.googleMapsLink || '#'} target="_blank" rel="noopener noreferrer" class="box" aria-label={t.mapLabel}>
+    <p>{t.postal}</p>
+    <span>{node.physicalAddress}</span>
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
+        ><path
+          fill="#F67258"
+          d="M10.497 18.334c4.603 0 8.334-1.68 8.334-3.75 0-1.056-.97-2.01-2.53-2.691-.95 1.746-2.402 3.252-4.246 4.04a3.98 3.98 0 0 1-3.116 0c-1.843-.788-3.294-2.293-4.246-4.04-1.56.681-2.529 1.635-2.529 2.69 0 2.072 3.731 3.75 8.333 3.75Z"
+        ></path><path
+          fill="#F67258"
+          fill-rule="evenodd"
+          d="M4.664 7.095c0-2.998 2.612-5.428 5.833-5.428 3.222 0 5.834 2.43 5.834 5.428 0 2.975-1.862 6.447-4.767 7.688a2.73 2.73 0 0 1-2.133 0c-2.905-1.241-4.767-4.713-4.767-7.688Zm5.833 2.072a1.667 1.667 0 1 0 0-3.334 1.667 1.667 0 0 0 0 3.334Z"
+          clip-rule="evenodd"></path></svg
+      >
+    </div>
+  </a>
+  <a href={`tel:${node.tel}`} class="box" aria-label={t.phoneLabel}>
+    <p>{t.tel}</p>
+    <span>{node.tel}</span>
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
+        ><path
+          fill="#F67258"
+          d="m13.963 10.755-.38.377s-.901.898-3.364-1.551C7.757 7.132 8.66 6.235 8.66 6.235l.239-.237c.589-.586.644-1.526.13-2.212l-1.05-1.403c-.636-.85-1.865-.962-2.593-.237l-1.308 1.3c-.362.36-.604.825-.575 1.342.076 1.322.674 4.166 4.01 7.484 3.54 3.519 6.86 3.659 8.218 3.532.43-.04.803-.258 1.104-.558l1.184-1.177c.8-.794.574-2.157-.449-2.712l-1.592-.866c-.671-.365-1.489-.258-2.014.264Z"
+        ></path></svg
+      >
+    </div>
+  </a>
+  <a href={`mailto:${node.email}`} class="box" aria-label={t.emailLabel}>
+    <p>{t.email}</p>
+    <span>{node.email}</span>
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+        <path
+          d="M8.75 16.6667V18.3334C8.75 18.6785 9.02982 18.9584 9.375 18.9584C9.72018 18.9584 10 18.6785 10 18.3334V16.6667H8.75Z"
+          fill="#F67258"></path>
+        <path
+          d="M13.3333 16.6667H12.0833V18.3334C12.0833 18.6785 12.3632 18.9584 12.7083 18.9584C13.0535 18.9584 13.3333 18.6785 13.3333 18.3334V16.6667Z"
+          fill="#F67258"></path>
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M15.3257 5.48728L15.5391 5.44456C15.8856 5.3752 16.2438 5.40832 16.573 5.54013C17.1483 5.77046 17.7774 5.81349 18.3767 5.6635L18.4279 5.65069C18.8643 5.54148 19.1719 5.13585 19.1719 4.66948V2.89405C19.1719 2.27921 18.6184 1.82622 18.0431 1.9702C17.7127 2.05287 17.3659 2.02916 17.0488 1.90219L16.9879 1.87781C16.4571 1.66526 15.8794 1.61186 15.3208 1.7237L14.9469 1.79855C14.497 1.88862 14.1719 2.2977 14.1719 2.77374V8.56728C14.1719 8.89832 14.4302 9.16669 14.7488 9.16669C15.0674 9.16669 15.3257 8.89832 15.3257 8.56728V5.48728Z"
+          fill="#F67258"></path>
+        <path
+          d="M12.9167 5V8.56727C12.9167 9.54319 13.69 10.4167 14.7436 10.4167C15.7972 10.4167 16.5705 9.54319 16.5705 8.56727V6.85663C17.2046 7.02779 17.8705 7.04779 18.5167 6.91246C18.9268 7.61393 19.1667 8.46179 19.1667 9.375V14.5211C19.1667 15.7061 18.3433 16.6667 17.3276 16.6667H11.25V9.375C11.25 7.68345 10.5566 6.06336 9.40215 5H12.9167Z"
+          fill="#F67258"></path>
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M2.5 9.375C2.5 6.95876 4.17893 5 6.25 5C8.32107 5 10 6.95875 10 9.375V16.6667H4.36047C3.33296 16.6667 2.5 15.6949 2.5 14.4961V9.375ZM4.375 13.3333C4.375 12.9882 4.65482 12.7083 5 12.7083H7.5C7.84518 12.7083 8.125 12.9882 8.125 13.3333C8.125 13.6785 7.84518 13.9583 7.5 13.9583H5C4.65482 13.9583 4.375 13.6785 4.375 13.3333Z"
+          fill="#F67258"></path>
+      </svg>
+    </div>
+  </a>
+</section>
+
+<style lang="scss">
+  .ContactInfo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.125rem;
+
+    .box {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background-color: var(--neutral-200, #f5f1ec);
+      display: flex;
+      flex-direction: column;
+      justify-items: start;
+      line-height: 1.7;
+      min-height: 10.875rem;
+
+      p {
+        margin-bottom: 0.125rem;
+        letter-spacing: -0.01em;
+        font-size: var(--typography-body-m, 0.875rem);
+      }
+
+      span {
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+        color: var(--primary-800, #45051c);
+        font-size: var(--typography-body-m, 0.875rem);
+        font-weight: 700;
+      }
+
+      .icon {
+        margin-top: auto;
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        background-color: var(--neutral-100, #faf7f7);
+        transition: transform 350ms var(--easing);
+      }
+    }
+
+    .box:nth-child(1) {
+      &:hover > .icon {
+        transform: scale(1.05);
+        svg {
+          animation: ContactInfo-pin-bounce 700ms var(--easing) infinite alternate;
+        }
+      }
+      &:focus:not(:focus-visible) > .icon {
+        transform: scale(1.1);
+        svg {
+          animation: ContactInfo-pin-bounce-high 600ms var(--easing) infinite alternate;
+        }
+      }
+    }
+
+    .box:nth-child(2) {
+      &:hover > .icon {
+        transform: scale(1.05);
+        svg {
+          animation: ContactInfo-ring-low 700ms var(--easing) infinite alternate;
+        }
+      }
+      &:focus:not(:focus-visible) > .icon {
+        transform: scale(1.1);
+        svg {
+          animation: ContactInfo-ring-high 600ms var(--easing) infinite alternate;
+        }
+      }
+    }
+
+    .box:nth-child(3) {
+      &:hover > .icon {
+        transform: scale(1.05);
+        svg {
+          animation: ContactInfo-email-notification 1800ms var(--easing) infinite;
+        }
+      }
+      &:focus:not(:focus-visible) > .icon {
+        transform: scale(1.1);
+        svg {
+          animation: ContactInfo-email-notification-high 1400ms var(--easing) infinite;
+        }
+      }
+    }
+
+    @media (max-width: 49.9375rem) {
+      grid-template-columns: 1fr;
+      .box {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.125rem 2rem;
+
+        p {
+          grid-column: 1/2;
+          grid-row: 1/2;
+        }
+
+        span {
+          grid-column: 1/2;
+          grid-row: 2/3;
+          margin-bottom: 0;
+        }
+
+        .icon {
+          grid-column: 2/3;
+          grid-row: 1/3;
+          align-self: center;
+          margin-top: 0;
+        }
+      }
+    }
+  }
+
+  @keyframes ContactInfo-pin-bounce {
+    0% {
+      transform: translateY(0);
+    }
+    25% {
+      transform: translateY(-0.25rem);
+    }
+    50% {
+      transform: translateY(0);
+    }
+    75% {
+      transform: translateY(-0.125rem);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ContactInfo-pin-bounce-high {
+    0% {
+      transform: translateY(0);
+    }
+    25% {
+      transform: translateY(-0.375rem);
+    }
+    50% {
+      transform: translateY(0);
+    }
+    75% {
+      transform: translateY(-0.25rem);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ContactInfo-ring-low {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(6deg);
+    }
+    50% {
+      transform: rotate(-6deg);
+    }
+    75% {
+      transform: rotate(6deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes ContactInfo-ring-high {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(12deg);
+    }
+    50% {
+      transform: rotate(-12deg);
+    }
+    75% {
+      transform: rotate(12deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes ContactInfo-email-notification {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    10%,
+    30%,
+    50% {
+      transform: translateY(-0.125rem);
+    }
+    20%,
+    40% {
+      transform: translateY(0);
+    }
+    60% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ContactInfo-email-notification-high {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    10%,
+    30%,
+    50% {
+      transform: translateY(-0.1875rem);
+    }
+    20%,
+    40% {
+      transform: translateY(0);
+    }
+    60% {
+      transform: translateY(0);
+    }
+  }
+</style>

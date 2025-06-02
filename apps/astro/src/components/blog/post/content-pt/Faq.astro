@@ -1,0 +1,81 @@
+---
+import Accordion from '@/src/components/ui/Accordion.astro'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import FaqSchema from '@/src/Schema/FaqSchema.astro'
+
+export const Faq_Query = `
+  _type == "Faq" => {
+    ${PortableTextQuery('heading')}
+    questions[] -> {
+      ${PortableTextQuery('question')}
+      ${PortableTextQuery('answer')}
+    },
+  },
+`
+
+type Props = {
+  node: {
+    heading: PortableTextValue
+    questions: {
+      question: PortableTextValue
+      answer: PortableTextValue
+    }[]
+  }
+}
+
+const { node } = Astro.props
+---
+
+<FaqSchema questions={node.questions} />
+<div class="Faq">
+  <header class="header">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none"
+      ><path
+        fill="#F67258"
+        d="M18.338 7.766A5.417 5.417 0 0 0 8.65 4.438a7.917 7.917 0 0 1 7.6 8.186l.277.074a1.083 1.083 0 0 0 1.327-1.327l-.106-.396a1.43 1.43 0 0 1 .103-.961 5.397 5.397 0 0 0 .488-2.248Z"
+      ></path><path
+        fill="#F67258"
+        fill-rule="evenodd"
+        d="M15.005 12.35a6.667 6.667 0 0 1-9.542 6.016 1.393 1.393 0 0 0-.958-.108l-1.022.273a1.083 1.083 0 0 1-1.327-1.326l.274-1.022c.086-.32.035-.66-.108-.959a6.667 6.667 0 1 1 12.683-2.875Zm-9.583.832a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666Zm2.917 0a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666Zm2.916 0a.833.833 0 1 0 0-1.666.833.833 0 0 0 0 1.666Z"
+        clip-rule="evenodd"></path></svg
+    >
+    <PortableText value={node.heading} class="heading" />
+  </header>
+  <div class="questions">
+    {node.questions.map(({ question, answer }) => <Accordion question={question} answer={answer} open={false} />)}
+  </div>
+</div>
+
+<style lang="scss">
+  .Faq {
+    margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0;
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+
+      svg {
+        margin-top: 0.125rem;
+      }
+
+      .heading {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        :global(p) {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    .questions {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(0.125rem, calc(0.25vw / 0.48), 0.25rem);
+      :global(.heading > p) {
+        margin-bottom: 0;
+      }
+    }
+  }
+</style>

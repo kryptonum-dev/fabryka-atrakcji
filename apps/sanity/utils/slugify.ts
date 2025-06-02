@@ -1,5 +1,5 @@
 export const slugify = (slug: string) => {
-  slug = slug.toString().toLowerCase().trim();
+  slug = slug.toString().toLowerCase().trim()
   const sets = [
     { to: 'a', from: '[ÀÁÂÃÄÅÆĀĂĄẠẢẤẦẨẪẬẮẰẲẴẶἀ]' },
     { to: 'c', from: '[ÇĆĈČ]' },
@@ -26,14 +26,14 @@ export const slugify = (slug: string) => {
     { to: 'y', from: '[ÝŶŸỲỴỶỸ]' },
     { to: 'z', from: '[ŹŻŽ]' },
     { to: '-', from: "[·/_,:;']" },
-  ];
+  ]
   sets.forEach(({ from, to }) => {
-    slug = slug.replace(new RegExp(from, 'gi'), to);
-  });
+    slug = slug.replace(new RegExp(from, 'gi'), to)
+  })
   return slug
     .replace(/\s+/g, '-')
     .replace(/[^-\w]+/g, '')
     .replace(/--+/g, '-')
     .replace(/^-+/, '')
-    .replace(/-+$/, '');
-};
+    .replace(/-+$/, '')
+}

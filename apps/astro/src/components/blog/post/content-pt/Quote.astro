@@ -1,0 +1,133 @@
+---
+import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
+
+export const Quote_Query = `
+  _type == "Quote" => {
+    quote,
+    author {
+        name,
+        title,
+        ${ImageDataQuery('image')}
+    },
+  },
+`
+
+type Props = {
+  node: {
+    quote: string
+    author: {
+      name: string
+      title: string
+      image: ImageDataProps
+    }
+  }
+}
+
+const { node } = Astro.props
+---
+
+<blockquote class="Quote">
+  <p class="content">{'“'}{node.quote} {'”'}</p>
+  <footer class="author">
+    <div class="photo">
+      <Image {...node.author.image} sizes="32px" />
+    </div>
+    <p>
+      {'- '}
+      <cite>{node.author.name}</cite>
+      {', '}
+      {node.author.title}
+    </p>
+  </footer>
+</blockquote>
+
+<style lang="scss">
+  .Quote {
+    position: relative;
+    padding: clamp(0.5rem, calc(2vw / 0.48), 2rem);
+    font-size: var(--typography-body-xl, 1.125rem);
+    line-height: 1.5;
+    isolation: isolate;
+    overflow: hidden;
+    margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0;
+    border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: var(--neutral-100, #faf7f7);
+      inset: 2px;
+      z-index: -1;
+      border-radius: clamp(0.5rem, calc(0.75vw / 0.48), 0.75rem);
+    }
+    &::after {
+      inset: 0;
+      background: conic-gradient(
+        from 135deg at 50% 50%,
+        #798ddc 0deg,
+        #e7c78f 90deg,
+        #fa7468 266.40000343322754deg,
+        #798ddc 360deg
+      );
+      z-index: -2;
+    }
+
+    .content {
+      margin-bottom: 1.5rem !important;
+      font-style: italic;
+    }
+
+    .author {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+
+      .photo {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        position: relative;
+        padding: 0.125rem;
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+
+        &::before,
+        &::after {
+          content: '';
+          position: absolute;
+          display: block;
+          border-radius: 50%;
+          inset: 0;
+          background: var(--neutral-100, #faf7f7);
+          z-index: -1;
+        }
+
+        &::before {
+          inset: -2px;
+          background: conic-gradient(
+            from 135deg at 50% 50%,
+            #798ddc 0deg,
+            #e7c78f 90deg,
+            #fa7468 266.40000343322754deg,
+            #798ddc 360deg
+          );
+          z-index: -2;
+        }
+
+        img {
+          border-radius: 50%;
+          display: block;
+          transform: translateY(-0.5px);
+        }
+      }
+
+      p {
+        margin-top: 0.25rem;
+      }
+    }
+  }
+</style>

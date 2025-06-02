@@ -1,0 +1,455 @@
+---
+import imageToInlineSvg from '@/utils/image-to-inline-svg'
+import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
+import AnimatedHeading from '@/components/ui/AnimatedHeading.astro'
+
+export const FloatingPointsList_Query = `
+  _type == "FloatingPointsList" => {
+    ${ImageDataQuery('backgroundImage')}
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('mainParagraph')}
+    ${PortableTextQuery('subParagraph')}
+    upDownPoints[]{
+      character,
+      text,
+    },
+    iconPoints[]{
+      "icon": icon.asset->url,
+      ${PortableTextQuery('heading')}
+      ${PortableTextQuery('paragraph')}
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  backgroundImage: ImageDataProps
+  heading: PortableTextValue
+  mainParagraph: PortableTextValue
+  subParagraph: PortableTextValue
+  upDownPoints: {
+    character: 'pozytywny' | 'negatywny'
+    text: string
+  }[]
+  iconPoints: {
+    icon: string
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+  }[]
+}
+
+const { index, sectionId, backgroundImage, heading, mainParagraph, subParagraph, upDownPoints, iconPoints } =
+  Astro.props
+
+const iconPointsSvg = await Promise.all(iconPoints.map(async (point) => await imageToInlineSvg(point.icon)))
+---
+
+<section class="FloatingPointsList" id={sectionId}>
+  <header class="header">
+    <AnimatedHeading heading={heading} level={index === 0 ? 'h1' : 'h2'} class="heading" />
+  </header>
+  <div class="wrapper">
+    <div class="box">
+      <ul class="character-points">
+        {
+          upDownPoints.map(({ text, character }) => (
+            <li class="character-point" data-character={character}>
+              <span>{text}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M9.9974 18.3327C14.5998 18.3327 18.3307 14.6017 18.3307 9.99935C18.3307 5.39698 14.5998 1.66602 9.9974 1.66602C5.39502 1.66602 1.66406 5.39698 1.66406 9.99935C1.66406 14.6017 5.39502 18.3327 9.9974 18.3327ZM9.9974 8.12435C10.1632 8.12435 10.3221 8.1902 10.4393 8.30741L12.9393 10.8074C13.1834 11.0515 13.1834 11.4472 12.9393 11.6913C12.6953 11.9354 12.2995 11.9354 12.0555 11.6913L9.9974 9.63323L7.93934 11.6913C7.69526 11.9354 7.29953 11.9354 7.05545 11.6913C6.81138 11.4472 6.81138 11.0515 7.05545 10.8074L9.55545 8.30741C9.67266 8.1902 9.83164 8.12435 9.9974 8.12435Z"
+                  fill="#F67258"
+                />
+              </svg>
+            </li>
+          ))
+        }
+      </ul>
+      <Image {...backgroundImage} sizes="100vw" priority={index === 0} />
+    </div>
+    <div class="text">
+      <PortableText value={mainParagraph} class="main-paragraph" />
+      <PortableText value={subParagraph} class="sub-paragraph" />
+    </div>
+  </div>
+  <ul class="icon-points">
+    {
+      iconPoints.map(({ heading, paragraph }, iconIndex) => (
+        <li class="icon-point">
+          <Fragment set:html={iconPointsSvg[iconIndex]} />
+          <PortableText value={heading} class="icon-heading" heading={index === 0 ? 'h2' : 'h3'} />
+          <PortableText value={paragraph} class="icon-paragraph" />
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style lang="scss">
+  .FloatingPointsList {
+    padding: clamp(3rem, calc(4rem / 0.48), 6rem) 0;
+    max-width: 85.375rem;
+    margin: 0 auto;
+    .header {
+      position: relative;
+      max-width: 68.625rem;
+      text-align: center;
+      margin: 0 auto clamp(2rem, calc(2rem / 0.48), 2.5rem);
+    }
+    .wrapper {
+      position: relative;
+      .box {
+        position: relative;
+      }
+      img {
+        width: 100%;
+        height: clamp(203px, calc(432vw / 7.68), 768px);
+        position: relative;
+        z-index: 1;
+        opacity: 0;
+        transform: scale(0.9);
+        transition:
+          opacity 800ms,
+          transform 800ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+        will-change: opacity, transform;
+        &[data-fired='true'] {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .text {
+        position: absolute;
+        right: 2rem;
+        bottom: 2rem;
+        z-index: 3;
+        max-width: 31.5rem;
+        padding: clamp(1rem, calc(2rem / 0.48), 2rem);
+        background: var(--neutral-100, #faf7f7);
+        border-radius: clamp(8px, calc(12vw / 7.68), 12px);
+        opacity: 0;
+        transform: translateX(2rem);
+        transition:
+          opacity 300ms,
+          transform 700ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+        will-change: opacity, transform;
+        transition-delay: 400ms;
+        &[data-fired='true'] {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        .main-paragraph {
+          color: var(--primary-800, #45051c);
+        }
+        .sub-paragraph {
+          margin-top: clamp(1rem, calc(1.25rem / 0.48), 1.25rem);
+        }
+      }
+    }
+    .character-points {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      .character-point {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.125rem 0.25rem 0.25rem 0.375rem;
+        width: max-content;
+        background: var(--neutral-400, #ffe4ca);
+        border-radius: 999px;
+        opacity: 0;
+        transform: scale(0.2) rotate(0deg);
+        transition:
+          opacity 300ms,
+          transform 600ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+        will-change: opacity, transform;
+        pointer-events: auto;
+        &[data-fired='true'] {
+          opacity: 1;
+          transform: scale(1) rotate(var(--rotate-deg, 0deg));
+        }
+        svg {
+          width: 1.25rem;
+          height: 1.25rem;
+        }
+        span {
+          color: var(--primary-800, #45051c);
+          letter-spacing: -0.01em;
+          font-size: var(--typography-body-m, 0.875rem);
+        }
+        &:nth-of-type(1) {
+          --rotate-deg: 6deg;
+          top: clamp(5.625rem, calc(5.625rem / 0.48), 7.125rem);
+          left: clamp(3.375rem, calc(3.375rem / 0.48), 8.875rem);
+        }
+        &:nth-of-type(2) {
+          --rotate-deg: -6deg;
+          top: clamp(2.375rem, calc(2.375rem / 0.48), 3rem);
+          right: clamp(25.125rem, calc(25.125rem / 0.48), 30.375rem);
+        }
+        &:nth-of-type(3) {
+          --rotate-deg: -6deg;
+          top: clamp(5.375rem, calc(5.375rem / 0.48), 9.625rem);
+          right: clamp(1.375rem, calc(1.375rem / 0.48), 3.375rem);
+        }
+        &:nth-of-type(4) {
+          --rotate-deg: 6deg;
+          bottom: clamp(7.0625rem, calc(16.4375rem / 0.48), 29.5rem);
+          right: clamp(6.25rem, calc(6.25rem / 0.48), 18.1875rem);
+        }
+        &:nth-of-type(5) {
+          --rotate-deg: -4deg;
+          bottom: 15.375rem;
+          left: 14.8125rem;
+        }
+        &[data-character='negatywny'] {
+          background: var(--primary-700, #600d2a);
+          svg {
+            transform: rotate(180deg);
+          }
+          span {
+            color: var(--neutral-400, #ffe4ca);
+          }
+        }
+      }
+    }
+    .icon-points {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem 1rem;
+      padding: var(--pageMargin);
+      .icon-point {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: repeat(2, auto);
+        align-content: start;
+        opacity: 0;
+        transform: translateY(3rem);
+        transition:
+          opacity 300ms,
+          transform 500ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+        will-change: opacity, transform;
+        &[data-fired='true'] {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        :global(svg) {
+          margin-right: 0.625rem;
+          width: 1.25rem;
+          height: 1.25rem;
+        }
+        .icon-heading {
+          letter-spacing: -0.03em;
+          font-weight: 700;
+          color: var(--primary-800, #45051c);
+          font-size: var(--typography-body-l, 1rem);
+        }
+        .icon-paragraph {
+          margin-top: 0.75rem;
+          grid-column: 1 / 3;
+        }
+      }
+    }
+    @media (max-width: 69.9375rem) {
+      .wrapper {
+        display: grid;
+        justify-items: center;
+        .text {
+          position: static;
+          z-index: 3;
+          max-width: 50rem;
+          margin: -1.75rem var(--pageMargin) 0;
+          background: var(--neutral-200, #f5f1ec);
+          right: unset;
+          bottom: unset;
+        }
+        .character-points {
+          .character-point {
+            &:nth-of-type(1) {
+              top: 5.8125rem;
+              left: 3.9375rem;
+            }
+            &:nth-of-type(2) {
+              left: 25.0625rem;
+              top: 2.375rem;
+            }
+            &:nth-of-type(3) {
+              top: 5.375rem;
+              right: 1.4375rem;
+            }
+            &:nth-of-type(4) {
+              top: 16.5rem;
+              right: 6.25rem;
+              bottom: unset;
+            }
+            &:nth-of-type(5) {
+              left: 7.5rem;
+              bottom: 5.625rem;
+            }
+          }
+        }
+      }
+      .icon-points {
+        padding-top: 1.75rem;
+        grid-template-columns: 1fr;
+        max-width: 48rem;
+        margin: 0 auto;
+        .icon-point {
+          grid-template-columns: auto 1fr auto;
+          &:not(:last-child) {
+            padding-bottom: 1rem;
+            border-bottom: 0.09375rem solid var(--neutral-200, #f5f1ec);
+          }
+          :global(svg) {
+            grid-column: 1/2;
+            margin-top: 0.125rem;
+          }
+          .icon-heading {
+            grid-column: 2/3;
+            max-width: 11.9375rem;
+          }
+          .icon-paragraph {
+            grid-column: 3/4;
+            justify-self: end;
+            margin-top: 0;
+            max-width: 23.4375rem;
+            width: 100%;
+            margin-left: 0.75rem;
+          }
+        }
+      }
+    }
+    @media (max-width: 46.1875rem) {
+      .icon-points {
+        padding-top: 2rem;
+        .icon-point {
+          grid-template-columns: auto 1fr;
+          .icon-heading {
+            grid-column: 2/3;
+            max-width: none;
+          }
+          .icon-paragraph {
+            grid-column: 1/3;
+            grid-row: 2/3;
+            max-width: none;
+            margin-top: 0.5rem;
+          }
+        }
+      }
+    }
+    @media (max-width: 39.9375rem) {
+      .header {
+        padding: 0 1rem;
+      }
+      .wrapper {
+        .box {
+          .character-points {
+            position: static;
+            max-width: 38rem;
+            margin: 0 auto;
+            display: flex;
+            padding: 0 1rem;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            justify-content: center;
+            margin-bottom: -0.75rem;
+            .character-point {
+              transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+              position: static;
+              transform: scale(0);
+              z-index: 2;
+              &:nth-of-type(1),
+              &:nth-of-type(2),
+              &:nth-of-type(3),
+              &:nth-of-type(4),
+              &:nth-of-type(5) {
+                &[data-fired='true'] {
+                  transform: scale(1);
+                }
+                &[data-character='negatywny'] {
+                  &[data-fired='true'] {
+                    transform: scale(1) rotate(-4deg);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('.FloatingPointsList')
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const section = entry.target as HTMLElement
+            const heading = section.querySelector('.animated-heading') as HTMLElement
+            const image = section.querySelector('.box img') as HTMLElement
+            const textBox = section.querySelector('.text') as HTMLElement
+            const characterPoints = section.querySelectorAll('.character-point') as NodeListOf<HTMLElement>
+            const iconPoints = section.querySelectorAll('.icon-point') as NodeListOf<HTMLElement>
+
+            if (heading) {
+              heading.dataset.fired = 'true'
+            }
+
+            // Animate image first, slightly after heading
+            if (image) {
+              setTimeout(() => {
+                image.dataset.fired = 'true'
+              }, 150)
+            }
+
+            if (textBox) {
+              setTimeout(() => {
+                textBox.dataset.fired = 'true'
+              }, 300)
+            }
+
+            if (characterPoints.length) {
+              const initialDelay = 400
+              characterPoints.forEach((point, index) => {
+                const delay = initialDelay + index * 150
+                setTimeout(() => {
+                  point.dataset.fired = 'true'
+                }, delay)
+              })
+            }
+
+            if (iconPoints.length) {
+              const initialIconDelay = 400 + characterPoints.length * 150 + 200
+              iconPoints.forEach((point, index) => {
+                const delay = initialIconDelay + index * 150
+                setTimeout(() => {
+                  point.dataset.fired = 'true'
+                }, delay)
+              })
+            }
+
+            observer.unobserve(section)
+          }
+        })
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px',
+      }
+    )
+
+    sections.forEach((section) => {
+      observer.observe(section)
+    })
+  })
+</script>
