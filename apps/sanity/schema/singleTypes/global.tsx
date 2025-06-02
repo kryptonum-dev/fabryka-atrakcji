@@ -96,7 +96,7 @@ export default defineType({
       name: 'newsletterPdf',
       type: 'file',
       title: 'PDF dla Newslettera',
-      group: 'newsletter',
+      group: 'forms',
       options: {
         accept: 'application/pdf',
       },
@@ -109,7 +109,7 @@ export default defineType({
       description:
         'Lista ID grup z MailerLite, które mają dostęp do pliku PDF. Pozostaw puste, aby umożliwić dostęp wszystkim.',
       of: [{ type: 'string' }],
-      group: 'newsletter',
+      group: 'forms',
     }),
     defineField({
       name: 'analytics',
@@ -323,6 +323,26 @@ export default defineType({
         }),
       ],
     }),
+    defineField({
+      name: 'contactRecipients',
+      type: 'array',
+      title: 'Odbiorcy formularza kontaktowego',
+      description:
+        'Adresy email, na które będą wysyłane wiadomości z formularza kontaktowego. Przynajmniej jeden adres jest wymagany.',
+      group: 'forms',
+      of: [
+        {
+          type: 'string',
+          validation: (Rule) =>
+            Rule.custom((email: string | undefined) => {
+              if (!email) return 'Email jest wymagany'
+              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
+              return emailRegex.test(email) ? true : 'Nieprawidłowy format adresu email'
+            }),
+        },
+      ],
+      validation: (Rule) => Rule.required().min(1),
+    }),
   ],
   groups: [
     {
@@ -331,8 +351,8 @@ export default defineType({
       icon: UsersIcon,
     },
     {
-      name: 'newsletter',
-      title: 'Newsletter',
+      name: 'forms',
+      title: 'Formularze',
       icon: CommentIcon,
     },
     {

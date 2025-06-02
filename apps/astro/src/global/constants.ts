@@ -4,7 +4,7 @@
  * @constant
  * @type {string}
  */
-export const THEME_COLOR: string = '#011310'
+export const THEME_COLOR: string = '#db664e'
 
 /**
  * Global declaration of background color in HEX format.
@@ -12,7 +12,7 @@ export const THEME_COLOR: string = '#011310'
  * @constant
  * @type {string}
  */
-export const BACKGROUND_COLOR: string = '#000103'
+export const BACKGROUND_COLOR: string = '#f5f1ec'
 
 /**
  * Global declaration of the locale (language) for the application.
@@ -36,7 +36,7 @@ export const DOMAIN: string = 'https://fabryka-atrakcji-git-dev-kryptonum.vercel
  * @constant
  * @type {string}
  */
-export const DEFAULT_TITLE: string = 'Kryptonum'
+export const DEFAULT_TITLE: string = 'Fabryka Atrakcji'
 
 /**
  * Global declaration of the default description for the application.
@@ -46,7 +46,7 @@ export const DEFAULT_TITLE: string = 'Kryptonum'
  * @type {string}
  */
 export const DEFAULT_DESCRIPTION: string =
-  'Kryptonum tworzy nieszablonowe projekty tym, którym zależy na: 👨🏻‍💻 profesjonalnej stronie, 🎨 unikatowym brandingu, 💰 dochodowym biznesie online.'
+  'Organizujemy niezapomniane eventy i integracje firmowe. Sprawdź, jak Fabryka Atrakcji może ożywić Twoje wydarzenie – kreatywnie, kompleksowo, z pasją.'
 
 /**
  * Object containing regular expressions for validation purposes.

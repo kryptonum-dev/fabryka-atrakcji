@@ -3,6 +3,7 @@ export const prerender = false
 import { getCookie } from '@/src/utils/get-cookie'
 import { hash } from '@/src/utils/hash'
 import { getFirstName } from '@/src/utils/name-parser'
+import { isPreviewDeployment } from '@/src/utils/is-preview-deployment'
 import sanityFetch from '@/src/utils/sanity.fetch'
 import type { APIRoute } from 'astro'
 
@@ -29,6 +30,17 @@ const { meta_pixel_id, meta_conversion_token } = await sanityFetch<{
 })
 
 export const POST: APIRoute = async ({ request }) => {
+  // Early return for non-production environments
+  if (isPreviewDeployment) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: 'Meta Conversion API disabled in non-production environment',
+      }),
+      { status: 200 } // Return 200 to avoid client-side errors
+    )
+  }
+
   if (!meta_pixel_id || !meta_conversion_token) {
     return new Response(
       JSON.stringify({

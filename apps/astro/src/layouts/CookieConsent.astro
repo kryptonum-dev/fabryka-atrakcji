@@ -3,7 +3,11 @@ import Button from '../components/ui/Button'
 import Switch from '../components/ui/Switch.astro'
 import { DOMAIN } from '../global/constants'
 import { getLangFromPath } from '../global/languages'
+import { isPreviewDeployment } from '../utils/is-preview-deployment'
 import sanityFetch from '../utils/sanity.fetch'
+
+// Early return - don't render anything in non-production environments
+if (isPreviewDeployment) return null
 
 const lang = getLangFromPath(Astro.url.pathname)
 
