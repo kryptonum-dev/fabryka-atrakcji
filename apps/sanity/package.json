@@ -23,7 +23,7 @@
     "lucide-react": "^0.477.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "sanity": "^3.81.0",
+    "sanity": "^3.90.0",
     "sanity-plugin-iframe-pane": "^3.2.1",
     "sanity-plugin-media-i18n": "^2.3.6",
     "sanity-plugin-mux-input": "^2.8.0",

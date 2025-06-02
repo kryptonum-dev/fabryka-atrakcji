@@ -194,7 +194,7 @@
     border-right: 0.0625rem solid var(--neutral-400, #c1d1c8);
     border-radius: 0.25rem 0 0 0.25rem;
     transition: border-color 275ms;
-
+    margin: 2px 0;
     :global(button) {
       position: relative;
       display: flex;

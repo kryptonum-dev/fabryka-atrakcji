@@ -51,7 +51,7 @@ const { page, metadata } = Astro.props
 
 <Layout {...metadata}>
   <Breadcrumbs
-    data={page.slug.split('/').length > 2 ? [{ name: page.name, path: page.slug }] : []}
+    data={page.slug.split('/').length > 3 ? [{ name: page.name, path: page.slug }] : []}
     firstItemType={page.firstItemType}
   />
   <Components data={page.components} />

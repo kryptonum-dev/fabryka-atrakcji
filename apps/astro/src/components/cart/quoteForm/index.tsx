@@ -51,6 +51,9 @@ export default function QuoteForm({
     localStorage.removeItem('cart_order_addons')
     localStorage.removeItem('cart_participant_count')
     localStorage.removeItem('transport_address')
+    localStorage.removeItem('transport_dates')
+    localStorage.removeItem('transport_participant_count')
+    localStorage.removeItem('cart_gastronomy_items')
 
     // Also clear any pending transport items
     localStorage.removeItem('pending_transport_item')
