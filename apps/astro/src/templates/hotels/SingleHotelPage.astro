@@ -155,7 +155,16 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
   />
   <Hero {...page} _type="Hotels_Collection" />
 
-  <article class="wrapper max-width" id="content">
+  <article
+    class="wrapper max-width"
+    id="content"
+    data-item-id={page._id}
+    data-item-type="hotels"
+    data-item-name={page.name}
+    data-has-addons={page.addons?.hasAddons || false}
+    data-requires-addons={page.addons?.minOneAddon || false}
+    data-addons-choice={page.addons?.addonsChoice || 'unlimited'}
+  >
     <div class="content">
       <ContentPT
         value={page.content}
