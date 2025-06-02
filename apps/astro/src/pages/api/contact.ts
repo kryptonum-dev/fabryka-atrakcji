@@ -85,9 +85,13 @@ export const POST: APIRoute = async ({ request }) => {
     // Fetch dynamic recipients
     const recipients = await getContactRecipients(lang)
 
-    // Send to all recipients
-    const emailPromises = recipients.map((recipient) =>
-      fetch(`https://api.resend.com/emails`, {
+    // Send emails sequentially to respect rate limit (2 emails per second)
+    const sendEmailWithDelay = async (recipient: string, delay: number) => {
+      if (delay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+
+      return fetch(`https://api.resend.com/emails`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,10 +106,20 @@ export const POST: APIRoute = async ({ request }) => {
           text: htmlToString(template({ email, message, phone, lang })),
         }),
       })
-    )
+    }
 
-    // Wait for all emails to be sent
-    const emailResults = await Promise.allSettled(emailPromises)
+    // Send emails to recipients sequentially (500ms delay = 2 emails per second)
+    const emailResults: Array<{ status: 'fulfilled'; value: Response } | { status: 'rejected'; error: any }> = []
+    for (let i = 0; i < recipients.length; i++) {
+      try {
+        const delay = i * 500 // 500ms delay between emails
+        const result = await sendEmailWithDelay(recipients[i], delay)
+        emailResults.push({ status: 'fulfilled', value: result })
+      } catch (error) {
+        console.error(`Failed to send email to ${recipients[i]}:`, error)
+        emailResults.push({ status: 'rejected', error })
+      }
+    }
 
     // Check if any email failed
     const failedEmails = emailResults.filter(
@@ -123,6 +137,11 @@ export const POST: APIRoute = async ({ request }) => {
       console.warn(`Failed to send ${failedEmails.length} out of ${emailResults.length} emails`)
     }
 
+    // Wait additional time before sending user confirmation to respect rate limit
+    const additionalDelay = recipients.length * 500
+    await new Promise((resolve) => setTimeout(resolve, additionalDelay))
+
+    // Send user confirmation email
     const userRes = await fetch(`https://api.resend.com/emails`, {
       method: 'POST',
       headers: {
@@ -139,12 +158,18 @@ export const POST: APIRoute = async ({ request }) => {
     })
 
     if (userRes.status !== 200) {
+      const errorData = await userRes.json().catch(() => ({}))
+      console.error('Failed to send user confirmation:', errorData)
+
+      // Still return success for the main emails, but log the confirmation failure
       return new Response(
         JSON.stringify({
-          message: 'Failed to send confirmation email to user',
-          success: false,
+          message:
+            'Messages sent successfully, but confirmation email failed. Please check if the email address is correct.',
+          success: true,
+          warning: 'Confirmation email not sent',
         }),
-        { status: 400 }
+        { status: 200 }
       )
     }
 
@@ -152,7 +177,8 @@ export const POST: APIRoute = async ({ request }) => {
       JSON.stringify({ message: 'Successfully sent message and confirmation email', success: true }),
       { status: 200 }
     )
-  } catch {
+  } catch (error) {
+    console.error('Contact form error:', error)
     return new Response(JSON.stringify({ message: 'An error occurred while sending message', success: false }), {
       status: 400,
     })
