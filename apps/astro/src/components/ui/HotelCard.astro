@@ -63,6 +63,7 @@ const translations = {
       people: 'osób',
     },
     button: 'Sprawdź hotel',
+    buttonFull: 'Przejdź do hotelu',
   },
   en: {
     pricing: {
@@ -125,7 +126,7 @@ const getVoivodeship = (voivodeship: string) => {
 
 <article class="HotelCard" data-variant={variant} data-id={_id} data-pricing={pricing?.pricePerPerson || 200}>
   <div class="wrapper">
-    <a href={slug} class="background" aira-label={t.button}></a>
+    <a href={slug} class="background" aira-label={t.buttonFull}></a>
     <div class="content">
       <div class="upper-row">
         <span class="title">{name}</span>

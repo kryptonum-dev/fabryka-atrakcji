@@ -526,11 +526,12 @@ const groups = [
   window.gtag = function () {
     window.dataLayer.push(arguments)
   }
-  // gtag('config', MEASUREMENT_ID, {
-  //   send_page_view: true,
-  //   transport_type: 'beacon',
-  //   groups: 'default',
-  // })
+  gtag('config', MEASUREMENT_ID, {
+    send_page_view: true,
+    transport_type: 'beacon',
+    groups: 'default',
+  })
+
   function getCookie(name) {
     const cookies = document.cookie.split(';').map((cookie) => cookie.trim())
     const cookie = cookies.find((cookie) => cookie.startsWith(`${name}=`))
@@ -573,12 +574,17 @@ const groups = [
   const denyButton = cookieConsentElement.querySelector('.deny')
   let isPreferencesOpen = false
 
-  // prettier-ignore
-  // ;(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  // new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  // j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  // 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  // })(window,document,'script','dataLayer',GTM_ID);
+  prettier - ignore
+  ;(function (w, d, s, l, i) {
+    w[l] = w[l] || []
+    w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+    var f = d.getElementsByTagName(s)[0],
+      j = d.createElement(s),
+      dl = l != 'dataLayer' ? '&l=' + l : ''
+    j.async = true
+    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
+    f.parentNode.insertBefore(j, f)
+  })(window, document, 'script', 'dataLayer', GTM_ID)
 
   if (getCookie('cookie-consent') === null) {
     gtag('consent', 'default', {
