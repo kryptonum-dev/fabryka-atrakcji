@@ -25,7 +25,7 @@ const items = await Promise.all(
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  '@id': `${DOMAIN}/#faq`,
+  '@id': `${DOMAIN}#faq`,
   mainEntity: items.map(({ question, answer }) => ({
     '@type': 'Question',
     name: question,

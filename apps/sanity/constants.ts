@@ -3,7 +3,7 @@
  * This constant is used for constructing full URLs and determining external links.
  * @constant
  */
-export const DOMAIN: string = 'https://fabryka-atrakcji.vercel.app/'
+export const DOMAIN: string = 'https://www.fabryka-atrakcji.com/'
 
 /**
  * Domain used for preview functionality in development environment.
