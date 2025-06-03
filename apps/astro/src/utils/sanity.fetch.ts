@@ -15,7 +15,7 @@ export const client = createClient({
   apiVersion: API_VERSION,
   useCdn: false,
   perspective: isPreviewDeployment ? 'drafts' : 'published',
-  ...(isPreviewDeployment && { token: SANITY_API_TOKEN }),
+  token: SANITY_API_TOKEN,
 })
 
 export default async function sanityFetch<QueryResponse>({
