@@ -1,9 +1,13 @@
 ---
+export const prerender = false
+
 import CartPage, { fetchData as fetchCartData } from '@/src/templates/cart/CartPage.astro'
 import QuotePage, { fetchData as fetchQuoteData, fetchQuoteItem } from '@/src/templates/quote/QuotePage.astro'
 
 // Check if there's an ID parameter
 const quoteId = Astro.url.searchParams.get('id')
+
+console.log(quoteId)
 
 // Prepare to hold the data we'll render
 let cartData = null

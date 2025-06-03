@@ -243,6 +243,8 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
 
   if (!quoteData) return null
 
+  console.log(quoteData)
+
   // Ensure language matches
   if (quoteData.language !== lang) return null
 
