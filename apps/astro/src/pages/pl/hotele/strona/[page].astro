@@ -1,4 +1,6 @@
 ---
+export const prerender = false
+
 import HotelsListing, { fetchData, staticPaths } from '@/src/templates/hotels/HotelsPage.astro'
 
 const page = parseInt(Astro.params.page || '1')

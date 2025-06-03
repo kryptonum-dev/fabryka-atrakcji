@@ -38,7 +38,7 @@ export default defineConfig({
       ? {
           isr: {
             bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
-            exclude: [/^\/api\/.+/, /^\/pl\/koszyk/, /^\/en\/cart/],
+            exclude: [/^\/api\/.+/, /^\/pl\/koszyk/, /^\/pl\/hotele/, /^\/pl\/hotele\/strona/, /^\/pl\/integracje/],
           },
         }
       : {}),
