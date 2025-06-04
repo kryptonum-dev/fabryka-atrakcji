@@ -10,7 +10,7 @@ type Props = {
 const { question, answer, ...props } = Astro.props
 ---
 
-<details {...props} data-expanded={props.open ? 'true' : 'false'}>
+<details {...props} data-expanded={props.open ? 'true' : 'false'} class="accordion">
   <summary>
     <PortableText value={question} class="heading" />
     <div class="icon">
@@ -182,7 +182,7 @@ const { question, answer, ...props } = Astro.props
 </style>
 
 <script>
-  document.querySelectorAll('details').forEach((details) => {
+  document.querySelectorAll<HTMLDetailsElement>('details.accordion').forEach((details) => {
     const content = details.querySelector<HTMLDivElement>('.content')
     const summary = details.querySelector<HTMLDivElement>('summary')
     if (!content || !summary) return
@@ -202,7 +202,7 @@ const { question, answer, ...props } = Astro.props
 
       const parent = details.parentElement
       if (parent) {
-        parent.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((openDetails) => {
+        parent.querySelectorAll<HTMLDetailsElement>('details.accordion[open]').forEach((openDetails) => {
           if (openDetails !== details) {
             const openContent = openDetails.querySelector<HTMLDivElement>('.content')
             if (openContent) {
