@@ -400,13 +400,24 @@ const isDisabled = availableItems.length === 0
 </style>
 
 <script>
-  document.querySelectorAll<HTMLDetailsElement>('.filter-dropdown').forEach((details) => {
+  document.querySelectorAll<HTMLDetailsElement>('.filter-dropdown:not(.price-range)').forEach((details, index) => {
     const list = details.querySelector<HTMLUListElement>('ul')
     const summary = details.querySelector<HTMLElement>('summary')
     const selectedValue = details.querySelector<HTMLAnchorElement>('.selected-value')
     if (!list || !summary) return
 
+    // Generate unique ID for this dropdown
+    const dropdownId = `dropdown-${index}`
     let isAnimating = false
+
+    // Listen for other dropdowns opening
+    document.addEventListener('dropdownOpening', ((event: CustomEvent) => {
+      const { id } = event.detail
+      // Close this dropdown if another one is opening
+      if (id !== dropdownId && details.open && !isAnimating) {
+        closeDropdown()
+      }
+    }) as EventListener)
 
     // Prevent dropdown toggle when clicking the selected value
     selectedValue?.addEventListener('click', (event) => {
@@ -473,6 +484,13 @@ const isDisabled = availableItems.length === 0
           { once: true }
         )
       } else {
+        // Opening - notify other dropdowns first
+        document.dispatchEvent(
+          new CustomEvent('dropdownOpening', {
+            detail: { id: dropdownId },
+          })
+        )
+
         details.open = true
         details.setAttribute('data-expanded', 'true')
         const startHeight = list.scrollHeight + 'px'

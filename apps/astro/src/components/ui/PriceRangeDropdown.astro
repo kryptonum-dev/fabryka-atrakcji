@@ -669,7 +669,36 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
     const minAllowed = parseInt(details.dataset.min || '0')
     const maxAllowed = parseInt(details.dataset.max || '0')
 
+    // Unique ID for price range dropdown
+    const dropdownId = 'price-range-dropdown'
     let isAnimating = false
+    let isFullyOpen = false
+
+    // Set up ResizeObserver to handle dynamic content changes
+    const resizeObserver = new ResizeObserver(() => {
+      // Only adjust height if dropdown is fully open and not animating
+      if (isFullyOpen && !isAnimating && details.open) {
+        // Use the same height calculation method as animations
+        const newHeight = content.scrollHeight
+        // Update maxHeight to accommodate the new content size
+        content.style.maxHeight = newHeight + 'px'
+      }
+    })
+
+    // Start observing the content wrapper
+    const contentWrapper = content.querySelector('.wrapper')
+    if (contentWrapper) {
+      resizeObserver.observe(contentWrapper)
+    }
+
+    // Listen for other dropdowns opening
+    document.addEventListener('dropdownOpening', ((event: CustomEvent) => {
+      const { id } = event.detail
+      // Close this dropdown if another one is opening
+      if (id !== dropdownId && details.open && !isAnimating) {
+        closeDropdown()
+      }
+    }) as EventListener)
 
     // Validation function
     function validateInputs(): boolean {
@@ -804,11 +833,21 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
       window.location.href = url.toString()
     })
 
+    // Prevent dropdown toggle when clicking the selected value
+    selectedValue?.addEventListener('click', (event) => {
+      event.stopPropagation()
+      const href = selectedValue.getAttribute('href')
+      if (href) {
+        window.location.href = href
+      }
+    })
+
     // Dropdown animation handlers
     const closeDropdown = () => {
       if (!details.open || isAnimating) return
 
       isAnimating = true
+      isFullyOpen = false
       details.setAttribute('data-expanded', 'false')
       content.style.maxHeight = content.scrollHeight + 'px'
 
@@ -840,6 +879,7 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
       isAnimating = true
 
       if (details.open) {
+        isFullyOpen = false
         details.setAttribute('data-expanded', 'false')
         content.style.maxHeight = content.scrollHeight + 'px'
         requestAnimationFrame(() => (content.style.maxHeight = '0px'))
@@ -859,6 +899,13 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
           { once: true }
         )
       } else {
+        // Opening - notify other dropdowns first
+        document.dispatchEvent(
+          new CustomEvent('dropdownOpening', {
+            detail: { id: dropdownId },
+          })
+        )
+
         details.open = true
         details.setAttribute('data-expanded', 'true')
         const startHeight = content.scrollHeight + 'px'
@@ -874,6 +921,7 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
           'transitionend',
           () => {
             isAnimating = false
+            isFullyOpen = true
           },
           { once: true }
         )
@@ -889,57 +937,6 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
 
     // Initialize range indicator
     updateRangeIndicator()
-
-    // Set initial state
-    details.setAttribute('data-expanded', 'false')
-    isAnimating = false
-  })
-
-  document.querySelectorAll<HTMLDetailsElement>('.price-range').forEach((details) => {
-    const content = details.querySelector<HTMLDivElement>('.content')
-    const summary = details.querySelector<HTMLElement>('summary')
-    const selectedValue = details.querySelector<HTMLAnchorElement>('.selected-value')
-    if (!content || !summary) return
-
-    let isAnimating = false
-
-    // Prevent dropdown toggle when clicking the selected value
-    selectedValue?.addEventListener('click', (event) => {
-      event.stopPropagation()
-      const href = selectedValue.getAttribute('href')
-      if (href) {
-        window.location.href = href
-      }
-    })
-
-    const closeDropdown = () => {
-      if (!details.open || isAnimating) return
-
-      isAnimating = true
-      details.setAttribute('data-expanded', 'false')
-      content.style.maxHeight = content.scrollHeight + 'px'
-
-      // Force reflow
-      void content.offsetHeight
-
-      content.style.maxHeight = '0'
-
-      content.addEventListener(
-        'transitionend',
-        () => {
-          details.open = false
-          isAnimating = false
-        },
-        { once: true }
-      )
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (event) => {
-      if (!details.contains(event.target as Node)) {
-        closeDropdown()
-      }
-    })
 
     // Set initial state
     details.setAttribute('data-expanded', 'false')
