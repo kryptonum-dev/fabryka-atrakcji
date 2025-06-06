@@ -3,7 +3,7 @@ import PrivacyPolicyPage, { fetchData } from '@/src/templates/Legal.astro'
 
 const data = await fetchData('PrivacyPolicy', 'pl')
 
-if (!data) return Astro.rewrite('/404')
+if (!data) return Astro.rewrite('/pl/404')
 ---
 
 <PrivacyPolicyPage {...data} />

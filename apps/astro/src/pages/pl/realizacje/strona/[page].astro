@@ -5,7 +5,7 @@ const category = null
 const page = Number(Astro.params.page) || 1
 const data = await fetchData('pl', category, page)
 
-if (!data) return Astro.rewrite('/404')
+if (!data) return Astro.rewrite('/pl/404')
 
 export const getStaticPaths = () => staticPathsPage('pl')
 ---

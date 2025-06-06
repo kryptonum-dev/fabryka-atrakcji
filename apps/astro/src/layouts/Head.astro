@@ -44,7 +44,7 @@ const getOgImage = async () => {
 }
 const ogImage = await getOgImage()
 
-const url = _url || `${DOMAIN}${path}`
+const url = _url || `${DOMAIN}${path}`.replace(/\/+/g, '/')
 ---
 
 <meta charset="utf-8" />
