@@ -1,6 +1,6 @@
 ---
-// Immediately reject kategoria paths to prevent ISR cache conflicts
-if (Astro.params.slug === 'kategoria') {
+// Reject any slug that starts with "kategoria/"
+if (Astro.params.slug?.startsWith('kategoria/')) {
   return new Response(null, { status: 404 })
 }
 
