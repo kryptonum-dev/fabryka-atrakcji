@@ -68,7 +68,7 @@ const translation = {
   },
 } as const
 
-export async function fetchData(lang: Language, pageNumber: number, searchParams?: URLSearchParams) {
+export async function fetchData(lang: Language, pageNumber: number, url: string, searchParams?: URLSearchParams) {
   const searchQuery = searchParams?.get('search')
   const PAGINATION_BEFORE = (searchQuery ? ACTIVITIES_PER_PAGE : ITEMS_PER_PAGE) * (pageNumber - 1)
   const PAGINATION_AFTER = PAGINATION_BEFORE + (searchQuery ? ACTIVITIES_PER_PAGE : ITEMS_PER_PAGE)
@@ -82,7 +82,7 @@ export async function fetchData(lang: Language, pageNumber: number, searchParams
 
   const orderClause = getOrderClause(filters.order, !!searchQuery)
 
-  const data = searchQuery ? await fetchEmbeddings(searchQuery, 'activities') : null
+  const data = searchQuery ? await fetchEmbeddings(searchQuery, 'activities', url) : null
 
   const page = await sanityFetch<SearchPageProps | RegularPageProps>({
     query: `

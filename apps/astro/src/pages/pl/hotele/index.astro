@@ -3,7 +3,7 @@ export const prerender = false
 
 import HotelsListing, { fetchData } from '@/src/templates/hotels/HotelsPage.astro'
 
-const data = await fetchData('pl', 1, Astro.url.searchParams)
+const data = await fetchData('pl', 1, Astro.url.origin, Astro.url.searchParams)
 
 if (!data) return Astro.rewrite('/pl/404')
 ---

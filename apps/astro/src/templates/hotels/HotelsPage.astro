@@ -15,7 +15,7 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
 }
 
-export async function fetchData(lang: Language, pageNumber: number, searchParams?: URLSearchParams) {
+export async function fetchData(lang: Language, pageNumber: number, url: string, searchParams?: URLSearchParams) {
   const searchQuery = searchParams?.get('search')
   const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
   const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
@@ -28,7 +28,7 @@ export async function fetchData(lang: Language, pageNumber: number, searchParams
   }
 
   const orderClause = getOrderClause(filters.order, !!searchQuery, 'hotels')
-  const data = searchQuery ? await fetchEmbeddings(searchQuery, 'hotels') : null
+  const data = searchQuery ? await fetchEmbeddings(searchQuery, 'hotels', url) : null
 
   // Get all hotel filters
 

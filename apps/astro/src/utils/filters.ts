@@ -145,10 +145,11 @@ export const getOrderClause = (
 
 export const fetchEmbeddings = async (
   searchQuery: string,
-  type: 'activities' | 'hotels'
+  type: 'activities' | 'hotels',
+  url: string
 ): Promise<{ data: { documentId: string; score: number }[] } | null> => {
   try {
-    const response = await fetch(`http://localhost:4321/api/embeddings`, {
+    const response = await fetch(`${url}/api/embeddings`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
