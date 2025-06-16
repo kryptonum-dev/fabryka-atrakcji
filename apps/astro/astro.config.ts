@@ -41,7 +41,7 @@ export default defineConfig({
             exclude: [
               /^\/api\/.+/,
               /^\/pl\/koszyk/,
-              /^\/pl\/hotele$/,
+              /^\/pl\/hotele\/?(\?.*)?$/,
               /^\/pl\/hotele\/strona/,
               /^\/pl\/integracje$/,
               /^\/pl\/integracje\/strona/,
