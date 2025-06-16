@@ -94,7 +94,7 @@ export async function staticPathsCategory(lang: Language) {
 
   return categories.map(({ slug }) => ({
     params: {
-      category: slug.split('/').pop(),
+      category: slug.split('/').slice(-2)[0],
     },
   }))
 }
