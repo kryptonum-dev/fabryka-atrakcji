@@ -1,9 +1,4 @@
 ---
-// Reject any slug that starts with "kategoria/"
-if (Astro.params.slug?.startsWith('kategoria/')) {
-  return new Response(null, { status: 404 })
-}
-
 import SingleActivityPage, { fetchData, staticPaths } from '@/src/templates/activities/SingleActivityPage.astro'
 
 const data = await fetchData(Astro.params.slug || '', 'pl')
