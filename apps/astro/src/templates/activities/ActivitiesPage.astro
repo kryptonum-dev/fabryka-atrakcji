@@ -94,7 +94,7 @@ export async function staticPathsCategory(lang: Language) {
 
   return categories.map(({ slug }) => ({
     params: {
-      category: slug.split('/').pop(),
+      category: slug.split('/').slice(-2)[0],
     },
   }))
 }
@@ -114,7 +114,7 @@ export async function staticPathsCategoryPage(lang: Language) {
     const totalPages = Math.ceil(postCount / ITEMS_PER_PAGE)
     return Array.from({ length: totalPages - 1 }, (_, i) => ({
       params: {
-        category: slug.split('/').pop(),
+        category: slug.split('/').slice(-2)[0],
         page: (i + 2).toString(),
       },
     }))

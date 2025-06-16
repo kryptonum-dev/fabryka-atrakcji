@@ -226,14 +226,14 @@ export async function fetchData(slug: string, lang: Language) {
 export async function staticPaths(lang: Language) {
   const pages = await sanityFetch<{ slug: string }[]>({
     query: `
-      *[_type == 'ActivitiesCategory_Collection' && language == $language][] {
+      *[_type == 'Activities_Collection' && language == $language][] {
         "slug": slug.current,
       }
     `,
     params: { language: lang },
   })
   return pages?.map(({ slug }) => ({
-    params: { slug: slug.split('/').pop() },
+    params: { slug: slug.split('/').slice(-2)[0] },
   }))
 }
 
