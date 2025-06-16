@@ -1,4 +1,9 @@
 ---
+// Immediately reject kategoria paths to prevent ISR cache conflicts
+if (Astro.params.slug === 'kategoria') {
+  return new Response(null, { status: 404 })
+}
+
 import SingleActivityPage, { fetchData, staticPaths } from '@/src/templates/activities/SingleActivityPage.astro'
 
 const data = await fetchData(Astro.params.slug || '', 'pl')
