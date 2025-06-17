@@ -109,18 +109,14 @@ try {
 
   const activitiesCategories = await activitiesStaticPathsCategory('pl')
   activitiesCategories.forEach((category: any) => {
-    slugs.push(`/pl/integracje/kategoria/${category.params.category}/`)
+    slugs.push(`/pl/integracje/kategoria/${category.params.category}`)
   })
 
   // Activities category pages
   const activitiesCategoryPages = await activitiesStaticPathsCategoryPage('pl')
-  activitiesCategoryPages.forEach((categoryPages: any) => {
-    if (Array.isArray(categoryPages)) {
-      categoryPages.forEach(({ params }) => {
-        if (params.page !== '1') {
-          slugs.push(`/pl/integracje/kategoria/${params.category}/strona/${params.page}`)
-        }
-      })
+  activitiesCategoryPages.forEach(({ params }) => {
+    if (params.page !== '1/') {
+      slugs.push(`/pl/integracje/kategoria/${params.category}strona/${params.page}`)
     }
   })
 
