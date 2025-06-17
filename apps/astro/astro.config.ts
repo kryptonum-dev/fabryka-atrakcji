@@ -47,6 +47,10 @@ export default defineConfig({
               /^\/pl\/integracje\/strona/,
               /^\/pl\/integracje\/kategoria/,
               /^\/pl\/integracje\/kategoria\/strona/,
+              '/pl/integracje/kategoria/strona/[page]/',
+              '/pl/integracje/kategoria/[category]/',
+              '/pl/integracje/kategoria/[category]/strona/[page]/',
+              '/pl/integracje/kategoria/[category]/strona/[page]/',
             ],
           },
         }

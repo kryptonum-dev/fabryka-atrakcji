@@ -433,16 +433,23 @@ const sidebarDurationItems = [
 const slugBase = Astro.params.category ? `${t.pathPrefix}/${currentCategory}` : `${t.pathPrefixDefault}`
 
 const getActivitiesCount = () => {
-  switch (totalActivitiesByCategory) {
-    case 1:
-      return t.foundActivitiesSingle
-    case 2:
-    case 3:
-    case 4:
-      return t.foundActivitiesMultipleLow
-    default:
-      return t.foundActivitiesMultipleHigh
+  if (totalActivitiesByCategory === 1) {
+    return t.foundActivitiesSingle
   }
+
+  if (lang === 'pl') {
+    // Polish grammar rules: numbers ending with 2, 3, 4 (except 12, 13, 14) use multipleLow
+    const lastDigit = totalActivitiesByCategory % 10
+    const lastTwoDigits = totalActivitiesByCategory % 100
+
+    if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+      return t.foundActivitiesMultipleLow
+    }
+    return t.foundActivitiesMultipleHigh
+  }
+
+  // For English, everything plural uses the same form
+  return t.foundActivitiesMultipleLow
 }
 ---
 
