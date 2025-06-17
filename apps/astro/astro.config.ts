@@ -48,7 +48,7 @@ export default defineConfig({
               '/pl/integracje/',
               '/pl/integracje/strona/[page]/',
               '/pl/integracje/kategoria/[category]/',
-              '/pl/integracje/kategoria/[category]/strona/[page]/',
+              '/pl/integracje/kategoria/[category]/strona/[page   ]/',
             ],
           },
         }
