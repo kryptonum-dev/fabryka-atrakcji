@@ -8,6 +8,7 @@ import { isPreviewDeployment } from './src/utils/is-preview-deployment'
 export default defineConfig({
   site: DOMAIN,
   integrations: [preact({ compat: true })],
+  trailingSlash: 'always',
   image: {
     remotePatterns: [
       {
@@ -47,6 +48,9 @@ export default defineConfig({
               '/pl/integracje/kategoria/strona/[page]',
               '/pl/integracje/kategoria/[category]',
               '/pl/integracje/kategoria/[category]/strona/[page]',
+              '/pl/integracje/kategoria/strona/[page]/',
+              '/pl/integracje/kategoria/[category]/',
+              '/pl/integracje/kategoria/[category]/strona/[page]/',
             ],
           },
         }
