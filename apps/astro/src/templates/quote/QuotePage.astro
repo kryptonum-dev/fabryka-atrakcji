@@ -118,7 +118,6 @@ export type QuoteItemType = {
 
 // Fetch quote item by ID
 export async function fetchQuoteItem(quoteId: string, lang: Language) {
-  console.log('quoteId', quoteId)
   // Fetch specific quote based on ID
   const quoteData = await sanityFetch<QuoteItemType>({
     query: `
@@ -243,8 +242,6 @@ export async function fetchQuoteItem(quoteId: string, lang: Language) {
   })
 
   if (!quoteData) return null
-
-  console.log('quoteData', quoteData)
 
   // Ensure language matches
   if (quoteData.language !== lang) return null

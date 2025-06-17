@@ -1,14 +1,14 @@
 ---
-import { DOMAIN } from '@/global/constants';
+import { DOMAIN } from '@/global/constants'
 
 type Props = {
   breadcrumbsData: Array<{
-    name: string;
-    path: string;
-  }>;
-};
+    name: string
+    path: string
+  }>
+}
 
-const { breadcrumbsData } = Astro.props;
+const { breadcrumbsData } = Astro.props
 
 const schema = {
   '@context': 'https://schema.org',
@@ -20,9 +20,9 @@ const schema = {
     '@type': 'ListItem',
     position: i + 1,
     name: name,
-    item: `${DOMAIN}${path}`,
+    item: `${DOMAIN}${path}`.replace(/\/+/g, '/'),
   })),
-};
+}
 ---
 
 <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />

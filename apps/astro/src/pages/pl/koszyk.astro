@@ -7,8 +7,6 @@ import QuotePage, { fetchData as fetchQuoteData, fetchQuoteItem } from '@/src/te
 // Check if there's an ID parameter
 const quoteId = Astro.url.searchParams.get('id')
 
-console.log('id', quoteId)
-
 // Prepare to hold the data we'll render
 let cartData = null
 let quoteData = null

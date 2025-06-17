@@ -18,6 +18,9 @@ const excludedTypes = [
   'Amenities_Collection',
   'ActivitiesType_Collection',
   'Locations_Collection',
+  'BlogCategory_Collection',
+  'CaseStudyCategory_Collection',
+  'ActivitiesCategory_Collection',
 ]
 
 const slugs = [
@@ -31,62 +34,101 @@ const slugs = [
 
 // Add dynamic pagination paths manually by calling the actual functions
 try {
-  const { staticPathsPage: blogStaticPathsPage, staticPathsCategoryPage: blogStaticPathsCategoryPage } = await import(
-    '@/src/templates/blog/BlogPage.astro'
-  )
-  const { staticPathsPage: caseStudyStaticPathsPage, staticPathsCategoryPage: caseStudyStaticPathsCategoryPage } =
-    await import('@/src/templates/caseStudies/CaseStudyPage.astro')
+  const {
+    staticPathsPage: blogStaticPathsPage,
+    staticPathsCategoryPage: blogStaticPathsCategoryPage,
+    staticPathsCategory: blogStaticPathsCategory,
+  } = await import('@/src/templates/blog/BlogPage.astro')
+  const {
+    staticPathsPage: caseStudyStaticPathsPage,
+    staticPathsCategoryPage: caseStudyStaticPathsCategoryPage,
+    staticPathsCategory: caseStudyStaticPathsCategory,
+  } = await import('@/src/templates/caseStudies/CaseStudyPage.astro')
   const { staticPaths: activitiesStaticPaths } = await import('@/src/templates/activities/CategoriesPage.astro')
-  const { staticPathsCategoryPage: activitiesStaticPathsCategoryPage } = await import(
-    '@/src/templates/activities/ActivitiesPage.astro'
-  )
+  const {
+    staticPathsCategoryPage: activitiesStaticPathsCategoryPage,
+    staticPathsCategory: activitiesStaticPathsCategory,
+  } = await import('@/src/templates/activities/ActivitiesPage.astro')
   const { staticPaths: hotelsStaticPaths } = await import('@/src/templates/hotels/HotelsPage.astro')
 
   // Blog pages
   const blogPages = await blogStaticPathsPage('pl')
-  slugs.push(...blogPages.map(({ params }) => `/pl/blog/strona/${params.page}`))
+  slugs.push(
+    ...blogPages.filter(({ params }) => params.page !== '1').map(({ params }) => `/pl/blog/strona/${params.page}`)
+  )
+
+  const blogCategories = await blogStaticPathsCategory('pl')
+  blogCategories.forEach((category: any) => {
+    slugs.push(`/pl/blog/kategoria/${category.params.category}/`)
+  })
 
   // Blog category pages
   const blogCategoryPages = await blogStaticPathsCategoryPage('pl')
   blogCategoryPages.forEach((categoryPages: any) => {
     if (Array.isArray(categoryPages)) {
       categoryPages.forEach(({ params }) => {
-        slugs.push(`/pl/blog/kategoria/${params.category}/strona/${params.page}`)
+        if (params.page !== '1') {
+          slugs.push(`/pl/blog/kategoria/${params.category}/strona/${params.page}`)
+        }
       })
     }
   })
 
   // Case study pages
   const caseStudyPages = await caseStudyStaticPathsPage('pl')
-  slugs.push(...caseStudyPages.map(({ params }) => `/pl/realizacje/strona/${params.page}`))
+  slugs.push(
+    ...caseStudyPages
+      .filter(({ params }) => params.page !== '1')
+      .map(({ params }) => `/pl/realizacje/strona/${params.page}`)
+  )
+
+  const caseStudyCategories = await caseStudyStaticPathsCategory('pl')
+  caseStudyCategories.forEach((category: any) => {
+    slugs.push(`/pl/realizacje/kategoria/${category.params.category}/`)
+  })
 
   // Case study category pages
   const caseStudyCategoryPages = await caseStudyStaticPathsCategoryPage('pl')
   caseStudyCategoryPages.forEach((categoryPages: any) => {
     if (Array.isArray(categoryPages)) {
       categoryPages.forEach(({ params }) => {
-        slugs.push(`/pl/realizacje/kategoria/${params.category}/strona/${params.page}`)
+        if (params.page !== '1') {
+          slugs.push(`/pl/realizacje/kategoria/${params.category}/strona/${params.page}`)
+        }
       })
     }
   })
 
   // Activities pages
   const activitiesPages = await activitiesStaticPaths('pl')
-  slugs.push(...activitiesPages.map(({ params }) => `/pl/integracje/strona/${params.page}`))
+  slugs.push(
+    ...activitiesPages
+      .filter(({ params }) => params.page !== '1')
+      .map(({ params }) => `/pl/integracje/strona/${params.page}`)
+  )
+
+  const activitiesCategories = await activitiesStaticPathsCategory('pl')
+  activitiesCategories.forEach((category: any) => {
+    slugs.push(`/pl/integracje/kategoria/${category.params.category}/`)
+  })
 
   // Activities category pages
   const activitiesCategoryPages = await activitiesStaticPathsCategoryPage('pl')
   activitiesCategoryPages.forEach((categoryPages: any) => {
     if (Array.isArray(categoryPages)) {
       categoryPages.forEach(({ params }) => {
-        slugs.push(`/pl/integracje/kategoria/${params.category}/strona/${params.page}`)
+        if (params.page !== '1') {
+          slugs.push(`/pl/integracje/kategoria/${params.category}/strona/${params.page}`)
+        }
       })
     }
   })
 
   // Hotels pages
   const hotelsPages = await hotelsStaticPaths('pl')
-  slugs.push(...hotelsPages.map(({ params }) => `/pl/hotele/strona/${params.page}`))
+  slugs.push(
+    ...hotelsPages.filter(({ params }) => params.page !== '1').map(({ params }) => `/pl/hotele/strona/${params.page}`)
+  )
 } catch (error) {
   console.warn('Error loading static paths for sitemap:', error)
 }

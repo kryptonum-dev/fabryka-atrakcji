@@ -37,7 +37,7 @@ const getOgImage = async () => {
     inferSize: true,
   })
   return {
-    url: `${DOMAIN}${asset.src}`,
+    url: `${DOMAIN}${asset.src.slice(1)}`,
     width: asset.attributes.width,
     height: asset.attributes.height,
   }
