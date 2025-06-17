@@ -104,21 +104,23 @@ export async function staticPathsCategoryPage(lang: Language) {
     query: `
       *[_type == 'ActivitiesCategory_Collection' && language == $language][] {
         "slug": slug.current,
-        "postCount": count(*[_type == "Activities_Collection" && references(^._id) && defined(category)]),
+        "postCount": count(*[_type == "Activities_Collection" && references(^._id) && defined(categories)]),
       }
     `,
     params: { language: lang },
   })
 
-  return categories.map(({ slug, postCount }) => {
-    const totalPages = Math.ceil(postCount / ITEMS_PER_PAGE)
-    return Array.from({ length: totalPages - 1 }, (_, i) => ({
-      params: {
-        category: slug.split('/').slice(-2)[0],
-        page: (i + 2).toString(),
-      },
-    }))
-  })
+  return categories
+    .map(({ slug, postCount }) => {
+      const totalPages = Math.ceil(postCount / 16)
+      return Array.from({ length: totalPages - 1 }, (_, i) => ({
+        params: {
+          category: slug.split('/').slice(-2)[0],
+          page: (i + 2).toString(),
+        },
+      }))
+    })
+    .flat()
 }
 
 const { page, metadata: _metadata, currentPage, currentCategory } = Astro.props

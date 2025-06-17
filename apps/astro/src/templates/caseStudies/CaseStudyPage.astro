@@ -40,6 +40,7 @@ export async function fetchData(lang: Language, category: string | null, pageNum
         "selectedCategory": *[_type == "CaseStudyCategory_Collection" && slug.current match $category + "$"][0] {
           name,
           "slug": slug.current,
+          "postCount": count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]),
         },
         ${Listing_Query}
         ${Components_Query}
@@ -52,7 +53,11 @@ export async function fetchData(lang: Language, category: string | null, pageNum
       PAGINATION_AFTER: PAGINATION_AFTER,
     },
   })
+
+  // Enhanced validation: check if category exists and has case studies
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
+  if (category && page.totalCaseStudiesByCategory === 0) return null
+
   const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
   return { page, metadata }
 }
@@ -73,7 +78,7 @@ export async function staticPathsPage(lang: Language) {
 export async function staticPathsCategory(lang: Language) {
   const categories = await sanityFetch<{ lang: Language; slug: string }[]>({
     query: `
-      *[_type == "CaseStudyCategory_Collection" && language == $language][] {
+      *[_type == "CaseStudyCategory_Collection" && language == $language && count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]) > 0][] {
         "lang": language,
         "slug": slug.current,
       }
@@ -83,7 +88,7 @@ export async function staticPathsCategory(lang: Language) {
 
   return categories.map(({ slug }) => ({
     params: {
-      category: slug.split('/').pop(),
+      category: slug.split('/').slice(-2)[0],
     },
   }))
 }
@@ -91,7 +96,7 @@ export async function staticPathsCategory(lang: Language) {
 export async function staticPathsCategoryPage(lang: Language) {
   const categories = await sanityFetch<{ lang: Language; slug: string; postCount: number }[]>({
     query: `
-      *[_type == 'CaseStudyCategory_Collection' && language == $language][] {
+      *[_type == 'CaseStudyCategory_Collection' && language == $language && count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]) > 0][] {
         "slug": slug.current,
         "postCount": count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]),
       }
@@ -103,7 +108,7 @@ export async function staticPathsCategoryPage(lang: Language) {
     const totalPages = Math.ceil(postCount / ITEMS_PER_PAGE)
     return Array.from({ length: totalPages - 1 }, (_, i) => ({
       params: {
-        category: slug.split('/').pop(),
+        category: slug.split('/').slice(-2)[0],
         page: (i + 2).toString(),
       },
     }))

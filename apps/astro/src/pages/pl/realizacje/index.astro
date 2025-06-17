@@ -1,7 +1,21 @@
 ---
+import type { Language } from '@/src/global/languages'
 import CaseStudiesListing, { fetchData } from '@/src/templates/caseStudies/CaseStudyPage.astro'
+import sanityFetch from '@/src/utils/sanity.fetch'
 
 const data = await fetchData('pl', null, 1)
+
+const categories = await sanityFetch<{ lang: Language; slug: string; postCount: number }[]>({
+  query: `
+      *[_type == 'CaseStudyCategory_Collection' && language == $language && count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]) > 0][] {
+        "slug": slug.current,
+        "postCount": count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]),
+      }
+    `,
+  params: { language: 'pl' },
+})
+
+console.log(categories)
 
 if (!data) return Astro.rewrite('/pl/404')
 ---
