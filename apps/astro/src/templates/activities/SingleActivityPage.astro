@@ -21,6 +21,7 @@ import Image, { Image_Query } from '@/src/components/ui/content-pt/shared/Image.
 import ImageWithHeadingAndText, {
   ImageWithHeadingAndText_Query,
 } from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
+import FileView, { FileView_Query } from '@/src/components/ui/content-pt/offer/FileView.astro'
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
@@ -204,6 +205,7 @@ export async function fetchData(slug: string, lang: Language) {
         Checklist_Query,
         Image_Query,
         ImageWithHeadingAndText_Query,
+        FileView_Query,
       ])}
       ${Components_Query}
     }
@@ -274,6 +276,7 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
           Checklist,
           Image,
           ImageWithHeadingAndText,
+          FileView,
         }}
       />
     </div>

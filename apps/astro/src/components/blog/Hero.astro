@@ -25,7 +25,7 @@ const t = translations[lang]
 
 <section class="BlogHero max-width">
   <article>
-    <a href={`${t.prefix}${slug.split('/').pop()}`} aria-label={t.linkLabel} class="background-link"></a>
+    <a href={`${t.prefix}${slug.split('/').slice(-2).join('/')}`} aria-label={t.linkLabel} class="background-link"></a>
     <Image
       {...image}
       sizes="(max-width: 37.4375rem) 94vw, (max-width: 56.1875rem) 83vw, (max-width: 69.3125rem) 768px, (max-width: 85.375rem) 50vw, 659px"

@@ -1,0 +1,84 @@
+---
+import Button from '../../Button'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '../../portable-text'
+import { getLangFromPath } from '@/global/languages'
+
+export const FileView_Query = `
+  _type == "FileView" => {
+    ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    buttonText,
+    file {
+      asset->{
+        _id,
+        url,
+        originalFilename,
+        size
+      }
+    }
+  },
+`
+
+type Props = {
+  node: {
+    heading: PortableTextValue
+    paragraph: PortableTextValue
+    buttonText: string
+    file: {
+      asset: {
+        _id: string
+        url: string
+        originalFilename?: string
+        size?: number
+      }
+    }
+  }
+}
+
+const { node } = Astro.props
+
+const lang = getLangFromPath(Astro.url.pathname) || 'pl'
+const fileName = node.file.asset?.originalFilename
+const fileUrl = fileName ? `/${lang}/dokumenty/oferta/${fileName}` : null
+---
+
+<section class="FileView">
+  <PortableText value={node.heading} heading="h2" class="heading" />
+  <PortableText value={node.paragraph} class="paragraph" />
+  {
+    fileUrl && (
+      <Button theme="secondary" href={fileUrl} className="download-button">
+        {node.buttonText}
+      </Button>
+    )
+  }
+</section>
+
+<style lang="scss">
+  .FileView {
+    background-color: var(--neutral-200, #f5f1ec);
+    border-radius: 1rem;
+    padding: clamp(1.5rem, calc(2vw / 0.48), 2rem);
+    margin: clamp(1.5rem, calc(2vw / 0.48), 2rem) 0;
+
+    .heading {
+      margin: 0 0 1rem 0 !important;
+    }
+
+    .paragraph {
+      margin-bottom: 1.5rem;
+    }
+
+    :global(.download-button) {
+      max-width: 50%;
+      width: 100%;
+      justify-content: center;
+    }
+
+    @media (max-width: 27.4375rem) {
+      :global(.download-button) {
+        max-width: 100%;
+      }
+    }
+  }
+</style>

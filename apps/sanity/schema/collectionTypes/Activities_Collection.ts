@@ -12,6 +12,7 @@ import RowsWithIcons from '../ui/PortableText/content/offer/RowsWithIcons'
 import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
+import FileView from '../ui/PortableText/content/offer/FileView'
 import { createAddonsObject } from '../shared/addons'
 import { createAlertsObject } from '../shared/alerts'
 
@@ -498,6 +499,7 @@ export default defineType({
         BlocksWithImage,
         RowsWithIcons,
         NextSteps,
+        FileView,
       ],
     }),
     defineField({

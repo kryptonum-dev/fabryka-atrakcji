@@ -45,7 +45,7 @@ export const Listing_Query = `
     "categories": *[_type == 'BlogCategory_Collection' && language == $language && count(*[_type == 'BlogPost_Collection' && references(^._id) && defined(category)]) > 0] {
       name,
       "slug": slug.current,
-      "count": count(*[_type == 'BlogPost_Collection' && references(^._id) && defined(category)])
+      "count": count(*[_type == 'BlogPost_Collection' && category._ref == ^._id && defined(category)])
     },
     "totalBlogPostsByCategory": count(*[_type == 'BlogPost_Collection'
       && language == $language
@@ -93,7 +93,7 @@ const slugBase = (() => {
       </li>
       {
         categories.map((category) => {
-          const isActive = currentCategory ? category.slug.endsWith(currentCategory) : false
+          const isActive = currentCategory ? category.slug.endsWith(currentCategory + '/') : false
           return (
             <li>
               <CategoryTab href={category.slug} isActive={isActive} count={category.count} name={category.name} />

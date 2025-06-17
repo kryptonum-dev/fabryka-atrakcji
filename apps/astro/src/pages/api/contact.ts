@@ -11,7 +11,7 @@ const getContactRecipients = async (lang: string): Promise<string[]> => {
   try {
     const query = `*[_type == "global" && language == $lang][0].contactRecipients`
     const recipients = await sanityFetch<string[]>({ query, params: { lang } })
-    return recipients || ['oliwier@kryptonum.eu'] // Fallback to current email
+    return recipients || ['lukasz@fabryka-atrakcji.com'] // Fallback to current email
   } catch (error) {
     console.error('Failed to fetch contact recipients:', error)
     return ['lukasz@fabryka-atrakcji.com'] // Fallback on error
