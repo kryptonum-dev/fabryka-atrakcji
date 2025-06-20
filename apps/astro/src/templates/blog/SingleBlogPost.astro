@@ -85,7 +85,7 @@ export async function staticPaths(lang: Language) {
     params: { language: lang },
   })
   return pages?.map(({ slug }) => ({
-    params: { slug: slug.split('/').slice(-2)[0] },
+    params: { slug: slug.split('/').slice(-2).join('/') },
   }))
 }
 
