@@ -7,7 +7,6 @@ import { isPreviewDeployment } from './src/utils/is-preview-deployment'
 
 export default defineConfig({
   site: DOMAIN,
-  trailingSlash: 'always',
   integrations: [preact({ compat: true })],
   image: {
     remotePatterns: [
