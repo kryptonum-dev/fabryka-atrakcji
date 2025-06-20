@@ -13,16 +13,36 @@ export const CardSteps_Query = `
         optional,
         ${PortableTextQuery('text')}
         badge,
-        ${ImageDataQuery('firstImage')}
-        ${ImageDataQuery('secondImage')}
+        firstImage {
+          ${ImageDataQuery('image')}
+          internal -> {
+            "slug": slug.current
+          }
+        },
+        secondImage {
+          ${ImageDataQuery('image')}
+          internal -> {
+            "slug": slug.current
+          }
+        },
         _type,
       },
       _type == "plusCard" => {
         optional,
         ${PortableTextQuery('text')}
         badge,
-        firstAction,
-        secondAction,
+        firstAction {
+          text,
+          internal -> {
+            "slug": slug.current
+          }
+        },
+        secondAction {
+          text,
+          internal -> {
+            "slug": slug.current
+          }
+        },
         _type,
       },
       _type == "cartCard" => {
@@ -60,16 +80,36 @@ type Props = {
         optional?: boolean
         text: PortableTextValue
         badge?: string
-        firstImage: ImageDataProps
-        secondImage: ImageDataProps
+        firstImage: {
+          image: ImageDataProps
+          internal: {
+            slug: string
+          }
+        }
+        secondImage: {
+          image: ImageDataProps
+          internal: {
+            slug: string
+          }
+        }
         _type: 'imagesCard'
       }
     | {
         optional?: boolean
         text: PortableTextValue
         badge?: string
-        firstAction: string
-        secondAction: string
+        firstAction: {
+          text: string
+          internal: {
+            slug: string
+          }
+        }
+        secondAction: {
+          text: string
+          internal: {
+            slug: string
+          }
+        }
         _type: 'plusCard'
       }
     | {
@@ -148,7 +188,9 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
           {step.optional && <span class="optional">(opcjonalne)</span>}
           {step._type == 'imagesCard' && (
             <div class="images">
-              <Image {...step.firstImage} sizes={stepImagesSizes} />
+              <a href={step.firstImage.internal.slug} class="image-link">
+                <Image {...step.firstImage.image} sizes={stepImagesSizes} />
+              </a>
               <div class="revert">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 25">
                   <path
@@ -159,14 +201,16 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
                   />
                 </svg>
               </div>
-              <Image {...step.secondImage} sizes={stepImagesSizes} />
+              <a href={step.secondImage.internal.slug} class="image-link">
+                <Image {...step.secondImage.image} sizes={stepImagesSizes} />
+              </a>
             </div>
           )}
           {step._type == 'plusCard' && (
             <>
               <span class="icon">+</span>
               {[step.firstAction, step.secondAction].map((action) => (
-                <div class="action">
+                <a href={action.internal.slug} class="action">
                   <div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 22 22">
                       <path
@@ -176,9 +220,9 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
                         clip-rule="evenodd"
                       />
                     </svg>
-                    <span>{action}</span>
+                    <span>{action.text}</span>
                   </div>
-                </div>
+                </a>
               ))}
             </>
           )}
@@ -433,7 +477,7 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
             border-radius: 50%;
             background: var(--primary-800, #45051c);
             position: relative;
-            z-index: 3;
+            z-index: 5;
             opacity: 0;
             animation: CardStepsRotateIn 500ms cubic-bezier(0.18, 0.89, 0.32, 1.27) forwards;
             animation-delay: 525ms;
@@ -443,12 +487,12 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
               height: auto;
             }
           }
-          > img {
+
+          .image-link {
             position: absolute;
-            width: max-content;
-            max-width: clamp(41px, calc(114vw / 7.68), 114px);
-            height: clamp(55px, calc(153vw / 7.68), 153px);
+            display: block;
             border-radius: 12px;
+            transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27), rotate 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
             z-index: 2;
             opacity: 0;
             transform: scale(0.7);
@@ -466,6 +510,45 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
               top: -167%;
               rotate: 10deg;
               animation-delay: 725ms;
+            }
+
+            img {
+              width: max-content;
+              max-width: clamp(41px, calc(114vw / 7.68), 114px);
+              height: clamp(55px, calc(153vw / 7.68), 153px);
+              border-radius: 12px;
+              transition: transform 200ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+            }
+
+            &:hover,
+            &:focus {
+              transform: scale(1.1) translateY(-0.25rem);
+              z-index: 4;
+
+              img {
+                // filter: brightness(1.1) saturate(1.2);
+              }
+
+              &:first-of-type {
+                rotate: -1deg;
+              }
+
+              &:last-of-type {
+                rotate: 7deg;
+              }
+            }
+
+            &:focus:not(:focus-visible) {
+              outline: none;
+            }
+
+            &:focus-visible {
+              outline: 2px solid var(--primary-500, #f67258);
+              outline-offset: 4px;
+            }
+
+            &:active {
+              transform: scale(1.05) translateY(-0.125rem);
             }
           }
         }
@@ -521,6 +604,9 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
           opacity: 0;
           transform: scale(0.8);
           animation: CardStepsPopIn 500ms cubic-bezier(0.18, 0.89, 0.32, 1.27) forwards;
+          transition: all 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+          text-decoration: none;
+          display: block;
 
           div {
             display: flex;
@@ -529,12 +615,15 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
             border: 1.5px dashed var(--primary-500, #f67258);
             padding: clamp(0.375rem, calc(0.5vw / 0.48), 0.5rem);
             border-radius: 4px;
+            transition: all 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
           }
 
           svg {
             width: 1.25rem;
             height: auto;
+            transition: all 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
           }
+          
           span {
             font-size: var(--typography-body-m);
             font-weight: 700;
@@ -542,6 +631,7 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
             color: var(--neutral-400, #ffe4ca);
             text-align: center;
             font-variant-numeric: lining-nums proportional-nums;
+            transition: all 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
           }
 
           &:first-of-type {
@@ -558,6 +648,58 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
             transform: rotate(10deg) scale(0.8);
             animation-delay: 725ms;
             rotate: 10deg;
+          }
+
+          &:hover,
+          &:focus {
+            transform: scale(1.1) translateY(-0.125rem);
+            z-index: 6;
+
+            &:first-of-type {
+              rotate: 0deg;
+            }
+
+            &:nth-of-type(2) {
+              rotate: 7deg;
+            }
+
+            div {
+              // border-color: var(--neutral-400, #ffe4ca);
+              background: rgba(255, 228, 202, 0.1);
+            }
+
+            svg {
+              transform: scale(1.1);
+
+              path {
+                // fill: var(--neutral-400, #ffe4ca);
+              }
+            }
+
+            span {
+              // color: var(--neutral-100, #faf7f7);
+            }
+          }
+
+          &:focus:not(:focus-visible) {
+            outline: none;
+          }
+
+          &:focus-visible {
+            outline: 2px solid var(--primary-500, #f67258);
+            outline-offset: 4px;
+          }
+
+          &:active {
+            transform: scale(1.05) translateY(-0.0625rem);
+
+            &:first-of-type {
+              rotate: -1deg;
+            }
+
+            &:nth-of-type(2) {
+              rotate: 8deg;
+            }
           }
         }
 
@@ -1123,24 +1265,39 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
             align-self: flex-end;
             padding-right: 1rem;
 
-            > img {
-              width: clamp(41px, calc(60vw / 7.68), 60px);
-              height: clamp(55px, calc(78vw / 7.68), 78px);
+            .image-link {
               z-index: 5;
 
-              &:nth-of-type(1) {
+              img {
+                width: clamp(41px, calc(60vw / 7.68), 60px);
+                height: clamp(55px, calc(78vw / 7.68), 78px);
+              }
+
+              &:first-of-type {
                 top: -102%;
                 left: -28%;
-                transform: rotate(-1deg);
+                rotate: -1deg;
               }
 
               &:last-of-type {
                 top: -170%;
                 left: 20%;
+                rotate: 10deg;
               }
               
               &.animated {
                 transform: scale(1);
+              }
+
+              &:hover,
+              &:focus {
+                &:first-of-type {
+                  rotate: 2deg;
+                }
+
+                &:last-of-type {
+                  rotate: 13deg;
+                }
               }
             }
           }
@@ -1163,6 +1320,15 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
               &.animated {
                 transform: rotate(-3deg) scale(1);
               }
+
+              &:hover,
+              &:focus {
+                transform: rotate(0deg) scale(1.1) translateY(-0.125rem);
+              }
+
+              &:active {
+                transform: rotate(-1deg) scale(1.05) translateY(-0.0625rem);
+              }
             }
             &:nth-of-type(2) {
               right: 2%;
@@ -1171,6 +1337,15 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
               
               &.animated {
                 transform: rotate(10deg) scale(1);
+              }
+
+              &:hover,
+              &:focus {
+                transform: rotate(7deg) scale(1.1) translateY(-0.125rem);
+              }
+
+              &:active {
+                transform: rotate(8deg) scale(1.05) translateY(-0.0625rem);
               }
             }
           }
@@ -1421,7 +1596,7 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
       .steps .step::before,
       .steps .step .optional,
       .steps .step .badge,
-      .steps .step .images > img,
+      .steps .step .images .image-link,
       .steps .step .images .revert,
       .steps .step .icon,
       .steps .step .action,
@@ -1437,6 +1612,11 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
         animation-delay: 0ms !important;
         opacity: 1;
         transform: none;
+      }
+      
+      .steps .step .images .image-link,
+      .steps .step .action {
+        transition: none !important;
       }
     }
 
