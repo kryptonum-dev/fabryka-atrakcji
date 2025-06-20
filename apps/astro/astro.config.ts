@@ -7,6 +7,7 @@ import { isPreviewDeployment } from './src/utils/is-preview-deployment'
 
 export default defineConfig({
   site: DOMAIN,
+  trailingSlash: 'always',
   integrations: [preact({ compat: true })],
   image: {
     remotePatterns: [
@@ -34,20 +35,17 @@ export default defineConfig({
   redirects: redirects,
   output: 'server',
   adapter: vercel({
-    ...(!isPreviewDeployment
-      ? {
-          isr: {
-            bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
-            exclude: [
-              /^\/api\/.+/,
-              /^\/pl\/koszyk/,
-              /^\/pl\/hotele\/?$/,
-              /^\/pl\/hotele\/strona/,
-              /^\/pl\/integracje\/?$/,
-              /^\/pl\/integracje\/kategoria\//,
-            ],
-          },
-        }
-      : {}),
+    isr: {
+      bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
+      exclude: [
+        /^\/api\/.+/,
+        /^\/pl\/koszyk/,
+        /^\/pl\/hotele\/?$/,
+        /^\/pl\/hotele\/strona/,
+        /^\/pl\/integracje\/?$/,
+        /^\/pl\/integracje\/kategoria/,
+        /^\/pl\/integracje\/strona/,
+      ],
+    },
   }),
 })
