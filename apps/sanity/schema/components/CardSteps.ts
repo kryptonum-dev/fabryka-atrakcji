@@ -62,21 +62,73 @@ export default defineField({
             ...commonStepFields,
             defineField({
               name: 'firstImage',
-              type: 'image',
+              type: 'object',
               title: 'Zdjęcie Pierwsze',
+              fields: [
+                defineField({
+                  name: 'image',
+                  type: 'image',
+                  title: 'Zdjęcie',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'internal',
+                  type: 'reference',
+                  title: 'Wewnętrzne odniesienie do strony',
+                  description: 'Wybierz wewnętrzną stronę, do której chcesz linkować.',
+                  to: InternalLinkableTypes,
+                  options: {
+                    disableNew: true,
+                    filter: ({ document }) => {
+                      const language = (document as { language?: string })?.language
+                      return {
+                        filter: 'defined(slug.current) && language == $lang',
+                        params: { lang: language },
+                      }
+                    },
+                  },
+                  validation: (Rule) => Rule.required(),
+                }),
+              ],
               validation: (Rule) => Rule.required(),
             }),
             defineField({
               name: 'secondImage',
-              type: 'image',
+              type: 'object',
               title: 'Zdjęcie Drugie',
+              fields: [
+                defineField({
+                  name: 'image',
+                  type: 'image',
+                  title: 'Zdjęcie',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'internal',
+                  type: 'reference',
+                  title: 'Wewnętrzne odniesienie do strony',
+                  description: 'Wybierz wewnętrzną stronę, do której chcesz linkować.',
+                  to: InternalLinkableTypes,
+                  options: {
+                    disableNew: true,
+                    filter: ({ document }) => {
+                      const language = (document as { language?: string })?.language
+                      return {
+                        filter: 'defined(slug.current) && language == $lang',
+                        params: { lang: language },
+                      }
+                    },
+                  },
+                  validation: (Rule) => Rule.required(),
+                }),
+              ],
               validation: (Rule) => Rule.required(),
             }),
           ],
           preview: {
             select: {
               text: 'text',
-              firstImage: 'firstImage',
+              firstImage: 'firstImage.image',
             },
             prepare: ({ text, firstImage }) => ({
               title: toPlainText(text) || 'Karta ze zdjęciami',
@@ -93,14 +145,66 @@ export default defineField({
             ...commonStepFields,
             defineField({
               name: 'firstAction',
-              type: 'string',
+              type: 'object',
               title: 'Akcja Pierwsza',
+              fields: [
+                defineField({
+                  name: 'text',
+                  type: 'string',
+                  title: 'Tekst',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'internal',
+                  type: 'reference',
+                  title: 'Wewnętrzne odniesienie do strony',
+                  description: 'Wybierz wewnętrzną stronę, do której chcesz linkować.',
+                  to: InternalLinkableTypes,
+                  options: {
+                    disableNew: true,
+                    filter: ({ document }) => {
+                      const language = (document as { language?: string })?.language
+                      return {
+                        filter: 'defined(slug.current) && language == $lang',
+                        params: { lang: language },
+                      }
+                    },
+                  },
+                  validation: (Rule) => Rule.required(),
+                }),
+              ],
               validation: (Rule) => Rule.required(),
             }),
             defineField({
               name: 'secondAction',
-              type: 'string',
+              type: 'object',
               title: 'Akcja Druga',
+              fields: [
+                defineField({
+                  name: 'text',
+                  type: 'string',
+                  title: 'Tekst',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'internal',
+                  type: 'reference',
+                  title: 'Wewnętrzne odniesienie do strony',
+                  description: 'Wybierz wewnętrzną stronę, do której chcesz linkować.',
+                  to: InternalLinkableTypes,
+                  options: {
+                    disableNew: true,
+                    filter: ({ document }) => {
+                      const language = (document as { language?: string })?.language
+                      return {
+                        filter: 'defined(slug.current) && language == $lang',
+                        params: { lang: language },
+                      }
+                    },
+                  },
+                  validation: (Rule) => Rule.required(),
+                }),
+              ],
               validation: (Rule) => Rule.required(),
             }),
           ],
