@@ -1,0 +1,25 @@
+{
+  "trailingSlash": true,
+  "rewrites": [
+    {
+      "source": "/pl/integracje/kategoria/:category/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/pl/integracje/kategoria/:category/strona/:page/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/pl/hotele/:hotel/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/pl/realizacje/:slug/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/pl/blog/:slug/",
+      "destination": "/_render"
+    }
+  ]
+}

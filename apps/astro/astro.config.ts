@@ -44,7 +44,9 @@ export default defineConfig({
               /^\/pl\/hotele\/?$/,
               /^\/pl\/hotele\/strona/,
               /^\/pl\/integracje\/?$/,
-              /^\/pl\/integracje\/kategoria\//,
+              /^\/pl\/integracje\/kategoria\/[^\/]+\/?$/,
+              /^\/pl\/integracje\/kategoria\/[^\/]+\/strona/,
+              /^\/pl\/integracje\/strona/,
             ],
           },
         }
