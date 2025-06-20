@@ -41,12 +41,21 @@ export default defineConfig({
             exclude: [
               /^\/api\/.+/,
               /^\/pl\/koszyk/,
-              /^\/pl\/hotele\/?$/,
-              /^\/pl\/hotele\/strona/,
-              /^\/pl\/integracje\/?$/,
-              /^\/pl\/integracje\/kategoria\/[^\/]+\/?$/,
-              /^\/pl\/integracje\/kategoria\/[^\/]+\/strona/,
-              /^\/pl\/integracje\/strona/,
+              // Exclude hotel listing page (both with and without trailing slash)
+              /^\/pl\/hotele$/,
+              /^\/pl\/hotele\/$/,
+              // Exclude hotel pagination pages
+              /^\/pl\/hotele\/strona\//,
+              // Exclude activities listing pages
+              /^\/pl\/integracje$/,
+              /^\/pl\/integracje\/$/,
+              // Exclude category pages with explicit patterns
+              /^\/pl\/integracje\/kategoria\/[^\/]+$/,
+              /^\/pl\/integracje\/kategoria\/[^\/]+\/$/,
+              // Exclude category pagination
+              /^\/pl\/integracje\/kategoria\/[^\/]+\/strona\//,
+              // Exclude activities pagination
+              /^\/pl\/integracje\/strona\//,
             ],
           },
         }
