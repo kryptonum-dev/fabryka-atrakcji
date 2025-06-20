@@ -34,31 +34,27 @@ export default defineConfig({
   redirects: redirects,
   output: 'server',
   adapter: vercel({
-    ...(!isPreviewDeployment
-      ? {
-          isr: {
-            bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
-            exclude: [
-              /^\/api\/.+/,
-              /^\/pl\/koszyk/,
-              // Exclude hotel listing page (both with and without trailing slash)
-              /^\/pl\/hotele$/,
-              /^\/pl\/hotele\/$/,
-              // Exclude hotel pagination pages
-              /^\/pl\/hotele\/strona\//,
-              // Exclude activities listing pages
-              /^\/pl\/integracje$/,
-              /^\/pl\/integracje\/$/,
-              // Exclude category pages with explicit patterns
-              /^\/pl\/integracje\/kategoria\/[^\/]+$/,
-              /^\/pl\/integracje\/kategoria\/[^\/]+\/$/,
-              // Exclude category pagination
-              /^\/pl\/integracje\/kategoria\/[^\/]+\/strona\//,
-              // Exclude activities pagination
-              /^\/pl\/integracje\/strona\//,
-            ],
-          },
-        }
-      : {}),
+    isr: {
+      bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
+      exclude: [
+        /^\/api\/.+/,
+        /^\/pl\/koszyk/,
+        // Exclude hotel listing page (both with and without trailing slash)
+        /^\/pl\/hotele$/,
+        /^\/pl\/hotele\/$/,
+        // Exclude hotel pagination pages
+        /^\/pl\/hotele\/strona\//,
+        // Exclude activities listing pages
+        /^\/pl\/integracje$/,
+        /^\/pl\/integracje\/$/,
+        // Exclude category pages with explicit patterns
+        /^\/pl\/integracje\/kategoria\/[^\/]+$/,
+        /^\/pl\/integracje\/kategoria\/[^\/]+\/$/,
+        // Exclude category pagination
+        /^\/pl\/integracje\/kategoria\/[^\/]+\/strona\//,
+        // Exclude activities pagination
+        /^\/pl\/integracje\/strona\//,
+      ],
+    },
   }),
 })
