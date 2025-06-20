@@ -9,15 +9,7 @@
       "destination": "/_render"
     },
     {
-      "source": "/pl/hotele/:hotel/",
-      "destination": "/_render"
-    },
-    {
-      "source": "/pl/realizacje/:slug/",
-      "destination": "/_render"
-    },
-    {
-      "source": "/pl/blog/:slug/",
+      "source": "/pl/hotele/strona/:page/",
       "destination": "/_render"
     }
   ]
