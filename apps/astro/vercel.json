@@ -1,5 +1,4 @@
 {
-  "trailingSlash": true,
   "rewrites": [
     {
       "source": "/pl/integracje/kategoria/:category/",
