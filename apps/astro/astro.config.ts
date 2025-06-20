@@ -39,14 +39,9 @@ export default defineConfig({
       exclude: [
         /^\/api\/.+/,
         /^\/pl\/koszyk/,
-
-        // Try matching ONLY paths that are exactly /pl/hotele with optional trailing slash
-        // and nothing after it
-        /^\/pl\/hotele\/?(?:\?.*)?$/, // This should match /pl/hotele/ or /pl/hotele but NOT /pl/hotele/anything
-
-        // Your other exclusions...
-        /^\/pl\/hotele\/strona\//,
-        /^\/pl\/integracje\/?(?:\?.*)?$/,
+        /^\/pl\/hotele\/?$/,
+        /^\/pl\/hotele\/strona/,
+        /^\/pl\/integracje\/?$/,
         /^\/pl\/integracje\/kategoria\/[^\/]+\/?$/,
         /^\/pl\/integracje\/kategoria\/[^\/]+\/strona\//,
         /^\/pl\/integracje\/strona\//,
