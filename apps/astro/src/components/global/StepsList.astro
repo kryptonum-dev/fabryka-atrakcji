@@ -10,6 +10,10 @@ export const StepsList_Query = `
       blockObject{
         text,
         "icon": icon.asset->url,
+        link{
+          linkType,
+          "href": select(linkType == "internal" => internal -> slug.current, linkType == "external" => external, null),
+        },
       },
       ${ImageDataQuery('images[]')}
     },
@@ -43,6 +47,10 @@ type Props = {
     blockObject: {
       text: string
       icon: string
+      link: {
+        linkType: string
+        href: string | null
+      }
     }
     images: ImageDataProps[]
   }[]
@@ -91,12 +99,23 @@ const stepBlockSvg = await Promise.all(
   <div class="columns">
     {
       imageColumns.map((column, columnIndex) => (
-        <div class="col">
+        <div
+          class="col"
+          data-has-link={column.blockObject.link.href ? 'true' : 'false'}
+          data-column-index={columnIndex}
+        >
+          {column.blockObject.link.href && (
+            <a
+              href={column.blockObject.link.href}
+              class="col-link"
+              aria-label={`Przejdź do: ${column.blockObject.text}`}
+            />
+          )}
           <div class="container">
             <div class="box">
               <Fragment set:html={imageColumnsSvg[columnIndex]} />
               <span>{column.blockObject.text}</span>
-            </div>{' '}
+            </div>
             <div class="wrapper">
               {[...column.images, ...column.images, ...column.images].map((image, imageIndex) => (
                 <div class="img" data-visible={imageIndex === 7 ? 'true' : 'false'}>
@@ -249,6 +268,7 @@ const stepBlockSvg = await Promise.all(
           width: 100%;
           display: grid;
           gap: clamp(0.25rem, calc(0.5rem / 0.48), 0.5rem);
+          transition: transform 300ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
 
           .box {
             position: absolute;
@@ -267,14 +287,28 @@ const stepBlockSvg = await Promise.all(
             z-index: 2;
             width: max-content;
 
+            // Specific transitions for properties that will change
+            transition:
+              transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              background-color 200ms ease,
+              box-shadow 200ms ease;
+
             :global(svg) {
               padding-top: 2px;
               flex-shrink: 0;
+              transition: transform 200ms ease;
+            }
+
+            span {
+              transition: transform 200ms ease;
             }
           }
+
           .wrapper {
             display: grid;
             gap: clamp(0.25rem, calc(0.5rem / 0.48), 0.5rem);
+            transition: transform 1300ms cubic-bezier(0.19, 1, 0.22, 1);
+
             .img {
               border-radius: 4px;
               overflow: hidden;
@@ -288,6 +322,7 @@ const stepBlockSvg = await Promise.all(
                 background: rgba(245, 241, 236, 0.6);
                 transition: opacity 800ms;
               }
+
               &[data-visible='true'] {
                 &::before {
                   opacity: 0;
@@ -299,6 +334,7 @@ const stepBlockSvg = await Promise.all(
                   transition: none !important;
                 }
               }
+
               img {
                 height: 100%;
                 width: 100%;
@@ -307,6 +343,39 @@ const stepBlockSvg = await Promise.all(
           }
         }
 
+        // Clickable column styles
+        &[data-has-link='true'] {
+          cursor: pointer;
+
+          .col-link {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            border-radius: clamp(16px, calc(32vw / 7.68), 32px);
+          }
+
+          // Hover effects
+          &:hover {
+            .container {
+              transform: translateY(-50%) scale(1.01);
+
+              .box {
+                background: var(--primary-700, #5a1b2e);
+                box-shadow: 0 8px 25px rgba(69, 5, 28, 0.3);
+
+                :global(svg) {
+                  transform: scale(1.1);
+                }
+
+                span {
+                  transform: translateX(2px);
+                }
+              }
+            }
+          }
+        }
+
+        // Base transformations for each column
         &:nth-of-type(1) > .container > .box {
           transform: translate(-50%, -50%) rotate(-4deg);
 
@@ -320,6 +389,17 @@ const stepBlockSvg = await Promise.all(
 
           &.pulse {
             animation: StepList_pulseSecond 900ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          }
+        }
+
+        // Enhanced hover effects with rotation preserved
+        &[data-has-link='true']:hover {
+          &:nth-of-type(1) .container .box {
+            transform: translate(-50%, -50%) rotate(-4deg) scale(1.1);
+          }
+
+          &:nth-of-type(2) .container .box {
+            transform: translate(-50%, -50%) rotate(4deg) scale(1.1);
           }
         }
       }
@@ -594,6 +674,7 @@ const stepBlockSvg = await Promise.all(
     let isAnimating = false // Flag to prevent multiple animations running concurrently
     let currentVisibleImage = [7, 7]
     let isInViewport = false // Track if the component is in viewport
+    let isHovered = false // Track if user is hovering over any column
 
     // Calculate the total height of a single item (image + gap)
     const calculateItemHeight = (): number => {
@@ -705,7 +786,7 @@ const stepBlockSvg = await Promise.all(
     // Handle scrolling animation
     const scrollColumns = (): void => {
       // Prevent multiple animations from running simultaneously
-      if (isAnimating || !isInViewport) return
+      if (isAnimating || !isInViewport || isHovered) return
       isAnimating = true
 
       // Calculate movement distance (include gap)
@@ -748,7 +829,7 @@ const stepBlockSvg = await Promise.all(
 
     // Function to start the animation interval
     const startAnimation = (): void => {
-      if (!isInViewport) return
+      if (!isInViewport || isHovered) return
 
       // Clear any existing interval first
       if (intervalId !== null) {
@@ -762,11 +843,11 @@ const stepBlockSvg = await Promise.all(
 
       // Start new interval and store the ID
       intervalId = setInterval(() => {
-        if (!isInViewport) return
+        if (!isInViewport || isHovered) return
 
         // Schedule the pulse animation to start with the scroll
         pulseTimeoutId = setTimeout(() => {
-          if (!isInViewport) return
+          if (!isInViewport || isHovered) return
 
           // Add pulse class to both box elements
           boxElements.forEach((box) => {
@@ -815,7 +896,9 @@ const stepBlockSvg = await Promise.all(
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           isInViewport = true
-          startAnimation()
+          if (!isHovered) {
+            startAnimation()
+          }
         } else {
           // Component is no longer visible
           isInViewport = false
@@ -828,6 +911,23 @@ const stepBlockSvg = await Promise.all(
     if (stepsListSection) {
       intersectionObserver.observe(stepsListSection)
     }
+
+    // Add hover event listeners for columns with links
+    const columnElements = document.querySelectorAll('.StepsList .col[data-has-link="true"]')
+
+    columnElements.forEach((column) => {
+      column.addEventListener('mouseenter', () => {
+        isHovered = true
+        stopAnimation()
+      })
+
+      column.addEventListener('mouseleave', () => {
+        isHovered = false
+        if (isInViewport) {
+          startAnimation()
+        }
+      })
+    })
 
     // Handle window resize
     window.addEventListener('resize', () => {
@@ -882,9 +982,9 @@ const stepBlockSvg = await Promise.all(
       // Reset animation flag
       isAnimating = false
 
-      // Restart animation after small delay if in viewport
+      // Restart animation after small delay if in viewport and not hovered
       setTimeout(() => {
-        if (isInViewport) {
+        if (isInViewport && !isHovered) {
           startAnimation()
         }
       }, 100)

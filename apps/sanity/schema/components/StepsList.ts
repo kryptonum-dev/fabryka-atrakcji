@@ -1,5 +1,6 @@
 import { ListOrdered, MousePointerClick, StepForward, StepForwardIcon } from 'lucide-react'
 import { defineField } from 'sanity'
+import { InternalLinkableTypes } from '../../structure/internal-linkable-types'
 import { sectionPreview } from '../../utils/section-preview'
 import { toPlainText } from '../../utils/to-plain-text'
 import sectionId from '../ui/sectionId'
@@ -42,6 +43,81 @@ export default defineField({
                   type: 'string',
                   title: 'Tekst',
                   validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'link',
+                  type: 'object',
+                  title: 'Link',
+                  description: 'Link, który zostanie uruchomiony po kliknięciu w kolumnę',
+                  validation: (Rule) => Rule.required(),
+                  options: {
+                    collapsed: false,
+                    collapsible: false,
+                  },
+                  fields: [
+                    defineField({
+                      name: 'linkType',
+                      type: 'string',
+                      title: 'Typ linku',
+                      description:
+                        'Wybierz "Zewnętrzny" dla linków do innych stron lub "Wewnętrzny" dla linków w obrębie Twojej strony',
+                      options: {
+                        list: [
+                          { title: 'Zewnętrzny', value: 'external' },
+                          { title: 'Wewnętrzny', value: 'internal' },
+                        ],
+                        layout: 'radio',
+                        direction: 'horizontal',
+                      },
+                      initialValue: 'internal',
+                      validation: (Rule) => Rule.required(),
+                    }),
+                    defineField({
+                      name: 'external',
+                      type: 'string',
+                      title: 'URL',
+                      description: 'Podaj pełny adres URL. Upewnij się, że zaczyna się od "https://"',
+                      hidden: ({ parent }) => parent?.linkType !== 'external',
+                      validation: (Rule) => [
+                        Rule.custom((value, { parent }) => {
+                          const linkType = (parent as { linkType?: string })?.linkType
+                          if (linkType === 'external') {
+                            if (!value) return 'URL jest wymagany'
+                            if (!value.startsWith('https://')) {
+                              return 'Link zewnętrzny musi zaczynać się od protokołu "https://"'
+                            }
+                          }
+                          return true
+                        }),
+                      ],
+                    }),
+                    defineField({
+                      name: 'internal',
+                      type: 'reference',
+                      title: 'Wewnętrzne odniesienie do strony',
+                      description: 'Wybierz wewnętrzną stronę, do której chcesz linkować.',
+                      to: InternalLinkableTypes,
+                      options: {
+                        disableNew: true,
+                        filter: ({ document }) => {
+                          const language = (document as { language?: string })?.language
+                          return {
+                            filter: 'defined(slug.current) && language == $lang',
+                            params: { lang: language },
+                          }
+                        },
+                      },
+                      hidden: ({ parent }) => parent?.linkType !== 'internal',
+                      validation: (rule) => [
+                        rule.custom((value, { parent }) => {
+                          const linkType = (parent as { linkType?: string })?.linkType
+                          if (linkType === 'internal' && !value?._ref)
+                            return 'Musisz wybrać wewnętrzną stronę, do której chcesz linkować.'
+                          return true
+                        }),
+                      ],
+                    }),
+                  ],
                 }),
               ],
             }),
