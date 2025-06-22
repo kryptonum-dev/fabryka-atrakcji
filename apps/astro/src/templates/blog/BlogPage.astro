@@ -120,16 +120,18 @@ export async function staticPathsCategoryPage(lang: Language) {
 
 const { page, metadata: _metadata, currentPage, currentCategory } = Astro.props
 const lang = getLangFromPath(Astro.url.pathname) as Language
-const totalPages = Math.ceil(page.totalBlogPosts / ITEMS_PER_PAGE)
+const totalPages = Math.ceil(page.totalBlogPostsByCategory / ITEMS_PER_PAGE)
+
+console.log(totalPages)
 
 const translation = {
   pl: {
     page: 'Strona',
-    prefix: '/pl/realizacje',
+    prefix: '/pl/blog/',
   },
   en: {
     page: 'Page',
-    prefix: '/en/case-studies',
+    prefix: '/en/blog/',
   },
 } as const
 

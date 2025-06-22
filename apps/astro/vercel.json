@@ -9,6 +9,10 @@
       "destination": "/_render"
     },
     {
+      "source": "/pl/integracje/strona/:page/",
+      "destination": "/_render"
+    },
+    {
       "source": "/pl/hotele/strona/:page/",
       "destination": "/_render"
     },
