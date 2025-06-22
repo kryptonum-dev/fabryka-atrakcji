@@ -11,6 +11,14 @@
     {
       "source": "/pl/hotele/strona/:page/",
       "destination": "/_render"
+    },
+    {
+      "source": "/pl/hotele/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/pl/integracje/",
+      "destination": "/_render"
     }
   ]
 }

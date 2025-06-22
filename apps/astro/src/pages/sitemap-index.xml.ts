@@ -101,11 +101,8 @@ try {
 
   // Activities pages
   const activitiesPages = await activitiesStaticPaths('pl')
-  slugs.push(
-    ...activitiesPages
-      .filter(({ params }) => params.page !== '1')
-      .map(({ params }) => `/pl/integracje/strona/${params.page}`)
-  )
+  console.log(activitiesPages)
+  slugs.push(...activitiesPages.map(({ params }) => `/pl/integracje/strona/${params.page}`))
 
   const activitiesCategories = await activitiesStaticPathsCategory('pl')
   activitiesCategories.forEach((category: any) => {
