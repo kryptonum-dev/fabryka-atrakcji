@@ -245,8 +245,9 @@ export const buildFilterUrl = (params: {
   }
 
   const queryString = newParams.toString()
+  console.log(params.currentPath)
   return `${params.currentPath
     .split('/')
     .slice(0, params.currentPath.includes('kategoria') ? 5 : 3)
-    .join('/')}${queryString ? `?${queryString}` : ''}`
+    .join('/')}/${queryString ? `?${queryString}` : ''}`
 }

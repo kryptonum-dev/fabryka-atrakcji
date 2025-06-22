@@ -1475,8 +1475,7 @@ const shouldDisableFilters = totalItems === 0
 
       // Update URL and redirect
       url.search = params.toString()
-      const baseUrl = url.pathname.replace(/\/$/, '') // Remove trailing slash
-      window.location.href = baseUrl + (params.toString() ? '?' + params.toString() : '')
+      window.location.href = url.toString()
     }
 
     window.addEventListener('DOMContentLoaded', () => {

@@ -23,11 +23,9 @@ const translations = {
 }
 
 const t = translations[lang]
-
-const formAction = Astro.url.pathname.replace(/\/$/, '') || '/'
 ---
 
-<form class="SearchBar" method="get" data-has-wrapper={hasWrapper} action={formAction}>
+<form class="SearchBar" method="get" data-has-wrapper={hasWrapper}>
   <div class="search-wrapper">
     <div class="search-container">
       <input type="text" name="search" value={value} placeholder={placeholder || ''} class="search-input" />

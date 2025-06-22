@@ -31,7 +31,7 @@ const ArrowRight = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="2
 
 const getPagePath = (pageNum?: number) => {
   if (!pageNum || pageNum < 1) return ''
-  const pagePath = pageNum > 1 ? `${slugBase}/${LABELS[lang].page}/${pageNum}` : slugBase
+  const pagePath = pageNum > 1 ? `${slugBase}/${LABELS[lang].page}/${pageNum}/` : slugBase
   if (searchParams) {
     const params = new URLSearchParams(searchParams)
     return `${pagePath}?${params.toString()}`

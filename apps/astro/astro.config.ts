@@ -34,17 +34,21 @@ export default defineConfig({
   redirects: redirects,
   output: 'server',
   adapter: vercel({
-    isr: {
-      bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
-      exclude: [
-        /^\/api\/.+/,
-        /^\/pl\/koszyk/,
-        /^\/pl\/hotele\/?$/,
-        /^\/pl\/hotele\/strona/,
-        /^\/pl\/integracje\/?$/,
-        /^\/pl\/integracje\/kategoria/,
-        /^\/pl\/integracje\/strona/,
-      ],
-    },
+    ...(!isPreviewDeployment
+      ? {
+          isr: {
+            bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
+            exclude: [
+              /^\/api\/.+/,
+              /^\/pl\/koszyk/,
+              /^\/pl\/hotele\/?$/,
+              /^\/pl\/hotele\/strona/,
+              /^\/pl\/integracje\/?$/,
+              /^\/pl\/integracje\/kategoria/,
+              /^\/pl\/integracje\/strona/,
+            ],
+          },
+        }
+      : {}),
   }),
 })
