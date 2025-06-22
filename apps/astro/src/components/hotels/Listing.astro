@@ -526,14 +526,16 @@ const shouldDisableFilters = totalItems === 0
         />
       </div>
 
-      <Button className="apply-filters" type="button" theme="primary" shade="dark" disabled>{t.apply}</Button>
-      {
-        hasActiveFilters && (
-          <Button className="clear-filters" type="button" theme="secondary">
-            {t.clear}
-          </Button>
-        )
-      }
+      <div class="filters-actions">
+        <Button className="apply-filters" type="button" theme="primary" shade="dark" disabled>{t.apply}</Button>
+        {
+          hasActiveFilters && (
+            <Button className="clear-filters" type="button" theme="secondary">
+              {t.clear}
+            </Button>
+          )
+        }
+      </div>
     </div>
     <div class="box">
       <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
@@ -684,6 +686,7 @@ const shouldDisableFilters = totalItems === 0
           width: 100%;
           display: flex;
           flex-direction: column;
+          position: relative;
 
           .sidebar-header {
             display: none;
@@ -744,7 +747,8 @@ const shouldDisableFilters = totalItems === 0
             display: flex;
             flex-direction: column;
             background-color: var(--neutral-100);
-            border-radius: 0 0 0.5rem 0.5rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            // padding-bottom: 5rem;
             :global(.stars-row) {
               display: flex;
               align-items: center;
@@ -757,18 +761,32 @@ const shouldDisableFilters = totalItems === 0
             }
           }
 
-          :global(> button) {
+          .filters-actions {
+            position: sticky;
+            bottom: 0;
+            background-color: var(--neutral-100);
+            border-radius: 0 0 0.5rem 0.5rem;
+            padding: 1rem;
+            border-top: 1px solid var(--neutral-300, #e8ddd1);
+            display: none; // Initially hidden, shown by JavaScript when needed
+            flex-direction: column;
+            gap: 0.5rem;
+            // box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+          }
+
+          :global(button) {
             max-width: 100%;
             width: 100%;
 
             &[data-theme='secondary'] {
               display: flex;
               justify-content: center;
-              margin-top: 0.5rem;
+              margin-top: 0;
             }
 
             &[data-theme='primary'] {
-              margin-top: 1rem;
+              margin-top: 0;
               display: none;
               :global(span) {
                 margin: 0 auto;
@@ -776,6 +794,10 @@ const shouldDisableFilters = totalItems === 0
               }
             }
           }
+        }
+
+        :global(> button) {
+          display: none;
         }
 
         .box {
@@ -948,13 +970,20 @@ const shouldDisableFilters = totalItems === 0
               display: flex;
               flex-direction: column;
               height: max-content;
-              border-radius: 0.5rem;
-
+              border-radius: 0.5rem 0.5rem 0 0;
               flex: 1;
+              padding-bottom: 0;
 
               :global(> details) {
                 flex-shrink: 0 !important;
               }
+            }
+
+            .filters-actions {
+              position: sticky;
+              bottom: 0;
+              z-index: 10;
+              // margin: 0 -0.75rem 0 0;
             }
 
             .sidebar-header {
@@ -1205,6 +1234,29 @@ const shouldDisableFilters = totalItems === 0
       }
     }
 
+    // Update filters-actions container visibility based on button visibility
+    function updateFiltersActionsVisibility() {
+      const filtersActions = document.querySelector<HTMLElement>('.filters-actions')
+      const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')
+      const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')
+
+      if (!filtersActions) return
+
+      // Check if apply button is visible using computed styles
+      const applyVisible = applyButton && window.getComputedStyle(applyButton).display !== 'none'
+
+      // Check if clear button exists (it's conditionally rendered by Astro)
+      // If it exists in the DOM, it means hasActiveFilters was true server-side
+      const clearVisible = !!clearButton
+
+      // Show container only if at least one button is visible
+      if (applyVisible || clearVisible) {
+        filtersActions.style.display = 'flex'
+      } else {
+        filtersActions.style.display = 'none'
+      }
+    }
+
     // Compare current state with initial state to detect changes
     function checkFiltersChanged() {
       let changed = false
@@ -1264,6 +1316,9 @@ const shouldDisableFilters = totalItems === 0
       } else {
         applyButton.style.display = 'none'
       }
+
+      // Update filters-actions container visibility
+      updateFiltersActionsVisibility()
 
       return changed
     }
@@ -1482,6 +1537,9 @@ const shouldDisableFilters = totalItems === 0
 
       // Then setup all the listeners
       setupFilterListeners()
+
+      // Initialize filters-actions container visibility
+      updateFiltersActionsVisibility()
     })
 
     // Toggle filter sidebar
