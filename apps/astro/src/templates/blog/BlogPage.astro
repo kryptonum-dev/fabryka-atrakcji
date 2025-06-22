@@ -127,11 +127,11 @@ console.log(totalPages)
 const translation = {
   pl: {
     page: 'Strona',
-    prefix: '/pl/blog/',
+    prefix: '/pl/blog',
   },
   en: {
     page: 'Page',
-    prefix: '/en/blog/',
+    prefix: '/en/blog',
   },
 } as const
 
@@ -146,8 +146,8 @@ const metadata = {
 }
 const getPaginationUrl = (page: number) => {
   if (lang === 'pl')
-    return currentCategory ? `${t.prefix}/kategoria/${currentCategory}/strona/${page}` : `${t.prefix}/strona/${page}`
-  return currentCategory ? `${t.prefix}/kategoria/${currentCategory}/strona/${page}` : `${t.prefix}/page/${page}`
+    return currentCategory ? `${t.prefix}/kategoria/${currentCategory}/strona/${page}/` : `${t.prefix}/strona/${page}/`
+  return currentCategory ? `${t.prefix}/kategoria/${currentCategory}/strona/${page}/` : `${t.prefix}/page/${page}/`
 }
 
 const breadcrumbs = [
