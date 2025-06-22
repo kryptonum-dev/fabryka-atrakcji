@@ -1321,7 +1321,7 @@ const getActivitiesCount = () => {
   const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
 
   applyButton.addEventListener('click', () => {
-    const url = new URL(window.location.href.split('/').slice(0, 7).join('/'))
+    const url = new URL(window.location.href.split('/').slice(0, 7).join('/') + '/')
     const params = url.searchParams
 
     // Store the current price values before clearing
