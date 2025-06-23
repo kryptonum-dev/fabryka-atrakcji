@@ -50,7 +50,21 @@ const quoteTemplate = ({
   items: any[]
   newsletter: boolean
 }) => {
-  const datesHtml = selectedDates.map((date) => `<p>• ${formatDate(date.start)} - ${formatDate(date.end)}</p>`).join('')
+  const datesHtml = selectedDates
+    .map((date) => {
+      // Check if it's a single day selection (start and end are the same or end is invalid)
+      const startDate = new Date(date.start)
+      const endDate = new Date(date.end)
+      const isSingleDay =
+        startDate.getTime() === endDate.getTime() || isNaN(endDate.getTime()) || endDate.getFullYear() < 2000 // Handle invalid dates like epoch time
+
+      if (isSingleDay) {
+        return `<p>• ${formatDate(date.start)}</p>`
+      } else {
+        return `<p>• ${formatDate(date.start)} - ${formatDate(date.end)}</p>`
+      }
+    })
+    .join('')
 
   // Format items (hotels, activities, extras)
   const itemsHtml = items

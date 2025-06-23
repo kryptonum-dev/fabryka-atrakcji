@@ -71,6 +71,20 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'overwriteActivityPageComponents',
+      type: 'boolean',
+      title: 'Zastąp komponenty strony integracji',
+      description:
+        'Jeśli zaznaczone, komponenty kategorii zastąpią całkowicie komponenty ze strony integracji. Jeśli niezaznaczone, komponenty kategorii zostaną dodane na końcu po komponentach strony integracji.',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'components',
+      type: 'components',
+      title: 'Komponenty podstrony (opcjonalne)',
+      description: 'Komponenty dodatkowe dla tej kategorii. Ich zachowanie zależy od ustawienia powyżej.',
+    }),
+    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',

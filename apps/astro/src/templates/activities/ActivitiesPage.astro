@@ -40,6 +40,8 @@ export async function fetchData(
         description: {
           long: string
         }
+        overwriteActivityPageComponents?: boolean
+        components?: ComponentsProps
       }
       components: ComponentsProps
     } & ListingProps
@@ -56,6 +58,8 @@ export async function fetchData(
           description{
             long,
           },
+          overwriteActivityPageComponents,
+          ${Components_Query}
         },
         ${Listing_Query(orderClause)}
         ${Components_Query}
@@ -162,6 +166,26 @@ const breadcrumbs = [
   ...(page?.selectedCategory ? [{ name: page.selectedCategory.name, path: page.selectedCategory.slug }] : []),
   ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
+
+// Determine which components to use based on the category settings
+const componentsToRender = (() => {
+  const categoryComponents = page.selectedCategory?.components || []
+  const activityPageComponents = page.components || []
+
+  // If category has no components, always use activity page components
+  if (categoryComponents.length === 0) {
+    return activityPageComponents
+  }
+
+  // If category has components and overwrite is explicitly enabled (true), use only category components
+  if (page.selectedCategory?.overwriteActivityPageComponents === true) {
+    return categoryComponents
+  }
+
+  // Default behavior: append category components after activity page components
+  // This handles cases where overwriteActivityPageComponents is false, null, or undefined
+  return [...activityPageComponents, ...categoryComponents]
+})()
 ---
 
 <Layout {...metadata}>
@@ -184,7 +208,7 @@ const breadcrumbs = [
     priceRange={page.priceRange}
     noResults={page.noResults}
   />
-  <Components data={page.listing.length > 0 ? page.components : page.noResults.components} hasPreviousSections />
+  <Components data={page.listing.length > 0 ? componentsToRender : page.noResults.components} hasPreviousSections />
 </Layout>
 
 <script>
