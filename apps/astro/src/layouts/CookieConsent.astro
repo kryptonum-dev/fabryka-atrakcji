@@ -13,17 +13,20 @@ const lang = getLangFromPath(Astro.url.pathname)
 
 const {
   GTM_ID,
-  Measurement_ID: MEASUREMENT_ID,
+  GA4_ID,
+  GADS_ID,
   privacyPolicySlug,
 } = await sanityFetch<{
   GTM_ID: string
-  Measurement_ID: string
+  GA4_ID: string
+  GADS_ID: string
   privacyPolicySlug: string
 }>({
   query: `
     {
       "GTM_ID": *[_type == "global" && language == $language][0].analytics.gtm_id,
-      "Measurement_ID": *[_type == "global" && language == $language][0].analytics.measurement_id,
+      "GA4_ID": *[_type == "global" && language == $language][0].analytics.ga4_id,
+      "GADS_ID": *[_type == "global" && language == $language][0].analytics.googleAds_id,
       "privacyPolicySlug": *[_type == "PrivacyPolicy_Page" && language == $language][0].slug.current
     }
   `,
@@ -521,16 +524,13 @@ const groups = [
   }
 </style>
 
-<script is:inline define:vars={{ GTM_ID, MEASUREMENT_ID }}>
+<script is:inline define:vars={{ GTM_ID, GA4_ID, GADS_ID }}>
   window.dataLayer = window.dataLayer || []
   window.gtag = function () {
     window.dataLayer.push(arguments)
   }
-  gtag('config', MEASUREMENT_ID, {
-    send_page_view: true,
-    transport_type: 'beacon',
-    groups: 'default',
-  })
+  gtag('config', GA4_ID);
+  gtag('config', GADS_ID);
 
   function getCookie(name) {
     const cookies = document.cookie.split(';').map((cookie) => cookie.trim())
