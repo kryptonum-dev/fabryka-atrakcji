@@ -135,11 +135,18 @@ export default defineType({
             }),
         }),
         defineField({
-          name: 'measurement_id',
+          name: 'ga4_id',
           type: 'string',
           title: 'Google Analytics Measurement ID',
           description: 'Format: G-XXXXXXXXXX. Używane do śledzenia Google Analytics.',
           validation: (Rule) => Rule.required().error('Google Analytics Measurement ID jest wymagane'),
+        }),
+         defineField({
+          name: 'googleAds_id',
+          type: 'string',
+          title: 'Google Ads Conversion ID',
+          description: 'Format: AW-XXXXXXXXX. Używane do śledzenia konwersji i remarketingu w Google Ads.',
+          validation: (Rule) => Rule.required().error('Google Ads Conversion ID jest wymagane'),
         }),
         defineField({
           name: 'meta_pixel_id',
