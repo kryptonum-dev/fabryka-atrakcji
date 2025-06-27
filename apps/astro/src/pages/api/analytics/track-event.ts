@@ -84,7 +84,6 @@ export async function trackEvent({ user_data, meta, ga }: Props) {
     try {
       window.gtag('event', ga.event_name, {
         ...(ga.params || {}),
-        send_to: 'G-344E26ZD3G',
       })
     } catch (e) {
       console.warn(`Failed to track GA4 event "${ga.event_name}"`, e)
