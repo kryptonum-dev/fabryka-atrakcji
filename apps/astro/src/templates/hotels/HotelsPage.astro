@@ -107,9 +107,20 @@ const translation = {
       newest: 'Od najnowszych',
     },
   },
+  en: {
+    pageUpper: 'Page',
+    pageLower: 'page',
+    prefix: '/en/hotels',
+    sort: {
+      popularity: 'Most popular',
+      priceDesc: 'Price: highest first',
+      priceAsc: 'Price: lowest first',
+      newest: 'Newest first',
+    },
+  },
 } as const
 
-const t = translation[lang]
+const t = translation[lang as keyof typeof translation]
 const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
 
 const metadata = {

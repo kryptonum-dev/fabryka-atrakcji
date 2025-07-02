@@ -11,12 +11,7 @@ if (isPreviewDeployment) return null
 
 const lang = getLangFromPath(Astro.url.pathname)
 
-const {
-  GTM_ID,
-  GA4_ID,
-  GADS_ID,
-  privacyPolicySlug,
-} = await sanityFetch<{
+const { GTM_ID, GA4_ID, GADS_ID, privacyPolicySlug } = await sanityFetch<{
   GTM_ID: string
   GA4_ID: string
   GADS_ID: string
@@ -39,44 +34,44 @@ const translations = {
     necessary: {
       name: 'Niezbędne',
       description:
-        'Te pliki cookie są konieczne do działania strony i nie mogą być wyłączone. Umożliwiają podstawowe funkcje, takie jak nawigacja, dostęp do zabezpieczonych obszarów oraz prawidłowe działanie formularzy. Są niezbędne do zapewnienia funkcjonalności i bezpieczeństwa strony zgodnie z wymogami RODO.',
+        'Te pliki cookie są niezbędne do działania strony internetowej i nie można ich wyłączyć w naszych systemach. Zazwyczaj są ustawiane tylko w odpowiedzi na działania użytkownika, które są równoznaczne z żądaniem usług, takich jak ustawienie preferencji prywatności, logowanie lub wypełnianie formularzy.',
     },
     analytics: {
       name: 'Analityczne',
       description:
-        'Pomagają nam zrozumieć, jak korzystasz z naszej strony, zbierając anonimowe dane o interakcjach, czasie spędzonym na stronie i odwiedzanych podstronach. Dzięki nim możemy identyfikować problemy, ulepszać strukturę i zawartość witryny oraz optymalizować doświadczenie użytkownika. Dane są przetwarzane w formie zagregowanej i pseudonimizowanej.',
+        'Te pliki cookie pozwalają nam liczyć wizyty i źródła ruchu, abyśmy mogli mierzyć i poprawić wydajność naszej strony. Pomagają nam one dowiedzieć się, które strony są najbardziej i najmniej popularne oraz zobaczyć, jak odwiedzający poruszają się po stronie.',
     },
     preferences: {
       name: 'Preferencyjne',
       description:
-        'Zapamiętują Twoje indywidualne wybory i ustawienia (np. preferowany język, rozmiar czcionki, układ strony) podczas Twojej sesji oraz między wizytami, aby dostosować wygląd i działanie strony do Twoich potrzeb. Zwiększają wygodę korzystania z witryny, eliminując potrzebę ponownego wprowadzania tych samych informacji.',
+        'Te pliki cookie umożliwiają stronie internetowej zapamiętanie wyborów dokonanych przez użytkownika (takich jak nazwa użytkownika, język lub region, w którym się znajduje) i zapewnienie ulepszonych, bardziej spersonalizowanych funkcji.',
     },
     marketing: {
       name: 'Marketingowe',
       description:
-        'Służą do śledzenia Twoich aktywności na naszej stronie i innych witrynach, aby tworzyć profile zainteresowań i wyświetlać Ci bardziej trafne i spersonalizowane reklamy. Przetwarzanie tych danych odbywa się wyłącznie za Twoją zgodą, zgodnie z przepisami RODO, i może być w każdej chwili wycofane.',
+        'Te pliki cookie mogą być ustawiane przez naszą stronę internetową przez naszych partnerów reklamowych. Mogą być one wykorzystywane przez te firmy do tworzenia profilu Twoich zainteresowań i pokazywania odpowiednich reklam na innych stronach.',
     },
     conversion_api: {
-      name: 'API Konwersji',
+      name: 'Conversion API',
       description:
-        'Przesyła dane o Twoich działaniach bezpośrednio do platform reklamowych (takich jak Meta, LinkedIn, itp.), aby mierzyć skuteczność reklam zgodnie z RODO. Pozwala to na dokładniejsze śledzenie konwersji i optymalizację kampanii reklamowych.',
+        'Pozwala na przesyłanie danych o konwersjach bezpośrednio do platform reklamowych, co umożliwia lepsze śledzenie skuteczności reklam.',
     },
     advanced_matching: {
-      name: 'Zaawansowane Dopasowanie',
+      name: 'Zaawansowane dopasowanie',
       description:
-        'Umożliwia platformom reklamowym (takim jak Meta, LinkedIn, itp.) lepsze dopasowanie Twoich działań na stronie do Twojego profilu, co zwiększa trafność wyświetlanych reklam. Mechanizm ten działa w zgodzie z przepisami RODO, przetwarzając dane tylko za Twoją wyraźną zgodą.',
+        'Wykorzystuje dodatkowe informacje o użytkowniku do lepszego dopasowania reklam i mierzenia ich skuteczności.',
     },
     headerInitial: {
-      heading: 'Korzystając ze strony zgadzasz się na użycie ciasteczek',
+      heading: 'Szanujemy Twoją prywatność',
       description: {
-        text: 'Korzystamy z cookie podobnych technologii, by analizować ruch na stronie, dopasować ją do Ciebie i wyświetlać trafniejsze reklamy.',
+        text: 'Używamy plików cookie, aby zapewnić najlepsze wrażenia z użytkowania. Możesz zaakceptować wszystkie lub dostosować ustawienia do swoich preferencji.',
         linkText: 'Dowiedz się więcej',
       },
     },
     headerSettings: {
-      heading: 'Ustawienia cookies',
+      heading: 'Ustawienia prywatności',
       description: {
-        text: 'Korzystając ze strony zgadzasz się na użycie tych ciasteczek.',
+        text: 'Wybierz rodzaje plików cookie, które chcesz zaakceptować. Twoje wybory nie będą miały wpływu na Twoją wizytę.',
         linkText: 'Dowiedz się więcej',
       },
     },
@@ -86,9 +81,9 @@ const translations = {
       agree: 'Zgoda na wszystkie',
     },
   },
-}
+} as const
 
-const t = translations[lang]
+const t = translations[lang as keyof typeof translations]
 
 const privacyPolicyUrl = `${DOMAIN}${privacyPolicySlug.slice(1)}`
 
@@ -529,8 +524,8 @@ const groups = [
   window.gtag = function () {
     window.dataLayer.push(arguments)
   }
-  gtag('config', GA4_ID);
-  gtag('config', GADS_ID);
+  gtag('config', GA4_ID)
+  gtag('config', GADS_ID)
 
   function getCookie(name) {
     const cookies = document.cookie.split(';').map((cookie) => cookie.trim())
