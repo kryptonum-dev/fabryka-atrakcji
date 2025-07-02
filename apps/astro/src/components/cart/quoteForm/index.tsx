@@ -115,7 +115,7 @@ export default function QuoteForm({
             },
             body: JSON.stringify({
               email: data.email,
-              legal: data.legal, // Reuse the legal acceptance
+              legal: data.legal,
               group_id: mailerliteGroupId,
             }),
           })
@@ -174,11 +174,15 @@ export default function QuoteForm({
       <Input label={translations.additionalInfo} register={register('additionalInfo')} errors={errors} isTextarea />
       <Checkbox
         register={register('legal', {
-          required: { value: true, message: translations.legalRequired },
+          required: { value: true, message: translations.combinedRequired },
         })}
         errors={errors}
       >
-        {translations.privacyPolicy}{' '}
+        {translations.combined}{' '}
+        <a href={translations.termsUrl} className="link" data-shade="light" target="_blank">
+          {translations.termsSecond}
+        </a>{' '}
+        {translations.combinedMiddle}{' '}
         <a href={translations.privacyPolicyUrl} className="link" data-shade="light" target="_blank">
           {translations.privacyPolicySecond}
         </a>

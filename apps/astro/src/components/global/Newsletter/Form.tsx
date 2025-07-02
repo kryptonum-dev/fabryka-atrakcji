@@ -41,6 +41,7 @@ export default function Form({
   const onSubmit = async (data: FieldValues) => {
     updateStatus({ sending: true, success: undefined })
     data.group_id = groupId
+
     try {
       const response = await fetch('/api/newsletter', {
         method: 'POST',
@@ -107,20 +108,31 @@ export default function Form({
         aria-hidden={isFilled}
         disabled={isFilled}
         register={register('legal', {
-          required: { value: true, message: t.form.legal.required },
+          required: { value: true, message: t.form.combined.required },
         })}
         errors={errors}
       >
-        {t.form.legal.labelFirst}{' '}
+        {t.form.combined.labelFirst}{' '}
         <a
-          href={t.form.legal.link}
+          href={t.form.combined.termsLink}
           target="_blank"
           rel="noopener noreferrer"
           className="link"
           data-shade="light"
           tabIndex={isFilled ? -1 : 0}
         >
-          {t.form.legal.labelSecond}
+          {t.form.combined.labelSecond}
+        </a>{' '}
+        {t.form.combined.labelMiddle}{' '}
+        <a
+          href={t.form.combined.privacyLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="link"
+          data-shade="light"
+          tabIndex={isFilled ? -1 : 0}
+        >
+          {t.form.combined.labelThird}
         </a>
       </Checkbox>
       <Button type="submit" disabled={isFilled}>
