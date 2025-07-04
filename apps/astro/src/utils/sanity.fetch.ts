@@ -13,7 +13,7 @@ export const client = createClient({
   projectId: PROJECT_ID,
   dataset: DATASET,
   apiVersion: API_VERSION,
-  useCdn: false,
+  useCdn: true,
   perspective: isPreviewDeployment ? 'drafts' : 'published',
   token: SANITY_API_TOKEN,
 })
