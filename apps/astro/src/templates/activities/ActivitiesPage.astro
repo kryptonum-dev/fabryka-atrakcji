@@ -1,6 +1,6 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
-import sanityFetch from '@/utils/sanity.fetch'
+import { sanityFetchWithCdn } from '@/utils/sanity.fetch'
 import metadataFetch from '@/utils/metadata.fetch'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
@@ -29,7 +29,7 @@ export async function fetchData(
   const filters = parseFilters(searchParams || new URLSearchParams())
   const orderClause = getOrderClause(filters.order)
 
-  const page = await sanityFetch<
+  const page = await sanityFetchWithCdn<
     {
       name: string
       slug: string
@@ -86,7 +86,7 @@ export async function fetchData(
 }
 
 export async function staticPathsCategory(lang: Language) {
-  const categories = await sanityFetch<{ lang: Language; slug: string }[]>({
+  const categories = await sanityFetchWithCdn<{ lang: Language; slug: string }[]>({
     query: `
       *[_type == "ActivitiesCategory_Collection" && language == $language][] {
         "lang": language,
@@ -104,7 +104,7 @@ export async function staticPathsCategory(lang: Language) {
 }
 
 export async function staticPathsCategoryPage(lang: Language) {
-  const categories = await sanityFetch<{ lang: Language; slug: string; postCount: number }[]>({
+  const categories = await sanityFetchWithCdn<{ lang: Language; slug: string; postCount: number }[]>({
     query: `
       *[_type == 'ActivitiesCategory_Collection' && language == $language][] {
         "slug": slug.current,

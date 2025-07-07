@@ -1,6 +1,6 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
-import sanityFetch from '@/utils/sanity.fetch'
+import { sanityFetchWithCdn } from '@/utils/sanity.fetch'
 import metadataFetch from '@/utils/metadata.fetch'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
@@ -84,7 +84,7 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
 
   const data = searchQuery ? await fetchEmbeddings(searchQuery, 'activities', url) : null
 
-  const page = await sanityFetch<SearchPageProps | RegularPageProps>({
+  const page = await sanityFetchWithCdn<SearchPageProps | RegularPageProps>({
     query: `
       *[_type == "Activities_Page" && language == $language][0] {
         name,
@@ -134,7 +134,7 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
 }
 
 export async function staticPaths(lang: Language) {
-  const pages = await sanityFetch<number>({
+  const pages = await sanityFetchWithCdn<number>({
     query: `count(*[_type == "ActivitiesCategory_Collection" && language == $language])`,
     params: { language: lang },
   })

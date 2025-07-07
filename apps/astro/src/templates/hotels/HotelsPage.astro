@@ -1,6 +1,6 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
-import sanityFetch from '@/utils/sanity.fetch'
+import { sanityFetchWithCdn } from '@/utils/sanity.fetch'
 import metadataFetch from '@/utils/metadata.fetch'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
@@ -32,7 +32,7 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
 
   // Get all hotel filters
 
-  const page = await sanityFetch<
+  const page = await sanityFetchWithCdn<
     {
       name: string
       slug: string
@@ -80,7 +80,7 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
 }
 
 export async function staticPaths(lang: Language) {
-  const totalHotels = await sanityFetch<number>({
+  const totalHotels = await sanityFetchWithCdn<number>({
     query: `count(*[_type == "Hotels_Collection" && language == $language])`,
     params: { language: lang },
   })
