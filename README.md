@@ -13,7 +13,7 @@ The official website for Fabryka Atrakcji – a creative event agency specializi
 - **[SCSS](https://sass-lang.com)**: Advanced styling with modular architecture
 - **[Preact](https://preactjs.com)**: Lightweight alternative to React, used with react-hook-form
 - **[Bun](https://bun.sh)**: Modern JavaScript runtime and package manager
-- **[Google Tag Manager](https://tagmanager.google.com/)**: Golden sdandard tool for analytics
+- **[Google Tag Manager](https://tagmanager.google.com/)**: Golden standard tool for analytics
 
 ## Project Structure
 
