@@ -175,7 +175,6 @@ export default defineType({
         },
       ],
       group: 'general',
-      hidden: ({ document }) => !!(document as any)?.mediaList?.length,
     }),
     defineField({
       name: 'categories',
