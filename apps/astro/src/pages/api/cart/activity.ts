@@ -30,7 +30,10 @@ export const GET: APIRoute = async ({ request }) => {
           "slug": slug.current,
           ${PortableTextQuery('title')}
           description,
-          ${ImageDataQuery('imageList[0]')}
+          "previewImage": coalesce(
+            ${ImageDataQuery('mediaList[0].image')}
+            ${ImageDataQuery('imageList[0]')}
+          ),
           pricing,
           participantsCount,
           location{

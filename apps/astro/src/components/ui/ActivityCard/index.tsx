@@ -5,7 +5,10 @@ import styles from './styles.module.scss'
 export const ActivityCardQuery = `
   name,
   _id,
-  ${ImageDataQuery('imageList[]')}
+  "previewImage": coalesce(
+    ${ImageDataQuery('mediaList[0].image')}
+    ${ImageDataQuery('imageList[0]')}
+  ),
   description,
     participantsCount{
       min,
@@ -21,7 +24,7 @@ export const ActivityCardQuery = `
 export type ActivityCardProps = {
   name: string
   _id: string
-  imageList: ImageDataProps[]
+  previewImage: ImageDataProps
   description?: string
   participantsCount: {
     min: number
