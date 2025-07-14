@@ -1321,16 +1321,36 @@ const getActivitiesCount = () => {
   const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
 
   applyButton.addEventListener('click', () => {
-    const url = new URL(window.location.href.split('/').slice(0, 7).join('/') + '/')
-    const params = url.searchParams
+    const currentPath = window.location.pathname
+    // Preserve existing search parameters (like search, order, etc.)
+    const params = new URLSearchParams(window.location.search)
 
-    // Store the current price values before clearing
+    // Build the filtered URL with /filtr/ segment (avoid double /filtr/, always go to page 1)
+    let basePath = currentPath
+
+    // Remove /filtr if already present
+    if (basePath.includes('/filtr')) {
+      basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+    }
+
+    // Remove /strona/X/ to always go back to first page when applying filters
+    if (basePath.includes('/strona/')) {
+      basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+    }
+
+    // Ensure proper trailing slash and add /filtr/
+    if (!basePath.endsWith('/')) {
+      basePath += '/'
+    }
+    const filterPath = basePath + 'filtr/'
+
+    // Store the current price values before clearing filter params
     const currentMinPrice = params.get('minPrice')
     const currentMaxPrice = params.get('maxPrice')
     const currentDuration = params.get('duration')
 
-    // Clear existing filter params
-    ;['minParticipants', 'maxParticipants', 'activityType', 'duration'].forEach((param) => {
+    // Clear existing filter parameters (but preserve search, order, etc.)
+    ;['minParticipants', 'maxParticipants', 'activityType', 'duration', 'minPrice', 'maxPrice'].forEach((param) => {
       params.delete(param)
     })
 
@@ -1357,10 +1377,6 @@ const getActivitiesCount = () => {
     // Handle price range filter
     const priceRangeFilter = document.querySelector<HTMLDetailsElement>('.price-range-filter')
     const isPriceFilterDisabled = priceRangeFilter && priceRangeFilter.dataset.disabled === 'true'
-
-    // Clear price params
-    params.delete('minPrice')
-    params.delete('maxPrice')
 
     if (!isPriceFilterDisabled) {
       // If price filter is enabled, use the new values from filterState
@@ -1395,7 +1411,8 @@ const getActivitiesCount = () => {
     }
 
     // Redirect to filtered URL
-    window.location.href = url.toString()
+    const finalUrl = params.toString() ? `${filterPath}?${params.toString()}` : filterPath
+    window.location.href = finalUrl
   })
 
   // Update filter UI based on current state

@@ -40,6 +40,55 @@ const t = translations[lang]
   </div>
 </form>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchForm = document.querySelector('.SearchBar') as HTMLFormElement
+
+    if (searchForm) {
+      searchForm.addEventListener('submit', (e) => {
+        const formData = new FormData(searchForm)
+        const searchValue = formData.get('search') as string
+
+        // Only redirect to /filtr if there's actually a search value
+        if (searchValue && searchValue.trim()) {
+          e.preventDefault()
+
+          const currentPath = window.location.pathname
+          let basePath = currentPath
+
+          // Remove /filtr if already present
+          if (basePath.includes('/filtr')) {
+            basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+          }
+
+          // Remove /strona/X/ to always go back to first page when searching
+          if (basePath.includes('/strona/')) {
+            basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+          }
+
+          // Ensure proper trailing slash and add /filtr/
+          if (!basePath.endsWith('/')) {
+            basePath += '/'
+          }
+          const filterPath = basePath + 'filtr/'
+
+          // Preserve existing query parameters and add search
+          const params = new URLSearchParams(window.location.search)
+          params.set('search', searchValue.trim())
+
+          // Reset order to default (search matching) when performing a new search
+          // This ensures search results are ordered by relevance by default
+          params.delete('order')
+
+          const finalUrl = `${filterPath}?${params.toString()}`
+          window.location.href = finalUrl
+        }
+        // If no search value, let the form submit normally (will clear search)
+      })
+    }
+  })
+</script>
+
 <style lang="scss">
   .SearchBar {
     isolation: isolate;

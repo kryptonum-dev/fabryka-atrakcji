@@ -74,7 +74,13 @@ const { listing, currentPage, heading, paragraph, totalItems } = Astro.props
       ))
     }
   </div>
-  <Pagination slugBase={t.pathPrefix} totalItems={totalItems} itemsPerPage={ITEMS_PER_PAGE} currentPage={currentPage} />
+  <Pagination
+    slugBase={t.pathPrefix}
+    totalItems={totalItems}
+    itemsPerPage={ITEMS_PER_PAGE}
+    currentPage={currentPage}
+    searchParams={Astro.url.searchParams}
+  />
 </section>
 
 <style lang="scss">

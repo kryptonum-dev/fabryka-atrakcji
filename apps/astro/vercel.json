@@ -1,27 +1,27 @@
 {
   "rewrites": [
     {
-      "source": "/pl/integracje/kategoria/:category/",
+      "source": "/pl/hotele/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/integracje/kategoria/:category/strona/:page/",
+      "source": "/pl/hotele/strona/:page/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/integracje/strona/:page/",
+      "source": "/pl/integracje/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/hotele/strona/:page/",
+      "source": "/pl/integracje/strona/:page/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/hotele/",
+      "source": "/pl/integracje/kategoria/:category/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/integracje/",
+      "source": "/pl/integracje/kategoria/:category/strona/:page/filtr/",
       "destination": "/_render"
     }
   ]

@@ -577,6 +577,7 @@ const shouldDisableFilters = totalItems === 0
               totalItems={totalItems}
               itemsPerPage={ITEMS_PER_PAGE}
               currentPage={currentPage}
+              searchParams={Astro.url.searchParams}
             />
           </>
         ) : (
@@ -1385,14 +1386,25 @@ const shouldDisableFilters = totalItems === 0
 
       // Clear all button
       clearButton?.addEventListener('click', () => {
-        window.location.href = window.location.pathname
+        // Remove /filtr from path when clearing filters
+        let clearPath = window.location.pathname
+        if (clearPath.includes('/filtr')) {
+          clearPath = clearPath.replace('/filtr/', '/').replace('/filtr', '/')
+        }
+        window.location.href = clearPath
       })
     }
 
     // Apply all filters
     function applyFilters() {
-      const url = new URL(window.location.href)
-      const params = new URLSearchParams()
+      const currentPath = window.location.pathname
+      // Preserve existing search parameters (like search, order, etc.)
+      const params = new URLSearchParams(window.location.search)
+
+      // Clear existing filter parameters (but preserve search, order, etc.)
+      ;['location', 'stars', 'amenities', 'minRooms', 'maxRooms', 'minPrice', 'maxPrice'].forEach((param) => {
+        params.delete(param)
+      })
 
       // Collect all filter values
       document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
@@ -1453,18 +1465,6 @@ const shouldDisableFilters = totalItems === 0
         }
       })
 
-      // Preserve search and order parameters if they exist
-      const currentParams = new URLSearchParams(window.location.search)
-      const searchParam = currentParams.get('search')
-      const orderParam = currentParams.get('order')
-
-      if (searchParam !== null) {
-        params.set('search', searchParam)
-      }
-      if (orderParam !== null) {
-        params.set('order', orderParam)
-      }
-
       // Handle price range filter
       const minPrice = initialFilters.minPrice
       const maxPrice = initialFilters.maxPrice
@@ -1473,9 +1473,28 @@ const shouldDisableFilters = totalItems === 0
         params.set('maxPrice', maxPrice.toString())
       }
 
-      // Update URL and redirect
-      url.search = params.toString()
-      window.location.href = url.toString()
+      // Build the filtered URL with /filtr/ segment (avoid double /filtr/, always go to page 1)
+      let filterPath
+      let basePath = currentPath
+
+      // Remove /filtr if already present
+      if (basePath.includes('/filtr')) {
+        basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+      }
+
+      // Remove /strona/X/ to always go back to first page when applying filters
+      if (basePath.includes('/strona/')) {
+        basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+      }
+
+      // Ensure proper trailing slash and add /filtr/
+      if (!basePath.endsWith('/')) {
+        basePath += '/'
+      }
+      filterPath = basePath + 'filtr/'
+
+      const finalUrl = params.toString() ? `${filterPath}?${params.toString()}` : filterPath
+      window.location.href = finalUrl
     }
 
     window.addEventListener('DOMContentLoaded', () => {

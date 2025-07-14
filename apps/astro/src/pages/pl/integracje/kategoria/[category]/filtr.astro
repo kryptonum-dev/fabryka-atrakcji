@@ -1,12 +1,13 @@
 ---
+export const prerender = false
+
 import ActivitiesListing, { fetchData, staticPathsCategory } from '@/src/templates/activities/ActivitiesPage.astro'
 
 const page = 1
 const category = Astro.params.category as string
-// For ISR caching, ignore search params - category pages should be static
-const data = await fetchData('pl', category, page)
+const data = await fetchData('pl', category, page, Astro.url.searchParams)
 
-console.log('Rendering category page:', category, new Date().toISOString())
+console.log('Rendering filtered category page:', category, new Date().toISOString())
 
 if (!data) return Astro.rewrite('/pl/404')
 
