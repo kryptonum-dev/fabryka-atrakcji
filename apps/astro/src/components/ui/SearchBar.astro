@@ -40,6 +40,43 @@ const t = translations[lang]
   </div>
 </form>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchForm = document.querySelector('.SearchBar') as HTMLFormElement
+
+    if (searchForm) {
+      searchForm.addEventListener('submit', (e) => {
+        const formData = new FormData(searchForm)
+        const searchValue = formData.get('search') as string
+
+        // Only redirect to /filtr if there's actually a search value
+        if (searchValue && searchValue.trim()) {
+          e.preventDefault()
+
+          const currentPath = window.location.pathname
+          let filterPath
+
+          if (currentPath.includes('/strona/')) {
+            // For paginated pages like /pl/hotele/strona/2/ -> /pl/hotele/strona/2/filtr/
+            filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
+          } else {
+            // For base pages like /pl/hotele/ -> /pl/hotele/filtr/
+            filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
+          }
+
+          // Preserve existing query parameters and add search
+          const params = new URLSearchParams(window.location.search)
+          params.set('search', searchValue.trim())
+
+          const finalUrl = `${filterPath}?${params.toString()}`
+          window.location.href = finalUrl
+        }
+        // If no search value, let the form submit normally (will clear search)
+      })
+    }
+  })
+</script>
+
 <style lang="scss">
   .SearchBar {
     isolation: isolate;

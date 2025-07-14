@@ -1385,13 +1385,18 @@ const shouldDisableFilters = totalItems === 0
 
       // Clear all button
       clearButton?.addEventListener('click', () => {
-        window.location.href = window.location.pathname
+        // Remove /filtr from path when clearing filters
+        let clearPath = window.location.pathname
+        if (clearPath.includes('/filtr')) {
+          clearPath = clearPath.replace('/filtr/', '/').replace('/filtr', '/')
+        }
+        window.location.href = clearPath
       })
     }
 
     // Apply all filters
     function applyFilters() {
-      const url = new URL(window.location.href)
+      const currentPath = window.location.pathname
       const params = new URLSearchParams()
 
       // Collect all filter values
@@ -1473,9 +1478,18 @@ const shouldDisableFilters = totalItems === 0
         params.set('maxPrice', maxPrice.toString())
       }
 
-      // Update URL and redirect
-      url.search = params.toString()
-      window.location.href = url.toString()
+      // Build the filtered URL with /filtr/ segment
+      let filterPath
+      if (currentPath.includes('/strona/')) {
+        // For paginated pages like /pl/hotele/strona/2/ -> /pl/hotele/strona/2/filtr/
+        filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
+      } else {
+        // For base pages like /pl/hotele/ -> /pl/hotele/filtr/
+        filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
+      }
+
+      const finalUrl = params.toString() ? `${filterPath}?${params.toString()}` : filterPath
+      window.location.href = finalUrl
     }
 
     window.addEventListener('DOMContentLoaded', () => {
