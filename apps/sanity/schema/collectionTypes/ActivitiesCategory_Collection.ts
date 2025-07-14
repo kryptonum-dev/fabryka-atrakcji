@@ -1,5 +1,6 @@
 import { Handshake } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
+import { orderRankField, orderRankOrdering } from '@sanity/orderable-document-list'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 
 const name = 'ActivitiesCategory_Collection'
@@ -11,7 +12,9 @@ export default defineType({
   type: 'document',
   title,
   icon,
+  orderings: [orderRankOrdering],
   fields: [
+    orderRankField({ type: name }),
     defineField({
       name: 'language',
       type: 'string',

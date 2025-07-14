@@ -1,14 +1,25 @@
 import React from 'react'
-import type { StructureBuilder } from 'sanity/structure'
+import type { StructureBuilder, StructureResolverContext } from 'sanity/structure'
+import { orderableDocumentListDeskItem } from '@sanity/orderable-document-list'
 import { LANGUAGES, getLanguageFlag } from '../structure/languages'
 import { schemaTypes } from '../structure/schema-types'
 import { Preview } from './preview'
 
-export const createCollection = (S: StructureBuilder, name: string) => {
+type Options = {
+  orderable?: boolean
+}
+
+export const createCollection = (
+  S: StructureBuilder,
+  context: StructureResolverContext,
+  name: string,
+  options: Options = {}
+) => {
+  const { orderable = false } = options
   const {
     title,
     icon,
-    options,
+    options: schemaOptions,
     fields = [],
   } = schemaTypes.find((item) => item.name === name) as {
     title: string
@@ -16,7 +27,7 @@ export const createCollection = (S: StructureBuilder, name: string) => {
     options: { documentPreview?: boolean }
     fields?: Array<{ name: string; type: string }>
   }
-  const documentPreview = options?.documentPreview ?? false
+  const documentPreview = schemaOptions?.documentPreview ?? false
   const isInternationalized = fields.some((field) => field.name === 'language')
 
   const views = [
@@ -33,6 +44,42 @@ export const createCollection = (S: StructureBuilder, name: string) => {
         ]
       : []),
   ]
+
+  if (orderable) {
+    if (isInternationalized) {
+      return S.listItem()
+        .id(name)
+        .title(title)
+        .icon(icon)
+        .child(
+          S.list()
+            .title(title)
+            .items(
+              LANGUAGES.map((lang) => {
+                const Flag = lang.flag
+                return orderableDocumentListDeskItem({
+                  type: name,
+                  title: lang.title,
+                  icon: Flag || undefined,
+                  id: `orderable-${name}-${lang.id}`,
+                  filter: 'language == $lang',
+                  params: { lang: lang.id },
+                  S,
+                  context,
+                })
+              })
+            )
+        )
+    }
+
+    return orderableDocumentListDeskItem({
+      type: name,
+      title: title,
+      icon: typeof icon === 'function' ? icon : undefined,
+      S,
+      context,
+    })
+  }
 
   return S.listItem()
     .id(name)

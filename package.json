@@ -23,5 +23,8 @@
   },
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "dependencies": {
+    "@sanity/orderable-document-list": "^1.3.5"
+  }
 }

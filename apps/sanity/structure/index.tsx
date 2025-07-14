@@ -4,13 +4,13 @@ import { createCollection } from '../utils/create-collection'
 import { createSingleton } from '../utils/create-singleton'
 import { PricingSummaryView } from '../views/PricingSummaryView'
 
-export const structure: StructureResolver = (S) =>
+export const structure: StructureResolver = (S, context) =>
   S.list()
     .id('root')
     .title('Content')
     .items([
       createSingleton({ S, name: 'Index_Page' }),
-      createCollection(S, 'Pages_Collection'),
+      createCollection(S, context, 'Pages_Collection'),
       S.divider(),
       S.listItem()
         .title('Integracje')
@@ -20,10 +20,10 @@ export const structure: StructureResolver = (S) =>
             .title('Integracje')
             .items([
               createSingleton({ S, name: 'Activities_Page' }),
-              createCollection(S, 'Activities_Collection'),
-              createCollection(S, 'ActivitiesCategory_Collection'),
+              createCollection(S, context, 'Activities_Collection'),
+              createCollection(S, context, 'ActivitiesCategory_Collection', { orderable: true }),
               S.divider(),
-              createCollection(S, 'ActivitiesType_Collection'),
+              createCollection(S, context, 'ActivitiesType_Collection'),
             ])
         ),
       S.listItem()
@@ -34,10 +34,10 @@ export const structure: StructureResolver = (S) =>
             .title('Hotele')
             .items([
               createSingleton({ S, name: 'Hotels_Page' }),
-              createCollection(S, 'Hotels_Collection'),
+              createCollection(S, context, 'Hotels_Collection'),
               S.divider(),
-              createCollection(S, 'Locations_Collection'),
-              createCollection(S, 'Amenities_Collection'),
+              createCollection(S, context, 'Locations_Collection'),
+              createCollection(S, context, 'Amenities_Collection'),
             ])
         ),
       S.listItem()
@@ -48,8 +48,8 @@ export const structure: StructureResolver = (S) =>
             .title('Realizacje')
             .items([
               createSingleton({ S, name: 'CaseStudy_Page' }),
-              createCollection(S, 'CaseStudy_Collection'),
-              createCollection(S, 'CaseStudyCategory_Collection'),
+              createCollection(S, context, 'CaseStudy_Collection'),
+              createCollection(S, context, 'CaseStudyCategory_Collection'),
             ])
         ),
       S.listItem()
@@ -77,13 +77,13 @@ export const structure: StructureResolver = (S) =>
             .title('Blog')
             .items([
               createSingleton({ S, name: 'Blog_Page' }),
-              createCollection(S, 'BlogPost_Collection'),
-              createCollection(S, 'BlogCategory_Collection'),
-              createCollection(S, 'Author_Collection'),
+              createCollection(S, context, 'BlogPost_Collection'),
+              createCollection(S, context, 'BlogCategory_Collection'),
+              createCollection(S, context, 'Author_Collection'),
             ])
         ),
-      createCollection(S, 'Testimonial_Collection'),
-      createCollection(S, 'Faq_Collection'),
+      createCollection(S, context, 'Testimonial_Collection'),
+      createCollection(S, context, 'Faq_Collection'),
       S.divider(),
       S.listItem()
         .title('Konfiguracja strony')
