@@ -39,9 +39,6 @@ export default defineConfig({
         /^\/api\/.+/,
         /^\/pl\/koszyk/,
         /.*\/filtr.*/, // Exclude any URL containing "/filtr"
-        /^\/pl\/integracje\/?$/,
-        /^\/pl\/integracje\/kategoria/,
-        /^\/pl\/integracje\/strona/,
       ],
     },
   }),

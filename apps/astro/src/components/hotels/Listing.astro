@@ -1398,7 +1398,13 @@ const shouldDisableFilters = totalItems === 0
     // Apply all filters
     function applyFilters() {
       const currentPath = window.location.pathname
-      const params = new URLSearchParams()
+      // Preserve existing search parameters (like search, order, etc.)
+      const params = new URLSearchParams(window.location.search)
+
+      // Clear existing filter parameters (but preserve search, order, etc.)
+      ;['location', 'stars', 'amenities', 'minRooms', 'maxRooms', 'minPrice', 'maxPrice'].forEach((param) => {
+        params.delete(param)
+      })
 
       // Collect all filter values
       document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
@@ -1458,18 +1464,6 @@ const shouldDisableFilters = totalItems === 0
           }
         }
       })
-
-      // Preserve search and order parameters if they exist
-      const currentParams = new URLSearchParams(window.location.search)
-      const searchParam = currentParams.get('search')
-      const orderParam = currentParams.get('order')
-
-      if (searchParam !== null) {
-        params.set('search', searchParam)
-      }
-      if (orderParam !== null) {
-        params.set('order', orderParam)
-      }
 
       // Handle price range filter
       const minPrice = initialFilters.minPrice

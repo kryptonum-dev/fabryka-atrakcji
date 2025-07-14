@@ -76,6 +76,10 @@ const t = translations[lang]
           const params = new URLSearchParams(window.location.search)
           params.set('search', searchValue.trim())
 
+          // Reset order to default (search matching) when performing a new search
+          // This ensures search results are ordered by relevance by default
+          params.delete('order')
+
           const finalUrl = `${filterPath}?${params.toString()}`
           window.location.href = finalUrl
         }

@@ -246,17 +246,66 @@ export const buildFilterUrl = (params: {
 
   const queryString = newParams.toString()
 
-  // Handle new /filtr URL structure for hotels
+  // Check if we have any filters at all (including existing ones not being modified)
+  const hasAnyFilters =
+    newParams.has('minParticipants') ||
+    newParams.has('maxParticipants') ||
+    newParams.has('activityType') ||
+    newParams.has('duration') ||
+    newParams.has('order') ||
+    newParams.has('minPrice') ||
+    newParams.has('maxPrice') ||
+    newParams.has('search') ||
+    // Hotel specific filters
+    newParams.has('location') ||
+    newParams.has('amenities') ||
+    newParams.has('stars') ||
+    newParams.has('minRooms') ||
+    newParams.has('maxRooms')
+
+  // If we're on a /filtr/ page but have no filters, redirect to static page
+  if (params.currentPath.includes('/filtr') && !hasAnyFilters) {
+    let staticPath = params.currentPath
+
+    // Remove /filtr/ segment to get back to static page
+    staticPath = staticPath.replace('/filtr/', '/').replace('/filtr', '/')
+
+    // Remove /strona/X/ to go back to first page
+    if (staticPath.includes('/strona/')) {
+      staticPath = staticPath.replace(/\/strona\/\d+\/?/, '/')
+    }
+
+    // Ensure proper trailing slash
+    if (!staticPath.endsWith('/')) {
+      staticPath += '/'
+    }
+
+    return staticPath
+  }
+
+  // Enhanced handling for /filtr/ URL structure (hotels and activities categories)
   if (params.currentPath.includes('/filtr')) {
-    // Already on a filtered page, preserve the full path
-    return `${params.currentPath}${queryString ? `?${queryString}` : ''}`
+    // Already on a filtered page, but reset to page 1 when filters change
+    let filteredPath = params.currentPath
+
+    // Remove /strona/X/ to always go back to first page when filters change
+    if (filteredPath.includes('/strona/')) {
+      filteredPath = filteredPath.replace(/\/strona\/\d+\/?/, '/')
+    }
+
+    // Ensure proper trailing slash before /filtr/
+    if (filteredPath.endsWith('/filtr')) {
+      filteredPath = filteredPath.replace('/filtr', '/filtr/')
+    }
+
+    return `${filteredPath}${queryString ? `?${queryString}` : ''}`
   } else {
-    // On static page, but sort order changes should redirect to /filtr
-    if (params.order) {
-      // If we're setting an order, we need to redirect to the /filtr version
+    // On static page, but filter/sort changes should redirect to /filtr
+    if (hasAnyFilters) {
+      // Any filter or sort change should redirect to the /filtr version
       let basePath = params.currentPath
 
-      // Remove /strona/X/ to go back to first page when changing sort
+      // Remove /strona/X/ to go back to first page when applying filters
       if (basePath.includes('/strona/')) {
         basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
       }
@@ -269,11 +318,23 @@ export const buildFilterUrl = (params: {
 
       return `${filterPath}${queryString ? `?${queryString}` : ''}`
     } else {
-      // No order specified, use original logic for backward compatibility
-      return `${params.currentPath
-        .split('/')
-        .slice(0, params.currentPath.includes('kategoria') ? 5 : 3)
-        .join('/')}/${queryString ? `?${queryString}` : ''}`
+      // No filters specified, use enhanced path slicing for categories
+      const pathSegments = params.currentPath.split('/')
+      let targetSegments
+
+      if (params.currentPath.includes('/kategoria/')) {
+        // For category pages: /pl/integracje/kategoria/dla-grup/
+        // Keep segments up to category name (index 4)
+        targetSegments = pathSegments.slice(0, 5)
+      } else if (params.currentPath.includes('/hotele/')) {
+        // For hotel pages: /pl/hotele/
+        targetSegments = pathSegments.slice(0, 3)
+      } else {
+        // For base activities pages: /pl/integracje/
+        targetSegments = pathSegments.slice(0, 3)
+      }
+
+      return `${targetSegments.join('/')}/${queryString ? `?${queryString}` : ''}`
     }
   }
 }

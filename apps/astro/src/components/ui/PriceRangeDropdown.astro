@@ -827,10 +827,34 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
     applyButton.addEventListener('click', () => {
       if (!validateInputs()) return
 
-      const url = new URL(window.location.href.split('/').slice(0, 7).join('/') + '/')
-      url.searchParams.set('minPrice', Math.floor(parseFloat(minInput.value)).toString())
-      url.searchParams.set('maxPrice', Math.floor(parseFloat(maxInput.value)).toString())
-      window.location.href = url.toString()
+      const currentPath = window.location.pathname
+      const params = new URLSearchParams(window.location.search)
+
+      // Build the filtered URL with /filtr/ segment (avoid double /filtr/, always go to page 1)
+      let basePath = currentPath
+
+      // Remove /filtr if already present
+      if (basePath.includes('/filtr')) {
+        basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+      }
+
+      // Remove /strona/X/ to always go back to first page when applying filters
+      if (basePath.includes('/strona/')) {
+        basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+      }
+
+      // Ensure proper trailing slash and add /filtr/
+      if (!basePath.endsWith('/')) {
+        basePath += '/'
+      }
+      const filterPath = basePath + 'filtr/'
+
+      // Set price parameters
+      params.set('minPrice', Math.floor(parseFloat(minInput.value)).toString())
+      params.set('maxPrice', Math.floor(parseFloat(maxInput.value)).toString())
+
+      const finalUrl = `${filterPath}?${params.toString()}`
+      window.location.href = finalUrl
     })
 
     // Prevent dropdown toggle when clicking the selected value

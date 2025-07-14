@@ -9,19 +9,19 @@
       "destination": "/_render"
     },
     {
-      "source": "/pl/integracje/kategoria/:category/",
+      "source": "/pl/integracje/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/integracje/kategoria/:category/strona/:page/",
+      "source": "/pl/integracje/strona/:page/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/integracje/strona/:page/",
+      "source": "/pl/integracje/kategoria/:category/filtr/",
       "destination": "/_render"
     },
     {
-      "source": "/pl/integracje/",
+      "source": "/pl/integracje/kategoria/:category/strona/:page/filtr/",
       "destination": "/_render"
     }
   ]
