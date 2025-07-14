@@ -54,15 +54,23 @@ const t = translations[lang]
           e.preventDefault()
 
           const currentPath = window.location.pathname
-          let filterPath
+          let basePath = currentPath
 
-          if (currentPath.includes('/strona/')) {
-            // For paginated pages like /pl/hotele/strona/2/ -> /pl/hotele/strona/2/filtr/
-            filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
-          } else {
-            // For base pages like /pl/hotele/ -> /pl/hotele/filtr/
-            filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
+          // Remove /filtr if already present
+          if (basePath.includes('/filtr')) {
+            basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
           }
+
+          // Remove /strona/X/ to always go back to first page when searching
+          if (basePath.includes('/strona/')) {
+            basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+          }
+
+          // Ensure proper trailing slash and add /filtr/
+          if (!basePath.endsWith('/')) {
+            basePath += '/'
+          }
+          const filterPath = basePath + 'filtr/'
 
           // Preserve existing query parameters and add search
           const params = new URLSearchParams(window.location.search)

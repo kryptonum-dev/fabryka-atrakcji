@@ -245,9 +245,35 @@ export const buildFilterUrl = (params: {
   }
 
   const queryString = newParams.toString()
-  console.log(params.currentPath)
-  return `${params.currentPath
-    .split('/')
-    .slice(0, params.currentPath.includes('kategoria') ? 5 : 3)
-    .join('/')}/${queryString ? `?${queryString}` : ''}`
+
+  // Handle new /filtr URL structure for hotels
+  if (params.currentPath.includes('/filtr')) {
+    // Already on a filtered page, preserve the full path
+    return `${params.currentPath}${queryString ? `?${queryString}` : ''}`
+  } else {
+    // On static page, but sort order changes should redirect to /filtr
+    if (params.order) {
+      // If we're setting an order, we need to redirect to the /filtr version
+      let basePath = params.currentPath
+
+      // Remove /strona/X/ to go back to first page when changing sort
+      if (basePath.includes('/strona/')) {
+        basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+      }
+
+      // Ensure proper trailing slash and add /filtr/
+      if (!basePath.endsWith('/')) {
+        basePath += '/'
+      }
+      const filterPath = basePath + 'filtr/'
+
+      return `${filterPath}${queryString ? `?${queryString}` : ''}`
+    } else {
+      // No order specified, use original logic for backward compatibility
+      return `${params.currentPath
+        .split('/')
+        .slice(0, params.currentPath.includes('kategoria') ? 5 : 3)
+        .join('/')}/${queryString ? `?${queryString}` : ''}`
+    }
+  }
 }

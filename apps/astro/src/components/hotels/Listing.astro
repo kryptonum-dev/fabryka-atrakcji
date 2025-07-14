@@ -577,6 +577,7 @@ const shouldDisableFilters = totalItems === 0
               totalItems={totalItems}
               itemsPerPage={ITEMS_PER_PAGE}
               currentPage={currentPage}
+              searchParams={Astro.url.searchParams}
             />
           </>
         ) : (
@@ -1478,15 +1479,25 @@ const shouldDisableFilters = totalItems === 0
         params.set('maxPrice', maxPrice.toString())
       }
 
-      // Build the filtered URL with /filtr/ segment
+      // Build the filtered URL with /filtr/ segment (avoid double /filtr/, always go to page 1)
       let filterPath
-      if (currentPath.includes('/strona/')) {
-        // For paginated pages like /pl/hotele/strona/2/ -> /pl/hotele/strona/2/filtr/
-        filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
-      } else {
-        // For base pages like /pl/hotele/ -> /pl/hotele/filtr/
-        filterPath = currentPath.endsWith('/') ? currentPath + 'filtr/' : currentPath + '/filtr/'
+      let basePath = currentPath
+
+      // Remove /filtr if already present
+      if (basePath.includes('/filtr')) {
+        basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
       }
+
+      // Remove /strona/X/ to always go back to first page when applying filters
+      if (basePath.includes('/strona/')) {
+        basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+      }
+
+      // Ensure proper trailing slash and add /filtr/
+      if (!basePath.endsWith('/')) {
+        basePath += '/'
+      }
+      filterPath = basePath + 'filtr/'
 
       const finalUrl = params.toString() ? `${filterPath}?${params.toString()}` : filterPath
       window.location.href = finalUrl

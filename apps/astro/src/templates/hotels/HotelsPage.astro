@@ -9,7 +9,7 @@ import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/hotels/Listing.astro'
 import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
 
-export const ITEMS_PER_PAGE = 16
+export const ITEMS_PER_PAGE = 4
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
