@@ -105,12 +105,70 @@ export default defineType({
       group: 'general',
     }),
     defineField({
+      name: 'mediaList',
+      type: 'array',
+      title: 'Lista zdjęć i filmów',
+      description:
+        'Lista zdjęć i filmów wyświetlanych w sekcji hero konkretnej integracji oraz przy jej refererowaniu. Zdjęcie jest wymagane zawsze - służy jako miniaturka dla filmów. Opcjonalne - jeśli nie wypełnione, używane będzie pole "Lista zdjęć".',
+      validation: (Rule) =>
+        Rule.custom((value) => {
+          if (!value || value.length === 0) return true // Optional field
+          if (value.length < 2) return 'Jeśli wypełnione, lista musi zawierać co najmniej 2 media'
+          return true
+        }),
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              type: 'image',
+              name: 'image',
+              title: 'Zdjęcie',
+              description: 'Zdjęcie wyświetlane w galerii. Dla filmów służy jako miniaturka.',
+              validation: (Rule) => Rule.required(),
+            },
+            {
+              type: 'string',
+              name: 'youtubeId',
+              title: 'ID filmu z YouTube (opcjonalne)',
+              description:
+                'Kiedy dodane, filmik z YouTube pojawi się w popupie zamiast zdjęcia. Zdjęcie wciąż będzie służyć jako miniaturka w galerii.',
+              validation: (Rule) => Rule.optional(),
+            },
+          ],
+          preview: {
+            select: {
+              image: 'image',
+              youtubeId: 'youtubeId',
+              filename: 'image.asset.originalFilename',
+            },
+            prepare: ({ image, youtubeId, filename }) => ({
+              title: youtubeId ? `${filename || 'Media'} (Video)` : filename || 'Media',
+              media: image,
+              subtitle: youtubeId ? `YouTube: ${youtubeId}` : 'Zdjęcie',
+            }),
+          },
+        },
+      ],
+      group: 'general',
+    }),
+    defineField({
       name: 'imageList',
       type: 'array',
       title: 'Lista zdjęć',
-      description: 'Lista zdjęć wyświetlanych w sekcji hero konkretnej integracji oraz przy jej refererowaniu',
+      description:
+        'Tradycyjna lista zdjęć (bez obsługi filmów). Używane gdy pole "Lista zdjęć i filmów" nie jest wypełnione. Wymagane co najmniej 2 zdjęcia.',
       validation: (Rule) =>
-        Rule.required().error('Lista zdjęć jest wymagana').min(2).error('Przynajmniej 2 zdjęcia są wymagane'),
+        Rule.custom((value, { document }) => {
+          const mediaList = (document as any)?.mediaList
+          // If mediaList has content, imageList is not required
+          if (mediaList && mediaList.length > 0) return true
+          // If mediaList is empty, imageList is required with min 2 items
+          if (!value || value.length === 0)
+            return 'Lista zdjęć jest wymagana gdy "Lista zdjęć i filmów" nie jest wypełniona'
+          if (value.length < 2) return 'Lista musi zawierać co najmniej 2 zdjęcia'
+          return true
+        }),
       of: [
         {
           type: 'image',
@@ -519,12 +577,13 @@ export default defineType({
     select: {
       title: 'name',
       subtitle: 'description',
+      mediaList: 'mediaList',
       imageList: 'imageList',
     },
-    prepare: ({ title, subtitle, imageList }) => ({
+    prepare: ({ title, subtitle, mediaList, imageList }) => ({
       title: title,
       subtitle: subtitle || 'Brak opisu',
-      media: imageList?.[0] || null,
+      media: mediaList?.[0]?.image || imageList?.[0] || null,
       icon,
     }),
   },

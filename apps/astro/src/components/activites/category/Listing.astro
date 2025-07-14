@@ -510,7 +510,7 @@ const getActivitiesCount = () => {
             <ActivityCard headingLevel="h2" {...item}>
               {
                 <Image
-                  {...item.imageList[0]}
+                  {...item.previewImage}
                   sizes="(max-width: 27.4375rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 49.3125rem) 40vw, (max-width: 63.9375rem) 32vw, (max-width: 85.375rem) 24vw, 324px"
                   loading={index < 8 ? 'eager' : 'lazy'}
                   fetchpriority={index === 0 ? 'high' : 'auto'}

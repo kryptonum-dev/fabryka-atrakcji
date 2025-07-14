@@ -101,7 +101,10 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
           ${ButtonDataQuery('ctas[]')}
           activities[]->{
             name,
-            ${ImageDataQuery('imageList[0]')}
+            "previewImage": coalesce(
+              ${ImageDataQuery('mediaList[0].image')}
+              ${ImageDataQuery('imageList[0]')}
+            ),
             description,
               participantsCount{
                 min,

@@ -15,7 +15,10 @@ export const ActivitiesCarousel_Query = `
     ${ButtonDataQuery('ctas[]')}
     activities[]->{
       name,
-      ${ImageDataQuery('imageList[0]')}
+      "previewImage": coalesce(
+        ${ImageDataQuery('mediaList[0].image')}
+        ${ImageDataQuery('imageList[0]')}
+      ),
       description,
         participantsCount{
           min,
@@ -36,7 +39,7 @@ export type Props = {
   ctas?: ButtonDataProps[]
   activities: {
     name: string
-    imageList: ImageDataProps
+    previewImage: ImageDataProps
     description: string
     participantsCount: {
       min: number
@@ -56,9 +59,9 @@ const clientActivities = await Promise.all(
   activities.map(async (activity) => ({
     ...activity,
     image: await optimizeImage({
-      image: activity.imageList.asset.url,
-      width: activity.imageList.asset.metadata.dimensions.width,
-      height: activity.imageList.asset.metadata.dimensions.height,
+      image: activity.previewImage.asset.url,
+      width: activity.previewImage.asset.metadata.dimensions.width,
+      height: activity.previewImage.asset.metadata.dimensions.height,
     }),
     isRecent: new Date(activity._createdAt) > fourteenDaysAgo,
   }))

@@ -33,6 +33,10 @@ const translations = {
       popup: {
         title: 'Wszystkie zdjęcia',
       },
+      video: {
+        closeVideo: 'Zamknij film',
+        playVideo: 'Odtwórz film',
+      },
     },
     hotels: {
       readMore: 'Przeczytaj więcej o hotelu',
@@ -69,6 +73,10 @@ const translations = {
       },
       popup: {
         title: 'All photos',
+      },
+      video: {
+        closeVideo: 'Close video',
+        playVideo: 'Play video',
       },
     },
     hotels: {
@@ -174,7 +182,34 @@ function getVoivodeshipName(key: string): string {
 }
 
 const props = Astro.props as HeroProps
-const { title, description, imageList, _type, addons, _id, name, pricing } = props
+const { title, description, _type, addons, _id, name, pricing } = props
+
+// Handle mediaList vs imageList with full backward compatibility
+const mediaItems = (() => {
+  // Activities: use mediaList (new) or imageList (backward compatibility)
+  if (props._type === 'Activities_Collection') {
+    if ('mediaList' in props && props.mediaList) {
+      console.log(props.mediaList)
+      return props.mediaList
+    }
+    if ('imageList' in props && props.imageList) {
+      return props.imageList.map((img) => ({ image: img, youtubeId: undefined }))
+    }
+  }
+  // Hotels: always use imageList (existing behavior)
+  if (props._type === 'Hotels_Collection') {
+    if ('imageList' in props && props.imageList) {
+      return props.imageList.map((img) => ({ image: img, youtubeId: undefined }))
+    }
+  }
+  return []
+})()
+
+// Keep imageList for backward compatibility in existing logic
+const imageList = mediaItems.map((item) => item.image)
+
+console.log(mediaItems)
+
 const pricePerPerson = (pricing as any)?.additionalPersonPrice || (pricing as any)?.pricePerPerson
 
 const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -472,7 +507,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   </ul>
   <div class="gallery" data-image-count={imageList.length > 4 ? 4 : imageList.length}>
     {
-      imageList.slice(0, 4).map((image, index) => {
+      mediaItems.slice(0, 4).map((media, index) => {
         const count = imageList.length > 4 ? 4 : imageList.length
         const imageIndex = index > 2 ? 2 : index
         const sizes =
@@ -480,8 +515,25 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
             ? imageSizes.activities[count as keyof typeof imageSizes.activities][imageIndex]
             : ''
         return (
-          <div class="image-wrapper">
-            <Image {...image} sizes={sizes} />
+          <div
+            class="image-wrapper"
+            data-has-video={!!media.youtubeId && props._type === 'Activities_Collection'}
+            data-youtube-id={media.youtubeId || ''}
+          >
+            <Image {...media.image} sizes={sizes} />
+            {media.youtubeId && props._type === 'Activities_Collection' && (
+              <div
+                class="video-indicator"
+                tabindex="0"
+                role="button"
+                aria-label={t.activities.video.playVideo || 'Play video'}
+                data-youtube-id={media.youtubeId}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M8 5v14l11-7z" fill="currentColor" />
+                </svg>
+              </div>
+            )}
           </div>
         )
       })
@@ -500,17 +552,70 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         <div class="images-wrapper">
           <div class="images">
             {
-              imageList.map((image) => (
-                <Image
-                  {...image}
-                  sizes="(max-width: 549px) 79vw, (max-width: 1089px) 36vw, (max-width: 1144px) 44vw, 502px"
-                />
+              mediaItems.map((media, index) => (
+                <div
+                  class="gallery-item"
+                  data-has-video={!!media.youtubeId && props._type === 'Activities_Collection'}
+                  data-youtube-id={media.youtubeId || ''}
+                  data-index={index}
+                >
+                  <Image
+                    {...media.image}
+                    sizes="(max-width: 549px) 79vw, (max-width: 1089px) 36vw, (max-width: 1144px) 44vw, 502px"
+                  />
+                  {media.youtubeId && props._type === 'Activities_Collection' && (
+                    <div
+                      class="gallery-video-indicator"
+                      tabindex="0"
+                      role="button"
+                      aria-label={t.activities.video.playVideo || 'Play video'}
+                      data-youtube-id={media.youtubeId}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M8 5v14l11-7z" fill="currentColor" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
               ))
             }
           </div>
         </div>
       </div>
     </PopupWindow>
+
+    {/* Video popup (only for Activities) */}
+    {
+      props._type === 'Activities_Collection' && (
+        <div class="video-popup" data-open="false">
+          <div class="video-overlay">
+            <div class="video-container">
+              <iframe
+                class="video-iframe"
+                title="Video playback"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              />
+              <button class="video-close-button" type="button">
+                <div class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" />
+                    <path
+                      d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </div>
+                <span>{t.activities.video.closeVideo}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
   </div>
 </section>
 
@@ -555,8 +660,8 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
           opacity: 1 !important;
           visibility: visible !important;
           transition:
-            opacity 300ms ease,
-            visibility 300ms ease;
+            opacity 300ms var(--easing),
+            visibility 300ms;
           background: none;
           backdrop-filter: none;
           width: 1.5rem;
@@ -576,8 +681,8 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
           opacity: 0;
           visibility: hidden;
           transition:
-            opacity 300ms ease,
-            visibility 300ms ease;
+            opacity 300ms var(--easing),
+            visibility 300ms;
         }
 
         &[data-loaded='true'] {
@@ -639,6 +744,74 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
           height: 100%;
           border-radius: 0.5rem;
           width: 100%;
+        }
+
+        // Video indicator for thumbnails - Fabryka Atrakcji style
+        &[data-has-video='true'] {
+          cursor: pointer;
+          position: relative;
+
+          .video-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, var(--primary-500, #f67258) 0%, var(--primary-600, #db2a50) 100%);
+            border: 3px solid var(--neutral-100, #faf7f7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neutral-100, #faf7f7);
+            cursor: pointer;
+            transition:
+              transform 300ms var(--easing),
+              background 300ms,
+              box-shadow 300ms;
+            box-shadow:
+              0 4px 16px rgba(246, 114, 88, 0.4),
+              0 2px 8px rgba(0, 0, 0, 0.2);
+
+            // Focus styles for keyboard navigation
+            &:focus-visible {
+              outline: 2px solid var(--neutral-100, #faf7f7);
+              outline-offset: 3px;
+            }
+
+            &::before {
+              content: '';
+              position: absolute;
+              inset: -2px;
+              background: linear-gradient(45deg, #f67258, #6882f6, #6dab7a, #f67258);
+              border-radius: 50%;
+              z-index: -1;
+              opacity: 0;
+              transition: opacity 300ms var(--easing);
+              animation: play-button-pulse 1.75s ease-in-out infinite;
+              transform: translateX(6.5px);
+            }
+
+            svg {
+              width: 1.75rem;
+              height: 1.75rem;
+              transform: translateX(1.5px); // Adjust play icon centering
+              filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+            }
+          }
+
+          &:hover .video-indicator {
+            transform: translate(-50%, -50%) scale(1.15);
+            background: linear-gradient(135deg, #f67258 0%, #6882f6 50%, #6dab7a 100%);
+            box-shadow:
+              0 6px 20px rgba(246, 114, 88, 0.6),
+              0 4px 12px rgba(0, 0, 0, 0.3);
+
+            &::before {
+              opacity: 1;
+            }
+          }
         }
       }
 
@@ -709,7 +882,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         }
 
         :global(> button:hover),
-        :global(> button:focus) {
+        :global(> button:focus:not(:focus-visible)) {
           > :global(span) strong {
             color: var(--neutral-100) !important;
           }
@@ -778,6 +951,227 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
                 border-radius: 0.5rem;
                 margin-bottom: 0.5rem;
               }
+
+              // Gallery video thumbnails with indicators
+              .gallery-item {
+                position: relative;
+                display: inline-block;
+                width: 100%;
+                margin-bottom: 0.5rem;
+
+                &[data-has-video='true'] {
+                  cursor: pointer;
+
+                  .gallery-video-indicator {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 3rem;
+                    height: 3rem;
+                    background: linear-gradient(
+                      135deg,
+                      var(--primary-500, #f67258) 0%,
+                      var(--primary-600, #db2a50) 100%
+                    );
+                    border: 2px solid var(--neutral-100, #faf7f7);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: var(--neutral-100, #faf7f7);
+                    cursor: pointer;
+                    transition:
+                      transform 300ms var(--easing),
+                      background 300ms,
+                      box-shadow 300ms;
+                    box-shadow:
+                      0 3px 12px rgba(246, 114, 88, 0.4),
+                      0 2px 6px rgba(0, 0, 0, 0.2);
+
+                    // Focus styles for keyboard navigation
+                    &:focus-visible {
+                      outline: 2px solid var(--neutral-100, #faf7f7);
+                      outline-offset: 3px;
+                    }
+
+                    &::before {
+                      content: '';
+                      position: absolute;
+                      inset: -1px;
+                      background: linear-gradient(45deg, #f67258, #6882f6, #6dab7a, #f67258);
+                      border-radius: 50%;
+                      z-index: -1;
+                      opacity: 0;
+                      transition: opacity 300ms var(--easing);
+                    }
+
+                    svg {
+                      width: 1.5rem;
+                      height: 1.5rem;
+                      transform: translateX(1px);
+                      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+                    }
+                  }
+
+                  &:hover .gallery-video-indicator {
+                    transform: translate(-50%, -50%) scale(1.15);
+                    background: linear-gradient(135deg, #f67258 0%, #6882f6 50%, #6dab7a 100%);
+                    box-shadow:
+                      0 4px 16px rgba(246, 114, 88, 0.6),
+                      0 3px 8px rgba(0, 0, 0, 0.3);
+
+                    &::before {
+                      opacity: 1;
+                    }
+                  }
+                }
+
+                img {
+                  margin-bottom: 0;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Video popup overlay (completely separate from gallery popup)
+    .video-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(250, 247, 247, 0.3) 0%, #faf7f7 100%);
+      backdrop-filter: blur(5px);
+      z-index: 1001; // Higher than gallery popup
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      display: none;
+
+      &[data-open='true'] {
+        opacity: 1;
+        visibility: visible;
+        display: flex;
+      }
+
+      &[data-open='false'] {
+        display: none;
+      }
+
+      .video-overlay {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+      }
+
+      .video-container {
+        position: relative;
+        width: 100%;
+        max-width: 80vw;
+        max-height: 90vh;
+        aspect-ratio: 16/9;
+
+        .video-iframe {
+          width: 100%;
+          height: 100%;
+          border-radius: 0.5rem;
+          box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+          border: none;
+        }
+
+        .video-close-button {
+          position: absolute;
+          right: 1rem;
+          top: -3rem;
+          display: flex;
+          align-items: center;
+          background: var(--neutral-200, #f5f1ec);
+          border-radius: 999rem;
+          gap: 0.25rem;
+          min-height: 2.75rem;
+          padding: 0.25rem 0.6725rem 0.25rem 0.25rem;
+          border: none;
+          cursor: pointer;
+          z-index: 5;
+          transition:
+            transform 200ms var(--easing),
+            background-color 200ms,
+            box-shadow 200ms;
+
+          span {
+            color: var(--primary-700, #600d2a);
+            line-height: 1.6;
+            font-size: var(--typography-body-s, 0.75rem);
+            transition: transform 250ms var(--easing);
+          }
+
+          .icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            transition:
+              transform 250ms var(--easing),
+              color 150ms;
+            color: var(--primary-500, #f67258);
+
+            &:before,
+            &:after {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background: var(--neutral-100, #faf7f7);
+              z-index: -2;
+            }
+
+            &:before {
+              transform: scale(0);
+              background: var(--primary-800, #f5f1ec);
+              z-index: -1;
+              transition: transform 250ms var(--easing);
+              border-radius: 50%;
+            }
+
+            svg {
+              width: 1.5rem;
+              height: 1.5rem;
+            }
+          }
+
+          &:hover {
+            .icon {
+              transform: scale(1.05);
+            }
+
+            span {
+              transform: translateX(2px);
+            }
+          }
+
+          &:focus:not(:focus-visible) {
+            .icon {
+              color: var(--neutral-100);
+
+              &::before {
+                transform: scale(1);
+              }
+            }
+
+            span {
+              transform: translateX(0);
             }
           }
         }
@@ -1089,6 +1483,17 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
           }
         }
       }
+
+      // Video popup responsive
+      .video-popup {
+        .video-container {
+          max-width: 95vw;
+          .video-close-button {
+            right: 0;
+            top: -3rem;
+          }
+        }
+      }
     }
 
     @media (max-width: 34.3125rem) {
@@ -1183,6 +1588,19 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         }
       }
     }
+
+    // Fabryka Atrakcji play button animations
+    @keyframes play-button-pulse {
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.7;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+    }
   }
 </style>
 
@@ -1194,6 +1612,14 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   // Get references to the hero section and button
   const heroSection = document.querySelector('.Hero')! as HTMLElement
   const toggleButton = document.querySelector('button[data-theme="primary"][data-shade="light"]')! as HTMLButtonElement
+
+  // Video popup elements (only for Activities)
+  const pageType = heroSection?.dataset.type
+  const isActivityPage = pageType === 'Activities_Collection'
+  const videoPopup = document.querySelector('.video-popup') as HTMLElement
+  const videoIframe = document.querySelector('.video-iframe') as HTMLIFrameElement
+  const videoCloseButton = document.querySelector('.video-close-button') as HTMLButtonElement
+  const galleryPopup = document.querySelector('.popup') as HTMLElement
 
   // Get data attributes
   const itemId = heroSection.dataset.id
@@ -1322,4 +1748,133 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 
   // Also check immediately in case the DOM is already loaded
   updateButtonState()
+
+  // Video popup functionality (Activities only)
+  if (isActivityPage && videoPopup && videoIframe && videoCloseButton) {
+    // Function to open video popup
+    function openVideoPopup(youtubeId: string) {
+      if (!youtubeId) return
+
+      // Close gallery popup if open
+      if (galleryPopup && galleryPopup.getAttribute('data-open') === 'true') {
+        galleryPopup.setAttribute('data-open', 'false')
+      }
+
+      // Set video source and open popup
+      videoIframe.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`
+      videoPopup.setAttribute('data-open', 'true')
+      document.body.style.overflow = 'hidden'
+
+      // Focus the close button for better UX
+      setTimeout(() => {
+        videoCloseButton?.focus()
+      }, 100)
+    }
+
+    // Function to close video popup
+    function closeVideoPopup() {
+      videoIframe.src = '' // Stop video playback
+      videoPopup.setAttribute('data-open', 'false')
+      document.body.style.overflow = ''
+    }
+
+    // Handle clicks and keyboard events on video indicators in hero grid
+    const heroVideoIndicators = document.querySelectorAll('.gallery .video-indicator')
+    heroVideoIndicators.forEach((indicator) => {
+      const handleVideoOpen = () => {
+        const youtubeId = indicator.getAttribute('data-youtube-id')
+        if (youtubeId) {
+          openVideoPopup(youtubeId)
+        }
+      }
+
+      indicator.addEventListener('click', handleVideoOpen)
+
+      // Keyboard support for hero video indicators
+      indicator.addEventListener('keydown', (e) => {
+        const keyEvent = e as KeyboardEvent
+        if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+          keyEvent.preventDefault()
+          handleVideoOpen()
+        }
+      })
+    })
+
+    // Handle clicks on entire video thumbnails in hero grid
+    const heroVideoThumbnails = document.querySelectorAll('.gallery .image-wrapper[data-has-video="true"]')
+    heroVideoThumbnails.forEach((thumbnail) => {
+      thumbnail.addEventListener('click', (e) => {
+        // Don't trigger if clicking the video indicator directly (avoid double handling)
+        if ((e.target as Element).closest('.video-indicator')) {
+          return
+        }
+
+        const youtubeId = thumbnail.getAttribute('data-youtube-id')
+        if (youtubeId) {
+          openVideoPopup(youtubeId)
+        }
+      })
+
+      // Add cursor pointer style to indicate clickable area
+      ;(thumbnail as HTMLElement).style.cursor = 'pointer'
+    })
+
+    // Handle clicks and keyboard events on video indicators in gallery popup
+    const galleryVideoIndicators = document.querySelectorAll('.gallery-video-indicator')
+    galleryVideoIndicators.forEach((indicator) => {
+      const handleVideoOpen = () => {
+        const youtubeId = indicator.getAttribute('data-youtube-id')
+        if (youtubeId) {
+          openVideoPopup(youtubeId)
+        }
+      }
+
+      indicator.addEventListener('click', handleVideoOpen)
+
+      // Keyboard support for gallery video indicators
+      indicator.addEventListener('keydown', (e) => {
+        const keyEvent = e as KeyboardEvent
+        if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+          keyEvent.preventDefault()
+          handleVideoOpen()
+        }
+      })
+    })
+
+    // Handle clicks on entire video thumbnails in gallery popup
+    const galleryVideoThumbnails = document.querySelectorAll('.gallery-item[data-has-video="true"]')
+    galleryVideoThumbnails.forEach((thumbnail) => {
+      thumbnail.addEventListener('click', (e) => {
+        // Don't trigger if clicking the video indicator directly (avoid double handling)
+        if ((e.target as Element).closest('.gallery-video-indicator')) {
+          return
+        }
+
+        const youtubeId = thumbnail.getAttribute('data-youtube-id')
+        if (youtubeId) {
+          openVideoPopup(youtubeId)
+        }
+      })
+
+      // Add cursor pointer style to indicate clickable area
+      ;(thumbnail as HTMLElement).style.cursor = 'pointer'
+    })
+
+    // Close video popup on close button click
+    videoCloseButton.addEventListener('click', closeVideoPopup)
+
+    // Close video popup on overlay click
+    videoPopup.addEventListener('click', (e) => {
+      if (e.target === videoPopup || (e.target as Element).classList.contains('video-overlay')) {
+        closeVideoPopup()
+      }
+    })
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && videoPopup.getAttribute('data-open') === 'true') {
+        closeVideoPopup()
+      }
+    })
+  }
 </script>

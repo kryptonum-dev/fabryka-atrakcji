@@ -67,7 +67,7 @@ export type ExtendedHotelData = BaseHotelProps & {
 }
 
 export type ExtendedActivityData = BaseActivityProps & {
-  imageList: ImageDataProps
+  previewImage: ImageDataProps
   fullAddonList: AddonItem[]
   cartAddons?: CartAddon[]
 }
@@ -175,12 +175,13 @@ function setupItemAttributes(item: CartItem, itemElement: Element) {
 
 // Shared function to setup image
 async function setupImage(item: CartItem, imgWrapper: Element) {
-  if (!item.imageList || !imgWrapper) return
+  const imageData = 'previewImage' in item ? item.previewImage : item.imageList
+  if (!imageData || !imgWrapper) return
 
   const optimizedImage = await optimizeImage({
-    image: item.imageList.asset.url,
-    width: item.imageList.asset.metadata.dimensions.width,
-    height: item.imageList.asset.metadata.dimensions.height,
+    image: imageData.asset.url,
+    width: imageData.asset.metadata.dimensions.width,
+    height: imageData.asset.metadata.dimensions.height,
   })
 
   const img = document.createElement('img')
