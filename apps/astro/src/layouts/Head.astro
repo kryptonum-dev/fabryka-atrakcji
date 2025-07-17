@@ -25,9 +25,19 @@ export type HeadProps = ({ path: string; url?: never } | { url: string; path?: n
   openGraphImage?: string
   alternates?: Array<{ lang: Language; url: string }>
   doNotIndex?: boolean
+  canonicalUrl?: string
 }
 
-const { path, url: _url, title, description, openGraphImage, alternates, doNotIndex } = Astro.props as HeadProps
+const {
+  path,
+  url: _url,
+  title,
+  description,
+  openGraphImage,
+  alternates,
+  doNotIndex,
+  canonicalUrl,
+} = Astro.props as HeadProps
 
 const getOgImage = async () => {
   const asset = await getImage({
@@ -45,6 +55,7 @@ const getOgImage = async () => {
 const ogImage = await getOgImage()
 
 const url = _url || `${DOMAIN}${path}`.replace(/\/+/g, '/')
+const finalCanonicalUrl = canonicalUrl || url
 ---
 
 <meta charset="utf-8" />
@@ -63,7 +74,7 @@ const url = _url || `${DOMAIN}${path}`.replace(/\/+/g, '/')
 
 <meta name="theme-color" content={THEME_COLOR} />
 <link rel="manifest" href="/manifest.webmanifest" />
-<link rel="canonical" href={url} />
+<link rel="canonical" href={finalCanonicalUrl} />
 {alternates && alternates.map(({ lang, url }) => <link rel="alternate" hreflang={lang} href={`${DOMAIN}${url}`} />)}
 <meta property="og:url" content={url} />
 <meta property="og:title" content={title} />

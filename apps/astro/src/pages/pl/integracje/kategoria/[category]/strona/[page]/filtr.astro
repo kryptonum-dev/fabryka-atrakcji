@@ -9,9 +9,12 @@ const data = await fetchData('pl', category, page, Astro.url.searchParams)
 
 console.log('Rendering filtered category pagination page:', category, 'page:', page, new Date().toISOString())
 
+// Calculate canonical URL (remove /filtr from current path)
+const canonicalUrl = Astro.url.origin + `/pl/integracje/kategoria/${category}/strona/${page}/`
+
 if (!data) return Astro.rewrite('/pl/404')
 
 export const getStaticPaths = () => staticPathsCategoryPage('pl')
 ---
 
-<ActivitiesListing {...data} currentPage={page} currentCategory={category} />
+<ActivitiesListing {...data} currentPage={page} currentCategory={category} canonicalUrl={canonicalUrl} />

@@ -39,6 +39,7 @@ type RegularPageProps = BasePageProps &
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
+  canonicalUrl?: string
 }
 
 const translation = {
@@ -149,7 +150,7 @@ export async function staticPaths(lang: Language) {
   }))
 }
 
-const { page, metadata: _metadata, currentPage } = Astro.props
+const { page, metadata: _metadata, currentPage, canonicalUrl } = Astro.props
 const lang = getLangFromPath(Astro.url.pathname) as Language
 const isSearchMode = Astro.url.searchParams.has('search')
 const searchQuery = Astro.url.searchParams.get('search') || ''
@@ -162,6 +163,7 @@ const metadata = {
   description: _metadata.description,
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,
+  ...(canonicalUrl && { canonicalUrl }),
 }
 
 const getPaginationUrl = (page: number) => {

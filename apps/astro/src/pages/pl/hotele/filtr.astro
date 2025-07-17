@@ -5,7 +5,10 @@ import HotelsListing, { fetchData } from '@/src/templates/hotels/HotelsPage.astr
 
 const data = await fetchData('pl', 1, Astro.url.origin, Astro.url.searchParams)
 
+// Calculate canonical URL (remove /filtr from current path)
+const canonicalUrl = Astro.url.origin + '/pl/hotele/'
+
 if (!data) return Astro.rewrite('/pl/404')
 ---
 
-<HotelsListing {...data} currentPage={1} />
+<HotelsListing {...data} currentPage={1} canonicalUrl={canonicalUrl} />

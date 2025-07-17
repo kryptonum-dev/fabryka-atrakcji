@@ -6,10 +6,12 @@ import ActivitiesListing, { fetchData, staticPaths } from '@/src/templates/activ
 const page = parseInt(Astro.params.page || '1')
 const data = await fetchData('pl', page, Astro.url.origin, Astro.url.searchParams)
 
+// Calculate canonical URL (remove /filtr from current path)
+const canonicalUrl = Astro.url.origin + `/pl/integracje/strona/${page}/`
+
 if (!data) return Astro.rewrite('/pl/404')
 
 export const getStaticPaths = () => staticPaths('pl')
 ---
 
-<ActivitiesListing {...data} currentPage={page} />
-
+<ActivitiesListing {...data} currentPage={page} canonicalUrl={canonicalUrl} />
