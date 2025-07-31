@@ -51,7 +51,11 @@ export type BaseHotelProps = {
   slug: string
   title: PortableTextValue
   description: string
-  imageList: ImageDataProps[]
+  imageList?: ImageDataProps[]
+  mediaList?: {
+    image: ImageDataProps
+    youtubeId?: string
+  }[]
   amenities: Array<{
     _id: string
     name: string

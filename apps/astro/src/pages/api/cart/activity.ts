@@ -31,7 +31,9 @@ export const GET: APIRoute = async ({ request }) => {
           ${PortableTextQuery('title')}
           description,
           "previewImage": coalesce(
-            ${ImageDataQuery('mediaList[0].image')}
+            mediaList[0].image{
+              ${ImageDataQuery('.')}
+            },
             ${ImageDataQuery('imageList[0]')}
           ),
           pricing,

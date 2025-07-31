@@ -5,7 +5,7 @@ import { getLangFromPath } from '@/src/global/languages'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import sanityFetch from '@/src/utils/sanity.fetch'
 import metadataFetch from '@/src/utils/metadata.fetch'
-import { ImageDataQuery } from '@/src/components/ui/image'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 import { PortableTextQuery } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import Hero from '@/src/components/offer/Hero.astro'
@@ -35,6 +35,10 @@ export type SingleHotelProps = BaseHotelProps & {
     slug: string
   }
   _type: 'Hotels_Collection'
+  mediaList?: Array<{
+    image: ImageDataProps
+    youtubeId?: string
+  }>
   components: ComponentsProps
   content: ContentPTProps['value']
 }
@@ -58,6 +62,10 @@ export async function fetchData(slug: string, lang: Language) {
       "slug": slug.current,
       ${PortableTextQuery('title')}
       description,
+      mediaList[]{
+        ${ImageDataQuery('image')}
+        youtubeId
+      },
       ${ImageDataQuery('imageList[]')}
       amenities[]->{
         _id,

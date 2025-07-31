@@ -186,21 +186,11 @@ const { title, description, _type, addons, _id, name, pricing } = props
 
 // Handle mediaList vs imageList with full backward compatibility
 const mediaItems = (() => {
-  // Activities: use mediaList (new) or imageList (backward compatibility)
-  if (props._type === 'Activities_Collection') {
-    if ('mediaList' in props && props.mediaList) {
-      console.log(props.mediaList)
-      return props.mediaList
-    }
-    if ('imageList' in props && props.imageList) {
-      return props.imageList.map((img) => ({ image: img, youtubeId: undefined }))
-    }
+  if (props.mediaList && props.mediaList.length > 0) {
+    return props.mediaList
   }
-  // Hotels: always use imageList (existing behavior)
-  if (props._type === 'Hotels_Collection') {
-    if ('imageList' in props && props.imageList) {
-      return props.imageList.map((img) => ({ image: img, youtubeId: undefined }))
-    }
+  if (props.imageList && props.imageList.length > 0) {
+    return props.imageList.map((img) => ({ image: img, youtubeId: undefined }))
   }
   return []
 })()
@@ -513,15 +503,11 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         const sizes =
           props._type === 'Activities_Collection'
             ? imageSizes.activities[count as keyof typeof imageSizes.activities][imageIndex]
-            : ''
+            : imageSizes.hotels[count as keyof typeof imageSizes.hotels][imageIndex]
         return (
-          <div
-            class="image-wrapper"
-            data-has-video={!!media.youtubeId && props._type === 'Activities_Collection'}
-            data-youtube-id={media.youtubeId || ''}
-          >
+          <div class="image-wrapper" data-has-video={!!media.youtubeId} data-youtube-id={media.youtubeId || ''}>
             <Image {...media.image} sizes={sizes} />
-            {media.youtubeId && props._type === 'Activities_Collection' && (
+            {media.youtubeId && (
               <div
                 class="video-indicator"
                 tabindex="0"
@@ -555,7 +541,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
               mediaItems.map((media, index) => (
                 <div
                   class="gallery-item"
-                  data-has-video={!!media.youtubeId && props._type === 'Activities_Collection'}
+                  data-has-video={!!media.youtubeId}
                   data-youtube-id={media.youtubeId || ''}
                   data-index={index}
                 >
@@ -563,7 +549,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
                     {...media.image}
                     sizes="(max-width: 549px) 79vw, (max-width: 1089px) 36vw, (max-width: 1144px) 44vw, 502px"
                   />
-                  {media.youtubeId && props._type === 'Activities_Collection' && (
+                  {media.youtubeId && (
                     <div
                       class="gallery-video-indicator"
                       tabindex="0"
@@ -585,37 +571,31 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
     </PopupWindow>
 
     {/* Video popup (only for Activities) */}
-    {
-      props._type === 'Activities_Collection' && (
-        <div class="video-popup" data-open="false">
-          <div class="video-overlay">
-            <div class="video-container">
-              <iframe
-                class="video-iframe"
-                title="Video playback"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              />
-              <button class="video-close-button" type="button">
-                <div class="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" />
-                    <path
-                      d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                    />
-                  </svg>
-                </div>
-                <span>{t.activities.video.closeVideo}</span>
-              </button>
+    <div class="video-popup" data-open="false">
+      <div class="video-overlay">
+        <div class="video-container">
+          <iframe
+            class="video-iframe"
+            title="Video playback"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+          <button class="video-close-button" type="button">
+            <div class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"></circle>
+                <path
+                  d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"></path>
+              </svg>
             </div>
-          </div>
+            <span>{t.activities.video.closeVideo}</span>
+          </button>
         </div>
-      )
-    }
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1615,7 +1595,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 
   // Video popup elements (only for Activities)
   const pageType = heroSection?.dataset.type
-  const isActivityPage = pageType === 'Activities_Collection'
+
   const videoPopup = document.querySelector('.video-popup') as HTMLElement
   const videoIframe = document.querySelector('.video-iframe') as HTMLIFrameElement
   const videoCloseButton = document.querySelector('.video-close-button') as HTMLButtonElement
@@ -1750,7 +1730,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   updateButtonState()
 
   // Video popup functionality (Activities only)
-  if (isActivityPage && videoPopup && videoIframe && videoCloseButton) {
+  if (videoPopup && videoIframe && videoCloseButton) {
     // Function to open video popup
     function openVideoPopup(youtubeId: string) {
       if (!youtubeId) return

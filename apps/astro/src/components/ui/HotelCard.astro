@@ -8,7 +8,10 @@ export const HotelCardQuery = `
     name,
     "slug": slug.current,
     stars,
-    ${ImageDataQuery('imageList[]')}
+        "previewImage": coalesce(
+            ${ImageDataQuery('mediaList[0].image')}
+            ${ImageDataQuery('imageList[0]')}
+          ),
     location->{
         name,
         "slug": slug.current,
@@ -25,7 +28,7 @@ export type HotelCardProps = {
   name: string
   slug: string
   stars: number
-  imageList: ImageDataProps[]
+  previewImage: ImageDataProps
   location: {
     name: string
     slug: string
@@ -82,7 +85,7 @@ const translations = {
 
 const t = translations[(getLangFromPath(Astro.url.pathname) as Language) || 'pl']
 
-const { name, slug, imageList, stars, address, pricing, maxPeopleOvernight, imgConfig, variant = 'default', _id } = Astro.props as HotelCardProps & {variant: 'default' | 'featured'}
+const { name, slug, previewImage, stars, address, pricing, maxPeopleOvernight, imgConfig, variant = 'default', _id } = Astro.props as HotelCardProps & {variant: 'default' | 'featured'}
 
 const getVoivodeship = (voivodeship: string) => {
   switch (voivodeship) {
@@ -178,7 +181,7 @@ const getVoivodeship = (voivodeship: string) => {
       <Button href={slug} tabIndex={-1} theme="primary">{t.button}</Button>
     </div>
     <div class="img-box">
-      <Image {...imageList[0]} {...imgConfig} />
+      <Image {...previewImage} {...imgConfig} />
       <span class="stars-mobile">{Array.from({ length: stars }).map(() => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
       <mask id="path-1-inside-1_6107_29788" fill="white">
         <path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/>
