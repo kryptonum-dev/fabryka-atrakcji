@@ -11,7 +11,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".vercel/**"]
+      "outputs": ["dist/**", ".vercel/**"],
+      "inputs": ["$TURBO_DEFAULT$", "!redirects.ts"]
     },
     "lint": {
       "dependsOn": ["^lint"]
