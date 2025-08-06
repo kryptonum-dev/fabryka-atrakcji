@@ -12,7 +12,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".vercel/**"],
-      "inputs": ["$TURBO_DEFAULT$", "!redirects.ts"]
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"]
