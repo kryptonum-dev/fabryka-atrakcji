@@ -54,7 +54,8 @@ const getOgImage = async () => {
 }
 const ogImage = await getOgImage()
 
-const url = _url || `${DOMAIN}${path}`.replace(/\/+/g, '/')
+const url = _url || `${DOMAIN}${path}`
+
 const finalCanonicalUrl = canonicalUrl || url
 ---
 
