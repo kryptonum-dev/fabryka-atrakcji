@@ -1,5 +1,6 @@
 ---
 import { DOMAIN } from '@/global/constants'
+import { joinUrl } from '@/utils/join-url'
 
 type Props = {
   breadcrumbsData: Array<{
@@ -20,7 +21,7 @@ const schema = {
     '@type': 'ListItem',
     position: i + 1,
     name: name,
-    item: `${DOMAIN}${path}`
+    item: joinUrl(DOMAIN, path),
   })),
 }
 ---

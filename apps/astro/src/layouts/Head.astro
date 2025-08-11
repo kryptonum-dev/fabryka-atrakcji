@@ -5,6 +5,7 @@ import sanityFetch from '@/utils/sanity.fetch'
 import icon from '../assets/icon.png'
 import faviconSvg from '../assets/favicon.svg'
 import { type Language } from '@/global/languages'
+import { joinUrl } from '@/utils/join-url'
 
 const icons = {
   favicon: await getImage({ src: faviconSvg, format: 'svg' }),
@@ -47,14 +48,14 @@ const getOgImage = async () => {
     inferSize: true,
   })
   return {
-    url: `${DOMAIN}${asset.src.slice(1)}`,
+    url: joinUrl(DOMAIN, asset.src),
     width: asset.attributes.width,
     height: asset.attributes.height,
   }
 }
 const ogImage = await getOgImage()
 
-const url = _url || `${DOMAIN}${path}`
+const url = _url || joinUrl(DOMAIN, path ?? '')
 
 const finalCanonicalUrl = canonicalUrl || url
 ---
@@ -76,7 +77,7 @@ const finalCanonicalUrl = canonicalUrl || url
 <meta name="theme-color" content={THEME_COLOR} />
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="canonical" href={finalCanonicalUrl} />
-{alternates && alternates.map(({ lang, url }) => <link rel="alternate" hreflang={lang} href={`${DOMAIN}${url}`} />)}
+{alternates && alternates.map(({ lang, url }) => <link rel="alternate" hreflang={lang} href={joinUrl(DOMAIN, url)} />)}
 <meta property="og:url" content={url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />

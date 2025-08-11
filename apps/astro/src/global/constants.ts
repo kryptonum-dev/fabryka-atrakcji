@@ -28,7 +28,7 @@ export const LOCALE: string = 'pl'
  * @constant
  * @type {string}
  */
-export const DOMAIN: string = 'https://www.fabryka-atrakcji.com'
+export const DOMAIN: string = 'https://www.fabryka-atrakcji.com/'
 
 /**
  * Global declaration of the default title for the application.
