@@ -125,6 +125,10 @@ const { index, sectionId, backgroundImage, heading, paragraph, cta, points } = A
           }
         }
       }
+
+      :global(a) {
+        margin-top: clamp(1rem, calc(1.25vw / 0.48), 1.5rem);
+      }
     }
 
     @media (max-width: 68.6875rem) {

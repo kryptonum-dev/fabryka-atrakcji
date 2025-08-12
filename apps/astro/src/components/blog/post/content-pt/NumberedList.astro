@@ -10,39 +10,25 @@ const { node, index, ...attrs } = Astro.props
 <style lang="scss">
   li {
     counter-increment: counter;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.25rem;
+    padding-left: 1rem;
+    position: relative;
 
     &:not(:last-child) {
       margin-bottom: 0.75rem;
     }
     &::before {
       content: counter(counter);
-      width: 1.625rem;
-      margin-top: 0.125rem;
+      position: absolute;
+      left: 0rem;
+      top: 0rem;
     }
 
     :global(ol) {
       counter-reset: counter;
-      grid-column: 2 / 3;
 
       :global(li) {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0.625rem;
-
         &:first-child {
           margin-top: 0.5rem;
-        }
-
-        &::before {
-          content: '';
-          width: 0.25rem;
-          height: 0.25rem;
-          border-radius: 50%;
-          background-color: var(--primary-200);
-          margin-top: 0.75rem;
         }
       }
     }

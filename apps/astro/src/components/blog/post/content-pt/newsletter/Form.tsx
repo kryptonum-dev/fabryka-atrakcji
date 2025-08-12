@@ -35,58 +35,34 @@ export default function Form({
   const onSubmit = async (data: FieldValues) => {
     setStatus({ sending: true, success: undefined })
 
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    const isSuccess = true
-
-    if (isSuccess) {
-      setStatus({ sending: false, success: true })
-      reset()
-
-      // Track subscribe event
-      trackEvent({
-        user_data: {
-          email: data.email,
-        },
-        ga: {
-          event_name: 'lead',
-        },
-        meta: {
-          event_name: 'Lead',
-          content_name: 'Blog Newsletter Subscription',
-        },
+    data.group_id = groupId
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       })
-    } else {
+      const responseData = await response.json()
+      if (response.ok && responseData.success) {
+        setStatus({ sending: false, success: true })
+        reset()
+
+        // Track subscribe event
+        trackEvent({
+          user_data: {
+            email: data.email,
+          },
+          meta: {
+            event_name: 'subscribe',
+            content_name: 'Blog Newsletter Subscription',
+          },
+        })
+      } else {
+        setStatus({ sending: false, success: false })
+      }
+    } catch {
       setStatus({ sending: false, success: false })
     }
-    // data.group_id = groupId
-    // try {
-    //   const response = await fetch('/api/newsletter', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(data),
-    //   })
-    //   const responseData = await response.json()
-    //   if (response.ok && responseData.success) {
-    //     setStatus({ sending: false, success: true })
-    //     reset()
-    //
-    //     // Track subscribe event
-    //     trackEvent({
-    //       user_data: {
-    //         email: data.email
-    //       },
-    //       meta: {
-    //         event_name: 'subscribe',
-    //         content_name: 'Blog Newsletter Subscription'
-    //       }
-    //     })
-    //   } else {
-    //     setStatus({ sending: false, success: false })
-    //   }
-    // } catch {
-    //   setStatus({ sending: false, success: false })
-    // }
   }
 
   const handleRestart = (e: React.MouseEvent) => {

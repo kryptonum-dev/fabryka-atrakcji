@@ -31,9 +31,7 @@ export const GET: APIRoute = async ({ request }) => {
           ${PortableTextQuery('title')}
           description,
           "previewImage": coalesce(
-            mediaList[0].image{
-              ${ImageDataQuery('.')}
-            },
+            ${ImageDataQuery('mediaList[0].image')}
             ${ImageDataQuery('imageList[0]')}
           ),
           pricing,
@@ -115,6 +113,7 @@ export const GET: APIRoute = async ({ request }) => {
       },
     })
   } catch (error) {
+    console.error('Error fetching activity:', error)
     return new Response(JSON.stringify({ error: 'Failed to fetch activity data' }), {
       status: 500,
       headers: {
