@@ -79,20 +79,6 @@ export default function QuoteForm({
         quote: quote,
       }
 
-      trackEvent({
-        ga: {
-          event_name: 'lead',
-        },
-        meta: {
-          event_name: 'Lead',
-          content_name: 'Quote Request Form',
-        },
-        user_data: {
-          email: data.email,
-          phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
-        },
-      })
-
       // Send data to our API endpoint
       const response = await fetch('/api/initialQuote', {
         method: 'POST',
@@ -130,6 +116,22 @@ export default function QuoteForm({
       if (result.success) {
         // Clear all cart data from localStorage
         clearCartData()
+
+        // [LEAD] Google Ads Conversion
+        window.gtag('event', 'conversion', { send_to: 'AW-881393838/TGEgCKr774QbEK6BpKQD' })
+        trackEvent({
+          ga: {
+            event_name: 'lead',
+          },
+          meta: {
+            event_name: 'Lead',
+            content_name: 'Quote Request Form',
+          },
+          user_data: {
+            email: data.email,
+            phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
+          },
+        })
 
         // Get the redirect URL
         const redirectUrl = result.redirectUrl || translations.thankYouUrl
