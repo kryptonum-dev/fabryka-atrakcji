@@ -1,26 +1,25 @@
 ---
-description: 
-globs: 
 alwaysApply: false
 ---
+
 ---
+
 description: This rule provides important context for creating basic files for page builder components
-globs: 
+globs:
 alwaysApply: false
+
 ---
 
 # How to create Sanity & Astro files for page builder
 
 This is an instruction on how you should create basic components for the page builder. The developer will equip you with component names and the language the should be translationed into. Keep in mind that all componenent should be translationed to this language. Below is the list of steps you should proceed by executing this request.
 
-This is the cycle you will repeat for each component name you will be given by the developer. 
+This is the cycle you will repeat for each component name you will be given by the developer.
 
 {component-name} - name of the component you will get.
 {lang} - langauge the developer will specify, IF THE DEVELOPER HAS NOT SPECIFIED A LANGAUGE THE DEFAULT LANGUAGE SHOULD BE POLISH
 
 1. Create an sanity file inside /apps/sanity/schema/componnets called {component-name}.ts Below i present an architecture of that file, your tasks is to fill the important fields with the required conent.
-
-
 
 ```
 import { defineField } from 'sanity'
@@ -59,20 +58,19 @@ export default defineField({
 });
 ```
 
-- DO NOT add abny other fields besie the heading field to this file 
+- DO NOT add abny other fields besie the heading field to this file
 - Always use UpperCase Camel case for the name of the section ex. HeadingSection, not headingSection
-
 
 2. Add the newly created component to [Components.ts](mdc:apps/sanity/schema/Components.ts) following the previous structure.
 
-3. Create an astro file for this new component in astro/scr/components/global called {compopnent-name}.astro, below is the example of how such component should loook. 
+3. Create an astro file for this new component in astro/scr/components/global called {compopnent-name}.astro, below is the example of how such component should loook.
 
 ```
 ---
 
 export const {component-name}_Query = `
   _type == "{component-name}" => {
-  
+
   },
 `;
 
@@ -85,7 +83,7 @@ const { index, sectionId} = Astro.props;
 ---
 
 <section class="{component-name}" id={sectionId}>
- 
+
 </section>
 
 <style lang="scss">
@@ -102,11 +100,6 @@ const { index, sectionId} = Astro.props;
 - Leave the <section> and <scss> as they are, don't add anything to them.
 - Don't remove index from props even if it is unused at that time.
 
-
-
-4. Add the newly created component into [Components.astro](mdc:apps/astro/src/components/Components.astro) keeping in mind the current structure and following it. 
+4. Add the newly created component into [Components.astro](mdc:apps/astro/src/components/Components.astro) keeping in mind the current structure and following it.
 
 If you have any questions, always ask the developer before processing the task.
-
-
-
