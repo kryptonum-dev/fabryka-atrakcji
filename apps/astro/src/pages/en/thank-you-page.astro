@@ -1,5 +1,5 @@
 ---
-import ThankYouPage from '@/src/templates/ThankYouPage.astro'
+import ThankYouPageComponent from '@/src/templates/ThankYouPage.astro'
 import { fetchData } from '@/src/templates/ThankYouPage.astro'
 
 const data = await fetchData('en')
@@ -7,5 +7,4 @@ const data = await fetchData('en')
 if (!data) return Astro.redirect('/404')
 ---
 
-<ThankYouPage {...data} />
-
+<ThankYouPageComponent {...data} />
