@@ -108,7 +108,7 @@ const schema = {
     contactType: 'customer service',
     ...(email && { email: email }),
     ...(tel && { telephone: tel }),
-    availableLanguage: ['pl'],
+    availableLanguage: [lang === 'pl' ? 'pl' : 'en'],
   },
   ...(organizationSchema.businessDetails?.foundingDate && {
     foundingDate: organizationSchema.businessDetails.foundingDate,
