@@ -3,6 +3,19 @@ import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/imag
 import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
 import imageToInlineSvg from '@/utils/image-to-inline-svg'
 import AnimatedHeading from '@/components/ui/AnimatedHeading.astro' 
+import { getLangFromPath, type Language } from '@/src/global/languages'
+
+
+const translations = {
+  pl: {
+    optional: '(opcjonalne)',
+  },
+  en: {
+    optional: '(optional)',
+  },
+}
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+const t = translations[lang]
 
 export const CardSteps_Query = `
   _type == "CardSteps" => {
@@ -185,7 +198,7 @@ const subLinksImagesSizes = '(max-width: 28.375rem) 135px, (max-width: 48.125rem
     {
       steps.map((step) => (
         <li class="step">
-          {step.optional && <span class="optional">(opcjonalne)</span>}
+          {step.optional && <span class="optional">{t.optional}</span>}
           {step._type == 'imagesCard' && (
             <div class="images">
               <a href={step.firstImage.internal.slug} class="image-link">

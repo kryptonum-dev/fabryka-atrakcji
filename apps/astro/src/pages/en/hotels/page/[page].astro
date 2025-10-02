@@ -1,0 +1,16 @@
+---
+export const prerender = false
+
+import HotelsListing, { fetchData, staticPaths } from '@/src/templates/hotels/HotelsPage.astro'
+
+const page = parseInt(Astro.params.page || '1')
+// For ISR caching, ignore search params - paginated pages should be static
+const data = await fetchData('en', page, Astro.url.origin)
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPaths('en')
+---
+
+<HotelsListing {...data} currentPage={page} />
+

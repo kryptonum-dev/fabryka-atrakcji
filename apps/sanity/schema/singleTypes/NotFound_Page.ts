@@ -23,6 +23,7 @@ export default defineType({
     ...defineSlugForDocument({
       slugs: {
         pl: '/pl/404',
+        en: '/en/404',
       },
     }),
     defineField({

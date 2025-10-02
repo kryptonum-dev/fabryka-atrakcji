@@ -2,9 +2,9 @@
 import sanityFetch from '@/utils/sanity.fetch'
 import { DOMAIN } from '@/global/constants'
 import icon from '@/assets/icon.png'
-import type { Language } from '../global/languages'
+import { getLangFromPath, type Language } from '../global/languages'
 
-const lang = (Astro.params.lang as Language) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const {
   socials,
@@ -35,7 +35,7 @@ const {
 }>({
   query: `
     *[_type == "global" && language == $language][0] {
-      "socials": *[_type == "SocialMedia_Collection" && language == $language] {
+      "socials": *[_type == "SocialMedia_Collection"] {
         link,
       },
       OrganizationSchema,

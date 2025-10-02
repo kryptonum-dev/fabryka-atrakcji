@@ -1,0 +1,18 @@
+---
+export const prerender = false
+
+import HotelsListing, { fetchData, staticPaths } from '@/src/templates/hotels/HotelsPage.astro'
+
+const page = parseInt(Astro.params.page || '1')
+const data = await fetchData('en', page, Astro.url.origin, Astro.url.searchParams)
+
+// Calculate canonical URL (remove /filter from current path)
+const canonicalUrl = Astro.url.origin + `/en/hotels/page/${page}/`
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPaths('en')
+---
+
+<HotelsListing {...data} currentPage={page} canonicalUrl={canonicalUrl} />
+

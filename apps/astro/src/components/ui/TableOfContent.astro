@@ -3,9 +3,9 @@ import type { PortableTextProps } from 'astro-portabletext/types'
 import type { PortableTextBlock } from '@portabletext/types'
 import { toPlainText } from 'astro-portabletext'
 import { slugify } from '@/src/utils/slugify'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 
-const lang = (Astro.params.lang as Language) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

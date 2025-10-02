@@ -1,16 +1,18 @@
 ---
-import type { Language } from '../global/languages'
 import sanityFetch from '../utils/sanity.fetch'
 import Button, { ButtonDataQuery, type ButtonDataProps } from '../components/ui/Button'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../components/ui/portable-text'
 import { getOpenHours } from '../utils/get-open-hours'
+import { getLangFromPath, type Language } from '../global/languages'
 
 type Props = {
-  lang?: Language
   minify?: boolean
 }
 
-const { lang = 'pl', minify = false } = Astro.props as Props
+const { minify = false } = Astro.props as Props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+console.log(lang)
 
 const translations = {
   pl: {
@@ -34,8 +36,8 @@ const translations = {
     createdBy: 'Created by',
     privacyPolicy: 'Privacy policy',
     privacyPolicyUrl: '/en/privacy-policy/',
-    termsOfService: 'Terms of service',
-    termsOfServiceUrl: '/en/terms-of-service/',
+    termsOfService: 'Terms and conditions',
+    termsOfServiceUrl: '/en/terms-and-conditions/',
     cookiePolicy: 'Cookie policy',
     copyright: 'All rights reserved',
     cart: 'Cart',

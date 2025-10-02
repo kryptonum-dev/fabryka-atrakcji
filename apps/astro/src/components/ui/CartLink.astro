@@ -1,7 +1,7 @@
 ---
-import { type Language } from '@/global/languages'
+import { getLangFromPath, type Language } from '@/global/languages'
 
-const language = (Astro.params.lang as Language) || 'pl'
+const language = getLangFromPath(Astro.url.pathname) as Language
 
 type Props = {
   inverted?: boolean
@@ -141,11 +141,26 @@ const t = translations[language]
 </style>
 
 <script>
+  // Helper to get language-specific cart key
+  const getCartKey = () => {
+    const isEnglish = window.location.pathname.startsWith('/en/')
+    return isEnglish ? 'cart_en' : 'cart_pl'
+  }
+
   // Function to update all cart badges
   function updateCartBadges(shouldAnimate = false) {
-    const cartDataStr = localStorage.getItem('cart')
+    const cartKey = getCartKey()
+    const cartDataStr = localStorage.getItem(cartKey)
 
-    if (!cartDataStr) return
+    if (!cartDataStr) {
+      // Hide badges if no cart data
+      const badges = document.querySelectorAll('.cart-count-badge')
+      badges.forEach((badge) => {
+        badge.classList.remove('show')
+        ;(badge as HTMLElement).style.display = 'none'
+      })
+      return
+    }
 
     try {
       const cartData = JSON.parse(cartDataStr)
@@ -198,7 +213,8 @@ const t = translations[language]
 
   // Function to check if animation should be triggered
   function shouldAnimateCartBadge() {
-    const cartDataStr = localStorage.getItem('cart')
+    const cartKey = getCartKey()
+    const cartDataStr = localStorage.getItem(cartKey)
     if (!cartDataStr) return false
 
     try {
@@ -225,7 +241,8 @@ const t = translations[language]
   document.addEventListener('DOMContentLoaded', () => {
     // Initialize previous count
     try {
-      const cartDataStr = localStorage.getItem('cart')
+      const cartKey = getCartKey()
+      const cartDataStr = localStorage.getItem(cartKey)
       if (cartDataStr) {
         const cartData = JSON.parse(cartDataStr)
         previousCartItemCount = cartData.hotels.length + cartData.activities.length
@@ -257,7 +274,8 @@ const t = translations[language]
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     // Initialize previous count
     try {
-      const cartDataStr = localStorage.getItem('cart')
+      const cartKey = getCartKey()
+      const cartDataStr = localStorage.getItem(cartKey)
       if (cartDataStr) {
         const cartData = JSON.parse(cartDataStr)
         previousCartItemCount = cartData.hotels.length + cartData.activities.length

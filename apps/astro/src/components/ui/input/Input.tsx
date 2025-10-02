@@ -25,6 +25,8 @@ type Props = {
 export default function Input({ register, label, additonalInfo, isTextarea, phone, errors, ...props }: Props) {
   const Element = isTextarea ? Textarea : 'input'
 
+  console.log(errors)
+
   const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Allow: backspace, delete, tab, escape, arrow keys, home, end
     if (

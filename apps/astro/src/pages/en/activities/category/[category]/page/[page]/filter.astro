@@ -1,0 +1,21 @@
+---
+export const prerender = false
+
+import ActivitiesListing, { fetchData, staticPathsCategoryPage } from '@/src/templates/activities/ActivitiesPage.astro'
+
+const page = Number(Astro.params.page) || 1
+const category = Astro.params.category as string
+const data = await fetchData('en', category, page, Astro.url.searchParams)
+
+console.log('Rendering filtered category pagination page:', category, 'page:', page, new Date().toISOString())
+
+// Calculate canonical URL (remove /filter from current path)
+const canonicalUrl = Astro.url.origin + `/en/activities/category/${category}/page/${page}/`
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPathsCategoryPage('en')
+---
+
+<ActivitiesListing {...data} currentPage={page} currentCategory={category} canonicalUrl={canonicalUrl} />
+

@@ -34,12 +34,11 @@ export default defineField({
               options: {
                 disableNew: true,
                 filter: ({ parent, document }) => {
-                  const language = (document as { language?: string })?.language
                   const selectedIds =
                     (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
                   return {
-                    filter: '!(_id in path("drafts.**")) && language == $lang',
-                    params: { selectedIds, lang: language },
+                    filter: '!(_id in path("drafts.**")) && !(_id in $selectedIds)',
+                    params: { selectedIds },
                   }
                 },
               },

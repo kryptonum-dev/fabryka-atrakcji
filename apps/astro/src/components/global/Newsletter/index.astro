@@ -7,9 +7,9 @@ import PopupWindow from '../../ui/PopupWindow/index.astro'
 import Form from './Form'
 import CloseButton from '../../ui/PopupWindow/CloseButton.astro'
 import { toPlainText } from '@/src/utils/to-plain-text'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 
-const lang = (Astro.params.lang as Language) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 export const Newsletter_Query = `
   _type == "Newsletter" => {

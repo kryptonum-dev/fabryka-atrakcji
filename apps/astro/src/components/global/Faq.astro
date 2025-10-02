@@ -2,12 +2,12 @@
 import sanityFetch from '@/src/utils/sanity.fetch'
 import Accordion from '../ui/Accordion.astro'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../ui/portable-text'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 import type { FormStateTypes } from '@/src/global/types'
 import FaqForm from '../ui/FaqForm/index.astro'
 import FaqSchema from '@/src/Schema/FaqSchema.astro'
 
-const language = (Astro.params.lang as Language) || 'pl'
+const language = getLangFromPath(Astro.url.pathname) as Language
 
 export const Faq_Query = `
   _type == "Faq" => {

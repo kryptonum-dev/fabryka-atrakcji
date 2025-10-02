@@ -1,0 +1,15 @@
+---
+export const prerender = false
+
+import ActivitiesListing, { fetchData } from '@/src/templates/activities/CategoriesPage.astro'
+
+const data = await fetchData('en', 1, Astro.url.origin, Astro.url.searchParams)
+
+// Calculate canonical URL (remove /filter from current path)
+const canonicalUrl = Astro.url.origin + '/en/activities/'
+
+if (!data) return Astro.rewrite('/en/404')
+---
+
+<ActivitiesListing {...data} currentPage={1} canonicalUrl={canonicalUrl} />
+

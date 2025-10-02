@@ -405,14 +405,18 @@ const transformToKm = (meters: number) => {
 
     .attraction-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 0.5rem;
+      gap: 1rem;
 
       span {
         line-height: 1.5;
         &:first-child {
           color: var(--primary-800, #45051c);
+        }
+
+        &:last-of-type {
+          flex-shrink: 0;
         }
       }
     }

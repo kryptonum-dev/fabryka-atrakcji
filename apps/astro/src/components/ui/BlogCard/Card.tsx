@@ -11,6 +11,7 @@ export default function BlogCard({
   readingTime,
   _createdAt,
   imageConfig,
+  lang = 'pl',
 }: BlogCardProps & { image: GetImageResult }) {
   return (
     <article className={styles.blogCard}>
@@ -52,7 +53,7 @@ export default function BlogCard({
                 clip-rule="evenodd"
               />
             </svg>
-            <span>{getRelativeDate({ date: _createdAt, upperCase: true })}</span>
+            <span>{getRelativeDate({ date: _createdAt, upperCase: true, lang })}</span>
           </div>
         </div>
       </a>

@@ -52,6 +52,9 @@ const translations = {
   pl: {
     pathPrefix: '/pl/integracje/kategoria',
     pathPrefixDefault: '/pl/integracje',
+    filterPath: 'filtr',
+    pagePath: 'strona',
+    categoryPath: 'kategoria',
     found: 'Znaleziono',
     foundActivitiesSingle: 'integrację',
     foundActivitiesMultipleLow: 'integracje',
@@ -82,6 +85,9 @@ const translations = {
   en: {
     pathPrefix: '/en/activities/category',
     pathPrefixDefault: '/en/activities',
+    filterPath: 'filter',
+    pagePath: 'page',
+    categoryPath: 'category',
     found: 'Found',
     foundActivitiesSingle: 'activity',
     foundActivitiesMultipleLow: 'activities',
@@ -458,6 +464,8 @@ const getActivitiesCount = () => {
   data-no-results={totalActivitiesByCategory === 0}
   data-mobile-open="false"
   data-category-name={selectedCategory || currentCategory}
+  data-filter-path={t.filterPath}
+  data-page-path={t.pagePath}
 >
   {
     (heading || description) && (
@@ -1325,24 +1333,28 @@ const getActivitiesCount = () => {
     // Preserve existing search parameters (like search, order, etc.)
     const params = new URLSearchParams(window.location.search)
 
-    // Build the filtered URL with /filtr/ segment (avoid double /filtr/, always go to page 1)
+    // Get path segments from Listing section data attributes
+    const listingSection = document.querySelector('.Listing')
+    const filterPathSegment = listingSection?.getAttribute('data-filter-path') || 'filtr'
+    const pagePathSegment = listingSection?.getAttribute('data-page-path') || 'strona'
+
     let basePath = currentPath
 
-    // Remove /filtr if already present
-    if (basePath.includes('/filtr')) {
-      basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+    // Remove filter path if already present
+    if (basePath.includes(`/${filterPathSegment}`)) {
+      basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
     }
 
-    // Remove /strona/X/ to always go back to first page when applying filters
-    if (basePath.includes('/strona/')) {
-      basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+    // Remove page path to always go back to first page when applying filters
+    if (basePath.includes(`/${pagePathSegment}/`)) {
+      basePath = basePath.replace(new RegExp(`\/${pagePathSegment}\/\\d+\/?`), '/')
     }
 
-    // Ensure proper trailing slash and add /filtr/
+    // Ensure proper trailing slash and add filter path
     if (!basePath.endsWith('/')) {
       basePath += '/'
     }
-    const filterPath = basePath + 'filtr/'
+    const filterPath = basePath + filterPathSegment + '/'
 
     // Store the current price values before clearing filter params
     const currentMinPrice = params.get('minPrice')

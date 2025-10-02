@@ -75,6 +75,8 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
 const translations = {
   pl: {
     pathPrefix: '/pl/hotele',
+    filterPath: 'filtr',
+    pagePath: 'strona',
     hotels: 'Hotele',
     placeholder: 'Wyszukaj hotel',
     search: 'Wyszukaj hotel',
@@ -114,6 +116,8 @@ const translations = {
   },
   en: {
     pathPrefix: '/en/hotels',
+    filterPath: 'filter',
+    pagePath: 'page',
     hotels: 'Hotels',
     placeholder: 'Search for hotels',
     search: 'Search for hotels',
@@ -451,7 +455,14 @@ const hasActiveFilters = Object.values(currentFilters).some(
 const shouldDisableFilters = totalItems === 0
 ---
 
-<section class="Listing" data-price-min={priceRange.minAbs} data-price-max={priceRange.maxAbs} data-mobile-open="false">
+<section
+  class="Listing"
+  data-price-min={priceRange.minAbs}
+  data-price-max={priceRange.maxAbs}
+  data-mobile-open="false"
+  data-filter-path={t.filterPath}
+  data-page-path={t.pagePath}
+>
   <header class="header">
     <PortableText value={heading} heading="h1" class="heading" />
     <PortableText value={paragraph} class="paragraph" />
@@ -1386,10 +1397,12 @@ const shouldDisableFilters = totalItems === 0
 
       // Clear all button
       clearButton?.addEventListener('click', () => {
-        // Remove /filtr from path when clearing filters
+        const listingSection = document.querySelector('.Listing')
+        const filterPath = listingSection?.getAttribute('data-filter-path') || 'filtr'
+        // Remove filter path from URL when clearing filters
         let clearPath = window.location.pathname
-        if (clearPath.includes('/filtr')) {
-          clearPath = clearPath.replace('/filtr/', '/').replace('/filtr', '/')
+        if (clearPath.includes(`/${filterPath}`)) {
+          clearPath = clearPath.replace(`/${filterPath}/`, '/').replace(`/${filterPath}`, '/')
         }
         window.location.href = clearPath
       })
@@ -1473,25 +1486,29 @@ const shouldDisableFilters = totalItems === 0
         params.set('maxPrice', maxPrice.toString())
       }
 
-      // Build the filtered URL with /filtr/ segment (avoid double /filtr/, always go to page 1)
+      // Build the filtered URL with filter segment (avoid double filter path, always go to page 1)
+      const listingSection = document.querySelector('.Listing')
+      const filterPathSegment = listingSection?.getAttribute('data-filter-path') || 'filtr'
+      const pagePathSegment = listingSection?.getAttribute('data-page-path') || 'strona'
+
       let filterPath
       let basePath = currentPath
 
-      // Remove /filtr if already present
-      if (basePath.includes('/filtr')) {
-        basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+      // Remove filter path if already present
+      if (basePath.includes(`/${filterPathSegment}`)) {
+        basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
       }
 
-      // Remove /strona/X/ to always go back to first page when applying filters
-      if (basePath.includes('/strona/')) {
-        basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+      // Remove page path to always go back to first page when applying filters
+      if (basePath.includes(`/${pagePathSegment}/`)) {
+        basePath = basePath.replace(new RegExp(`\/${pagePathSegment}\/\\d+\/?`), '/')
       }
 
-      // Ensure proper trailing slash and add /filtr/
+      // Ensure proper trailing slash and add filter path
       if (!basePath.endsWith('/')) {
         basePath += '/'
       }
-      filterPath = basePath + 'filtr/'
+      filterPath = basePath + filterPathSegment + '/'
 
       const finalUrl = params.toString() ? `${filterPath}?${params.toString()}` : filterPath
       window.location.href = finalUrl

@@ -81,7 +81,6 @@ type Props = {
 }
 
 const { node } = Astro.props as Props
-const language = (Astro.params.lang as Language) || 'pl'
 
 const questions = node.faqType === 'global' ? node.globalQuestions : node.questions
 ---
@@ -102,7 +101,7 @@ const questions = node.faqType === 'global' ? node.globalQuestions : node.questi
     <div class="contact-form">
       <PortableText value={node.contactBlock.heading} class="subheading" heading="h3" />
       <PortableText value={node.contactBlock.paragraph} class="paragraph" />
-      <FaqForm language={language} formPopup={node.contactBlock.formPopup} />
+      <FaqForm language={lang} formPopup={node.contactBlock.formPopup} />
       {
         phone && (
           <a href={`tel:${phone}`} class="phone">

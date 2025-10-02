@@ -1,0 +1,13 @@
+---
+import CaseStudiesPage, { fetchData, staticPathsPage } from '../../templates/caseStudies/CaseStudyPage.astro'
+
+const category = null
+const page = Number(Astro.params.page) || 1
+const data = await fetchData('en', category, page)
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPathsPage('en')
+---
+
+<CaseStudiesPage {...data} currentPage={page} currentCategory={null} />

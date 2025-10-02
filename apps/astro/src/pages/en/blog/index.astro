@@ -1,0 +1,10 @@
+---
+import BlogPage, { fetchData } from '@/src/templates/blog/BlogPage.astro'
+
+const data = await fetchData('en', null, 1)
+
+if (!data) return Astro.rewrite('/en/404')
+---
+
+<BlogPage {...data} currentPage={1} currentCategory={null} />
+

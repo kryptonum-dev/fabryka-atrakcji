@@ -20,6 +20,8 @@ const lang = getLangFromPath(Astro.url.pathname) as Language
 const translations = {
   pl: {
     pathPrefix: '/pl/integracje',
+    filterPath: 'filtr',
+    pagePath: 'strona',
     categories: 'Kategorie',
     all: 'Wszystkie',
     placeholder: 'Wyszukaj integrację np. sabotażysta',
@@ -27,6 +29,8 @@ const translations = {
   },
   en: {
     pathPrefix: '/en/activities',
+    filterPath: 'filter',
+    pagePath: 'page',
     categories: 'Categories',
     all: 'All',
     placeholder: 'Search for activities',
@@ -52,7 +56,7 @@ export const Listing_Query = `
 const { listing, currentPage, heading, paragraph, totalItems } = Astro.props
 ---
 
-<section class="Listing max-width">
+<section class="Listing max-width" data-filter-path={t.filterPath} data-page-path={t.pagePath}>
   <header class="header">
     <PortableText value={heading} class="heading" heading="h1" />
     <PortableText value={paragraph} class="paragraph" />

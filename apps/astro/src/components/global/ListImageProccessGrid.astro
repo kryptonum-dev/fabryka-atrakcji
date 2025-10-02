@@ -2,7 +2,20 @@
 import Button from '@/components/ui/Button'
 import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
+import { getLangFromPath } from '@/src/global/languages'
 import imageToInlineSvg from '@/utils/image-to-inline-svg'
+
+const translations = {
+  pl: {
+    skip: 'Pomiń',
+  },
+  en: {
+    skip: 'Skip',
+  },
+}
+
+const lang = getLangFromPath(Astro.url.pathname)
+const t = translations[lang]
 
 export const ListImageProccessGrid_Query = `
   _type == "ListImageProccessGrid" => {
@@ -400,7 +413,7 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
           <circle class="progress-circle" cx="10" cy="10" r="8"></circle>
         </svg>
       </div>
-      <Button text="Pomiń" theme="secondary" />
+      <Button text={t.skip} theme="secondary" />
     </div>
   </div>
 </section>
