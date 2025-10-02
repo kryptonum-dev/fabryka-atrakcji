@@ -1,4 +1,4 @@
-export const prerender = true
+export const prerender = false
 
 import { DOMAIN } from '@/global/constants'
 import type { APIRoute } from 'astro'
