@@ -24,10 +24,10 @@ const excludedTypes = [
 ]
 
 const slugs = [
-  // Fetch all pages with defined slugs from Sanity
+  // Fetch all pages with defined slugs from Sanity (PL only for now)
   ...(await sanityFetch<string[]>({
     query: `
-      *[defined(slug.current) && !(_type in ${JSON.stringify(excludedTypes)})].slug.current
+      *[defined(slug.current) && !(_type in ${JSON.stringify(excludedTypes)}) && language == 'pl'].slug.current
     `,
   })),
 ]
