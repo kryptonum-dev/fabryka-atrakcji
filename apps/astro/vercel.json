@@ -23,6 +23,30 @@
     {
       "source": "/pl/integracje/kategoria/:category/strona/:page/filtr/",
       "destination": "/_render"
+    },
+    {
+      "source": "/en/hotels/page/:page/filtr/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/en/integracje/page/:page/filtr/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/en/hotels/page/:page/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/en/integracje/page/:page/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/en/hotels/page/:page/filtr/",
+      "destination": "/_render"
+    },
+    {
+      "source": "/en/integracje/page/:page/filtr/",
+      "destination": "/_render"
     }
   ]
 }

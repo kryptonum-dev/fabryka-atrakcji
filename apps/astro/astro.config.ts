@@ -36,14 +36,17 @@ export default defineConfig({
   adapter: vercel({
     ...(!isPreviewDeployment
       ? {
-        isr: {
-          bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
-          exclude: [
-            /^\/api\/.+/,
-            /^\/pl\/koszyk/,
-            /.*\/filtr.*/, // Exclude any URL containing "/filtr"
-          ],
-        },
-      } : {}),
+          isr: {
+            bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
+            exclude: [
+              /^\/api\/.+/,
+              /^\/pl\/koszyk/,
+              /^\/en\/cart/,
+              /.*\/filtr.*/, // Exclude any URL containing "/filtr"
+              /.*\/filter.*/, // Exclude any URL containing "/filtr"
+            ],
+          },
+        }
+      : {}),
   }),
 })
