@@ -27,7 +27,7 @@ const slugs = [
   // Fetch all pages with defined slugs from Sanity
   ...(await sanityFetch<string[]>({
     query: `
-      *[defined(slug.current) && !(_type in ${JSON.stringify(excludedTypes)})].slug.current
+      *[defined(slug.current) && !(_type in ${JSON.stringify(excludedTypes)})].slug.current && language == 'pl'
     `,
   })),
 ]
