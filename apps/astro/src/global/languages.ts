@@ -126,3 +126,8 @@ export const getLocaleFromPath = (pathname: string) => {
   const [, locale] = pathname.split('/')
   return locale === 'en' ? 'en' : 'pl'
 }
+
+export const ogLocales = {
+  pl: 'pl_PL',
+  en: 'en_GB',
+}
