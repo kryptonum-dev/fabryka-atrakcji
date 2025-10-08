@@ -30,6 +30,9 @@ export async function fetchData(
   const filters = parseFilters(searchParams || new URLSearchParams())
   const orderClause = getOrderClause(filters.order)
 
+  // Build the full category slug to match exactly (with trailing slash)
+  const categorySlug = lang === 'pl' ? `/pl/integracje/kategoria/${category}/` : `/en/activities/category/${category}/`
+
   const page = await sanityFetchWithCdn<
     {
       name: string
@@ -52,7 +55,7 @@ export async function fetchData(
         name,
         "slug": slug.current,
         ${NoSearchResults_Query}
-        "selectedCategory": *[_type == "ActivitiesCategory_Collection" && slug.current match $category + "$"][0] {
+        "selectedCategory": *[_type == "ActivitiesCategory_Collection" && slug.current == $categorySlug][0] {
           name,
           "slug": slug.current,
           ${PortableTextQuery('heading')}
@@ -69,6 +72,7 @@ export async function fetchData(
     params: {
       language: lang,
       category,
+      categorySlug,
       PAGINATION_BEFORE,
       PAGINATION_AFTER,
       minParticipants: filters.minParticipants,
@@ -82,6 +86,7 @@ export async function fetchData(
   })
 
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
+
   const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
   return { page, metadata }
 }
@@ -129,6 +134,7 @@ export async function staticPathsCategoryPage(lang: Language) {
 }
 
 const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl } = Astro.props
+
 const lang = getLangFromPath(Astro.url.pathname) as Language
 const totalPages = Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
 

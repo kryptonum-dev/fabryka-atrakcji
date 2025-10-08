@@ -258,7 +258,7 @@ const { minify = false } = Astro.props as Props
                   </span>
                 </a>
                 <nav class="list">
-                  {data.highlightedActivities.map((activity) => (
+                  {data.highlightedActivities?.map((activity) => (
                     <CategoryBlock
                       {...activity}
                       imageConfig={{
@@ -331,7 +331,7 @@ const { minify = false } = Astro.props as Props
                   </span>
                 </a>
                 <nav class="list">
-                  {data.highlightedCaseStudies.map(({ slug, primaryImage, secondaryImage, name }) => (
+                  {data.highlightedCaseStudies?.map(({ slug, primaryImage, secondaryImage, name }) => (
                     <CaseStudyCard
                       title={name}
                       primaryImage={{
