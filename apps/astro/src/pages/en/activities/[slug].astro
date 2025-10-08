@@ -1,0 +1,12 @@
+---
+import SingleActivityPage, { fetchData, staticPaths } from '@/src/templates/activities/SingleActivityPage.astro'
+
+const data = await fetchData(Astro.params.slug || '', 'en')
+console.log(data)
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPaths('en')
+---
+
+<SingleActivityPage {...data} />

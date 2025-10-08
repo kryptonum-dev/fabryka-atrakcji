@@ -258,7 +258,7 @@ const { minify = false } = Astro.props as Props
                   </span>
                 </a>
                 <nav class="list">
-                  {data.highlightedActivities.map((activity) => (
+                  {data.highlightedActivities?.map((activity) => (
                     <CategoryBlock
                       {...activity}
                       imageConfig={{
@@ -331,7 +331,7 @@ const { minify = false } = Astro.props as Props
                   </span>
                 </a>
                 <nav class="list">
-                  {data.highlightedCaseStudies.map(({ slug, primaryImage, secondaryImage, name }) => (
+                  {data.highlightedCaseStudies?.map(({ slug, primaryImage, secondaryImage, name }) => (
                     <CaseStudyCard
                       title={name}
                       primaryImage={{
@@ -1174,7 +1174,7 @@ const { minify = false } = Astro.props as Props
         line-height: 1.7;
         letter-spacing: -0.01em;
         gap: 0.5rem;
-        max-width: clamp(17rem, calc(21vw / 0.48), 21rem);
+        max-width: clamp(17rem, calc(22vw / 0.48), 22rem);
         padding: 0.5rem 0;
 
         svg {

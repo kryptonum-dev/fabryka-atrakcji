@@ -24,6 +24,8 @@ const translations = {
       bounds: 'Wartości muszą być w zakresie od {min} do {max} PLN',
       invalid: 'Proszę wprowadzić prawidłową liczbę całkowitą',
     },
+    filterPath: 'filtr',
+    pagePath: 'strona',
   },
   en: {
     min: 'from',
@@ -35,6 +37,8 @@ const translations = {
       bounds: 'Values must be between {min} and {max} PLN',
       invalid: 'Please enter a valid integer number',
     },
+    filterPath: 'filter',
+    pagePath: 'page',
   },
 }
 
@@ -62,6 +66,8 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
   data-error-range={t.error.range}
   data-error-bounds={t.error.bounds}
   data-error-invalid={t.error.invalid}
+  data-filter-path={t.filterPath}
+  data-page-path={t.pagePath}
 >
   <summary tabindex={isDisabled ? -1 : 0}>
     <span>{heading}</span>
@@ -830,24 +836,28 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
       const currentPath = window.location.pathname
       const params = new URLSearchParams(window.location.search)
 
-      // Build the filtered URL with /filtr/ segment (avoid double /filtr/, always go to page 1)
+      // Get path segments from data attributes
+      const filterPathSegment = details.dataset.filterPath || 'filtr'
+      const pagePathSegment = details.dataset.pagePath || 'strona'
+
+      // Build the filtered URL with filter segment (avoid double filter path, always go to page 1)
       let basePath = currentPath
 
-      // Remove /filtr if already present
-      if (basePath.includes('/filtr')) {
-        basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+      // Remove filter path if already present
+      if (basePath.includes(`/${filterPathSegment}`)) {
+        basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
       }
 
-      // Remove /strona/X/ to always go back to first page when applying filters
-      if (basePath.includes('/strona/')) {
-        basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+      // Remove page path to always go back to first page when applying filters
+      if (basePath.includes(`/${pagePathSegment}/`)) {
+        basePath = basePath.replace(new RegExp(`\/${pagePathSegment}\/\\d+\/?`), '/')
       }
 
-      // Ensure proper trailing slash and add /filtr/
+      // Ensure proper trailing slash and add filter path
       if (!basePath.endsWith('/')) {
         basePath += '/'
       }
-      const filterPath = basePath + 'filtr/'
+      const filterPath = basePath + filterPathSegment + '/'
 
       // Set price parameters
       params.set('minPrice', Math.floor(parseFloat(minInput.value)).toString())

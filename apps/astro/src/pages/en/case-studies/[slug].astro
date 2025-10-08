@@ -1,0 +1,11 @@
+---
+import SingleCaseStudy, { fetchData, staticPaths } from '@/src/templates/caseStudies/SingleCaseStudy.astro'
+
+const data = await fetchData(Astro.params.slug || '', 'en')
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPaths('en')
+---
+
+<SingleCaseStudy {...data} />

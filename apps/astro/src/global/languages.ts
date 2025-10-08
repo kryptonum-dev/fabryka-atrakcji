@@ -105,10 +105,11 @@ export const languages = ['pl', 'en'] as const
 
 export const langPrefixes = {
   pl: '/pl/',
+  en: '/en/',
 }
 
 export function getLangFromPath(pathname: string) {
-  if (pathname.split('/').length === 2) return 'pl'
+  if (pathname.split('/').length === 1) return 'pl'
   const [, lang] = pathname.split('/')
 
   if (languages.includes(lang as Language)) return lang as Language
@@ -124,4 +125,9 @@ export function useTranslations(lang: Language) {
 export const getLocaleFromPath = (pathname: string) => {
   const [, locale] = pathname.split('/')
   return locale === 'en' ? 'en' : 'pl'
+}
+
+export const ogLocales = {
+  pl: 'pl_PL',
+  en: 'en_GB',
 }

@@ -1,0 +1,10 @@
+---
+import ThankYouPageComponent from '@/src/templates/ThankYouPage.astro'
+import { fetchData } from '@/src/templates/ThankYouPage.astro'
+
+const data = await fetchData('en')
+
+if (!data) return Astro.redirect('/404')
+---
+
+<ThankYouPageComponent {...data} />

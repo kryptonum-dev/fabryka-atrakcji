@@ -40,6 +40,7 @@ const quoteTemplate = ({
   selectedDates,
   items,
   newsletter,
+  lang,
 }: {
   email: string
   phone?: string
@@ -49,6 +50,7 @@ const quoteTemplate = ({
   selectedDates: Array<{ start: string; end: string }>
   items: any[]
   newsletter: boolean
+  lang: string
 }) => {
   const datesHtml = selectedDates
     .map((date) => {
@@ -422,6 +424,7 @@ const quoteTemplate = ({
     ${!!phone && phone !== '+48' ? `<p>Telefon: <b>${phone}</b></p>` : ''}
     ${!!additionalInfo ? `<p>Dodatkowe informacje:<br>${additionalInfo.replace(/\n/g, '<br>')}</p>` : ''}
     <p>Zapisano do newslettera: <b>${newsletter ? 'Tak' : 'Nie'}</b></p>
+    <p>Wersja językowa strony: <b>${lang === 'en' ? '🇬🇧 Angielska (EN)' : '🇵🇱 Polska (PL)'}</b></p>
     <hr>
     <h3>Szczegóły wyceny:</h3>
     <p>Liczba uczestników: <b>${participantCount}</b></p>
@@ -484,7 +487,7 @@ export const POST: APIRoute = async ({ request }) => {
     const successResponse = {
       message: 'Quote sent successfully',
       success: true,
-      redirectUrl: lang === 'pl' ? '/pl/strona-podziekowania/' : '/en/thank-you/',
+      redirectUrl: lang === 'pl' ? '/pl/strona-podziekowania/' : '/en/thank-you-page/',
     }
 
     // Define error response
@@ -514,6 +517,7 @@ export const POST: APIRoute = async ({ request }) => {
           selectedDates,
           items,
           newsletter,
+          lang,
         }),
         text: htmlToString(
           quoteTemplate({
@@ -525,6 +529,7 @@ export const POST: APIRoute = async ({ request }) => {
             selectedDates,
             items,
             newsletter,
+            lang,
           })
         ),
       }),

@@ -4,7 +4,16 @@ import Image from '../image'
 import styles from './styles.module.scss'
 import type { BlogCardProps } from './index'
 
-const { name, slug, description, image, readingTime, _createdAt, imageConfig } = Astro.props as BlogCardProps
+const {
+  name,
+  slug,
+  description,
+  image,
+  readingTime,
+  _createdAt,
+  imageConfig,
+  lang = 'pl',
+} = Astro.props as BlogCardProps
 ---
 
 <article class={styles.blogCard}>
@@ -38,7 +47,7 @@ const { name, slug, description, image, readingTime, _createdAt, imageConfig } =
             d="M1.336 8c0-.56 0-1.057.009-1.5H14.66c.008.443.008.94.008 1.5v1.333c0 2.514 0 3.77-.78 4.552-.782.781-2.039.781-4.553.781H6.669c-2.514 0-3.771 0-4.552-.781-.781-.781-.781-2.038-.781-4.552V7.999Zm10 1.333a.667.667 0 1 0 0-1.334.667.667 0 0 0 0 1.334Zm0 2.666a.667.667 0 1 0 0-1.333.667.667 0 0 0 0 1.333ZM8.669 8.666a.667.667 0 1 1-1.333 0 .667.667 0 0 1 1.333 0Zm0 2.667a.667.667 0 1 1-1.333 0 .667.667 0 0 1 1.333 0Zm-4-2a.667.667 0 1 0 0-1.334.667.667 0 0 0 0 1.334Zm0 2.666a.667.667 0 1 0 0-1.333.667.667 0 0 0 0 1.333Z"
             clip-rule="evenodd"></path>
         </svg>
-        <span>{getRelativeDate({ date: _createdAt, upperCase: true })}</span>
+        <span>{getRelativeDate({ date: _createdAt, upperCase: true, lang })}</span>
       </div>
     </div>
   </a>

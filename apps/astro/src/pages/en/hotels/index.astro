@@ -1,0 +1,13 @@
+---
+export const prerender = false
+
+import HotelsListing, { fetchData } from '@/src/templates/hotels/HotelsPage.astro'
+
+// For ISR caching, ignore search params - base page should be static
+const data = await fetchData('en', 1, Astro.url.origin)
+
+if (!data) return Astro.rewrite('/en/404')
+---
+
+<HotelsListing {...data} currentPage={1} />
+

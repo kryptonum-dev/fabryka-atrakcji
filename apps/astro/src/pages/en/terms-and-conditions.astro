@@ -1,0 +1,9 @@
+---
+import TermsAndConditionsPage, { fetchData } from '@/src/templates/Legal.astro'
+
+const data = await fetchData('TermsAndConditions', 'en')
+
+if (!data) return Astro.rewrite('/en/404')
+---
+
+<TermsAndConditionsPage {...data} />

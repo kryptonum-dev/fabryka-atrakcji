@@ -1,0 +1,10 @@
+---
+import ActivitiesListing, { fetchData } from '@/src/templates/activities/CategoriesPage.astro'
+
+// For ISR caching, ignore search params - base page should be static
+const data = await fetchData('en', 1, Astro.url.origin)
+
+if (!data) return Astro.rewrite('/en/404')
+---
+
+<ActivitiesListing {...data} currentPage={1} />

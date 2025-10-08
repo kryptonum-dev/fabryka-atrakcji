@@ -122,8 +122,6 @@ const { page, metadata: _metadata, currentPage, currentCategory } = Astro.props
 const lang = getLangFromPath(Astro.url.pathname) as Language
 const totalPages = Math.ceil(page.totalBlogPostsByCategory / ITEMS_PER_PAGE)
 
-console.log(totalPages)
-
 const translation = {
   pl: {
     page: 'Strona',
@@ -179,7 +177,7 @@ const blogSchema = {
   </Fragment>
   <Breadcrumbs data={breadcrumbs} firstItemType="BlogPage" />
   <PortableText value={page.heading} heading="h1" class="visually-hidden" />
-  <Hero {...page.hero} readingTime={getEstimatedReadingTime({ content: page.hero.content })} />
+  <Hero {...page.hero} readingTime={getEstimatedReadingTime({ content: page.hero.content, lang })} />
   <Listing
     categories={page.categories}
     subheading={page.subheading}

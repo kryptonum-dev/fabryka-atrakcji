@@ -45,6 +45,7 @@ const clientBlogPosts = await Promise.all(
       })),
     },
     readingTime: getEstimatedReadingTime({ content: blogPost.content, lang }),
+    lang,
     imageConfig: {
       sizes: '(max-width: 37.4375rem) 328px, (max-width: 48rem) 298px, (max-width: 70.125rem) 40vw, 435px',
       loading: index === 0 ? 'eager' : 'lazy',

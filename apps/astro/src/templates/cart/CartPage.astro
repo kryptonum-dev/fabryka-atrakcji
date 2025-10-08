@@ -95,43 +95,6 @@ export async function fetchData(lang: Language) {
       `,
       params: { language: lang },
     }),
-    // Hotels data no longer needed with dynamic gastronomy system
-    // sanityFetch<
-    //   Array<{
-    //     gastronomy: {
-    //       lunch: Array<{ level: string; style: string; pricePerPersonPerDay: number; hidePricing: boolean }>
-    //       dinner: Array<{ level: string; style: string; pricePerPersonPerDay: number; hidePricing: boolean }>
-    //       coffeeBreak: { availability: string; pricePerPersonPerDay: number }
-    //       grill: { availability: string; pricePerPersonPerDay: number }
-    //     }
-    //   }>
-    // >({
-    //   query: `*[_type == "Hotels_Collection" && language == $lang] {
-    //     gastronomy {
-    //       lunch[] {
-    //         level,
-    //         style,
-    //         pricePerPersonPerDay,
-    //         hidePricing
-    //       },
-    //       dinner[] {
-    //         level,
-    //         style,
-    //         pricePerPersonPerDay,
-    //         hidePricing
-    //       },
-    //       coffeeBreak {
-    //         availability,
-    //         pricePerPersonPerDay
-    //       },
-    //       grill {
-    //         availability,
-    //         pricePerPersonPerDay
-    //       }
-    //     }
-    //   }`,
-    //   params: { lang },
-    // }),
   ])
 
   if (!page) return null
@@ -159,6 +122,7 @@ const translations = {
       content: 'Wróć do przeglądania integracji i hoteli',
       url: '/pl/',
     },
+    cartPath: 'koszyk',
     cartHeading: 'Twój koszyk',
     activitiesHeading: 'Integracje',
     hotelsHeading: 'Hotele',
@@ -360,12 +324,13 @@ const translations = {
       content: 'Back to activities and hotels',
       url: '/en/',
     },
+    cartPath: 'cart',
     cartHeading: 'Your cart',
     activitiesHeading: 'Activities',
     hotelsHeading: 'Hotels',
     extrasHeading: 'Add something extra',
     optional: '(optional)',
-    howManyParticipants: 'How many participants?',
+    howManyParticipants: 'Participants',
     participantPlaceholder: 'Add value',
     whichDate: 'Which date?',
     getQuote: {
@@ -409,10 +374,10 @@ const translations = {
         button: 'Browse activities',
       },
       gastronomy: {
-        heading: 'Nie dodałeś jeszcze <strong>żadnych usług gastronomicznych</strong>',
+        heading: "You haven't added any <strong>gastronomy services</strong> yet",
         paragraph:
-          'Dodaj <strong>catering, obiady, kolacje</strong> lub inne usługi gastronomiczne do swojej wyceny, aby zapewnić kompleksową obsługę eventu.',
-        button: 'Dodaj usługę gastronomiczną',
+          'Add <strong>catering, lunches, dinners</strong> or other gastronomy services to your quote to ensure comprehensive event service.',
+        button: 'Add gastronomy service',
       },
     },
     addressForm: {
@@ -633,7 +598,7 @@ const { metadata, page } = Astro.props
         </div>
 
         <!-- Gastronomy Section -->
-        <div class="gastronomy-section">
+        <div class="gastronomy-section" style="display: none;">
           <h2 class="cart-heading cart-heading-s">
             <span class="title">{t.gastronomy.title} <strong>{t.optional}</strong></span>
             <span class="count" id="gastronomy-count">0</span>
@@ -2629,10 +2594,10 @@ const { metadata, page } = Astro.props
     }
   }
 
-  // Function to update gastronomy section visibility based on hotels
+  // Function to update gastronomy section visibility based on hotels in CURRENT language cart
   function updateGastronomySectionVisibility() {
     const gastronomySection = document.querySelector('.gastronomy-section') as HTMLElement
-    const cart = cartStore.get()
+    const cart = cartStore.get() // This now gets language-specific cart (cart_pl or cart_en)
     const hasHotels = cart.hotels.length > 0
 
     if (gastronomySection) {
@@ -3352,8 +3317,8 @@ const { metadata, page } = Astro.props
         throw new Error(result.error || 'Failed to create quote')
       }
 
-      // Redirect to quote page
-      window.location.href = `/${lang}/koszyk?id=${result.quoteId}`
+      // Redirect to quote page with language-specific cart path
+      window.location.href = `/${lang}/${t.cartPath}?id=${result.quoteId}`
     } catch (error) {
       console.error('Error creating quote:', error)
       showState('submit-error')

@@ -5,9 +5,9 @@ import { FormState_Query } from '@/components/ui/FormState'
 import type { FormStateTypes } from '@/src/global/types'
 import Form from './Form'
 import { toPlainText } from '@/src/utils/to-plain-text'
-import { type Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 
-const lang = (Astro.params.lang as Language) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 export const Newsletter_Query = `
   _type == "Newsletter" => {

@@ -4,10 +4,10 @@ import CaseStudyCard, { CaseStudyCardQuery, type CaseStudyCardProps } from '@/sr
 import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '@/src/components/ui/ActivityCard'
 import Image from '@/src/components/ui/image'
 import Button from '@/src/components/ui/Button'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 import HotelCard, { HotelCardQuery, type HotelCardProps } from '@/src/components/ui/HotelCard.astro'
 
-const lang = (Astro.params.lang as Language) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

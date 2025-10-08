@@ -5,6 +5,11 @@ node_modules
 .pnp
 .pnp.js
 
+# Lockfiles (project uses Bun)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # Local env files
 .env
 .env.local

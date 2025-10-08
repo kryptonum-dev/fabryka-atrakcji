@@ -116,7 +116,7 @@ export type SingleActivityProps = {
 export async function fetchData(slug: string, lang: Language) {
   const prefixes = {
     pl: '/pl/integracje/',
-    en: '/en/activites/',
+    en: '/en/activities/',
   }
 
   const page = await sanityFetch<SingleActivityProps>({

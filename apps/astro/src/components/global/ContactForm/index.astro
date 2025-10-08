@@ -1,5 +1,5 @@
 ---
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 import Image, { ImageDataQuery, type ImageDataProps } from '../../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
 import sanityFetch from '@/src/utils/sanity.fetch'
@@ -8,7 +8,7 @@ import type { FormStateTypes } from '@/src/global/types'
 import Form from './Form'
 import { toPlainText } from '@/src/utils/to-plain-text'
 
-const language = (Astro.params.lang as Language) || 'pl'
+const language = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

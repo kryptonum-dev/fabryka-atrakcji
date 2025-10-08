@@ -63,7 +63,7 @@ const translations = {
       indoor: 'Indoor',
       participants: 'people',
       location: {
-        wholeCountry: 'the whole of Poland',
+        wholeCountry: 'Whole Poland',
       },
       duration: {
         hoursSingle: 'hour',
@@ -197,8 +197,6 @@ const mediaItems = (() => {
 
 // Keep imageList for backward compatibility in existing logic
 const imageList = mediaItems.map((item) => item.image)
-
-console.log(mediaItems)
 
 const pricePerPerson = (pricing as any)?.additionalPersonPrice || (pricing as any)?.pricePerPerson
 
@@ -1594,7 +1592,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   const toggleButton = document.querySelector('button[data-theme="primary"][data-shade="light"]')! as HTMLButtonElement
 
   // Video popup elements (only for Activities)
-  const pageType = heroSection?.dataset.type
+  // const pageType = heroSection?.dataset.type
 
   const videoPopup = document.querySelector('.video-popup') as HTMLElement
   const videoIframe = document.querySelector('.video-iframe') as HTMLIFrameElement

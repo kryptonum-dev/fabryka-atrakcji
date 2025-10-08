@@ -1,0 +1,15 @@
+---
+import ActivitiesListing, { fetchData, staticPathsCategoryPage } from '@/src/templates/activities/ActivitiesPage.astro'
+
+const page = Number(Astro.params.page) || 1
+const category = Astro.params.category as string
+// For ISR caching, ignore search params - category pagination should be static
+const data = await fetchData('en', category, page)
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPathsCategoryPage('en')
+---
+
+<ActivitiesListing {...data} currentPage={page} currentCategory={category} />
+

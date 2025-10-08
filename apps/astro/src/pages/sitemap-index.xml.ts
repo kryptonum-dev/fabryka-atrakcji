@@ -1,4 +1,4 @@
-export const prerender = true
+export const prerender = false
 
 import { DOMAIN } from '@/global/constants'
 import type { APIRoute } from 'astro'
@@ -24,10 +24,10 @@ const excludedTypes = [
 ]
 
 const slugs = [
-  // Fetch all pages with defined slugs from Sanity (PL only for now)
+  // Fetch all pages with defined slugs from Sanity (both PL and EN)
   ...(await sanityFetch<string[]>({
     query: `
-      *[defined(slug.current) && !(_type in ${JSON.stringify(excludedTypes)}) && language == 'pl'].slug.current
+      *[defined(slug.current) && !(_type in ${JSON.stringify(excludedTypes)}) && language in ['pl', 'en']].slug.current
     `,
   })),
 ]
@@ -51,7 +51,7 @@ try {
   } = await import('@/src/templates/activities/ActivitiesPage.astro')
   const { staticPaths: hotelsStaticPaths } = await import('@/src/templates/hotels/HotelsPage.astro')
 
-  // Blog pages
+  // Blog pages (PL)
   const blogPages = await blogStaticPathsPage('pl')
   slugs.push(
     ...blogPages.filter(({ params }) => params.page !== '1').map(({ params }) => `/pl/blog/strona/${params.page}`)
@@ -62,7 +62,7 @@ try {
     slugs.push(`/pl/blog/kategoria/${category.params.category}/`)
   })
 
-  // Blog category pages
+  // Blog category pages (PL)
   const blogCategoryPages = await blogStaticPathsCategoryPage('pl')
   blogCategoryPages.forEach((categoryPages: any) => {
     if (Array.isArray(categoryPages)) {
@@ -74,7 +74,30 @@ try {
     }
   })
 
-  // Case study pages
+  // Blog pages (EN)
+  const blogPagesEn = await blogStaticPathsPage('en')
+  slugs.push(
+    ...blogPagesEn.filter(({ params }) => params.page !== '1').map(({ params }) => `/en/blog/page/${params.page}`)
+  )
+
+  const blogCategoriesEn = await blogStaticPathsCategory('en')
+  blogCategoriesEn.forEach((category: any) => {
+    slugs.push(`/en/blog/category/${category.params.category}/`)
+  })
+
+  // Blog category pages (EN)
+  const blogCategoryPagesEn = await blogStaticPathsCategoryPage('en')
+  blogCategoryPagesEn.forEach((categoryPages: any) => {
+    if (Array.isArray(categoryPages)) {
+      categoryPages.forEach(({ params }) => {
+        if (params.page !== '1') {
+          slugs.push(`/en/blog/category/${params.category}/page/${params.page}`)
+        }
+      })
+    }
+  })
+
+  // Case study pages (PL)
   const caseStudyPages = await caseStudyStaticPathsPage('pl')
   slugs.push(
     ...caseStudyPages
@@ -87,7 +110,7 @@ try {
     slugs.push(`/pl/realizacje/kategoria/${category.params.category}/`)
   })
 
-  // Case study category pages
+  // Case study category pages (PL)
   const caseStudyCategoryPages = await caseStudyStaticPathsCategoryPage('pl')
   caseStudyCategoryPages.forEach((categoryPages: any) => {
     if (Array.isArray(categoryPages)) {
@@ -99,7 +122,32 @@ try {
     }
   })
 
-  // Activities pages
+  // Case study pages (EN)
+  const caseStudyPagesEn = await caseStudyStaticPathsPage('en')
+  slugs.push(
+    ...caseStudyPagesEn
+      .filter(({ params }) => params.page !== '1')
+      .map(({ params }) => `/en/case-studies/page/${params.page}`)
+  )
+
+  const caseStudyCategoriesEn = await caseStudyStaticPathsCategory('en')
+  caseStudyCategoriesEn.forEach((category: any) => {
+    slugs.push(`/en/case-studies/category/${category.params.category}/`)
+  })
+
+  // Case study category pages (EN)
+  const caseStudyCategoryPagesEn = await caseStudyStaticPathsCategoryPage('en')
+  caseStudyCategoryPagesEn.forEach((categoryPages: any) => {
+    if (Array.isArray(categoryPages)) {
+      categoryPages.forEach(({ params }) => {
+        if (params.page !== '1') {
+          slugs.push(`/en/case-studies/category/${params.category}/page/${params.page}`)
+        }
+      })
+    }
+  })
+
+  // Activities pages (PL)
   const activitiesPages = await activitiesStaticPaths('pl')
   console.log(activitiesPages)
   slugs.push(...activitiesPages.map(({ params }) => `/pl/integracje/strona/${params.page}/`))
@@ -109,7 +157,7 @@ try {
     slugs.push(`/pl/integracje/kategoria/${category.params.category}`)
   })
 
-  // Activities category pages
+  // Activities category pages (PL)
   const activitiesCategoryPages = await activitiesStaticPathsCategoryPage('pl')
   activitiesCategoryPages.forEach(({ params }) => {
     if (params.page !== '1/') {
@@ -117,10 +165,33 @@ try {
     }
   })
 
-  // Hotels pages
+  // Activities pages (EN)
+  const activitiesPagesEn = await activitiesStaticPaths('en')
+  slugs.push(...activitiesPagesEn.map(({ params }) => `/en/activities/page/${params.page}/`))
+
+  const activitiesCategoriesEn = await activitiesStaticPathsCategory('en')
+  activitiesCategoriesEn.forEach((category: any) => {
+    slugs.push(`/en/activities/category/${category.params.category}`)
+  })
+
+  // Activities category pages (EN)
+  const activitiesCategoryPagesEn = await activitiesStaticPathsCategoryPage('en')
+  activitiesCategoryPagesEn.forEach(({ params }) => {
+    if (params.page !== '1/') {
+      slugs.push(`/en/activities/category/${params.category}page/${params.page}`)
+    }
+  })
+
+  // Hotels pages (PL)
   const hotelsPages = await hotelsStaticPaths('pl')
   slugs.push(
     ...hotelsPages.filter(({ params }) => params.page !== '1').map(({ params }) => `/pl/hotele/strona/${params.page}`)
+  )
+
+  // Hotels pages (EN)
+  const hotelsPagesEn = await hotelsStaticPaths('en')
+  slugs.push(
+    ...hotelsPagesEn.filter(({ params }) => params.page !== '1').map(({ params }) => `/en/hotels/page/${params.page}`)
   )
 } catch (error) {
   console.warn('Error loading static paths for sitemap:', error)

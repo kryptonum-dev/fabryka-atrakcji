@@ -1,5 +1,5 @@
 ---
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../../portable-text'
 import Image, { ImageDataQuery, type ImageDataProps } from '../../image'
 import imageToInlineSvg from '@/src/utils/image-to-inline-svg'
@@ -8,7 +8,7 @@ import RatingBox from '../../RatingBox'
 import PopupWindow from '../../PopupWindow/index.astro'
 import Button from '../../Button'
 import TestimonialsPopup from '../../TestimonialsPopup/index.astro'
-const language = (Astro.params.lang as Language) || 'pl'
+const language = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

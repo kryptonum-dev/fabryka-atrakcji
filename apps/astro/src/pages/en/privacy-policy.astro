@@ -1,0 +1,9 @@
+---
+import PrivacyPolicyPage, { fetchData } from '@/src/templates/Legal.astro'
+
+const data = await fetchData('PrivacyPolicy', 'en')
+
+if (!data) return Astro.rewrite('/en/404')
+---
+
+<PrivacyPolicyPage {...data} />

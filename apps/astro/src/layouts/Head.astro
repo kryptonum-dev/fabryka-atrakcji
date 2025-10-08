@@ -1,10 +1,10 @@
 ---
 import { getImage } from 'astro:assets'
-import { DOMAIN, LOCALE, THEME_COLOR } from '@/global/constants'
+import { DOMAIN, THEME_COLOR } from '@/global/constants'
 import sanityFetch from '@/utils/sanity.fetch'
 import icon from '../assets/icon.png'
 import faviconSvg from '../assets/favicon.svg'
-import { type Language } from '@/global/languages'
+import { type Language, getLocaleFromPath, ogLocales } from '@/global/languages'
 import { joinUrl } from '@/utils/join-url'
 
 const icons = {
@@ -58,6 +58,10 @@ const ogImage = await getOgImage()
 const url = _url || joinUrl(DOMAIN, path ?? '')
 
 const finalCanonicalUrl = canonicalUrl || url
+
+// Get locale from path for dynamic og:locale
+const locale = getLocaleFromPath(path ?? '')
+const ogLocale = ogLocales[locale]
 ---
 
 <meta charset="utf-8" />
@@ -82,7 +86,7 @@ const finalCanonicalUrl = canonicalUrl || url
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:site_name" content={title} />
-<meta property="og:locale" content={LOCALE} />
+<meta property="og:locale" content={ogLocale} />
 <meta property="og:image" content={ogImage.url} />
 <meta property="og:image:width" content={ogImage.width} />
 <meta property="og:image:height" content={ogImage.height} />

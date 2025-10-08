@@ -40,7 +40,8 @@ export type BlogCardProps = {
   }
   _createdAt: string
   content: PortableTextProps['value']
-  readingTime: number
+  readingTime: string
+  lang?: 'pl' | 'en'
   seo: {
     title: string
     description: string

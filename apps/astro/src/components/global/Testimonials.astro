@@ -5,12 +5,12 @@ import PortableText, { PortableTextQuery, type PortableTextValue } from '@/compo
 import RatingBox from '@/components/ui/RatingBox'
 import Button from '@/components/ui/Button'
 import TestimonialsPopup from '@/components/ui/TestimonialsPopup/index.astro'
-import type { Language } from '@/src/global/languages'
+import { getLangFromPath, type Language } from '@/src/global/languages'
 import PopupWindow from '@/components/ui/PopupWindow/index.astro'
 import TestimonialSchema from '@/src/Schema/TestimonialSchema.astro'
 import { translateDate } from '@/src/utils/translate-date'
 
-const language = (Astro.params.lang as Language) || 'pl'
+const language = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {

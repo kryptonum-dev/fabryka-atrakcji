@@ -15,17 +15,27 @@ const translations = {
   pl: {
     buttonLabel: 'Szukaj',
     historyLabel: 'Historia wyszukiwania',
+    filterPath: 'filtr',
+    pagePath: 'strona',
   },
   en: {
     buttonLabel: 'Search',
     historyLabel: 'Search history',
+    filterPath: 'filter',
+    pagePath: 'page',
   },
 }
 
 const t = translations[lang]
 ---
 
-<form class="SearchBar" method="get" data-has-wrapper={hasWrapper}>
+<form
+  class="SearchBar"
+  method="get"
+  data-has-wrapper={hasWrapper}
+  data-filter-path={t.filterPath}
+  data-page-path={t.pagePath}
+>
   <div class="search-wrapper">
     <div class="search-container">
       <input type="text" name="search" value={value} placeholder={placeholder || ''} class="search-input" />
@@ -49,28 +59,31 @@ const t = translations[lang]
         const formData = new FormData(searchForm)
         const searchValue = formData.get('search') as string
 
-        // Only redirect to /filtr if there's actually a search value
+        // Only redirect to filter path if there's actually a search value
         if (searchValue && searchValue.trim()) {
           e.preventDefault()
+
+          const filterPathSegment = searchForm.getAttribute('data-filter-path') || 'filtr'
+          const pagePathSegment = searchForm.getAttribute('data-page-path') || 'strona'
 
           const currentPath = window.location.pathname
           let basePath = currentPath
 
-          // Remove /filtr if already present
-          if (basePath.includes('/filtr')) {
-            basePath = basePath.replace('/filtr/', '/').replace('/filtr', '/')
+          // Remove filter path if already present
+          if (basePath.includes(`/${filterPathSegment}`)) {
+            basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
           }
 
-          // Remove /strona/X/ to always go back to first page when searching
-          if (basePath.includes('/strona/')) {
-            basePath = basePath.replace(/\/strona\/\d+\/?/, '/')
+          // Remove page path to always go back to first page when searching
+          if (basePath.includes(`/${pagePathSegment}/`)) {
+            basePath = basePath.replace(new RegExp(`\/${pagePathSegment}\/\\d+\/?`), '/')
           }
 
-          // Ensure proper trailing slash and add /filtr/
+          // Ensure proper trailing slash and add filter path
           if (!basePath.endsWith('/')) {
             basePath += '/'
           }
-          const filterPath = basePath + 'filtr/'
+          const filterPath = basePath + filterPathSegment + '/'
 
           // Preserve existing query parameters and add search
           const params = new URLSearchParams(window.location.search)

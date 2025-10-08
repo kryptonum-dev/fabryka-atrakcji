@@ -31,6 +31,8 @@ export default function Form({
 
   const t = translations[lang]
 
+  console.log(errors)
+
   const updateStatus = (newStatus: FormStatusTypes) => {
     if (newStatus.success !== status.success) {
       setShouldAnimate(true)

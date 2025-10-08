@@ -1,0 +1,7 @@
+---
+import NotFoundPage, { fetchData } from '@/src/templates/NotFoundPage.astro'
+
+const data = await fetchData('en')
+---
+
+<NotFoundPage {...data} />

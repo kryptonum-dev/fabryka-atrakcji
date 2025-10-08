@@ -42,11 +42,13 @@ export default function QuoteForm({
 
   // Function to clear all cart data from localStorage
   const clearCartData = () => {
-    // Reset the cart store to empty state
+    // Reset the cart store to empty state (clears current language cart)
     cartStore.set({ hotels: [], activities: [] })
 
     // Remove all cart-related data from localStorage
-    localStorage.removeItem('cart')
+    localStorage.removeItem('cart_pl')
+    localStorage.removeItem('cart_en')
+    localStorage.removeItem('cart') // Legacy - can be removed eventually
     localStorage.removeItem('cart_dates')
     localStorage.removeItem('cart_order_addons')
     localStorage.removeItem('cart_participant_count')
@@ -54,6 +56,8 @@ export default function QuoteForm({
     localStorage.removeItem('transport_dates')
     localStorage.removeItem('transport_participant_count')
     localStorage.removeItem('cart_gastronomy_items')
+    localStorage.removeItem('cart_people_per_bus')
+    localStorage.removeItem('activity_address')
 
     // Also clear any pending transport items
     localStorage.removeItem('pending_transport_item')
@@ -117,8 +121,14 @@ export default function QuoteForm({
         // Clear all cart data from localStorage
         clearCartData()
 
-        // [LEAD] Google Ads Conversion
-        window.gtag('event', 'conversion', { send_to: 'AW-881393838/TGEgCKr774QbEK6BpKQD' })
+        // [LEAD] Google Ads Conversion (optional - only if gtag is loaded)
+        if (typeof window.gtag === 'function') {
+          try {
+            window.gtag('event', 'conversion', { send_to: 'AW-881393838/TGEgCKr774QbEK6BpKQD' })
+          } catch (error) {
+            console.warn('Google Ads conversion tracking failed:', error)
+          }
+        }
         trackEvent({
           ga: {
             event_name: 'lead',

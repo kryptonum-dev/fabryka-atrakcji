@@ -1,7 +1,9 @@
 ---
 import NotFoundPage, { fetchData } from '@/src/templates/NotFoundPage.astro'
+import { getLangFromPath } from '@/global/languages'
 
-const data = await fetchData('pl')
+const lang = getLangFromPath(Astro.url.pathname)
+const data = await fetchData(lang)
 ---
 
 <NotFoundPage {...data} />

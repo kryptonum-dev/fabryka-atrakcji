@@ -135,9 +135,15 @@ export const getEstimatedReadingTime = ({
   }
 
   const getMinuteText = (minutes: number) => {
-    if (minutes === 1) return t.minute
-    if (minutes >= 2 && minutes <= 4) return t.minutes_plural
-    return t.minutes
+    if (lang === 'pl') {
+      // Polish plural rules: 1 = minuta, 2-4 = minuty, 5+ = minut
+      if (minutes === 1) return t.minute
+      if (minutes >= 2 && minutes <= 4) return t.minutes_plural
+      return t.minutes
+    } else {
+      // English plural rules: 1 = minute, 2+ = minutes
+      return minutes === 1 ? t.minute : t.minutes
+    }
   }
 
   return `${readingTime(plainText)} ${getMinuteText(readingTime(plainText))} ${t.readingTime}`

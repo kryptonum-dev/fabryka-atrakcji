@@ -1,12 +1,11 @@
 ---
 import '@/global/global.scss'
-import { LOCALE } from '../global/constants'
 import Head, { type HeadProps } from './Head.astro'
 import OrganizationSchema from '../Schema/OrganizationSchema.astro'
 import Footer from './Footer.astro'
 import Header from './Header.astro'
 import Toast from '../components/ui/Toast.astro'
-import type { Language } from '../global/languages'
+import { getLangFromPath } from '../global/languages'
 import CookieConsent from './CookieConsent.astro'
 type Props = HeadProps & {
   minify?: boolean
@@ -14,11 +13,11 @@ type Props = HeadProps & {
 
 const { minify = false, ...props } = Astro.props as Props
 
-const lang = (Astro.params.lang as Language) || 'pl'
+const lang = getLangFromPath(Astro.url.pathname)
 ---
 
 <!doctype html>
-<html lang={LOCALE}>
+<html lang={lang}>
   <head>
     <Head {...props} />
     <OrganizationSchema />
@@ -30,7 +29,7 @@ const lang = (Astro.params.lang as Language) || 'pl'
     <main id="main">
       <slot />
     </main>
-    <Footer lang={lang} minify={minify} />
+    <Footer minify={minify} />
     <Toast />
   </body>
 </html>
