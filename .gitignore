@@ -26,6 +26,9 @@ coverage
 # Vercel
 .vercel
 
+# Cursor MCP configuration (contains sensitive API tokens)
+.cursor/mcp.json
+
 # Build Outputs
 .next/
 out/
