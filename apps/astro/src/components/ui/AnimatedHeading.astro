@@ -36,7 +36,7 @@ const splitHeading = (heading: any) => {
       const words = block.text.split(' ')
       return words.map((word: any) => ({
         text: word,
-        marks: block.marks.includes('strong') ? ['strong'] : [],
+        marks: block.marks?.includes('strong') ? ['strong'] : [],
       }))
     })
     .filter((item: any) => item.text !== '')
@@ -54,7 +54,7 @@ const delay = (index: number) => {
     splitHeading(heading).map((item: any, i: number) => (
       <>
         {i === 0 ? '' : ' '}
-        {item.marks.includes('strong') ? (
+        {item.marks?.includes('strong') ? (
           <strong style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</strong>
         ) : (
           <span style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</span>
