@@ -6,6 +6,7 @@ import { getLangFromPath, type Language } from '../global/languages'
 import sanityFetch from '../utils/sanity.fetch'
 import Button from '../components/ui/Button'
 import CartLink from '../components/ui/CartLink.astro'
+import LanguageSwitcher from '../components/ui/LanguageSwitcher.astro'
 
 type Props = {
   minify?: boolean
@@ -30,9 +31,10 @@ const translations = {
     skipLink: 'Przejdź do treści głównej',
     openMenu: 'Menu',
     closeMenu: 'Zamknij menu',
-    minify: 'Otrzymaj wycenę bez spamu i nachalnej sprzedaży',
+    minify: 'Otrzymaj wycenę bez spamu i nachalnej sprzedaży',
     contactUrl: '/pl/kontakt/',
     contactText: 'Skontaktuj się',
+    languageLabel: 'Zmień język',
   },
   en: {
     activities: 'Team activities',
@@ -53,6 +55,7 @@ const translations = {
     minify: 'Get the estimate without spam and aggressive sales',
     contactUrl: '/en/contact/',
     contactText: 'Contact us',
+    languageLabel: 'Change language',
   },
 }
 const t = translations[language]
@@ -355,6 +358,7 @@ const { minify = false } = Astro.props as Props
             {t.contactText}
           </a>
           <CartLink inverted />
+          <LanguageSwitcher inverted />
         </nav>
       )
     }
@@ -373,7 +377,14 @@ const { minify = false } = Astro.props as Props
         </div>
       )
     }
-    <CartLink />
+    {
+      !minify && (
+        <div class="languages-container">
+          <LanguageSwitcher />
+          <CartLink />
+        </div>
+      )
+    }
     <div class="overlay" data-variant="desktop" aria-hidden="true"></div>
     <div class="overlay" data-variant="mobile" aria-hidden="true"></div>
   </div>
@@ -1165,6 +1176,24 @@ const { minify = false } = Astro.props as Props
         :global(.cart) {
           display: none;
         }
+
+        :global(.language-switcher) {
+          display: none;
+        }
+      }
+
+      .languages-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        > :global(.language-switcher) {
+          flex-shrink: 0;
+        }
+        > :global(.cart) {
+          position: relative;
+          z-index: 3;
+        }
       }
 
       .minify {
@@ -1261,6 +1290,12 @@ const { minify = false } = Astro.props as Props
       &[data-minify='false'] {
         .container {
           position: relative;
+
+          > .languages-container {
+            > :global(.language-switcher) {
+              display: none;
+            }
+          }
           .logo {
             position: absolute;
             bottom: 0.0625rem;
@@ -1311,6 +1346,10 @@ const { minify = false } = Astro.props as Props
               padding-top: 0.25rem;
               border-top: 0.0625rem solid var(--neutral-300, #ede6de);
               margin-top: 1.25rem;
+            }
+
+            :global(.language-switcher) {
+              display: block;
             }
           }
         }

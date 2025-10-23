@@ -1,0 +1,401 @@
+---
+import { getLangFromPath, type Language } from '@/global/languages'
+
+const language = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+type Props = {
+  inverted?: boolean
+}
+
+const { inverted } = Astro.props as Props
+
+const translations = {
+  pl: {
+    languageLabel: 'Zmień język',
+    defaultUrl: '/pl/',
+  },
+  en: {
+    languageLabel: 'Change language',
+    defaultUrl: '/en/',
+  },
+}
+const t = translations[language]
+
+// Get the alternative language URL
+const currentPath = Astro.url.pathname
+const alternativeUrl =
+  language === 'pl'
+    ? currentPath.replace('/pl/', '/en/').replace(/\/pl$/, '/en')
+    : currentPath.replace('/en/', '/pl/').replace(/\/en$/, '/pl')
+---
+
+<div class="language-switcher" data-inverted={inverted}>
+  <button type="button" class="language-button" aria-label={t.languageLabel}>
+    <span class="flag">{language === 'pl' ? '🇵🇱' : '🇬🇧'}</span>
+    <span class="current-language">{language === 'pl' ? 'Polski' : 'English'}</span>
+    <span class="svg-box">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none">
+        <path
+          d="m9.969 4.75-3.5 3-3.5-3"
+          stroke="#74535E"
+          stroke-width="1.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none">
+        <path
+          d="m9.969 4.75-3.5 3-3.5-3"
+          stroke="#74535E"
+          stroke-width="1.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </span>
+  </button>
+  <div class="language-dropdown">
+    <a
+      href={language === 'pl' ? t.defaultUrl : alternativeUrl}
+      class="language-option"
+      data-active={language === 'pl'}
+      aria-current={language === 'pl' ? 'page' : undefined}
+      tabindex="-1"
+    >
+      <span class="flag">🇵🇱</span>
+      <span class="label">Polski</span>
+    </a>
+    <a
+      href={language === 'en' ? t.defaultUrl : alternativeUrl}
+      class="language-option"
+      data-active={language === 'en'}
+      aria-current={language === 'en' ? 'page' : undefined}
+      tabindex="-1"
+    >
+      <span class="flag">🇬🇧</span>
+      <span class="label">English</span>
+    </a>
+  </div>
+</div>
+
+<style lang="scss">
+  .language-switcher {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+
+    .language-button {
+      display: flex;
+      align-items: center;
+      min-height: 2.75rem;
+      gap: 0.375rem;
+      padding: 0.25rem;
+      padding-top: 6px;
+      color: var(--primary-700, #600d2a);
+      font-size: var(--typography-body-s, 0.875rem);
+      line-height: 1.7;
+      letter-spacing: -0.01em;
+      border-radius: 0.25rem;
+      isolation: isolate;
+      position: relative;
+      background: none;
+      border: none;
+
+      .flag {
+        font-size: 1.25rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+      }
+
+      .current-language {
+        font-weight: 500;
+        font-size: var(--typography-body-s, 0.75rem);
+        transition: color 200ms;
+      }
+
+      .svg-box {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 0.875rem;
+        height: 0.875rem;
+        overflow: hidden;
+
+        svg {
+          width: 0.75rem;
+          height: 0.75rem;
+          transition: transform 300ms var(--easing);
+
+          &:nth-of-type(2) {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -150%) scale(0.1);
+          }
+        }
+      }
+
+      &:hover {
+        .current-language {
+          color: var(--primary-500, #f67258);
+        }
+
+        .svg-box {
+          svg {
+            &:nth-of-type(1) {
+              transform: translateY(150%);
+            }
+
+            &:nth-of-type(2) {
+              transform: translate(-50%, -50%);
+              transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+            }
+          }
+        }
+      }
+
+      &:focus-visible {
+        outline: 0.125rem solid var(--primary-500, #f67258);
+        outline-offset: 0.125rem;
+        border-radius: 0.25rem;
+      }
+
+      &:focus:not(:focus-visible) {
+        .current-language {
+          color: var(--primary-500, #f67258);
+        }
+      }
+    }
+
+    .language-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      z-index: 200;
+      min-width: 10rem;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border-radius: 0.5rem;
+      background: var(--neutral-100, #fff);
+      box-shadow: 0 0.25rem 1rem rgba(69, 5, 28, 0.1);
+      border: 0.0625rem solid var(--neutral-300, #ede6de);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 200ms,
+        visibility 200ms;
+
+      .language-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 0.75rem;
+        border-radius: 0.25rem;
+        color: var(--primary-700, #600d2a);
+        font-size: var(--typography-body-m, 0.875rem);
+        line-height: 1.7;
+        letter-spacing: -0.01em;
+        transition: background-color 200ms;
+        isolation: isolate;
+        position: relative;
+
+        .flag {
+          font-size: 1.25rem;
+          line-height: 1;
+        }
+
+        .label {
+          font-weight: 500;
+        }
+
+        &::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          border-radius: 0.25rem;
+          background: conic-gradient(
+            from 135deg at 50% 50%,
+            #798ddc 0deg,
+            #e7c78f 90deg,
+            #fa7468 266.40000343322754deg,
+            #798ddc 360deg
+          );
+          opacity: 0;
+          transition: opacity 200ms;
+        }
+
+        &[data-active='true'] {
+          .label {
+            font-weight: 700;
+          }
+
+          color: var(--primary-800, #45051c);
+
+          &::before {
+            opacity: 0.15;
+          }
+        }
+
+        &:not([data-active='true']):hover {
+          background-color: var(--neutral-200, #f5f1ec);
+        }
+
+        &:focus-visible {
+          outline: 0.125rem solid var(--primary-500, #f67258);
+          outline-offset: 0.125rem;
+          background-color: var(--neutral-200, #f5f1ec);
+        }
+
+        &:focus:not(:focus-visible) {
+          background-color: var(--neutral-200, #f5f1ec);
+        }
+
+        & + .language-option {
+          margin-top: 0.25rem;
+        }
+      }
+    }
+
+    &[data-active='true'] {
+      .language-button {
+        .svg-box {
+          svg {
+            &:nth-of-type(1) {
+              transform: rotate(180deg);
+            }
+
+            &:nth-of-type(2) {
+              transform: translate(-50%, -150%) scale(0.1) rotate(180deg);
+            }
+          }
+        }
+
+        &:hover {
+          .svg-box {
+            svg {
+              &:nth-of-type(1) {
+                transform: translateY(150%) rotate(180deg);
+              }
+
+              &:nth-of-type(2) {
+                transform: translate(-50%, -50%) rotate(180deg);
+              }
+            }
+          }
+        }
+      }
+
+      .language-dropdown {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+    }
+
+    // Mobile (inverted) styles
+    &[data-inverted='true'] {
+      display: block;
+      margin-left: 0;
+      margin-right: 0;
+
+      .language-button {
+        width: 100%;
+        padding: 0;
+        margin-top: -0.5rem;
+      }
+
+      .language-dropdown {
+        position: static;
+        margin-top: 0.5rem;
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
+        border: none;
+        transform: none;
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 300ms var(--easing);
+      }
+
+      &[data-active='true'] {
+        .language-dropdown {
+          max-height: 10rem;
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  const languageSwitchers = document.querySelectorAll('.language-switcher')
+
+  languageSwitchers.forEach((switcher) => {
+    const button = switcher.querySelector('.language-button')!
+    const options = switcher.querySelectorAll('.language-option')
+
+    function toggleDropdown(open: boolean) {
+      switcher.setAttribute('data-active', open ? 'true' : 'false')
+      options.forEach((option) => {
+        option.setAttribute('tabindex', open ? '0' : '-1')
+      })
+    }
+
+    button.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const isCurrentlyActive = switcher.getAttribute('data-active') === 'true'
+      toggleDropdown(!isCurrentlyActive)
+    })
+
+    // Keyboard support for opening/closing
+    button.addEventListener('keydown', (e: Event) => {
+      const keyEvent = e as KeyboardEvent
+      if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+        keyEvent.preventDefault()
+        const isCurrentlyActive = switcher.getAttribute('data-active') === 'true'
+        toggleDropdown(!isCurrentlyActive)
+      }
+    })
+
+    // Close dropdown when focus leaves the switcher
+    switcher.addEventListener('focusout', (e: Event) => {
+      const focusEvent = e as FocusEvent
+      const relatedTarget = focusEvent.relatedTarget as HTMLElement
+      if (!switcher.contains(relatedTarget)) {
+        toggleDropdown(false)
+      }
+    })
+  })
+
+  // Close language dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement
+    languageSwitchers.forEach((switcher) => {
+      if (!switcher.contains(target)) {
+        const options = switcher.querySelectorAll('.language-option')
+        switcher.setAttribute('data-active', 'false')
+        options.forEach((option) => {
+          option.setAttribute('tabindex', '-1')
+        })
+      }
+    })
+  })
+
+  // Close on Escape key
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      languageSwitchers.forEach((switcher) => {
+        const options = switcher.querySelectorAll('.language-option')
+        switcher.setAttribute('data-active', 'false')
+        options.forEach((option) => {
+          option.setAttribute('tabindex', '-1')
+        })
+      })
+    }
+  })
+</script>
