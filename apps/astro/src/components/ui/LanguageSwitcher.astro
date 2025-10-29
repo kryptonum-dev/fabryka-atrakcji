@@ -5,9 +5,10 @@ const language = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
 type Props = {
   inverted?: boolean
+  alternates?: Array<{ lang: Language; url: string }>
 }
 
-const { inverted } = Astro.props as Props
+const { inverted, alternates } = Astro.props as Props
 
 const translations = {
   pl: {
@@ -21,12 +22,8 @@ const translations = {
 }
 const t = translations[language]
 
-// Get the alternative language URL
-const currentPath = Astro.url.pathname
-const alternativeUrl =
-  language === 'pl'
-    ? currentPath.replace('/pl/', '/en/').replace(/\/pl$/, '/en')
-    : currentPath.replace('/en/', '/pl/').replace(/\/en$/, '/pl')
+// Build language -> url map from alternates
+const langToUrl = new Map((alternates || []).map(({ lang, url }) => [lang, url]))
 ---
 
 <div class="language-switcher" data-inverted={inverted}>
@@ -54,7 +51,7 @@ const alternativeUrl =
   </button>
   <div class="language-dropdown">
     <a
-      href={language === 'pl' ? t.defaultUrl : alternativeUrl}
+      href={language === 'pl' ? t.defaultUrl : langToUrl.get('pl') || t.defaultUrl}
       class="language-option"
       data-active={language === 'pl'}
       aria-current={language === 'pl' ? 'page' : undefined}
@@ -64,7 +61,7 @@ const alternativeUrl =
       <span class="label">Polski</span>
     </a>
     <a
-      href={language === 'en' ? t.defaultUrl : alternativeUrl}
+      href={language === 'en' ? t.defaultUrl : langToUrl.get('en') || t.defaultUrl}
       class="language-option"
       data-active={language === 'en'}
       aria-current={language === 'en' ? 'page' : undefined}

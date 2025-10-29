@@ -25,7 +25,7 @@ const lang = getLangFromPath(Astro.url.pathname)
   </head>
   <body>
     <CookieConsent />
-    <Header minify={minify} />
+    <Header minify={minify} alternates={props.alternates} />
     <main id="main">
       <slot />
     </main>

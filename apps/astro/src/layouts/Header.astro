@@ -10,6 +10,7 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher.astro'
 
 type Props = {
   minify?: boolean
+  alternates?: Array<{ lang: Language; url: string }>
 }
 
 const language = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
@@ -93,7 +94,7 @@ const data = await sanityFetch<{
   params: { language },
 })
 
-const { minify = false } = Astro.props as Props
+const { minify = false, alternates } = Astro.props as Props
 ---
 
 <a class="skip-link" href="#main">{t.skipLink}</a>
@@ -358,7 +359,7 @@ const { minify = false } = Astro.props as Props
             {t.contactText}
           </a>
           <CartLink inverted />
-          <LanguageSwitcher inverted />
+          <LanguageSwitcher inverted alternates={alternates} />
         </nav>
       )
     }
@@ -380,7 +381,7 @@ const { minify = false } = Astro.props as Props
     {
       !minify && (
         <div class="languages-container">
-          <LanguageSwitcher />
+          <LanguageSwitcher alternates={alternates} />
           <CartLink />
         </div>
       )
