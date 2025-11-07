@@ -11,7 +11,7 @@ import type { ButtonDataProps } from '../components/ui/Button'
 
 type Props = HeadProps & {
   navigationLinks: Array<{ name: string; href: string }>
-  cta: ButtonDataProps & { text: string }
+  cta: ButtonDataProps
 }
 
 const { navigationLinks, cta, ...headProps } = Astro.props

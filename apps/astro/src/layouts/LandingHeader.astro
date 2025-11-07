@@ -1,15 +1,10 @@
 ---
-import Button from '../components/ui/Button'
+import Button, { type ButtonDataProps } from '../components/ui/Button'
 import { getLangFromPath, type Language } from '../global/languages'
 
 type Props = {
   navigationLinks: Array<{ name: string; href: string }>
-  cta: {
-    text: string
-    theme?: 'primary' | 'secondary'
-    linkType?: 'external' | 'internal' | 'anchor'
-    href?: string
-  }
+  cta: ButtonDataProps
   alternates?: Array<{ lang: Language; url: string }>
 }
 
@@ -178,11 +173,8 @@ const t = translations[language]
     </nav>
     <div class="cta-wrapper">
       <Button
-        theme={cta.theme || 'primary'}
-        text={cta.text}
-        href={cta.href}
-        linkType={cta.linkType}
-        shade={cta.theme === 'primary' ? 'light' : 'dark'}
+        {...cta}
+        shade="light"
       />
     </div>
     <div class="mobile-navigation" data-mobile-open="false">
