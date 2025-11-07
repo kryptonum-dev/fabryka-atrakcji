@@ -1,0 +1,17 @@
+---
+import LandingLayout from '@/src/layouts/LandingLayout.astro'
+import Components from '@/components/Components.astro'
+import type { PageData } from '../utils/fetch-page'
+import type metadataFetch from '../utils/metadata.fetch'
+
+type Props = {
+  page: Extract<PageData, { type: 'landing' }>
+  metadata: Awaited<ReturnType<typeof metadataFetch>>
+}
+
+const { page, metadata } = Astro.props
+---
+
+<LandingLayout {...metadata} navigationLinks={page.navigationLinks} cta={page.cta}>
+  <Components data={page.components} />
+</LandingLayout>

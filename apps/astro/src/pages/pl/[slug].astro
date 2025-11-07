@@ -1,9 +1,20 @@
 ---
-import DefaultPage, { fetchData } from '@/src/templates/DefaultPage.astro'
+import DefaultPage from '@/src/templates/DefaultPage.astro'
+import LandingPage from '@/src/templates/LandingPage.astro'
+import { fetchPage } from '@/src/utils/fetch-page'
 
-const data = await fetchData(Astro.params.slug || '', 'pl')
+const slug = Astro.params.slug || ''
+const pageResult = await fetchPage(slug, 'pl')
 
-if (!data) return Astro.rewrite('/pl/404')
+if (!pageResult) return Astro.rewrite('/pl/404')
+
+const { data, metadata } = pageResult
 ---
 
-<DefaultPage {...data} />
+{
+  data.type === 'landing' ? (
+    <LandingPage page={data} metadata={metadata} />
+  ) : (
+    <DefaultPage page={data} metadata={metadata} />
+  )
+}

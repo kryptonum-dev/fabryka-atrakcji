@@ -17,6 +17,8 @@ import StepsList from './components/StepsList'
 import Testimonials from './components/Testimonials'
 import TextBlocksGrid from './components/TextBlocksGrid'
 import FeaturedHotelsList from './components/FeaturedHotelsList'
+import ImagesMarqueeSection from './components/ImagesMarqueeSection'
+import BlockColumn from './components/BlockColumn'
 export default defineType({
   name: 'components',
   type: 'array',
@@ -40,6 +42,8 @@ export default defineType({
     BackgroundImageWithCenteredHeading,
     TextBlocksGrid,
     FeaturedHotelsList,
+    ImagesMarqueeSection,
+    BlockColumn,
   ],
   options: {
     insertMenu: {

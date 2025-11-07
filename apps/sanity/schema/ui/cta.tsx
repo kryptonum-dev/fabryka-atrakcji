@@ -46,13 +46,15 @@ export default defineType({
       title: 'Typ',
       description: (
         <>
-          <em>Zewnętrzny</em> (inne strony) lub <em>Wewnętrzny</em> (w obrębie Twojej strony)
+          <em>Zewnętrzny</em> (inne strony), <em>Wewnętrzny</em> (w obrębie Twojej strony) lub <em>Kotwica</em>{' '}
+          (nawigacja na tej samej stronie)
         </>
       ),
       options: {
         list: [
           { title: 'Zewnętrzny', value: 'external' },
           { title: 'Wewnętrzny', value: 'internal' },
+          { title: 'Kotwica', value: 'anchor' },
         ],
         layout: 'radio',
         direction: 'horizontal',
@@ -106,13 +108,34 @@ export default defineType({
         }),
       ],
     }),
+    defineField({
+      name: 'anchor',
+      type: 'string',
+      title: 'Kotwica',
+      description: 'Link do sekcji na tej samej stronie (np. "#kontakt", "#oferta").',
+      placeholder: '#kontakt',
+      hidden: ({ parent }) => parent?.linkType !== 'anchor',
+      validation: (Rule) => [
+        Rule.custom((value, { parent }) => {
+          const linkType = (parent as { linkType?: string })?.linkType
+          if (linkType === 'anchor') {
+            if (!value) return 'Kotwica jest wymagana'
+            if (!value.startsWith('#')) return 'Kotwica musi zaczynać się od znaku #'
+            if (!/^#[a-z0-9-_]+$/i.test(value)) {
+              return 'Kotwica może zawierać tylko #, litery, cyfry, myślniki i podkreślenia'
+            }
+          }
+          return true
+        }),
+      ],
+    }),
   ],
   fieldsets: [
     {
       name: 'style',
       title: 'Styl',
       options: {
-        columns: 2,
+        columns: 1,
       },
     },
   ],
@@ -123,19 +146,32 @@ export default defineType({
       linkType: 'linkType',
       external: 'external',
       internal: 'internal.slug.current',
+      anchor: 'anchor',
     },
-    prepare({ title, theme, linkType, external, internal }) {
-      const isExternal = linkType === 'external'
-      const icon = isExternal ? '🌐' : '🔗'
+    prepare({ title, theme, linkType, external, internal, anchor }) {
+      let icon = '🔗'
+      let linkLabel = 'Link wewnętrzny'
+      let subtitle = internal
+
+      if (linkType === 'external') {
+        icon = '🌐'
+        linkLabel = 'Link zewnętrzny'
+        subtitle = external
+      } else if (linkType === 'anchor') {
+        icon = '⚓️'
+        linkLabel = 'Kotwica'
+        subtitle = anchor
+      }
+
       return {
         title: `${title}`,
-        subtitle: isExternal ? external : internal,
+        subtitle,
         media: () => (
           <Tooltip
             content={
               <Box padding={1}>
                 <Text size={1}>
-                  {icon} {isExternal ? 'Link zewnętrzny' : 'Link wewnętrzny'}
+                  {icon} {linkLabel}
                   &nbsp;|&nbsp;
                   {theme === 'primary' ? 'Przycisk główny' : 'Przycisk drugorzędny'}
                 </Text>

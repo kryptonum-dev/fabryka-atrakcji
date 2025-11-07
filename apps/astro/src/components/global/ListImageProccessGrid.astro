@@ -20,6 +20,8 @@ const t = translations[lang]
 export const ListImageProccessGrid_Query = `
   _type == "ListImageProccessGrid" => {
     ${PortableTextQuery('heading')}
+    ${PortableTextQuery('paragraph')}
+    enableEntranceAnimation,
     contentList[]{
       "icon": icon.asset->url,
       ${PortableTextQuery('heading')}
@@ -49,6 +51,8 @@ type Props = {
   index: number
   sectionId?: string
   heading: PortableTextValue
+  paragraph?: PortableTextValue
+  enableEntranceAnimation?: boolean
   contentList: {
     icon: string
     heading: PortableTextValue
@@ -57,25 +61,25 @@ type Props = {
   imagesList: (
     | {
         _type: 'listImage' | 'floatingPointsImage'
-        backgroundImage: ImageDataProps
+        backgroundImage?: ImageDataProps
         foregroundImage: ImageDataProps
         list: string[]
       }
     | {
         _type: 'logoImage'
-        backgroundImage: ImageDataProps
+        backgroundImage?: ImageDataProps
         foregroundImage: ImageDataProps
       }
     | {
         _type: 'iconListImage'
-        backgroundImage: ImageDataProps
+        backgroundImage?: ImageDataProps
         foregroundImage: ImageDataProps
         list: { icon: string }[]
       }
   )[]
 }
 
-const { index, sectionId, heading, contentList, imagesList } = Astro.props
+const { index, sectionId, heading, paragraph, contentList, imagesList, enableEntranceAnimation = true } = Astro.props
 
 const blockSvg = await Promise.all(contentList.map(async (item) => await imageToInlineSvg(item.icon)))
 
@@ -88,20 +92,23 @@ const svgList = await Promise.all(
 const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-width: 1366px) 50vw, 683px'
 ---
 
-<section class="ListImageProccessGrid" id={sectionId}>
+<section class:list={['ListImageProccessGrid', { 'no-animation': !enableEntranceAnimation }]} id={sectionId}>
   <div class="content">
-    <PortableText value={heading} heading={index === 0 ? 'h1' : 'h2'} class="heading" />
-    <div class="content-list">
+    <header class="header">
+      <PortableText value={heading} heading={index === 0 ? 'h1' : 'h2'} class="heading" />
+      {paragraph && <PortableText value={paragraph} class="paragraph" />}
+    </header>
+    <ul class="content-list">
       {
         contentList.map((item, itemIndex) => (
-          <div class="item">
+          <li class="item">
             <Fragment set:html={blockSvg[itemIndex]} />
             <PortableText value={item.heading} heading={index === 0 ? 'h2' : 'h3'} class="item-heading" />
             <PortableText value={item.paragraph} class="item-paragraph" />
-          </div>
+          </li>
         ))
       }
-    </div>
+    </ul>
   </div>
   <div class="container">
     <svg viewBox="0 0 10 700" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -119,11 +126,13 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
       {
         imagesList.map((item, imageIndex) => (
           <div class="box">
-            <Image
-              {...item.backgroundImage}
-              sizes={imageSizes}
-              loading={imageIndex === 0 && index === 0 ? 'eager' : 'lazy'}
-            />
+            {item.backgroundImage && (
+              <Image
+                {...item.backgroundImage}
+                sizes={imageSizes}
+                loading={imageIndex === 0 && index === 0 ? 'eager' : 'lazy'}
+              />
+            )}
             <Image
               {...item.foregroundImage}
               sizes={imageSizes}
@@ -428,12 +437,18 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
     min-height: 48rem;
     margin: 0 auto;
     background: var(--neutral-200, #f5f1ec);
-    opacity: 0;
-    transform: translateY(4rem) scale(0.96);
-    transition:
-      opacity 300ms,
-      transform 500ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
-    &.animate {
+    &:not(.no-animation) {
+      opacity: 0;
+      transform: translateY(4rem) scale(0.96);
+      transition:
+        opacity 300ms,
+        transform 500ms cubic-bezier(0.18, 0.89, 0.32, 1.1);
+      &.animate {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    &.no-animation {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
@@ -443,11 +458,15 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       max-width: 28.6875rem;
       padding: 2rem;
-      .heading {
+      .header {
         margin-bottom: clamp(2.75rem, calc(2.75vw / 0.48), 3rem);
+
+        .paragraph {
+          margin-top: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+        }
       }
       .content-list {
         .item {
@@ -483,6 +502,7 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
       z-index: 2;
       background-color: var(--primary-800, #45051c);
       isolation: isolate;
+      overflow: hidden;
       > svg {
         position: absolute;
         left: -3px;
@@ -519,18 +539,21 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
             width: 100%;
             height: 100%;
             object-fit: cover;
-            &:nth-of-type(1) {
+            &:first-of-type {
               z-index: 5;
             }
-            &:nth-of-type(2) {
+            &:last-of-type {
               z-index: 9;
+            }
+            &:only-of-type {
+              z-index: 5;
             }
           }
           .list {
             position: absolute;
             top: 10rem;
             left: clamp(6rem, calc(6vw / 0.48), 12rem);
-            z-index: 8;
+            z-index: 10;
             display: flex;
             flex-direction: column;
             gap: clamp(0.25rem, calc(0.38vw / 0.48), 0.38rem);
@@ -578,7 +601,7 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
             position: absolute;
             bottom: 0;
             left: 50%;
-            z-index: 10;
+            z-index: 11;
             padding: clamp(0.5rem, calc(0.62vw / 0.48), 0.62rem);
             background: var(--neutral-200, #f5f1ec);
             transform: translateX(-50%);
@@ -589,7 +612,7 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
           }
           .floating-point {
             position: absolute;
-            z-index: 7;
+            z-index: 10;
             display: flex;
             align-items: center;
             gap: 0.25rem;
@@ -633,7 +656,7 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
         }
         .icon-item {
           position: absolute;
-          z-index: 7;
+          z-index: 10;
           display: grid;
           place-items: center;
           width: clamp(2.34375rem, calc(5vw / 0.48), 5rem);
@@ -819,21 +842,25 @@ const imageSizes = '(max-width: 939px) 100vw, (max-width: 1023px) 65vw, (max-wid
 
 <script>
   document.querySelectorAll<HTMLDivElement>('.ListImageProccessGrid').forEach((section) => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate')
-            observer.unobserve(entry.target)
-          }
-        })
-      },
-      {
-        threshold: 0.3,
-      }
-    )
+    const enableAnimation = !section.classList.contains('no-animation')
 
-    observer.observe(section)
+    if (enableAnimation) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('animate')
+              observer.unobserve(entry.target)
+            }
+          })
+        },
+        {
+          threshold: 0.3,
+        }
+      )
+
+      observer.observe(section)
+    }
 
     const boxes = section.querySelectorAll<HTMLDivElement>('.box')
     const skipButton = section.querySelector<HTMLButtonElement>('button')

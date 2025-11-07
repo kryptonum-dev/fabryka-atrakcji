@@ -5,6 +5,11 @@ export const ButtonDataQuery = (name: string) => `
     text,
     theme,
     linkType,
-    "href": select(linkType == "internal" => internal -> slug.current, linkType == "external" => external, "#"),
+    "href": select(
+      linkType == "internal" => internal -> slug.current,
+      linkType == "external" => external,
+      linkType == "anchor" => anchor,
+      "#"
+    ),
   },
 `

@@ -42,6 +42,7 @@ import CaseStudy_Collection from '../schema/collectionTypes/CaseStudy_Collection
 import CaseStudyCategory_Collection from '../schema/collectionTypes/CaseStudyCategory_Collection'
 import Faq_Collection from '../schema/collectionTypes/Faq_Collection'
 import Pages_Collection from '../schema/collectionTypes/Pages_Collection'
+import LandingPage_Collection from '../schema/collectionTypes/LandingPage_Collection'
 import SocialMedia_Collection from '../schema/collectionTypes/SocialMedia_Collection'
 import Testimonial_Collection from '../schema/collectionTypes/Testimonial_Collection'
 import Author_Collection from '../schema/collectionTypes/Author_Collection'
@@ -53,6 +54,7 @@ import Quotes_Collection from '../schema/collectionTypes/Quotes_Collection'
 const collectionTypes = [
   Faq_Collection,
   Pages_Collection,
+  LandingPage_Collection,
   CaseStudy_Collection,
   CaseStudyCategory_Collection,
   Activities_Collection,

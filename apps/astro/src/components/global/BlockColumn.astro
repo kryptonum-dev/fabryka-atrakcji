@@ -1,0 +1,280 @@
+---
+import Image, { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
+import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
+
+export const BlockColumn_Query = `
+  _type == "BlockColumn" => {
+    ${PortableTextQuery('heading')}
+    blocks[]{
+      ${ImageDataQuery('image')}
+      text,
+    },
+  },
+`
+
+type Props = {
+  index: number
+  sectionId?: string
+  heading: PortableTextValue
+  blocks: {
+    image: ImageDataProps
+    text: string
+  }[]
+}
+
+const { index, sectionId, heading, blocks } = Astro.props
+---
+
+<section class="BlockColumn" id={sectionId}>
+  <PortableText value={heading} heading={index === 0 ? 'h1' : 'h2'} class="heading" />
+  <ul class="blocks-container">
+    {
+      blocks.map((block, idx) => (
+        <li class="block-item" data-active="false">
+          <div class="block-number">
+            <span>{String(idx + 1).padStart(2, '0')}</span>
+            <div class="number-decoration" />
+          </div>
+          <div class="block-image">
+            <Image
+              {...block.image}
+              sizes="(max-width: 47.9375rem) 120px, 200px"
+              loading={idx < 2 && index === 0 ? 'eager' : 'lazy'}
+            />
+            <div class="image-overlay" />
+          </div>
+          <p class="block-text">{block.text}</p>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style lang="scss">
+  .BlockColumn {
+    padding: clamp(4rem, calc(6vw / 0.48), 6rem) 0;
+    position: relative;
+    overflow: hidden;
+    background: var(--neutral-200, #f5f1ec);
+
+    .heading {
+      margin: 0 auto clamp(1.5rem, calc(2vw / 0.48), 3rem);
+      max-width: 40rem;
+      width: calc(100% - var(--pageMargin) * 2);
+      text-align: center;
+    }
+
+    .blocks-container {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      max-width: 52rem;
+      margin: 0 auto;
+      width: calc(100% - var(--pageMargin) * 2);
+    }
+
+    .block-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto auto 1fr;
+      gap: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      align-items: center;
+      padding: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+      padding-right: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+      background: linear-gradient(135deg, var(--primary-800, #45051c) 0%, var(--primary-700, #600d2a) 100%);
+      border-radius: var(--corner-radius-m);
+      overflow: hidden;
+      isolation: isolate;
+      transition: transform 500ms var(--easing);
+      min-height: clamp(6.5rem, calc(8vw / 0.48), 8rem);
+      transform: translateX(-0.5rem);
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(246, 114, 88, 0.1) 0%, rgba(96, 13, 42, 0.2) 100%);
+        opacity: 0;
+        transition: opacity 500ms var(--easing);
+        z-index: 0;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        right: -2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 10rem;
+        height: 10rem;
+        background: radial-gradient(circle, rgba(246, 114, 88, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      &[data-active='true'] {
+        transform: translateX(0rem);
+
+        &::before {
+          opacity: 1;
+        }
+
+        .block-number {
+          .number-decoration {
+            transform: scaleX(1);
+          }
+        }
+
+        .image-overlay {
+          opacity: 0;
+        }
+
+        .block-image img {
+          transform: scale(1.1);
+        }
+      }
+
+      > * {
+        position: relative;
+        z-index: 1;
+      }
+    }
+
+    .block-number {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+
+      span {
+        font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+        font-size: clamp(1.25rem, calc(1.5vw / 0.48), 1.5rem);
+        font-weight: 760;
+        line-height: 1;
+        color: var(--primary-500, #f67258);
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+      }
+
+      .number-decoration {
+        width: 2rem;
+        height: 0.1875rem;
+        background: var(--primary-500, #f67258);
+        border-radius: 999px;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 500ms var(--easing);
+      }
+    }
+
+    .block-image {
+      width: 96px;
+      aspect-ratio: 1;
+      border-radius: var(--corner-radius-s);
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+      border: 2px solid rgba(246, 114, 88, 0.3);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 600ms var(--easing);
+      }
+
+      .image-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(69, 5, 28, 0.4) 0%, rgba(96, 13, 42, 0.2) 100%);
+        transition: opacity 500ms var(--easing);
+      }
+    }
+
+    .block-text {
+      color: var(--neutral-100, #faf7f7);
+      font-size: var(--typography-body-l, 1rem);
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    @media (max-width: 27.4375rem) {
+      .blocks-container {
+        gap: 0.875rem;
+      }
+
+      .block-item {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+          'number image'
+          'content content';
+        gap: 0.75rem;
+        padding: 0.75rem;
+        padding-bottom: 1.5rem;
+        min-height: auto;
+      }
+
+      .block-number {
+        grid-area: number;
+        flex-direction: row;
+        gap: 0.5rem;
+
+        span {
+          font-size: 1.125rem;
+        }
+
+        .number-decoration {
+          width: 1.25rem;
+          height: 0.125rem;
+        }
+      }
+
+      .block-image {
+        grid-area: image;
+        width: 72px;
+        justify-self: end;
+      }
+
+      .block-text {
+        grid-area: content;
+        font-size: 0.875rem;
+        padding-top: 0.25rem;
+      }
+    }
+  }
+</style>
+
+<script>
+  const observeBlocks = () => {
+    const blockItems = document.querySelectorAll<HTMLDivElement>('.BlockColumn .block-item')
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.setAttribute('data-active', 'true')
+          }
+        })
+      },
+      {
+        threshold: 0.3,
+        rootMargin: '0px 0px -10% 0px',
+      }
+    )
+
+    blockItems.forEach((block) => observer.observe(block))
+  }
+
+  // Run on initial load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', observeBlocks)
+  } else {
+    observeBlocks()
+  }
+
+  // Re-run on page navigation (for SPA-like behavior)
+  document.addEventListener('astro:page-load', observeBlocks)
+</script>

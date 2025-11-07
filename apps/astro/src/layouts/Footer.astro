@@ -7,9 +7,10 @@ import { getLangFromPath, type Language } from '../global/languages'
 
 type Props = {
   minify?: boolean
+  isLanding?: boolean
 }
 
-const { minify = false } = Astro.props as Props
+const { minify = false, isLanding = false } = Astro.props as Props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 console.log(lang)
@@ -28,6 +29,9 @@ const translations = {
     copyright: 'Wszystkie prawa zastrzeżone',
     cart: 'Koszyk',
     cartUrl: '/pl/koszyk/',
+    homepage: 'Strona główna',
+    homepageUrl: '/pl/',
+    homepageLink: 'Fabryki Atrakcji',
   },
   en: {
     activities: 'Team activities',
@@ -42,6 +46,9 @@ const translations = {
     copyright: 'All rights reserved',
     cart: 'Cart',
     cartUrl: '/en/cart/',
+    homepage: 'Homepage',
+    homepageUrl: '/en/',
+    homepageLink: 'Fabryki Atrakcji',
   },
 }
 const t = translations[lang]
@@ -301,16 +308,35 @@ const OpenHoursText = getOpenHours({
         fill="#FAF7F7"></circle><circle cx="1369" cy="8" r="8" fill="#FAF7F7"></circle></svg
     >
     <p class="created-by">
-      {t.createdBy}{' '}
-      <a class="bottom-row-link" target="_blank" href={`https://kryptonum.eu/${lang}`}
-        ><span>Kryptonum</span><span aria-hidden="true">Kryptonum</span></a
-      >{' & '}
-      <a href="https://www.linkedin.com/in/damian-budny/" target="_blank" class="bottom-row-link"
-        ><span>Luksari</span><span aria-hidden="true">Luksari</span></a
-      >
+      {
+        isLanding ? (
+          <span>{t.homepage}: </span>
+          <a class="bottom-row-link" href={t.homepageUrl}>
+            <span>{t.homepageLink}</span>
+            <span aria-hidden="true">{t.homepageLink}</span>
+          </a>
+        ) : (
+          <>
+            {t.createdBy}{' '}
+            <a class="bottom-row-link" target="_blank" href={`https://kryptonum.eu/${lang}`}>
+              <>
+                <span>Kryptonum</span>
+                <span aria-hidden="true">Kryptonum</span>
+              </>
+            </a>
+            {' & '}
+            <a href="https://www.linkedin.com/in/damian-budny/" target="_blank" class="bottom-row-link">
+              <>
+                <span>Luksari</span>
+                <span aria-hidden="true">Luksari</span>
+              </>
+            </a>
+          </>
+        )
+      }
     </p>
     {
-      !minify && (
+      (!minify || (isLanding && minify)) && (
         <div>
           <a href={t.privacyPolicyUrl} class="annotation-link">
             {t.privacyPolicy}

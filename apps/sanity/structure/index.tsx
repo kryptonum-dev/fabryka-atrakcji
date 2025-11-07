@@ -11,6 +11,7 @@ export const structure: StructureResolver = (S, context) =>
     .items([
       createSingleton({ S, name: 'Index_Page' }),
       createCollection(S, context, 'Pages_Collection'),
+      createCollection(S, context, 'LandingPage_Collection'),
       S.divider(),
       S.listItem()
         .title('Integracje')

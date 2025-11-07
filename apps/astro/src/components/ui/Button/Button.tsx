@@ -5,7 +5,7 @@ export type Props = React.HTMLAttributes<HTMLAnchorElement> &
     text?: string | React.ReactNode
     children?: React.ReactNode
     theme?: 'primary' | 'secondary'
-    linkType?: 'external' | 'internal'
+    linkType?: 'external' | 'internal' | 'anchor'
     href?: string
     className?: string
     shade?: 'light' | 'dark'

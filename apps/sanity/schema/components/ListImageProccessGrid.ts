@@ -21,6 +21,11 @@ export default defineField({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'paragraph',
+      type: 'PortableText',
+      title: 'Paragraf (opcjonalny)',
+    }),
+    defineField({
       name: 'contentList',
       type: 'array',
       title: 'Lista bloków tekstowych',
@@ -62,7 +67,19 @@ export default defineField({
           },
         },
       ],
-      validation: (Rule) => Rule.required().length(3),
+      validation: (Rule) =>
+        Rule.required()
+          .min(3)
+          .error('Wymagane minimum 3 bloków tekstowych')
+          .max(5)
+          .error('Maksymalnie 5 bloków tekstowych'),
+    }),
+    defineField({
+      name: 'enableEntranceAnimation',
+      type: 'boolean',
+      title: 'Włącz animację wejścia',
+      description: 'Animacja pojawiania się sekcji przy przewijaniu strony',
+      initialValue: true,
     }),
     defineField({
       name: 'imagesList',
@@ -79,9 +96,8 @@ export default defineField({
             {
               name: 'backgroundImage',
               type: 'image',
-              title: 'Zdjęcie tła',
+              title: 'Zdjęcie tła (opcjonalne)',
               description: 'Dla optymalnego efektu prosimy nie zmieniać bazowego zdjęcia',
-              validation: (Rule) => Rule.required(),
             },
             {
               name: 'foregroundImage',
@@ -113,9 +129,8 @@ export default defineField({
             {
               name: 'backgroundImage',
               type: 'image',
-              title: 'Zdjęcie tła',
+              title: 'Zdjęcie tła (opcjonalne)',
               description: 'Dla optymalnego efektu prosimy nie zmieniać bazowego zdjęcia',
-              validation: (Rule) => Rule.required(),
             },
             {
               name: 'foregroundImage',
@@ -140,9 +155,8 @@ export default defineField({
             {
               name: 'backgroundImage',
               type: 'image',
-              title: 'Zdjęcie tła',
+              title: 'Zdjęcie tła (opcjonalne)',
               description: 'Dla optymalnego efektu prosimy nie zmieniać bazowego zdjęcia',
-              validation: (Rule) => Rule.required(),
             },
             {
               name: 'foregroundImage',
@@ -174,9 +188,8 @@ export default defineField({
             {
               name: 'backgroundImage',
               type: 'image',
-              title: 'Zdjęcie tła',
+              title: 'Zdjęcie tła (opcjonalne)',
               description: 'Dla optymalnego efektu prosimy nie zmieniać bazowego zdjęcia',
-              validation: (Rule) => Rule.required(),
             },
             {
               name: 'foregroundImage',

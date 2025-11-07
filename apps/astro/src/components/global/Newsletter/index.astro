@@ -1,6 +1,6 @@
 ---
 import type { FormStateTypes } from '@/src/global/types'
-import Button from '../../ui/Button'
+import Button, { ButtonDataQuery, type ButtonDataProps } from '../../ui/Button'
 import Image, { ImageDataQuery, type ImageDataProps } from '../../ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '../../ui/portable-text'
 import PopupWindow from '../../ui/PopupWindow/index.astro'
@@ -16,6 +16,8 @@ export const Newsletter_Query = `
     ${PortableTextQuery('heading')}
     ${PortableTextQuery('subheading')}
     ${PortableTextQuery('paragraph')}
+    useSimpleCta,
+    ${ButtonDataQuery('cta')}
     ctaText,
     ${ImageDataQuery('image')}
     formPopup{
@@ -47,9 +49,11 @@ type Props = {
   heading: PortableTextValue
   subheading: PortableTextValue
   paragraph: PortableTextValue
-  ctaText: string
+  useSimpleCta?: boolean
+  cta?: ButtonDataProps
+  ctaText?: string
   image: ImageDataProps
-  formPopup: {
+  formPopup?: {
     groupId: string
     heading: PortableTextValue
     paragraph: PortableTextValue
@@ -57,19 +61,21 @@ type Props = {
   }
 }
 
-const { index, sectionId, heading, subheading, paragraph, ctaText, image, formPopup } = Astro.props
+const { index, sectionId, heading, subheading, paragraph, useSimpleCta, cta, ctaText, image, formPopup } = Astro.props
 
-const clientFormStates = {
-  success: {
-    ...formPopup.formState.success,
-    heading: toPlainText(formPopup.formState.success.heading),
-    paragraph: toPlainText(formPopup.formState.success.paragraph),
-  },
-  error: {
-    heading: toPlainText(formPopup.formState.error.heading),
-    paragraph: toPlainText(formPopup.formState.error.paragraph),
-  },
-}
+const clientFormStates = formPopup
+  ? {
+      success: {
+        ...formPopup.formState.success,
+        heading: toPlainText(formPopup.formState.success.heading),
+        paragraph: toPlainText(formPopup.formState.success.paragraph),
+      },
+      error: {
+        heading: toPlainText(formPopup.formState.error.heading),
+        paragraph: toPlainText(formPopup.formState.error.paragraph),
+      },
+    }
+  : undefined
 ---
 
 <section class="Newsletter" id={sectionId}>
@@ -155,17 +161,25 @@ const clientFormStates = {
       <PortableText value={subheading} class="subheading" heading={index === 0 ? 'h2' : 'h3'} />
       <PortableText value={paragraph} class="paragraph" />
     </header>
-    <PopupWindow>
-      <Button text={ctaText} theme="primary" slot="open" />
-      <div class="container" slot="content">
-        <PortableText value={formPopup.heading} class="popup-heading" heading={index === 0 ? 'h2' : 'h3'} />
-        <PortableText value={formPopup.paragraph} class="popup-paragraph" />
-        <div class="form-wrapper">
-          <Form groupId={formPopup.groupId} client:idle lang={lang} formState={clientFormStates} />
+    {
+      useSimpleCta && cta ? (
+        <div class="cta-wrapper">
+          <Button {...cta} />
         </div>
-        <CloseButton />
-      </div>
-    </PopupWindow>
+      ) : (
+        <PopupWindow>
+          <Button text={ctaText} theme="primary" slot="open" />
+          <div class="container" slot="content">
+            <PortableText value={formPopup!.heading} class="popup-heading" heading={index === 0 ? 'h2' : 'h3'} />
+            <PortableText value={formPopup!.paragraph} class="popup-paragraph" />
+            <div class="form-wrapper">
+              <Form groupId={formPopup!.groupId} client:idle lang={lang} formState={clientFormStates!} />
+            </div>
+            <CloseButton />
+          </div>
+        </PopupWindow>
+      )
+    }
     <Image
       {...image}
       priority={index === 0}
@@ -253,16 +267,20 @@ const clientFormStates = {
         }
       }
 
-      :global(.Wrapper) {
+      :global(.Wrapper),
+      .cta-wrapper {
         grid-column: 1/2;
         grid-row: 2/3;
         margin-bottom: 0.75rem;
         align-self: end;
 
-        :global(> button):focus-visible {
+        :global(> button):focus-visible,
+        :global(> a):focus-visible {
           outline: 2px solid var(--neutral-200, #ffe4ca);
         }
+      }
 
+      :global(.Wrapper) {
         :global(.popup-window)::before {
           background: linear-gradient(180deg, rgba(69, 5, 28, 0.6) 0%, rgba(69, 5, 28, 0.9) 100%);
           backdrop-filter: blur(5px);
@@ -395,7 +413,8 @@ const clientFormStates = {
           max-width: 100%;
         }
 
-        :global(.Wrapper) {
+        :global(.Wrapper),
+        .cta-wrapper {
           grid-column: 1/2;
           grid-row: 2/3;
           margin-bottom: clamp(2.5rem, calc(3.5vw / 0.48), 3.5rem);
@@ -446,8 +465,10 @@ const clientFormStates = {
       .wrapper {
         padding: 1.5rem 1.5rem 0;
 
-        :global(.Wrapper) {
-          :global(> button) {
+        :global(.Wrapper),
+        .cta-wrapper {
+          :global(> button),
+          :global(> a) {
             width: 100%;
             max-width: 100%;
 
