@@ -6,7 +6,9 @@ import { REGEX } from '@/src/global/constants'
 import styles from './styles.module.scss'
 import Button from '../../ui/Button'
 import { cartStore } from '@/src/store/cart'
-import { trackEvent } from '@/src/pages/api/analytics/track-event'
+import { trackEvent } from '@/utils/track-event'
+import { saveAnalyticsUser } from '@/utils/analytics-user-storage'
+import type { AnalyticsUser } from '@/global/analytics/types'
 
 type FormData = {
   email: string
@@ -64,6 +66,49 @@ export default function QuoteForm({
     localStorage.removeItem('pending_transport_removal')
   }
 
+  const buildAnalyticsUser = (formData: FormData): AnalyticsUser => {
+    const user: AnalyticsUser = {
+      email: formData.email.trim(),
+    }
+
+    const normalizedPhone = formData.phone?.trim()
+    if (normalizedPhone && normalizedPhone !== '+48') {
+      user.phone = normalizedPhone
+    }
+
+    if (typeof window !== 'undefined') {
+      const resolveAddress = (): { street?: string; postal?: string; city?: string } | null => {
+        const keys: Array<'activity_address' | 'transport_address'> = ['activity_address', 'transport_address']
+        for (const key of keys) {
+          const raw = window.localStorage.getItem(key)
+          if (!raw) continue
+          try {
+            const parsed = JSON.parse(raw) as { street?: string; postal?: string; city?: string } | null
+            if (parsed && (parsed.street || parsed.postal || parsed.city)) {
+              return parsed
+            }
+          } catch (error) {
+            console.error('[QuoteForm] Failed to parse stored address data', error)
+          }
+        }
+        return null
+      }
+
+      const address = resolveAddress()
+      if (address?.street) {
+        user.address = address.street
+      }
+      if (address?.postal) {
+        user.postal_code = address.postal
+      }
+      if (address?.city) {
+        user.city = address.city
+      }
+    }
+
+    return user
+  }
+
   const onSubmit = async (data: FormData) => {
     // Dispatch event to show loading state
     document.dispatchEvent(new CustomEvent('quote-form-submitting'))
@@ -118,30 +163,57 @@ export default function QuoteForm({
       }
 
       if (result.success) {
-        // Clear all cart data from localStorage
+        const analyticsUser = buildAnalyticsUser(data)
+        saveAnalyticsUser(analyticsUser)
+
+        const pickNumeric = (...candidates: Array<number | null | undefined>): number | undefined => {
+          for (const value of candidates) {
+            if (typeof value === 'number' && Number.isFinite(value)) {
+              return value
+            }
+          }
+          return undefined
+        }
+
+        const quoteItems: Array<{ totalPrice?: number }> | undefined = Array.isArray(result.quote?.items)
+          ? (result.quote.items as Array<{ totalPrice?: number }>)
+          : undefined
+
+        const itemsTotal =
+          quoteItems?.reduce((sum, item) => sum + (typeof item.totalPrice === 'number' ? item.totalPrice : 0), 0) ??
+          undefined
+
+        const leadValue = pickNumeric(
+          result.quote?.totalPrice,
+          result.quote?.totalNettoPrice ? Math.round(result.quote.totalNettoPrice * 1.23) : undefined,
+          itemsTotal,
+          result.estimatedValue
+        )
+
+        // Clear all cart data from localStorage after we've persisted analytics data
         clearCartData()
 
-        // [LEAD] Google Ads Conversion (optional - only if gtag is loaded)
-        if (typeof window.gtag === 'function') {
-          try {
-            window.gtag('event', 'conversion', { send_to: 'AW-881393838/TGEgCKr774QbEK6BpKQD' })
-          } catch (error) {
-            console.warn('Google Ads conversion tracking failed:', error)
-          }
-        }
         trackEvent({
-          ga: {
-            event_name: 'lead',
+          ga4: {
+            eventName: 'lead',
+            params: {
+              form_name: 'configurator_form',
+              ...(leadValue !== undefined ? { value: leadValue, currency: 'PLN' } : {}),
+            },
           },
           meta: {
-            event_name: 'Lead',
-            content_name: 'Quote Request Form',
+            eventName: 'Lead',
+            contentName: 'configurator_form',
+            params: {
+              form_name: 'configurator_form',
+              ...(leadValue !== undefined ? { value: leadValue, currency: 'PLN' } : {}),
+            },
           },
-          user_data: {
-            email: data.email,
-            phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
-          },
+          user: analyticsUser,
         })
+
+        // Give the analytics requests a brief moment to flush before navigation
+        await new Promise((resolve) => setTimeout(resolve, 150))
 
         // Get the redirect URL
         const redirectUrl = result.redirectUrl || translations.thankYouUrl

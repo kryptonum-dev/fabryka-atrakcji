@@ -396,7 +396,7 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 </style>
 
 <script>
-  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+  import { trackEvent } from '@/utils/track-event'
 
   // Track activity view event
   document.addEventListener('DOMContentLoaded', () => {
@@ -404,29 +404,34 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
     const containerEl = document.querySelector('.Hero') as HTMLElement
     const activityId = containerEl?.getAttribute('data-id') || ''
     const activityName = containerEl?.getAttribute('data-name') || ''
-    const price = containerEl?.getAttribute('data-price') || 0
+    const price = containerEl?.getAttribute('data-price') || ''
+    const priceValue = Number(price) || undefined
     // Get activity type if available
 
     // Track view_item event
     trackEvent({
-      ga: {
-        event_name: 'view_item',
+      ga4: {
+        eventName: 'view_item',
         params: {
           currency: 'PLN',
-          value: price,
+          value: priceValue,
           items: [
             {
               item_id: activityId,
               item_name: activityName,
+              price: priceValue,
             },
           ],
         },
       },
       meta: {
-        event_name: 'ViewContent',
-        content_name: document.title,
+        eventName: 'ViewContent',
+        contentName: activityName || document.title,
         params: {
-          content_ids: [activityId],
+          content_ids: activityId ? [activityId] : undefined,
+          content_type: 'activity',
+          value: priceValue,
+          currency: priceValue ? 'PLN' : undefined,
         },
       },
     })

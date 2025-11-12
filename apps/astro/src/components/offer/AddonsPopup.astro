@@ -1047,7 +1047,7 @@ const { addons, type } = Astro.props
   import { toPlainText } from '@/src/utils/to-plain-text'
   import { optimizeImage } from '@/src/utils/optimize-images'
   import { showToast } from '@/src/utils/toast'
-  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+  import { trackEvent } from '@/utils/track-event'
 
   const popupContainer = document.querySelector('.addons-popup-container')! as HTMLDivElement
   const popupTrigger = document.querySelector('.hidden-trigger button')! as HTMLButtonElement
@@ -1133,7 +1133,8 @@ const { addons, type } = Astro.props
     const itemType = popupContainer.dataset.itemType as CartItemType
     const requiresAddons = popupContainer.dataset.requiresInitialAddons === 'true'
     const itemName = popupContainer.dataset.name || document.title
-    const itemPrice = document.querySelector('.Hero')?.getAttribute('data-price') || 200
+    const itemPriceAttr = document.querySelector('.Hero')?.getAttribute('data-price') || ''
+    const itemPrice = Number(itemPriceAttr) || undefined
 
     if (itemId && itemType) {
       // Collect selected addons
@@ -1213,8 +1214,8 @@ const { addons, type } = Astro.props
 
             // Track the add to cart event with addons
             trackEvent({
-              ga: {
-                event_name: 'add_to_cart',
+              ga4: {
+                eventName: 'add_to_cart',
                 params: {
                   currency: 'PLN',
                   value: itemPrice,
@@ -1222,15 +1223,19 @@ const { addons, type } = Astro.props
                     {
                       item_id: itemId,
                       item_name: itemName,
+                      price: itemPrice,
                     },
                   ],
                 },
               },
               meta: {
-                event_name: 'AddToCart',
-                content_name: itemName,
+                eventName: 'AddToCart',
+                contentName: itemName,
                 params: {
-                  content_ids: [itemId],
+                  content_ids: itemId ? [itemId] : undefined,
+                  content_type: itemType,
+                  value: itemPrice,
+                  currency: itemPrice ? 'PLN' : undefined,
                 },
               },
             })

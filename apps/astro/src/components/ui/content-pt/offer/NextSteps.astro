@@ -275,7 +275,7 @@ const { node } = Astro.props as Props
 <script>
   import { addToCart, isInCart } from '@/src/store/cart'
   import { dispatchCartUpdate, dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
-  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+  import { trackEvent } from '@/utils/track-event'
 
   // Initialize cart functionality for each NextSteps section
   document.querySelectorAll<HTMLElement>('.NextSteps').forEach((section) => {
@@ -341,7 +341,8 @@ const { node } = Astro.props as Props
     function handleAddToCart() {
       if (!itemId || !itemType) return
 
-      const itemPrice = document.querySelector('.Hero')?.getAttribute('data-price') || 200
+      const itemPriceAttr = document.querySelector('.Hero')?.getAttribute('data-price') || ''
+      const itemPrice = Number(itemPriceAttr) || undefined
 
       // If item requires addons, open popup first without adding to cart
       if (requiresAddons) {
@@ -366,8 +367,8 @@ const { node } = Astro.props as Props
 
         // Track the add to cart event
         trackEvent({
-          ga: {
-            event_name: 'add_to_cart',
+          ga4: {
+            eventName: 'add_to_cart',
             params: {
               currency: 'PLN',
               value: itemPrice,
@@ -375,15 +376,19 @@ const { node } = Astro.props as Props
                 {
                   item_id: itemId,
                   item_name: itemName,
+                  price: itemPrice,
                 },
               ],
             },
           },
           meta: {
-            event_name: 'AddToCart',
-            content_name: itemName,
+            eventName: 'AddToCart',
+            contentName: itemName,
             params: {
-              content_ids: [itemId],
+              content_ids: itemId ? [itemId] : undefined,
+              content_type: itemType,
+              value: itemPrice,
+              currency: itemPrice ? 'PLN' : undefined,
             },
           },
         })

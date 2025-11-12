@@ -168,7 +168,7 @@ const breadcrumbs = [
 </Layout>
 
 <script>
-  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+  import { trackEvent } from '@/utils/track-event'
 
   // Track hotels list view
   document.addEventListener('DOMContentLoaded', () => {
@@ -182,24 +182,33 @@ const breadcrumbs = [
       .map((hotel, index) => {
         const hotelName = hotel.querySelector('.title')?.textContent?.trim() || ''
         const hotelId = hotel.dataset.id || ''
-        const hotelPricing = hotel.dataset.pricing || 200
+        const hotelPricing = Number(hotel.dataset.pricing || '')
 
         return {
           item_name: hotelName,
           item_id: hotelId,
-          item_price: hotelPricing,
+          item_price: Number.isFinite(hotelPricing) ? hotelPricing : undefined,
+          price: Number.isFinite(hotelPricing) ? hotelPricing : undefined,
           index,
         }
       })
 
     if (items.length > 0) {
+      const contentIds = items.map((item) => item.item_id).filter(Boolean) as string[]
       trackEvent({
-        ga: {
-          event_name: 'view_item_list',
+        ga4: {
+          eventName: 'view_item_list',
           params: {
-            items: items,
-            currency: 'PLN',
+            items,
             item_list_name: 'Hotels Listing',
+          },
+        },
+        meta: {
+          eventName: 'ViewCategory',
+          contentName: 'Hotels Listing',
+          params: {
+            category_name: 'Hotels Listing',
+            content_ids: contentIds.length ? contentIds : undefined,
           },
         },
       })

@@ -8,7 +8,7 @@ import { useState, useEffect } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
-import { trackEvent } from '@/src/pages/api/analytics/track-event'
+import { trackEvent } from '@/utils/track-event'
 
 export default function Form({
   lang = 'pl',
@@ -30,8 +30,6 @@ export default function Form({
   } = useForm({ mode: 'onTouched' })
 
   const t = translations[lang]
-
-  console.log(errors)
 
   const updateStatus = (newStatus: FormStatusTypes) => {
     if (newStatus.success !== status.success) {
@@ -57,15 +55,21 @@ export default function Form({
 
         // Track subscribe event
         trackEvent({
-          user_data: {
+          user: {
             email: data.email,
           },
-          ga: {
-            event_name: 'lead',
+          ga4: {
+            eventName: 'generate_lead',
+            params: {
+              form_name: 'newsletter_form',
+            },
           },
           meta: {
-            event_name: 'Lead',
-            content_name: 'Global Newsletter Subscription',
+            eventName: 'Lead',
+            contentName: 'newsletter_form',
+            params: {
+              form_name: 'newsletter_form',
+            },
           },
         })
       } else {
