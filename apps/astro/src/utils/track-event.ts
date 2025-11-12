@@ -35,6 +35,7 @@ type MetaEventParamsMap = {
     category_name?: string
     value?: number
     currency?: string
+    content_ids?: string[]
   }
   ViewContent: {
     content_ids?: string[]
