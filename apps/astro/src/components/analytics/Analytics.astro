@@ -1,0 +1,70 @@
+<script>
+  import { trackEvent } from '@/utils/track-event'
+
+  if (typeof window !== 'undefined') {
+    const sendPageView = () => {
+      const { location, document } = window
+      const pathname = location?.pathname ?? ''
+      const search = location?.search ?? ''
+      const url = location?.href ?? `${pathname}${search}`
+      const title = document?.title ?? undefined
+
+      trackEvent({
+        meta: {
+          eventName: 'PageView',
+          params: {
+            page_path: `${pathname}${search}` || undefined,
+            ...(title ? { page_title: title } : {}),
+          },
+        },
+        ga4: {
+          eventName: 'page_view',
+          params: {
+            page_location: url,
+            page_path: pathname,
+            ...(title ? { page_title: title } : {}),
+          },
+        },
+      })
+    }
+
+    if (!window.__pageViewTracked) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sendPageView, { once: true })
+      } else {
+        sendPageView()
+      }
+      window.__pageViewTracked = true
+    }
+
+    const handleContactClick = (event: Event) => {
+      const target = event.target as Element | null
+      if (!target) return
+
+      const link = target.closest('a[href^="mailto:"], a[href^="tel:"]') as HTMLAnchorElement | null
+      if (!link) return
+
+      const href = link.getAttribute('href') ?? ''
+      const contactType = href.startsWith('mailto:') ? 'email' : 'phone'
+
+      trackEvent({
+        meta: {
+          eventName: 'Contact',
+          params: {
+            contact_type: contactType,
+            contact_value: href,
+          },
+        },
+        ga4: {
+          eventName: 'contact',
+          params: {
+            contact_type: contactType,
+            contact_value: href,
+          },
+        },
+      })
+    }
+
+    document.addEventListener('click', handleContactClick, { capture: true })
+  }
+</script>

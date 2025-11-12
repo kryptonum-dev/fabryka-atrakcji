@@ -81,13 +81,13 @@ const data = await sanityFetch<{
   query: `
    *[_type == "navbar" && language == $language][0]{
     highlightedCaseStudies[] -> {
-        "slug": slug.current,
-        name,
-        ${ImageDataQuery('primaryImage')}
-        ${ImageDataQuery('secondaryImage')}
+      "slug": slug.current,
+      name,
+      ${ImageDataQuery('primaryImage')}
+      ${ImageDataQuery('secondaryImage')}
     },
     highlightedActivities[] -> {
-        ${CategoryBlockQuery}
+      ${CategoryBlockQuery}
     }
   }
 `,

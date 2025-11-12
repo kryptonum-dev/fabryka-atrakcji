@@ -220,7 +220,7 @@ const componentsToRender = (() => {
 </Layout>
 
 <script>
-  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+  import { trackEvent } from '@/utils/track-event'
 
   // Track activities list view
   document.addEventListener('DOMContentLoaded', () => {
@@ -237,25 +237,34 @@ const componentsToRender = (() => {
       .map((activity, index) => {
         const activityName = activity.dataset.activityName || ''
         const activityId = activity.dataset.activityId || ''
-        const pricing = activity.dataset.pricing || 200
+        const pricing = Number(activity.dataset.pricing || '')
 
         return {
           item_name: activityName,
           item_id: activityId,
-          item_price: pricing,
+          item_price: Number.isFinite(pricing) ? pricing : undefined,
+          price: Number.isFinite(pricing) ? pricing : undefined,
           index,
         }
       })
 
     // Track the event if we have items
     if (items.length > 0) {
+      const contentIds = items.map((item) => item.item_id).filter(Boolean) as string[]
       trackEvent({
-        ga: {
-          event_name: 'view_item_list',
+        ga4: {
+          eventName: 'view_item_list',
           params: {
-            items: items,
-            currency: 'PLN',
+            items,
             item_list_name: categoryName,
+          },
+        },
+        meta: {
+          eventName: 'ViewCategory',
+          contentName: categoryName,
+          params: {
+            category_name: categoryName,
+            content_ids: contentIds.length ? contentIds : undefined,
           },
         },
       })

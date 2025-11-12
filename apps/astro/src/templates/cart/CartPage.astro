@@ -23,7 +23,6 @@ import type { ExtraItem } from '@/src/global/types'
 import QuoteCartLayout from '@/src/layouts/QuoteCartLayout.astro'
 import AdditionalInfoBlock from '@/src/components/cart/AdditionalInfoBlock.astro'
 import Loader from '@/src/components/ui/Loader.astro'
-
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export async function fetchData(lang: Language) {
@@ -2399,7 +2398,8 @@ const { metadata, page } = Astro.props
   } from '@/src/utils/cart'
   import { optimizeImage } from '@/src/utils/optimize-images'
   import { showToast } from '@/src/utils/toast'
-  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+  import { trackEvent } from '@/utils/track-event'
+  import { saveAnalyticsUser, loadAnalyticsUser } from '@/utils/analytics-user-storage'
 
   const cartElement = document.querySelector('.Cart') as HTMLElement
   const lang = cartElement?.getAttribute('data-lang') || 'pl'
@@ -2902,6 +2902,12 @@ const { metadata, page } = Astro.props
 
     if (!data) return
 
+    saveAnalyticsUser({
+      address: data.street,
+      postal_code: data.postal,
+      city: data.city,
+    })
+
     // Get pending transport item and select it
     const pendingItemId = localStorage.getItem('pending_transport_item')
     if (pendingItemId) {
@@ -3079,32 +3085,6 @@ const { metadata, page } = Astro.props
         showToast(t.missingParticipants, 'error')
         return
       }
-
-      // Track begin_checkout event
-      const items = getCartItemsForTracking()
-
-      trackEvent({
-        ga: {
-          event_name: 'begin_checkout',
-          params: {
-            currency: 'PLN',
-            value: items
-              .filter((item) => item.item_category === 'hotel' || item.item_category === 'activity')
-              .reduce((acc, item) => acc + item.item_price, 0),
-            items: items.map((item) => ({
-              item_id: item.item_id,
-              item_name: item.item_name,
-            })),
-          },
-        },
-        meta: {
-          event_name: 'InitiateCheckout',
-          content_name: document.title,
-          params: {
-            content_ids: items.map((item) => item.item_id),
-          },
-        },
-      })
 
       // Scroll to top immediately when clicking submit
       window.scrollTo({
@@ -3317,6 +3297,207 @@ const { metadata, page } = Astro.props
         throw new Error(result.error || 'Failed to create quote')
       }
 
+      const analyticsUserForEvent = loadAnalyticsUser() ?? undefined
+      let trackingValue: number | undefined
+      let metaContentIds: string[] = []
+      let gaItems: Array<Record<string, unknown>> = []
+
+      if (result.quote && Array.isArray(result.quote.items)) {
+        const quoteItems = result.quote.items as Array<any>
+        trackingValue = quoteItems.reduce<number>(
+          (sum, item) => sum + (typeof item.totalPrice === 'number' ? item.totalPrice : 0),
+          0
+        )
+
+        const idSet = new Set<string>()
+        const gaAccumulator: Array<Record<string, unknown>> = []
+
+        quoteItems.forEach((quoteItem) => {
+          quoteItem.hotels?.forEach((hotel: any) => {
+            if (hotel?.itemId) idSet.add(hotel.itemId)
+            const hotelPrice = hotel?.pricing?.finalPrice
+            if (typeof hotelPrice === 'number' && !Number.isNaN(hotelPrice)) {
+              gaAccumulator.push({
+                item_id: hotel.itemId || hotel.slug || `hotel-${gaAccumulator.length + 1}`,
+                item_name: hotel.name,
+                item_category: 'hotel',
+                price: hotelPrice,
+                quantity: 1,
+              })
+            }
+
+            hotel?.addons?.forEach((addon: any) => {
+              const addonPrice =
+                addon?.pricing?.bruttoPrice ??
+                addon?.pricing?.totalPrice ??
+                addon?.pricing?.nettoPrice ??
+                addon?.pricing?.nettoTotalPrice
+              if (typeof addonPrice === 'number' && !Number.isNaN(addonPrice)) {
+                const addonId =
+                  addon?.id ||
+                  addon?._key ||
+                  `${hotel.itemId || hotel.slug || 'hotel'}-addon-${addon?.name || gaAccumulator.length + 1}`
+                if (addonId) idSet.add(addonId)
+                gaAccumulator.push({
+                  item_id: addonId || `hotel-addon-${gaAccumulator.length + 1}`,
+                  item_name: addon?.name,
+                  item_category: 'hotel_addon',
+                  price: addonPrice,
+                  quantity: addon?.count ?? 1,
+                })
+              }
+            })
+
+            hotel?.gastronomy?.forEach((entry: any) => {
+              const gastronomyPrice = entry?.pricing?.totalPrice ?? entry?.pricing?.bruttoPrice
+              if (typeof gastronomyPrice === 'number' && !Number.isNaN(gastronomyPrice)) {
+                gaAccumulator.push({
+                  item_id: `${hotel.itemId || hotel.slug || 'hotel'}-gastronomy-${entry?.name || gaAccumulator.length + 1}`,
+                  item_name: entry?.name,
+                  item_category: 'gastronomy',
+                  price: gastronomyPrice,
+                  quantity: entry?.count ?? 1,
+                })
+              }
+            })
+          })
+
+          quoteItem.activities?.forEach((activity: any) => {
+            if (activity?.itemId) idSet.add(activity.itemId)
+            const activityPrice = activity?.pricing?.finalPrice
+            if (typeof activityPrice === 'number' && !Number.isNaN(activityPrice)) {
+              gaAccumulator.push({
+                item_id: activity.itemId || activity.slug || `activity-${gaAccumulator.length + 1}`,
+                item_name: activity.name,
+                item_category: 'activity',
+                price: activityPrice,
+                quantity: 1,
+              })
+            }
+
+            activity?.addons?.forEach((addon: any) => {
+              const addonPrice =
+                addon?.pricing?.bruttoPrice ??
+                addon?.pricing?.totalPrice ??
+                addon?.pricing?.nettoPrice ??
+                addon?.pricing?.nettoTotalPrice
+              if (typeof addonPrice === 'number' && !Number.isNaN(addonPrice)) {
+                const addonId =
+                  addon?.id ||
+                  addon?._key ||
+                  `${activity.itemId || activity.slug || 'activity'}-addon-${addon?.name || gaAccumulator.length + 1}`
+                if (addonId) idSet.add(addonId)
+                gaAccumulator.push({
+                  item_id: addonId || `activity-addon-${gaAccumulator.length + 1}`,
+                  item_name: addon?.name,
+                  item_category: 'activity_addon',
+                  price: addonPrice,
+                  quantity: addon?.count ?? 1,
+                })
+              }
+            })
+          })
+
+          if (quoteItem.transport?.pricing) {
+            const transportPrice = quoteItem.transport.pricing.totalPrice
+            if (typeof transportPrice === 'number' && !Number.isNaN(transportPrice)) {
+              const transportId = quoteItem.transport.itemId || 'transport'
+              idSet.add(transportId)
+              gaAccumulator.push({
+                item_id: transportId,
+                item_name: 'Transport',
+                item_category: 'transport',
+                price: transportPrice,
+                quantity: 1,
+              })
+            }
+          }
+
+          quoteItem.extras?.forEach((extra: any) => {
+            const extraPrice = extra?.pricing?.totalPrice ?? extra?.pricing?.bruttoPrice
+            if (typeof extraPrice === 'number' && !Number.isNaN(extraPrice)) {
+              const extraId = extra?.itemId || extra?._key || `extra-${gaAccumulator.length + 1}`
+              if (extraId) idSet.add(extraId)
+              gaAccumulator.push({
+                item_id: extraId,
+                item_name: extra?.name,
+                item_category: extra?.pricing?.isTransport ? 'transport' : 'extra',
+                price: extraPrice,
+                quantity: extra?.count ?? 1,
+              })
+            }
+          })
+        })
+
+        metaContentIds = Array.from(idSet).filter((id) => typeof id === 'string' && id.length > 0)
+        gaItems = gaAccumulator.filter(
+          (item) => typeof item.price === 'number' && !Number.isNaN(item.price as number)
+        )
+
+        if ((!gaItems || gaItems.length === 0) && typeof trackingValue === 'number') {
+          gaItems = [
+            {
+              item_id: result.quote.quoteId || 'quote',
+              item_name: 'Quote summary',
+              item_category: 'quote',
+              price: trackingValue,
+              quantity: 1,
+            },
+          ]
+        }
+
+        if (metaContentIds.length === 0 && result.quote?.quoteId) {
+          metaContentIds = [result.quote.quoteId]
+        }
+      } else {
+        const fallbackItems = getCartItemsForTracking()
+        trackingValue = fallbackItems
+          .filter((item) => item.item_category === 'hotel' || item.item_category === 'activity')
+          .reduce((acc, item) => acc + (typeof item.item_price === 'number' ? item.item_price : 0), 0)
+
+        metaContentIds = fallbackItems
+          .map((item) => item.item_id)
+          .filter((id) => typeof id === 'string' && id.length > 0)
+
+        gaItems = fallbackItems.map((item) => ({
+          item_id: item.item_id,
+          item_name: item.item_name,
+          price: item.item_price,
+        }))
+      }
+
+      const gaEventParams: Record<string, unknown> = {
+        currency: 'PLN',
+      }
+      if (typeof trackingValue === 'number' && !Number.isNaN(trackingValue)) {
+        gaEventParams.value = trackingValue
+      }
+      if (gaItems.length > 0) {
+        gaEventParams.items = gaItems
+      }
+
+      const metaParams: Record<string, unknown> = {}
+      if (metaContentIds.length > 0) {
+        metaParams.content_ids = metaContentIds
+      }
+      if (typeof trackingValue === 'number' && !Number.isNaN(trackingValue)) {
+        metaParams.value = trackingValue
+        metaParams.currency = 'PLN'
+      }
+
+      trackEvent({
+        ga4: {
+          eventName: 'begin_checkout',
+          params: gaEventParams,
+        },
+        meta: {
+          eventName: 'InitiateCheckout',
+          contentName: document.title,
+          params: metaParams,
+        },
+        user: analyticsUserForEvent,
+      })
+
       // Redirect to quote page with language-specific cart path
       window.location.href = `/${lang}/${t.cartPath}?id=${result.quoteId}`
     } catch (error) {
@@ -3420,22 +3601,19 @@ const { metadata, page } = Astro.props
 
         // Track the view_cart event
         trackEvent({
-          ga: {
-            event_name: 'view_cart',
+          ga4: {
+            eventName: 'view_cart',
             params: {
-              currency: 'PLN',
-              value: items
-                .filter((item) => item.item_category === 'hotel' || item.item_category === 'activity')
-                .reduce((acc, item) => acc + item.item_price, 0),
               items: items.map((item) => ({
                 item_id: item.item_id,
                 item_name: item.item_name,
+                price: item.item_price,
               })),
             },
           },
           meta: {
-            event_name: 'ViewCart',
-            content_name: document.title,
+            eventName: 'ViewCart',
+            contentName: document.title,
             params: {
               content_ids: items.map((item) => item.item_id),
             },
@@ -3458,6 +3636,7 @@ const { metadata, page } = Astro.props
         item_id: hotel._id,
         item_name: hotel.name,
         item_price: hotel.pricing?.pricePerPerson,
+        price: hotel.pricing?.pricePerPerson,
         item_category: 'hotel',
       })
     })
@@ -3468,6 +3647,7 @@ const { metadata, page } = Astro.props
         item_id: activity._id,
         item_name: activity.name,
         item_price: activity.pricing?.additionalPersonPrice,
+        price: activity.pricing?.additionalPersonPrice,
         item_category: 'activity',
       })
     })
@@ -3485,6 +3665,7 @@ const { metadata, page } = Astro.props
               item_id: 'transport',
               item_name: t.transportAddonName,
               item_price: extrasData.transportOptions.pricing,
+              price: extrasData.transportOptions.pricing,
               item_category: 'extra',
             })
           } else {
@@ -3496,6 +3677,7 @@ const { metadata, page } = Astro.props
                 item_id: addonData._key,
                 item_name: addonData.name,
                 item_price: addonData.pricing,
+                price: addonData.pricing,
                 item_category: 'extra',
               })
             }
@@ -4627,6 +4809,12 @@ const { metadata, page } = Astro.props
 
       // Store address data in localStorage
       localStorage.setItem('activity_address', JSON.stringify(addressData))
+
+      saveAnalyticsUser({
+        address: addressData.street,
+        postal_code: addressData.postal,
+        city: addressData.city,
+      })
 
       // Close popup
       const closeBtn = document.querySelector('.activity-address-popup .CloseButton')

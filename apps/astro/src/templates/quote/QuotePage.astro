@@ -7,7 +7,7 @@ import PortableText, { PortableTextQuery, type PortableTextValue } from '@/src/c
 import AdditionalInfoBlock from '@/src/components/cart/AdditionalInfoBlock.astro'
 import { getParticipantsText } from '@/src/utils/get-participants-text'
 import { formatDateWithShortcut } from '@/src/utils/format-date'
-import Switch from '@/src/components/ui/Switch.astro'
+import Switch from '@/components/ui/Switch'
 import QuoteAccordion from '@/src/components/cart/QuoteAccordion.astro'
 import QuoteForm from '@/src/components/cart/quoteForm'
 import Loader from '@/src/components/ui/Loader.astro'
@@ -1343,15 +1343,4 @@ const t = translations[lang]
   document.getElementById('return-to-form')?.addEventListener('click', () => {
     showState('content')
   })
-</script>
-
-<script>
-  // [Request quote] Google Ads Conversion (optional - only if gtag is loaded)
-  if (typeof window.gtag === 'function') {
-    try {
-      window.gtag('event', 'conversion', { send_to: 'AW-881393838/Iv6wCLa974QbEK6BpKQD' })
-    } catch (error) {
-      console.warn('Google Ads conversion tracking failed:', error)
-    }
-  }
 </script>

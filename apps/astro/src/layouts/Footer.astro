@@ -13,7 +13,6 @@ type Props = {
 const { minify = false, isLanding = false } = Astro.props as Props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
-console.log(lang)
 
 const translations = {
   pl: {

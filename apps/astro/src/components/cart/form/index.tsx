@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { saveAnalyticsUser } from '@/utils/analytics-user-storage'
 import Input from '../../ui/input'
 import styles from './styles.module.scss'
 import Button from '../../ui/Button'
@@ -919,6 +920,12 @@ export default function AddressForm({ onSubmit, defaultValues = {}, translations
       localStorage.setItem('transport_address', JSON.stringify(addressData))
       // Also store peoplePerBus separately for easier access
       localStorage.setItem('cart_people_per_bus', data.peoplePerBus.toString())
+
+      saveAnalyticsUser({
+        address: addressData.street,
+        postal_code: addressData.postal,
+        city: addressData.city,
+      })
     }
 
     // Update previous form values

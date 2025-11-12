@@ -315,36 +315,41 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 </style>
 
 <script>
-  import { trackEvent } from '@/src/pages/api/analytics/track-event'
+  import { trackEvent } from '@/utils/track-event'
 
   // Track hotel view event
   document.addEventListener('DOMContentLoaded', () => {
-    // Get hotel information
-    const containerEl = document.querySelector('.Hero') as HTMLElement
-    const hotelId = containerEl?.dataset.id || ''
-    const hotelName = containerEl?.dataset.name || ''
-    const price = containerEl?.getAttribute('data-price') || 0
-
-    // Track view_item event
-    trackEvent({
-      ga: {
-        event_name: 'view_item',
+     // Get hotel information
+     const containerEl = document.querySelector('.Hero') as HTMLElement
+     const hotelId = containerEl?.dataset.id || ''
+     const hotelName = containerEl?.dataset.name || ''
+    const price = containerEl?.getAttribute('data-price') || ''
+    const priceValue = Number(price) || undefined
+ 
+     // Track view_item event
+     trackEvent({
+      ga4: {
+        eventName: 'view_item',
         params: {
           currency: 'PLN',
-          value: price,
+          value: priceValue,
           items: [
             {
               item_id: hotelId,
               item_name: hotelName,
+              price: priceValue,
             },
           ],
         },
       },
       meta: {
-        event_name: 'ViewContent',
-        content_name: document.title,
+        eventName: 'ViewContent',
+        contentName: hotelName || document.title,
         params: {
-          content_ids: [hotelId],
+          content_ids: hotelId ? [hotelId] : undefined,
+          content_type: 'hotel',
+          value: priceValue,
+          currency: priceValue ? 'PLN' : undefined,
         },
       },
     })

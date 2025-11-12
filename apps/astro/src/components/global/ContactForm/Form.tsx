@@ -8,7 +8,8 @@ import { useState } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
-import { trackEvent } from '@/src/pages/api/analytics/track-event'
+import { trackEvent } from '@/utils/track-event'
+import { saveAnalyticsUser } from '@/utils/analytics-user-storage'
 
 export default function Form({
   lang = 'pl',
@@ -47,16 +48,22 @@ export default function Form({
         reset()
 
         trackEvent({
-          user_data: {
+          user: {
             email: data.email,
             phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
           },
-          ga: {
-            event_name: 'lead',
+          ga4: {
+            eventName: 'lead',
+            params: {
+              form_name: 'contact_form',
+            },
           },
           meta: {
-            event_name: 'Lead',
-            content_name: 'Contact Form Submission',
+            eventName: 'Lead',
+            contentName: 'contact_form',
+            params: {
+              form_name: 'contact_form',
+            },
           },
         })
       } else {
