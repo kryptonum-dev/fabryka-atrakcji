@@ -189,23 +189,47 @@ export default function QuoteForm({
           return undefined
         }
 
-        const quoteItems: Array<{ totalPrice?: number | string }> | undefined = Array.isArray(result.quote?.items)
-          ? (result.quote.items as Array<{ totalPrice?: number | string }>)
-          : undefined
+        const sumTotals = (
+          items: Array<{ totalPrice?: unknown; totalNettoPrice?: unknown }> | undefined,
+          key: 'totalPrice' | 'totalNettoPrice'
+        ): number | undefined => {
+          if (!items?.length) return undefined
+          const sum = items.reduce((acc, item) => {
+            const value = toNumber(item?.[key])
+            return acc + (value ?? 0)
+          }, 0)
+          return Number.isFinite(sum) ? sum : undefined
+        }
 
-        const itemsTotal =
-          quoteItems?.reduce((sum, item) => {
-            const total = toNumber(item.totalPrice)
-            return sum + (total ?? 0)
-          }, 0) ?? undefined
+        const quoteItemsFromProp: Array<{ totalPrice?: unknown; totalNettoPrice?: unknown }> | undefined =
+          Array.isArray(quote?.items) ? (quote.items as Array<{ totalPrice?: unknown; totalNettoPrice?: unknown }>) : undefined
+
+        const quoteItemsFromResponse: Array<{ totalPrice?: unknown; totalNettoPrice?: unknown }> | undefined =
+          Array.isArray(result.quote?.items)
+            ? (result.quote.items as Array<{ totalPrice?: unknown; totalNettoPrice?: unknown }>)
+            : undefined
+
+        const bruttoFromProp = sumTotals(quoteItemsFromProp, 'totalPrice')
+        const nettoFromProp = sumTotals(quoteItemsFromProp, 'totalNettoPrice')
+        const bruttoFromResponse = sumTotals(quoteItemsFromResponse, 'totalPrice')
+        const nettoFromResponse = sumTotals(quoteItemsFromResponse, 'totalNettoPrice')
 
         const leadValue = pickNumeric(
-          result.quote?.totalPrice,
+          (quote as unknown as { totalPrice?: unknown })?.totalPrice,
+          bruttoFromProp,
           (() => {
-            const netto = toNumber(result.quote?.totalNettoPrice)
+            const netto = pickNumeric(
+              (quote as unknown as { totalNettoPrice?: unknown })?.totalNettoPrice,
+              nettoFromProp
+            )
             return netto !== undefined ? Math.round(netto * 1.23) : undefined
           })(),
-          itemsTotal,
+          result.quote?.totalPrice,
+          bruttoFromResponse,
+          (() => {
+            const netto = pickNumeric(result.quote?.totalNettoPrice, nettoFromResponse)
+            return netto !== undefined ? Math.round(netto * 1.23) : undefined
+          })(),
           result.estimatedValue
         )
 
