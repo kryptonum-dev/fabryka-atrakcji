@@ -244,7 +244,7 @@ export const POST: APIRoute = async ({ request }) => {
   const url = `https://graph.facebook.com/v23.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(accessToken)}`
 
   try {
-    const res = await postWithRetry(url, { data: [data] })
+    const res = await postWithRetry(url, { data: [data], 'test_event_code': 'TEST28387' })
     const json = await res.json().catch(() => ({}))
     if (!res.ok) {
       console.error('[Meta CAPI] Error response', json)
