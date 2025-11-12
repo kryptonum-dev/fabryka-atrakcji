@@ -1,0 +1,220 @@
+---
+import sanityFetch from '@/utils/sanity.fetch'
+import CookieConsentClient from '@/components/cookie-consent/CookieConsent.client'
+import type { CookieConsentCopy, ConsentGroup } from '@/components/cookie-consent/CookieConsent.types'
+import { getLangFromPath } from '@/global/languages'
+
+const lang = getLangFromPath(Astro.url.pathname)
+
+const { metaPixelId, ga4Id, googleAdsId, privacyPolicySlug } = await sanityFetch<{
+  metaPixelId: string | null
+  ga4Id: string | null
+  googleAdsId: string | null
+  privacyPolicySlug: string | null
+}>({
+  query: `{
+    "metaPixelId": *[_type == "global" && language == $language][0].analytics.metaPixelId,
+    "ga4Id": *[_type == "global" && language == $language][0].analytics.ga4Id,
+    "googleAdsId": *[_type == "global" && language == $language][0].analytics.googleAdsMeasurementId,
+    "privacyPolicySlug": *[_type == "PrivacyPolicy_Page" && language == $language][0].slug.current
+  }`,
+  params: { language: lang },
+})
+
+const COPY_BY_LANG: Record<string, CookieConsentCopy> = {
+  pl: {
+    heading: 'Korzystając ze strony zgadzasz się na użycie ciasteczek',
+    description:
+      'Korzystamy z cookie i podobnych technologii, by analizować ruch na stronie, dopasować ją do Ciebie i wyświetlać trafniejsze reklamy.',
+    learnMore: 'Dowiedz się więcej',
+    settingsHeading: 'Ustawienia cookies',
+    settingsDescription: 'Korzystając ze strony zgadzasz się na użycie tych ciasteczek.',
+    necessary: {
+      name: 'Niezbędne',
+      description:
+        'Te pliki cookie są konieczne do działania strony i nie mogą być wyłączone. Umożliwiają podstawowe funkcje, takie jak nawigacja, dostęp do zabezpieczonych obszarów oraz prawidłowe działanie formularzy. Są niezbędne do zapewnienia funkcjonalności i bezpieczeństwa strony zgodnie z wymogami RODO.',
+    },
+    analytics: {
+      name: 'Analityczne',
+      description:
+        'Pomagają nam zrozumieć, jak korzystasz ze strony, zbierając anonimowe dane o interakcjach, czasie spędzonym na stronie i odwiedzanych podstronach. Dzięki nim identyfikujemy problemy, ulepszamy zawartość i optymalizujemy doświadczenie użytkownika.',
+    },
+    preferences: {
+      name: 'Preferencyjne',
+      description:
+        'Zapamiętują Twoje indywidualne wybory i ustawienia (np. preferowany język, rozmiar czcionki, układ strony), aby dopasować wygląd i działanie strony do Twoich potrzeb.',
+    },
+    marketing: {
+      name: 'Marketingowe',
+      description:
+        'Śledzą Twoje aktywności na naszej stronie i innych witrynach, aby tworzyć profile zainteresowań i wyświetlać trafniejsze reklamy. Dane przetwarzane są wyłącznie za Twoją zgodą.',
+      subGroups: {
+        conversionApi: {
+          name: 'API Konwersji',
+          description:
+            'Przesyła dane o Twoich działaniach bezpośrednio do platform reklamowych (takich jak Meta), aby mierzyć skuteczność reklam zgodnie z RODO.',
+        },
+        advancedMatching: {
+          name: 'Zaawansowane Dopasowanie',
+          description:
+            'Umożliwia platformom reklamowym lepsze dopasowanie Twoich działań na stronie do Twojego profilu, co zwiększa trafność wyświetlanych reklam.',
+        },
+      },
+    },
+    buttons: {
+      deny: 'Odmowa',
+      setPreferences: 'Ustaw preferencje',
+      agreeAll: 'Zgoda na wszystkie',
+    },
+  },
+  en: {
+    heading: 'We respect your privacy',
+    description:
+      'We use cookies and similar technologies to analyse traffic, tailor the site to you, and display more relevant ads.',
+    learnMore: 'Learn more',
+    settingsHeading: 'Cookie settings',
+    settingsDescription: 'Adjust how we use cookies on this site.',
+    necessary: {
+      name: 'Necessary',
+      description:
+        'These cookies are essential for the website to function. They enable core features such as navigation, secure access areas, and proper form handling.',
+    },
+    analytics: {
+      name: 'Analytics',
+      description:
+        'They help us understand how you use the site by collecting anonymous data about interactions, time on page, and visited sections so we can improve the experience.',
+    },
+    preferences: {
+      name: 'Preferences',
+      description:
+        'Remember your individual choices and settings (e.g. preferred language, font size, page layout) to tailor the appearance and behaviour of the site.',
+    },
+    marketing: {
+      name: 'Marketing',
+      description:
+        'Track your activity on our site and across other websites to build interest profiles and deliver more relevant advertising. Data is processed only with your consent.',
+      subGroups: {
+        conversionApi: {
+          name: 'Conversion API',
+          description:
+            'Sends your actions directly to advertising platforms (such as Meta) to measure campaign performance in a privacy-compliant way.',
+        },
+        advancedMatching: {
+          name: 'Advanced Matching',
+          description:
+            'Allows advertising platforms to better match your on-site actions to your profile, increasing the relevance of displayed ads.',
+        },
+      },
+    },
+    buttons: {
+      deny: 'Deny',
+      setPreferences: 'Set preferences',
+      agreeAll: 'Accept all',
+    },
+  },
+}
+
+const copy = COPY_BY_LANG[lang] ?? COPY_BY_LANG.pl
+
+function createGroups(copySource: CookieConsentCopy): ConsentGroup[] {
+  return [
+    {
+      id: 'necessary',
+      name: copySource.necessary.name,
+      description: copySource.necessary.description,
+    },
+    {
+      id: 'analytics',
+      name: copySource.analytics.name,
+      description: copySource.analytics.description,
+    },
+    {
+      id: 'preferences',
+      name: copySource.preferences.name,
+      description: copySource.preferences.description,
+    },
+    {
+      id: 'marketing',
+      name: copySource.marketing.name,
+      description: copySource.marketing.description,
+      subGroups: [
+        {
+          id: 'conversion_api',
+          name: copySource.marketing.subGroups.conversionApi.name,
+          description: copySource.marketing.subGroups.conversionApi.description,
+        },
+        {
+          id: 'advanced_matching',
+          name: copySource.marketing.subGroups.advancedMatching.name,
+          description: copySource.marketing.subGroups.advancedMatching.description,
+        },
+      ],
+    },
+  ]
+}
+
+const groups = createGroups(copy)
+
+const normalizedPrivacySlug = privacyPolicySlug?.replace(/^\/+/, '').replace(/\/+$/, '') ?? null
+const fallbackPrivacySlug = lang === 'en' ? 'privacy-policy' : 'polityka-prywatnosci'
+const privacyPolicyUrl = `/${normalizedPrivacySlug ?? fallbackPrivacySlug}`
+---
+
+<script is:inline>
+  ;(function () {
+    const COOKIE_NAME = 'cookie-consent'
+    const entry = document.cookie.split('; ').find(function (row) {
+      return row.startsWith(COOKIE_NAME + '=')
+    })
+    let consent = null
+    if (entry) {
+      try {
+        consent = JSON.parse(decodeURIComponent(entry.split('=')[1]))
+      } catch (e) {
+        consent = null
+      }
+    }
+    const denied = {
+      functionality_storage: 'denied',
+      security_storage: 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: 'denied',
+      personalization_storage: 'denied',
+      conversion_api: 'denied',
+      advanced_matching: 'denied',
+    }
+    window.dataLayer = window.dataLayer || []
+    window.gtag =
+      window.gtag ||
+      function gtag() {
+        window.dataLayer.push(arguments)
+      }
+    window.gtag('consent', 'default', consent || denied)
+  })()
+</script>
+
+<CookieConsentClient
+  client:load
+  copy={copy}
+  groups={groups}
+  privacyPolicyUrl={privacyPolicyUrl}
+  metaPixelId={metaPixelId}
+  ga4Id={ga4Id}
+  googleAdsId={googleAdsId}
+/>
+
+{
+  metaPixelId ? (
+    <noscript>
+      <img
+        height="1"
+        width="1"
+        style="display:none"
+        src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
+        alt=""
+      />
+    </noscript>
+  ) : null
+}

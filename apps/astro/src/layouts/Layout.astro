@@ -1,12 +1,14 @@
 ---
 import '@/global/global.scss'
-import Head, { type HeadProps } from './Head.astro'
+import Analytics from '@/components/analytics/Analytics.astro'
+import { getLangFromPath } from '@/global/languages'
 import OrganizationSchema from '../Schema/OrganizationSchema.astro'
 import Footer from './Footer.astro'
 import Header from './Header.astro'
+import CookieConsent from '@/components/cookie-consent/CookieConsent.astro'
+import Head, { type HeadProps } from './Head.astro'
 import Toast from '../components/ui/Toast.astro'
-import { getLangFromPath } from '../global/languages'
-import CookieConsent from './CookieConsent.astro'
+
 type Props = HeadProps & {
   minify?: boolean
 }
@@ -25,6 +27,7 @@ const lang = getLangFromPath(Astro.url.pathname)
   </head>
   <body>
     <CookieConsent />
+    <Analytics />
     <Header minify={minify} />
     <main id="main">
       <slot />
