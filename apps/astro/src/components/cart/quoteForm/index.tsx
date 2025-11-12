@@ -7,7 +7,6 @@ import styles from './styles.module.scss'
 import Button from '../../ui/Button'
 import { cartStore } from '@/src/store/cart'
 import { trackEvent } from '@/utils/track-event'
-import { saveAnalyticsUser } from '@/utils/analytics-user-storage'
 import type { AnalyticsUser } from '@/global/analytics/types'
 
 type FormData = {
@@ -164,28 +163,48 @@ export default function QuoteForm({
 
       if (result.success) {
         const analyticsUser = buildAnalyticsUser(data)
-        saveAnalyticsUser(analyticsUser)
 
-        const pickNumeric = (...candidates: Array<number | null | undefined>): number | undefined => {
+        const toNumber = (candidate: unknown): number | undefined => {
+          if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+            return candidate
+          }
+          if (typeof candidate === 'string') {
+            const normalized = candidate.replace(/[^\d.,-]/g, '').replace(',', '.').trim()
+            if (!normalized) {
+              return undefined
+            }
+            const parsed = Number(normalized)
+            return Number.isFinite(parsed) ? parsed : undefined
+          }
+          return undefined
+        }
+
+        const pickNumeric = (...candidates: Array<unknown>): number | undefined => {
           for (const value of candidates) {
-            if (typeof value === 'number' && Number.isFinite(value)) {
-              return value
+            const numeric = toNumber(value)
+            if (numeric !== undefined) {
+              return numeric
             }
           }
           return undefined
         }
 
-        const quoteItems: Array<{ totalPrice?: number }> | undefined = Array.isArray(result.quote?.items)
-          ? (result.quote.items as Array<{ totalPrice?: number }>)
+        const quoteItems: Array<{ totalPrice?: number | string }> | undefined = Array.isArray(result.quote?.items)
+          ? (result.quote.items as Array<{ totalPrice?: number | string }>)
           : undefined
 
         const itemsTotal =
-          quoteItems?.reduce((sum, item) => sum + (typeof item.totalPrice === 'number' ? item.totalPrice : 0), 0) ??
-          undefined
+          quoteItems?.reduce((sum, item) => {
+            const total = toNumber(item.totalPrice)
+            return sum + (total ?? 0)
+          }, 0) ?? undefined
 
         const leadValue = pickNumeric(
           result.quote?.totalPrice,
-          result.quote?.totalNettoPrice ? Math.round(result.quote.totalNettoPrice * 1.23) : undefined,
+          (() => {
+            const netto = toNumber(result.quote?.totalNettoPrice)
+            return netto !== undefined ? Math.round(netto * 1.23) : undefined
+          })(),
           itemsTotal,
           result.estimatedValue
         )
@@ -215,6 +234,8 @@ export default function QuoteForm({
         // Give the analytics requests a brief moment to flush before navigation
         await new Promise((resolve) => setTimeout(resolve, 150))
 
+
+        return;
         // Get the redirect URL
         const redirectUrl = result.redirectUrl || translations.thankYouUrl
 
