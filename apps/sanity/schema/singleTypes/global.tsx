@@ -120,36 +120,21 @@ export default defineType({
       description: 'Skonfiguruj analitykę strony. Pozostaw pola puste, aby wyłączyć śledzenie.',
       fields: [
         defineField({
-          name: 'gtm_id',
-          type: 'string',
-          title: 'Google Tag Manager ID',
-          description:
-            'Format: GTM-XXXXXX. ID kontenera do zarządzania narzędziami analitycznymi (GA4, Facebook Pixel, etc.).',
-          validation: (Rule) =>
-            Rule.custom((value) => {
-              if (!value) return true
-              if (!/^GTM-[A-Za-z0-9]{6,8}$/.test(value)) {
-                return 'Nieprawidłowy format ID GTM. Powinien być w formacie GTM-XXXXXXXX, gdzie X to litera lub cyfra.'
-              }
-              return true
-            }),
-        }),
-        defineField({
-          name: 'ga4_id',
+          name: 'ga4Id',
           type: 'string',
           title: 'Google Analytics Measurement ID',
           description: 'Format: G-XXXXXXXXXX. Używane do śledzenia Google Analytics.',
           validation: (Rule) => Rule.required().error('Google Analytics Measurement ID jest wymagane'),
         }),
-         defineField({
-          name: 'googleAds_id',
+        defineField({
+          name: 'googleAdsMeasurementId',
           type: 'string',
           title: 'Google Ads Conversion ID',
           description: 'Format: AW-XXXXXXXXX. Używane do śledzenia konwersji i remarketingu w Google Ads.',
           validation: (Rule) => Rule.required().error('Google Ads Conversion ID jest wymagane'),
         }),
         defineField({
-          name: 'meta_pixel_id',
+          name: 'metaPixelId',
           type: 'string',
           title: 'ID Meta (Facebook) Pixel',
           description: 'Format: XXXXXXXXXX. Używane do śledzenia Meta Pixel i API konwersji.',
@@ -163,9 +148,9 @@ export default defineType({
             }),
         }),
         defineField({
-          name: 'meta_conversion_token',
+          name: 'metaConversionToken',
           type: 'string',
-          title: 'Token API konwersji Meta',
+          title: 'Meta Conversion API Token',
           description: 'Secret token for server-side Meta Conversion API tracking.',
         }),
       ],
