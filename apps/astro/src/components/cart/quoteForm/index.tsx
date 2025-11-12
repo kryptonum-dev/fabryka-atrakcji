@@ -257,9 +257,6 @@ export default function QuoteForm({
 
         // Give the analytics requests a brief moment to flush before navigation
         await new Promise((resolve) => setTimeout(resolve, 150))
-
-
-        return;
         // Get the redirect URL
         const redirectUrl = result.redirectUrl || translations.thankYouUrl
 
