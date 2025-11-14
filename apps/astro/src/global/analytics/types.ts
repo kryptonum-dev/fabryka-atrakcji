@@ -13,6 +13,15 @@ export type AnalyticsUser = {
   [key: string]: unknown
 }
 
+export type AnalyticsUtm = {
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string
+  utm_term?: string
+  utm_content?: string
+  capturedAt: number
+}
+
 declare global {
   interface Window {
     dataLayer?: unknown[]

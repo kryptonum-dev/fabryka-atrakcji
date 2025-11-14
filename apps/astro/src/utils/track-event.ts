@@ -1,5 +1,10 @@
-import type { AnalyticsUser } from '@/global/analytics/types'
-import { loadAnalyticsUser, saveAnalyticsUser } from './analytics-user-storage'
+import type { AnalyticsUser, AnalyticsUtm } from '@/global/analytics/types'
+import {
+  loadAnalyticsUser,
+  loadAnalyticsUtm,
+  saveAnalyticsUser,
+  saveAnalyticsUtm,
+} from './analytics-user-storage'
 
 export type TrackEventUser = AnalyticsUser
 
@@ -244,6 +249,44 @@ export type TrackEventParams<
   ga4?: TrackEventGa4<TGa4>
 }
 
+const UTM_PARAM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const
+type UtmKey = (typeof UTM_PARAM_KEYS)[number]
+
+type MetaRequestBodyPayload = {
+  event_name: MetaEventName
+  content_name?: string
+  url: string
+  event_id: string
+  event_time: number
+  user?: TrackEventUser
+  custom_event_params?: Record<string, unknown>
+  utm?: Partial<Record<UtmKey, string>>
+}
+
+function extractUtmFromUrl(url?: string | null): Partial<Record<UtmKey, string>> | undefined {
+  if (!url) return undefined
+  try {
+    const base =
+      typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'https://placeholder.local'
+    const parsed = new URL(url, base)
+    const params: Partial<Record<UtmKey, string>> = {}
+    for (const key of UTM_PARAM_KEYS) {
+      const value = parsed.searchParams.get(key)
+      if (value) params[key] = value
+    }
+    return Object.keys(params).length ? params : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function resolveUtmPayload(utm?: AnalyticsUtm | null): Partial<Record<UtmKey, string>> | undefined {
+  if (!utm) return undefined
+  const { capturedAt, ...rest } = utm
+  const entries = Object.entries(rest).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  return entries.length ? (Object.fromEntries(entries) as Partial<Record<UtmKey, string>>) : undefined
+}
+
 type FbqFunction = ((...args: unknown[]) => void) & {
   loaded?: boolean
   queue?: unknown[]
@@ -267,6 +310,7 @@ type PendingEvent<
   user?: TrackEventUser
   meta?: TrackEventMeta<TMeta>
   ga4?: TrackEventGa4<TGa4>
+  utm?: AnalyticsUtm
   attempt?: number
   awaitingReady?: boolean
   gaDispatched?: boolean
@@ -451,6 +495,8 @@ function sendEvent(event: PendingEvent) {
   const canSendMetaPixel = Boolean(meta && marketingGranted)
   const canSendMetaCapi = Boolean(meta && conversionApiGranted)
 
+  const utmPayload = resolveUtmPayload(processedEvent.utm)
+
   if (meta && (canSendMetaPixel || canSendMetaCapi)) {
     const metaParams = { ...(meta.params ?? {}) } as Record<string, unknown>
     if (meta.contentName) {
@@ -459,14 +505,17 @@ function sendEvent(event: PendingEvent) {
     const metaPayload = Object.keys(metaParams).length > 0 ? metaParams : {}
 
     if (canSendMetaCapi && !processedEvent.capiDispatched) {
-      const metaBody = {
+      const metaBody: MetaRequestBodyPayload = {
         event_name: meta.eventName,
         content_name: meta.contentName,
         url: processedEvent.url,
         event_id: processedEvent.eventId,
         event_time: Math.floor(processedEvent.eventTime / 1000),
         user: resolvedUser,
-        custom_event_params: meta.params,
+        custom_event_params: meta.params as Record<string, unknown> | undefined,
+      }
+      if (utmPayload) {
+        metaBody.utm = utmPayload
       }
 
       let dispatchedViaBeacon = false
@@ -592,14 +641,19 @@ export function trackEvent<
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2))
 
+  const eventUrl = params.url || window.location.href
   const providedUser = normalizeUser(params.user)
+  const existingUtm = loadAnalyticsUtm()
+  const urlUtm = extractUtmFromUrl(eventUrl)
+  const activeUtm = urlUtm ? saveAnalyticsUtm(urlUtm) ?? existingUtm : existingUtm
   const event: PendingEvent = {
     eventId,
-    url: params.url || window.location.href,
+    url: eventUrl,
     eventTime: now,
     user: providedUser,
     meta: params.meta,
     ga4: params.ga4,
+    utm: activeUtm ?? undefined,
   }
 
   if (!params.meta && !params.ga4) {

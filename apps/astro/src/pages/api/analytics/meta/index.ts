@@ -8,6 +8,14 @@ import type { AnalyticsUser } from '@/global/analytics/types'
 import { getCookie as getServerCookie } from '@/utils/get-cookie'
 import sanityFetch from '@/utils/sanity.fetch'
 
+type MetaUtmParams = Partial<{
+  utm_source: string
+  utm_medium: string
+  utm_campaign: string
+  utm_term: string
+  utm_content: string
+}>
+
 type MetaRequestBody = {
   event_name: string
   event_id?: string
@@ -16,6 +24,7 @@ type MetaRequestBody = {
   content_name?: string
   user?: AnalyticsUser
   custom_event_params?: Record<string, unknown>
+  utm?: MetaUtmParams
 }
 
 const META_ANALYTICS_QUERY = `
@@ -79,6 +88,29 @@ function computeFbc(fbcCookie?: string | null, urlOrRef?: string): string | unde
   if (!match?.[1]) return undefined
   const ts = Math.floor(Date.now() / 1000)
   return `fb.1.${ts}.${match[1]}`
+}
+
+type UtmParams = {
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string
+  utm_term?: string
+  utm_content?: string
+}
+
+function extractUtmParams(url?: string | null): UtmParams | undefined {
+  if (!url) return undefined
+  try {
+    const parsed = new URL(url, 'https://placeholder.local')
+    const params: UtmParams = {}
+    for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const) {
+      const value = parsed.searchParams.get(key)
+      if (value) params[key] = value
+    }
+    return Object.keys(params).length > 0 ? params : undefined
+  } catch {
+    return undefined
+  }
 }
 
 async function postWithRetry(url: string, body: unknown, maxRetries = 2) {
@@ -240,6 +272,18 @@ export const POST: APIRoute = async ({ request }) => {
   if (event_source_url) data.event_source_url = event_source_url
   if (body.content_name) data.content_name = body.content_name
   if (body.custom_event_params) data.custom_data = body.custom_event_params
+  const utm = body.utm ?? extractUtmParams(event_source_url)
+  console.info('[Meta CAPI] Event dispatched', {
+    event_name: data.event_name,
+    event_id: data.event_id,
+    event_source_url: data.event_source_url,
+    utm,
+    user_data_flags: {
+      email: Boolean(body.user?.email),
+      phone: Boolean(body.user?.phone),
+      location: Boolean(body.user?.city || body.user?.postal_code),
+    },
+  })
 
   const url = `https://graph.facebook.com/v23.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(accessToken)}`
 
