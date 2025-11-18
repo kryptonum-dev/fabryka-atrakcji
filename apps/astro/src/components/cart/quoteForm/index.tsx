@@ -8,6 +8,7 @@ import Button from '../../ui/Button'
 import { cartStore } from '@/src/store/cart'
 import { trackEvent } from '@/utils/track-event'
 import type { AnalyticsUser } from '@/global/analytics/types'
+import { formatAnalyticsUtmString, loadAnalyticsUtm } from '@/utils/analytics-user-storage'
 
 type FormData = {
   email: string
@@ -115,6 +116,7 @@ export default function QuoteForm({
 
     try {
       // Prepare data for the quote API
+      const utm = formatAnalyticsUtmString(loadAnalyticsUtm())
       const submitData = {
         email: data.email,
         phone: data.phone,
@@ -125,6 +127,7 @@ export default function QuoteForm({
         quoteRecipients: quoteRecipients,
         lang: translations.thankYouUrl.includes('/en/') ? 'en' : 'pl',
         quote: quote,
+        ...(utm ? { utm } : {}),
       }
 
       // Send data to our API endpoint

@@ -9,7 +9,7 @@ import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
 import { trackEvent } from '@/utils/track-event'
-import { saveAnalyticsUser } from '@/utils/analytics-user-storage'
+import { formatAnalyticsUtmString, loadAnalyticsUtm } from '@/utils/analytics-user-storage'
 
 export default function Form({
   lang = 'pl',
@@ -36,10 +36,11 @@ export default function Form({
     setStatus({ sending: true, success: undefined })
 
     try {
+      const utm = formatAnalyticsUtmString(loadAnalyticsUtm())
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, lang }),
+        body: JSON.stringify({ ...data, lang, ...(utm ? { utm } : {}) }),
       })
       const responseData = await response.json()
 

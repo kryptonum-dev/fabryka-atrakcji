@@ -23,26 +23,35 @@ const template = ({
   message,
   phone,
   lang,
+  utm,
 }: {
   email: string
   message: string
   phone?: string
   lang: string
+  utm?: string | null
 }) => {
+  const normalizedUtm = utm?.trim() || null
+  const utmLabel = normalizedUtm || (lang === 'en' ? 'no data' : 'brak danych')
+
   switch (lang) {
     case 'en':
       return `
             <p>Email: <b>${email}</b></p>
             ${!!phone && phone !== '+48' ? `<p>Phone: <b>${phone}</b></p>` : ''}
             <br />
-            <p>${message.trim().replace(/\n/g, '<br />')}</p>   
+            <p>${message.trim().replace(/\n/g, '<br />')}</p>
+            <br />
+            <p>UTM: <b>${utmLabel}</b></p>
         `
     default:
       return `
             <p>Adres email: <b>${email}</b></p>
             ${!!phone && phone !== '+48' ? `<p>Telefon: <b>${phone}</b></p>` : ''}
             <br />
-            <p>${message.trim().replace(/\n/g, '<br />')}</p>   
+            <p>${message.trim().replace(/\n/g, '<br />')}</p>
+            <br />
+            <p>UTM: <b>${utmLabel}</b></p>
         `
   }
 }
@@ -73,11 +82,12 @@ type Props = {
   legal: boolean
   phone: string
   lang: string
+  utm?: string | null
 }
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email, message, legal, phone, lang } = (await request.json()) as Props
+    const { email, message, legal, phone, lang, utm } = (await request.json()) as Props
     if (!REGEX.email.test(email) || !message || !legal) {
       return new Response(JSON.stringify({ message: 'Missing required fields', success: false }), { status: 400 })
     }
@@ -102,8 +112,8 @@ export const POST: APIRoute = async ({ request }) => {
           to: recipient,
           reply_to: email,
           subject: `${lang === 'en' ? 'Message from contact form sent by' : 'Wiadomość z formularza kontaktowego wysłana przez'} ${email}`,
-          html: template({ email, message, phone, lang }),
-          text: htmlToString(template({ email, message, phone, lang })),
+          html: template({ email, message, phone, lang, utm }),
+          text: htmlToString(template({ email, message, phone, lang, utm })),
         }),
       })
     }

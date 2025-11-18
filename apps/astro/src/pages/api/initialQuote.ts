@@ -41,6 +41,7 @@ const quoteTemplate = ({
   items,
   newsletter,
   lang,
+  utm,
 }: {
   email: string
   phone?: string
@@ -51,6 +52,7 @@ const quoteTemplate = ({
   items: any[]
   newsletter: boolean
   lang: string
+  utm?: string | null
 }) => {
   const datesHtml = selectedDates
     .map((date) => {
@@ -432,6 +434,7 @@ const quoteTemplate = ({
     ${datesHtml}
     <h3>Pozycje:</h3>
     ${itemsHtml}
+    <p>UTM: <b>${utm?.trim() || 'brak danych'}</b></p>
   `
 }
 
@@ -468,11 +471,12 @@ type Props = {
   quoteRecipients: string[]
   lang: string
   quote: any
+  utm?: string | null
 }
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email, phone, additionalInfo, legal, newsletter, quoteId, quoteRecipients, lang, quote } =
+    const { email, phone, additionalInfo, legal, newsletter, quoteId, quoteRecipients, lang, quote, utm } =
       (await request.json()) as Props
 
     // Validate required fields
@@ -518,6 +522,7 @@ export const POST: APIRoute = async ({ request }) => {
           items,
           newsletter,
           lang,
+          utm,
         }),
         text: htmlToString(
           quoteTemplate({
@@ -530,6 +535,7 @@ export const POST: APIRoute = async ({ request }) => {
             items,
             newsletter,
             lang,
+            utm,
           })
         ),
       }),

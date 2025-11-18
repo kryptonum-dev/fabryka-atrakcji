@@ -127,4 +127,19 @@ export function clearAnalyticsUtm(): void {
   }
 }
 
+export function formatAnalyticsUtmString(utm: AnalyticsUtm | null): string | null {
+  if (!utm) return null
+  const { capturedAt: _capturedAt, ...rest } = utm
+  const parts = Object.entries(rest)
+    .map(([key, value]) => {
+      if (value === undefined || value === null) return null
+      const normalized = typeof value === 'string' ? value.trim() : String(value)
+      if (!normalized) return null
+      return `${key.replace(/^utm_/, '')}: ${normalized}`
+    })
+    .filter((value): value is string => Boolean(value))
+
+  return parts.length ? parts.join(' | ') : null
+}
+
 
