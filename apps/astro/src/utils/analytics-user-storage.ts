@@ -130,16 +130,26 @@ export function clearAnalyticsUtm(): void {
 export function formatAnalyticsUtmString(utm: AnalyticsUtm | null): string | null {
   if (!utm) return null
   const { capturedAt: _capturedAt, ...rest } = utm
-  const parts = Object.entries(rest)
-    .map(([key, value]) => {
-      if (value === undefined || value === null) return null
-      const normalized = typeof value === 'string' ? value.trim() : String(value)
-      if (!normalized) return null
-      return `${key.replace(/^utm_/, '')}: ${normalized}`
-    })
-    .filter((value): value is string => Boolean(value))
+  const preferredOrder = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']
 
-  return parts.length ? parts.join(' | ') : null
+  const normalizedEntries: string[] = []
+  const pushEntry = (key: string, value: unknown) => {
+    if (value === undefined || value === null) return
+    const normalizedValue = typeof value === 'string' ? value.trim() : String(value)
+    if (!normalizedValue) return
+    normalizedEntries.push(`${key}=${encodeURIComponent(normalizedValue)}`)
+  }
+
+  preferredOrder.forEach((key) => {
+    pushEntry(key, rest[key as keyof typeof rest])
+  })
+
+  Object.entries(rest).forEach(([key, value]) => {
+    if (preferredOrder.includes(key)) return
+    pushEntry(key, value)
+  })
+
+  return normalizedEntries.length ? `?${normalizedEntries.join('&')}` : null
 }
 
 
