@@ -43,6 +43,9 @@
     "sass": "^1.85.1",
     "typescript": "^5.7.3"
   },
+  "trustedDependencies": [
+    "sharp"
+  ],
   "overrides": {
     "react": "bun:@preact/compat@latest",
     "react-dom": "bun:@preact/compat@latest"
