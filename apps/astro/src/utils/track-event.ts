@@ -424,10 +424,9 @@ function enqueue(
     waitingForConsent = true
     document.addEventListener(
       'cookie_consent_updated',
-      (e) => {
+      () => {
         waitingForConsent = false
-        const detail = (e as CustomEvent).detail as ConsentMode | undefined
-        flushQueue(detail)
+        flushQueue()
       },
       { once: true }
     )
@@ -446,10 +445,10 @@ function enqueue(
   }
 }
 
-function flushQueue(explicitConsent?: ConsentMode) {
+function flushQueue() {
   while (pendingEvents.length) {
     const event = pendingEvents.shift()!
-    sendEvent(event, explicitConsent)
+    sendEvent(event)
   }
 }
 
@@ -472,7 +471,7 @@ function flushFbqQueue(fbqFn: FbqFunction) {
   }
 }
 
-function sendEvent(event: PendingEvent, explicitConsent?: ConsentMode) {
+function sendEvent(event: PendingEvent) {
   const { meta, ga4 } = event
   const attempt = event.attempt ?? 0
 
@@ -488,9 +487,10 @@ function sendEvent(event: PendingEvent, explicitConsent?: ConsentMode) {
   const resolvedUser = mergeUserData(processedEvent.user, { persist: true })
   processedEvent.user = resolvedUser
 
-  const consent = explicitConsent ?? parseConsent()
+  const consent = parseConsent()
   const marketingGranted = consent.ad_storage === 'granted' || consent.ad_user_data === 'granted'
   const conversionApiGranted = consent.conversion_api === 'granted'
+  const analyticsGranted = consent.analytics_storage === 'granted'
 
   const canSendMetaPixel = Boolean(meta && marketingGranted)
   const canSendMetaCapi = Boolean(meta && conversionApiGranted)
