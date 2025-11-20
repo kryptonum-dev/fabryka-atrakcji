@@ -26,7 +26,6 @@
         "nanostores": "^1.0.1",
         "react-hook-form": "^7.54.2",
         "react-international-phone": "^4.5.0",
-        "sharp": "^0.33.5",
         "sharp-ico": "^0.1.5",
       },
       "devDependencies": {
@@ -44,6 +43,9 @@
         "prettier-plugin-astro": "^0.14.1",
         "sass": "^1.85.1",
         "typescript": "^5.7.3",
+      },
+      "optionalDependencies": {
+        "sharp": "^0.33.5",
       },
     },
     "apps/sanity": {
