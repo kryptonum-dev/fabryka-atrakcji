@@ -430,17 +430,17 @@ export default function CookieConsentClient({
       }
 
       const primaryGtagId = ga4Id ?? googleAdsId ?? null
-      const requiresGtag = Boolean((ga4Id && selection.analytics) || (googleAdsId && selection.marketing))
+      const requiresGtag = Boolean(primaryGtagId)
 
       if (primaryGtagId && requiresGtag) {
         await ensureGtagScript(primaryGtagId)
 
-        if (ga4Id && selection.analytics && !configuredIdsRef.current.has(ga4Id)) {
+        if (ga4Id && !configuredIdsRef.current.has(ga4Id)) {
           window.gtag?.('config', ga4Id, { send_page_view: false })
           configuredIdsRef.current.add(ga4Id)
         }
 
-        if (googleAdsId && selection.marketing && !configuredIdsRef.current.has(googleAdsId)) {
+        if (googleAdsId && !configuredIdsRef.current.has(googleAdsId)) {
           window.gtag?.('config', googleAdsId)
           configuredIdsRef.current.add(googleAdsId)
         }
@@ -477,6 +477,17 @@ export default function CookieConsentClient({
       }
       setConsentSelections({ ...DEFAULT_SELECTIONS })
       setIsPreferencesOpen(false)
+      
+      // Initialize tracking with defaults (denied) to allow cookieless pings
+      const runDefaults = async () => {
+        setAnalyticsReady(false)
+        try {
+          await initializeTracking({ ...DEFAULT_SELECTIONS })
+        } finally {
+          setAnalyticsReady(true)
+        }
+      }
+      void runDefaults()
       return
     }
 

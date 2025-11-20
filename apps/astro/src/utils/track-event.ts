@@ -601,7 +601,7 @@ function sendEvent(event: PendingEvent) {
     }
   }
 
-  const canSendGa4 = Boolean(ga4 && analyticsGranted)
+  const canSendGa4 = Boolean(ga4)
   if (canSendGa4 && ga4) {
     if (typeof window.gtag === 'function') {
       if (!processedEvent.gaDispatched) {
@@ -663,8 +663,26 @@ export function trackEvent<
   const needsConsent = !hasConsentDecision()
   const needsReadiness = !isAnalyticsReady()
 
-  if (needsConsent || needsReadiness) {
-    enqueue(event, { waitForConsent: needsConsent, waitForReadiness: needsReadiness })
+  if (needsConsent) {
+    if (params.meta) {
+      enqueue(
+        { ...event, ga4: undefined },
+        { waitForConsent: true, waitForReadiness: needsReadiness }
+      )
+    }
+    if (params.ga4) {
+      const ga4Event = { ...event, meta: undefined }
+      if (needsReadiness) {
+        enqueue(ga4Event, { waitForConsent: false, waitForReadiness: true })
+      } else {
+        sendEvent(ga4Event)
+      }
+    }
+    return eventId
+  }
+
+  if (needsReadiness) {
+    enqueue(event, { waitForConsent: false, waitForReadiness: true })
     return eventId
   }
 
