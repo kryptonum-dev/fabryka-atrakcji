@@ -13,7 +13,7 @@ export const GET: APIRoute = async () => {
   const processedFavicon = await sharp(svgBuffer).resize(32, 32).toBuffer()
   const icoBuffer = ico.encode([processedFavicon])
 
-  return new Response(icoBuffer, {
+  return new Response(icoBuffer as unknown as BodyInit, {
     headers: { 'Content-Type': 'image/x-icon' },
   })
 }
