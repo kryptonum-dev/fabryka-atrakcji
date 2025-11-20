@@ -22,8 +22,9 @@ The consent manager handles the loading of external scripts (`gtag.js`, `fbevent
     *   This allows GA4 to send "cookieless pings" (G100 events) for basic metrics like Page Views without storing cookies, ensuring compliance while preserving data quality.
     *   **Critical Implementation Detail**: When no consent cookie exists, we explicitly call `initializeTracking({ ...DEFAULT_SELECTIONS })` to ensure the script loads immediately.
 *   **Meta Pixel Strict Blocking**:
-    *   Unlike GA4, Meta Pixel does **not** have a safe "denied" mode that we trust for this implementation.
-    *   Meta scripts and events are strictly blocked until the user explicitly grants `marketing` consent.
+    *   Unlike GA4, Meta Pixel does **not** have a cookieless mode.
+    *   Meta scripts are **not loaded at all** until the user explicitly grants `marketing` consent.
+    *   **Critical Fix**: When the Meta Pixel script loads, we must wait for `callMethod` to be available before calling `fbq('init')`. Simply calling `fbq('init')` queues the command instead of executing it, causing the pixel to never register. We use `fbq.callMethod.apply()` to bypass the queue and execute immediately.
 
 ---
 
@@ -65,22 +66,31 @@ trackEvent({
 1.  **Do Not Remove "Default Denied" Initialization**:
     The line `initializeTracking({ ...DEFAULT_SELECTIONS })` in the "no stored consent" block is crucial. Without it, GA4 scripts won't load until the user clicks a button, causing you to lose 100% of the "bounce" traffic data.
 
-2.  **Meta User Data Injection**:
+2.  **Meta Pixel callMethod is Critical**:
+    **DO NOT** call `fbq('init')` directly. Always use `fbq.callMethod.apply(fbq, ['init', pixelId])` after waiting for `callMethod` to be available. This bypasses the queue system and ensures the pixel actually initializes. Without this, `fbq('init')` gets queued indefinitely and the pixel never registers, resulting in zero `tr` network requests.
+
+3.  **Meta User Data Injection**:
     If you need to debug Advanced Matching, look at `applyMetaPixelUserData` in `track-event.ts`. Do not revert to using `fbq('init', id, userData)` for updates, as it re-initializes the pixel and can cause duplicate PageViews or lost state.
 
-3.  **Queuing Logic**:
+4.  **Queuing Logic**:
     The split queuing logic in `trackEvent` is intentional.
     *   `GA4` = Fire immediately (trusting `gtag` to handle privacy).
-    *   `Meta` = Wait for explicit consent (trusting our code to block it).
+    *   `Meta` = Wait for explicit consent (no script loaded until granted).
     *   **Do not merge these paths** unless Meta introduces a GDPR-compliant "ping" mode similar to Google's.
 
-4.  **Testing Cookieless Pings**:
+5.  **Testing Cookieless Pings**:
     *   Open Network Tab.
     *   Clear Cookies.
     *   Reload Page.
     *   Look for requests to `google-analytics.com/g/collect`.
     *   Check the payload: `gcs=G100` means "Deny" (Ping), `gcs=G111` means "Granted".
 
-5.  **Adding New Events**:
+6.  **Testing Meta Pixel**:
+    *   Open Network Tab.
+    *   Accept "All" Cookies.
+    *   Look for requests to `facebook.com/tr`.
+    *   Check `window.fbq.instance.pixelsByID` in console - your pixel ID should be listed with `initTime` set.
+
+7.  **Adding New Events**:
     Always add types to `MetaEventName` and `Ga4EventName` in `analytics/types.ts` first. This ensures type safety for parameters across the codebase.
 

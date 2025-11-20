@@ -6,7 +6,7 @@ import Switch from '@/components/ui/Switch'
 import { loadAnalyticsUser, normalizeAnalyticsUser } from '@/utils/analytics-user-storage'
 import { setCookie } from '@/utils/set-cookie'
 
-import '@/components/cookie-consent/CookieConsent.client.scss'
+import './CookieConsent.scss'
 
 import type {
   ConsentModeState,
@@ -186,24 +186,65 @@ async function ensureMetaPixel(pixelId: string | null | undefined, selection: Co
     return
   }
 
+  // CRITICAL: Only load script if marketing consent is granted
+  // Meta Pixel has no cookieless mode (unlike GA4)
+  if (!selection.marketing) {
+    return
+  }
+
   bootstrapMetaPixel()
-  const scriptPromise = loadMetaPixelScript()
-  const advancedMatching = buildAdvancedMatching(selection)
 
   window.__metaPixelId = pixelId
   window.__metaPixelAdvancedMatching = Boolean(selection.advanced_matching)
 
-  if (!loadedMetaPixels.has(pixelId)) {
-    loadedMetaPixels.add(pixelId)
-    window.fbq?.('set', 'autoConfig', false, pixelId)
-    if (advancedMatching) {
-      window.fbq?.('init', pixelId, advancedMatching)
-    } else {
-      window.fbq?.('init', pixelId)
-    }
+  // Ensure script is fully loaded
+  await loadMetaPixelScript()
+
+  // CRITICAL: Wait for callMethod to be available (indicates pixel is ready to accept commands)
+  // Without this, fbq('init') gets queued instead of executed immediately
+  let waitAttempts = 0
+  while (typeof (window.fbq as any)?.callMethod !== 'function' && waitAttempts < 50) {
+    await new Promise(resolve => setTimeout(resolve, 50))
+    waitAttempts++
   }
 
-  await scriptPromise
+  if (typeof (window.fbq as any)?.callMethod !== 'function') {
+    console.error('[Meta Pixel] Failed to initialize: callMethod not available')
+    return
+  }
+
+  const isFirstInit = !loadedMetaPixels.has(pixelId)
+
+  if (isFirstInit) {
+    loadedMetaPixels.add(pixelId)
+
+    const fbqFn = window.fbq as any
+    
+    // CRITICAL: Use callMethod.apply() to bypass queue and execute immediately
+    // Set consent before init (per Meta docs)
+    fbqFn.callMethod.apply(fbqFn, ['consent', 'grant'])
+    fbqFn.callMethod.apply(fbqFn, ['set', 'autoConfig', false, pixelId])
+
+    const advancedMatching = buildAdvancedMatching(selection)
+    
+    // Call init via callMethod to execute immediately (not queue)
+    if (advancedMatching) {
+      fbqFn.callMethod.apply(fbqFn, ['init', pixelId, advancedMatching])
+    } else {
+      fbqFn.callMethod.apply(fbqFn, ['init', pixelId])
+    }
+
+    // Brief wait for internal pixel initialization
+    await new Promise(resolve => setTimeout(resolve, 100))
+  } else {
+    // Update advanced matching if needed
+    if (selection.advanced_matching) {
+      const advancedMatching = buildAdvancedMatching(selection)
+      if (advancedMatching) {
+        window.fbq?.('init', pixelId, advancedMatching)
+      }
+    }
+  }
 }
 
 function ensureGtagScript(primaryId?: string | null) {
@@ -420,15 +461,12 @@ export default function CookieConsentClient({
 
   const initializeTracking = useCallback(
     async (selection: ConsentSelections) => {
+      // Always initialize Meta Pixel (consent is set inside ensureMetaPixel BEFORE init)
       if (metaPixelId) {
-        if (selection.marketing) {
-          await ensureMetaPixel(metaPixelId, selection)
-          window.fbq?.('consent', 'grant')
-        } else {
-          window.fbq?.('consent', 'revoke')
-        }
+        await ensureMetaPixel(metaPixelId, selection)
       }
 
+      // Always initialize gtag scripts (if IDs exist), consent handled via gtag('consent', ...)
       const primaryGtagId = ga4Id ?? googleAdsId ?? null
       const requiresGtag = Boolean(primaryGtagId)
 
@@ -477,7 +515,7 @@ export default function CookieConsentClient({
       }
       setConsentSelections({ ...DEFAULT_SELECTIONS })
       setIsPreferencesOpen(false)
-      
+
       // Initialize tracking with defaults (denied) to allow cookieless pings
       const runDefaults = async () => {
         setAnalyticsReady(false)
@@ -550,8 +588,9 @@ export default function CookieConsentClient({
         await initializeTracking(selection)
       } finally {
         setAnalyticsReady(true)
-        document.dispatchEvent(new CustomEvent('cookie_consent_updated', { detail: consentMode }))
       }
+      // Dispatch consent update AFTER analytics ready to ensure queue has the ready flag
+      document.dispatchEvent(new CustomEvent('cookie_consent_updated', { detail: consentMode }))
     },
     [initializeTracking, metaPixelId]
   )

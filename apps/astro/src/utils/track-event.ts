@@ -426,7 +426,9 @@ function enqueue(
       'cookie_consent_updated',
       () => {
         waitingForConsent = false
-        flushQueue()
+        if (!waitingForReadiness) {
+          flushQueue()
+        }
       },
       { once: true }
     )
@@ -438,7 +440,9 @@ function enqueue(
       'analytics_ready',
       () => {
         waitingForReadiness = false
-        flushQueue()
+        if (!waitingForConsent) {
+          flushQueue()
+        }
       },
       { once: true }
     )
@@ -490,7 +494,6 @@ function sendEvent(event: PendingEvent) {
   const consent = parseConsent()
   const marketingGranted = consent.ad_storage === 'granted' || consent.ad_user_data === 'granted'
   const conversionApiGranted = consent.conversion_api === 'granted'
-  const analyticsGranted = consent.analytics_storage === 'granted'
 
   const canSendMetaPixel = Boolean(meta && marketingGranted)
   const canSendMetaCapi = Boolean(meta && conversionApiGranted)
@@ -564,9 +567,9 @@ function sendEvent(event: PendingEvent) {
       }
 
       if (typeof window.fbq === 'function') {
+        const fbqFn = window.fbq as FbqFunction
         try {
           const method = META_STANDARD_EVENTS.has(meta.eventName) ? 'track' : 'trackCustom'
-          const fbqFn = window.fbq as FbqFunction
           const args: Parameters<FbqFunction> = [
             method,
             meta.eventName,
@@ -575,6 +578,7 @@ function sendEvent(event: PendingEvent) {
               eventID: processedEvent.eventId,
             },
           ]
+          
           if (typeof fbqFn.callMethod === 'function') {
             flushFbqQueue(fbqFn)
             fbqFn.callMethod.apply(fbqFn, args)
