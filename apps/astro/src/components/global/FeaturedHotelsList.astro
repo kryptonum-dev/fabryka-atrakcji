@@ -55,7 +55,7 @@ const { index, sectionId, labelIcon, heading, cta, hotels } = Astro.props
             variant="featured"
             imgConfig={{
               sizes:
-                '(max-width: 29.9375rem) 93vw, (max-width: 37.4375rem) 45vw, (max-width: 56.1875rem) 40vw, (max-width: 78.0625rem) 26vw, 325px',
+                '(max-width: 29.9375rem) 100vw, (max-width: 37.4375rem) 45vw, (max-width: 56.1875rem) 40vw, (max-width: 78.0625rem) 26vw, 325px',
               loading: index === 0 ? 'eager' : 'lazy',
               fetchpriority: index === 0 && hotelIndex === 0 ? 'high' : 'auto',
             }}
