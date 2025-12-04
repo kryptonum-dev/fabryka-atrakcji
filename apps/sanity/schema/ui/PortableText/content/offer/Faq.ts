@@ -8,6 +8,8 @@ const name = 'Faq'
 const title = 'Pytania i odpowiedzi'
 const icon = TextIcon
 
+
+
 export default defineField({
   name,
   type: 'object',

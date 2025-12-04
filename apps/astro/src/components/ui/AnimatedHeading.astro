@@ -21,25 +21,31 @@ const {
   initialFired = false,
 } = Astro.props
 
-// This function split the PortableText Heading into an array of {text: string, marks: string[]}.
+// This function split the PortableText Heading into an array of {text: string, marks: string[], isLineBreak?: boolean}.
 
 const splitHeading = (heading: any) => {
-  const newBlock = heading.map((block: any) => {
-    return block.children.map((child: any) => {
-      return { text: child.text, marks: child.marks }
+  const result: { text: string; marks: string[]; isLineBreak?: boolean }[] = []
+  
+  heading.forEach((block: any, blockIndex: number) => {
+    // Add line break before new blocks (except first)
+    if (blockIndex > 0) {
+      result.push({ text: '', marks: [], isLineBreak: true })
+    }
+    
+    block.children.forEach((child: any) => {
+      const words = child.text.split(' ')
+      words.forEach((word: string) => {
+        if (word !== '') {
+          result.push({
+            text: word,
+            marks: child.marks?.includes('strong') ? ['strong'] : [],
+          })
+        }
+      })
     })
   })
-
-  return newBlock
-    .flat()
-    .flatMap((block: any) => {
-      const words = block.text.split(' ')
-      return words.map((word: any) => ({
-        text: word,
-        marks: block.marks?.includes('strong') ? ['strong'] : [],
-      }))
-    })
-    .filter((item: any) => item.text !== '')
+  
+  return result
 }
 
 const Heading = level
@@ -53,11 +59,17 @@ const delay = (index: number) => {
   {
     splitHeading(heading).map((item: any, i: number) => (
       <>
-        {i === 0 ? '' : ' '}
-        {item.marks?.includes('strong') ? (
-          <strong style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</strong>
+        {item.isLineBreak ? (
+          <br />
         ) : (
-          <span style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</span>
+          <>
+            {i === 0 ? '' : ' '}
+            {item.marks?.includes('strong') ? (
+              <strong style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</strong>
+            ) : (
+              <span style={`${initialFired ? 'animation' : 'transition'}-delay: ${delay(i)}ms`}>{item.text}</span>
+            )}
+          </>
         )}
       </>
     ))
