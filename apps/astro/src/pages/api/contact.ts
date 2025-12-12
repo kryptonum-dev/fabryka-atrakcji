@@ -1,5 +1,6 @@
 export const prerender = false
 
+import { checkBotId } from 'botid/server'
 import { REGEX } from '@/global/constants'
 import { htmlToString } from '@/utils/html-to-string'
 import sanityFetch from '@/utils/sanity.fetch'
@@ -87,6 +88,12 @@ type Props = {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const verification = await checkBotId()
+    if (verification?.isBot) {
+      console.warn('Access denied from bot ID verification')
+      return new Response(JSON.stringify({ message: 'Access denied', success: false }), { status: 403 })
+    }
+
     const { email, message, legal, phone, lang, utm } = (await request.json()) as Props
     if (!REGEX.email.test(email) || !message || !legal) {
       return new Response(JSON.stringify({ message: 'Missing required fields', success: false }), { status: 400 })

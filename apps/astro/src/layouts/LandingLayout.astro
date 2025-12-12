@@ -8,6 +8,7 @@ import CookieConsent from '@/components/cookie-consent/CookieConsent.astro'
 import Toast from '../components/ui/Toast.astro'
 import { getLangFromPath } from '../global/languages'
 import type { ButtonDataProps } from '../components/ui/Button'
+import BotIdInit from '@/components/global/BotIdInit.astro'
 
 type Props = HeadProps & {
   navigationLinks: Array<{ name: string; href: string }>
@@ -28,6 +29,7 @@ const lang = getLangFromPath(Astro.url.pathname)
   <body>
     <CookieConsent />
     <LandingHeader navigationLinks={navigationLinks} cta={cta} alternates={headProps.alternates} />
+    <BotIdInit />
     <main id="main">
       <slot />
     </main>

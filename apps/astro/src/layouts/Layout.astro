@@ -8,6 +8,7 @@ import Header from './Header.astro'
 import CookieConsent from '@/components/cookie-consent/CookieConsent.astro'
 import Head, { type HeadProps } from './Head.astro'
 import Toast from '../components/ui/Toast.astro'
+import BotIdInit from '@/components/global/BotIdInit.astro'
 
 type Props = HeadProps & {
   minify?: boolean
@@ -29,6 +30,7 @@ const lang = getLangFromPath(Astro.url.pathname)
     <Header minify={minify} alternates={props.alternates} />
     <CookieConsent />
     <Analytics />
+    <BotIdInit />
     <main id="main">
       <slot />
     </main>
