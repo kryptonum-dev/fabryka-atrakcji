@@ -90,7 +90,12 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const verification = await checkBotId()
     if (verification?.isBot) {
-      console.warn('Access denied from bot ID verification')
+      console.warn('BotID blocked request:', {
+        isBot: verification.isBot,
+        isHuman: verification.isHuman,
+        isVerifiedBot: verification.isVerifiedBot,
+        bypassed: verification.bypassed,
+      })
       return new Response(JSON.stringify({ message: 'Access denied', success: false }), { status: 403 })
     }
 

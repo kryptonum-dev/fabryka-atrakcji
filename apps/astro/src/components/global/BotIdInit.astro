@@ -1,8 +1,5 @@
-<script is:inline type="module">
+<script>
   import { initBotId } from 'botid/client/core'
-
-  initBotId({
-    protect: [{ path: '/api/contact', method: 'POST' }],
-  })
+  initBotId({ protect: [{ path: '/api/contact', method: 'POST' }] })
 </script>
 
