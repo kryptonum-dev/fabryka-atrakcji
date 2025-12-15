@@ -17,5 +17,5 @@ if (!data) return Astro.rewrite('/en/404')
 export const getStaticPaths = () => staticPathsCategoryPage('en')
 ---
 
-<ActivitiesListing {...data} currentPage={page} currentCategory={category} canonicalUrl={canonicalUrl} />
+<ActivitiesListing {...data} currentPage={page} currentCategory={category} canonicalUrl={canonicalUrl} doNotIndex={true} />
 

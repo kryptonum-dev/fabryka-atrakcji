@@ -11,5 +11,5 @@ const canonicalUrl = Astro.url.origin + '/en/activities/'
 if (!data) return Astro.rewrite('/en/404')
 ---
 
-<ActivitiesListing {...data} currentPage={1} canonicalUrl={canonicalUrl} />
+<ActivitiesListing {...data} currentPage={1} canonicalUrl={canonicalUrl} doNotIndex={true} />
 

@@ -1,0 +1,55 @@
+# Fabryka Atrakcji robots.txt
+# Block abusive SEO crawlers that are costing us serverless function budget
+
+# Block SERankingBacklinksBot (highest offender)
+User-agent: SERankingBacklinksBot
+Disallow: /
+
+# Block PetalBot (Huawei crawler)
+User-agent: PetalBot
+Disallow: /
+
+# Block AhrefsBot from filter pages (allow other pages for SEO insights)
+User-agent: AhrefsBot
+Disallow: /*/filtr/
+Disallow: /*/filter/
+Disallow: /*/filtr
+Disallow: /*/filter
+
+# Block SemrushBot from filter pages
+User-agent: SemrushBot
+Disallow: /*/filtr/
+Disallow: /*/filter/
+Disallow: /*/filtr
+Disallow: /*/filter
+
+# Block MJ12bot (Majestic)
+User-agent: MJ12bot
+Disallow: /*/filtr/
+Disallow: /*/filter/
+Disallow: /*/filtr
+Disallow: /*/filter
+
+# Allow legitimate search engines but block filter pages
+User-agent: Googlebot
+Disallow: /*/filtr/
+Disallow: /*/filter/
+Disallow: /*/filtr
+Disallow: /*/filter
+
+User-agent: Bingbot
+Disallow: /*/filtr/
+Disallow: /*/filter/
+Disallow: /*/filtr
+Disallow: /*/filter
+
+# Default: allow all other crawlers on non-filter pages
+User-agent: *
+Disallow: /*/filtr/
+Disallow: /*/filter/
+Disallow: /*/filtr
+Disallow: /*/filter
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://www.fabryka-atrakcji.com/sitemap-index.xml

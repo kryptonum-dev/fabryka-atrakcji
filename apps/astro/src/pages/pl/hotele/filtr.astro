@@ -11,4 +11,4 @@ const canonicalUrl = Astro.url.origin + '/pl/hotele/'
 if (!data) return Astro.rewrite('/pl/404')
 ---
 
-<HotelsListing {...data} currentPage={1} canonicalUrl={canonicalUrl} />
+<HotelsListing {...data} currentPage={1} canonicalUrl={canonicalUrl} doNotIndex={true} />

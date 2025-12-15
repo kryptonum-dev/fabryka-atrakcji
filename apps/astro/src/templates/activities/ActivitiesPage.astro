@@ -16,6 +16,7 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
   currentCategory: string | null
   canonicalUrl?: string
+  doNotIndex?: boolean
 }
 
 export async function fetchData(
@@ -133,7 +134,7 @@ export async function staticPathsCategoryPage(lang: Language) {
     .flat()
 }
 
-const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl } = Astro.props
+const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl, doNotIndex } = Astro.props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 const totalPages = Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
@@ -162,6 +163,7 @@ const metadata = {
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,
   ...(canonicalUrl && { canonicalUrl }),
+  ...(doNotIndex && { doNotIndex }),
 }
 const getPaginationUrl = (page: number) => {
   return currentCategory
