@@ -12,7 +12,7 @@ export const optimizeImage = async ({ image, width, height }: { image: string; w
     format: 'webp',
     width: cappedWidth,
     height: cappedHeight,
-    widths: [48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    widths: [48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 2560],
     sizes: '324px',
   })
 
