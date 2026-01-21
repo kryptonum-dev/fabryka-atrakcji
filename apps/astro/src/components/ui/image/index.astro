@@ -24,11 +24,21 @@ type Props = ImageDataProps & {
 
 const { asset, sizes, priority, ...props } = Astro.props
 
+const MAX_WIDTH = 2560
+const originalWidth = asset.metadata.dimensions.width
+const originalHeight = asset.metadata.dimensions.height
+
+// Cap width at MAX_WIDTH to prevent image proxy timeouts on large uploads
+const width = Math.min(originalWidth, MAX_WIDTH)
+const height = originalWidth > MAX_WIDTH
+  ? Math.round((originalHeight * MAX_WIDTH) / originalWidth)
+  : originalHeight
+
 const imageProps = {
   src: asset.url,
   alt: asset.altText || '',
-  width: asset.metadata.dimensions.width,
-  height: asset.metadata.dimensions.height,
+  width,
+  height,
   sizes,
   style: {
     background: `url(${asset.metadata.lqip}) center / cover no-repeat`,
