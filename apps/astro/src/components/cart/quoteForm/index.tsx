@@ -139,27 +139,23 @@ export default function QuoteForm({
     document.dispatchEvent(new CustomEvent('quote-form-submitting'))
     setIsSubmitting(true)
 
-    // Fire and forget - log to Google Sheet
+    // Fire and forget - log to Google Sheet (sendBeacon guarantees delivery)
     const priceBrutto = quote?.items?.reduce((sum: number, item: any) => sum + (item.totalPrice || 0), 0) || 0
     const priceNetto = quote?.items?.reduce((sum: number, item: any) => sum + (item.totalNettoPrice || 0), 0) || 0
-    fetch('/api/s3d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        formType: 'configurator_form',
-        email: data.email,
-        phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
-        additionalInfo: data.additionalInfo,
-        utm: getUtmForSheet(),
-        quote: {
-          participants: quote?.participantCount || '',
-          dates: formatDatesForSheet(quote?.selectedDates || []),
-          priceBrutto,
-          priceNetto,
-          itemsSummary: createItemsSummary(quote?.items || []),
-        },
-      }),
-    }).catch(() => {})
+    navigator.sendBeacon('/api/s3d', JSON.stringify({
+      formType: 'configurator_form',
+      email: data.email,
+      phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
+      additionalInfo: data.additionalInfo,
+      utm: getUtmForSheet(),
+      quote: {
+        participants: quote?.participantCount || '',
+        dates: formatDatesForSheet(quote?.selectedDates || []),
+        priceBrutto,
+        priceNetto,
+        itemsSummary: createItemsSummary(quote?.items || []),
+      },
+    }))
 
     try {
       // Prepare data for the quote API

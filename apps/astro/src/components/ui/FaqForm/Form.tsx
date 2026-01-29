@@ -35,18 +35,14 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
   const onSubmit = async (data: FieldValues) => {
     updateStatus({ sending: true, success: undefined })
 
-    // Fire and forget - log to Google Sheet
-    fetch('/api/s3d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        formType: 'faq_form',
-        email: data.email,
-        phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
-        message: data.message,
-        utm: getUtmForSheet(),
-      }),
-    }).catch(() => {})
+    // Fire and forget - log to Google Sheet (sendBeacon guarantees delivery)
+    navigator.sendBeacon('/api/s3d', JSON.stringify({
+      formType: 'faq_form',
+      email: data.email,
+      phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
+      message: data.message,
+      utm: getUtmForSheet(),
+    }))
 
     try {
       const utmString = getUtmString()
