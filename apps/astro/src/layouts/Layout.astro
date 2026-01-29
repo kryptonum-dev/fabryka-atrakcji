@@ -24,13 +24,13 @@ const lang = getLangFromPath(Astro.url.pathname)
   <head>
     <Head {...props} />
     <OrganizationSchema />
+    <BotIdInit />
     <slot name="head" />
   </head>
   <body>
     <Header minify={minify} alternates={props.alternates} />
     <CookieConsent />
     <Analytics />
-    <BotIdInit />
     <main id="main">
       <slot />
     </main>

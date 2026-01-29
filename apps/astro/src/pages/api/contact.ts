@@ -88,18 +88,15 @@ type Props = {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Skip bot check in development
-    if (!import.meta.env.DEV) {
-      const verification = await checkBotId()
-      if (verification?.isBot) {
-        console.warn('BotID blocked request:', {
-          isBot: verification.isBot,
-          isHuman: verification.isHuman,
-          isVerifiedBot: verification.isVerifiedBot,
-          bypassed: verification.bypassed,
-        })
-        return new Response(JSON.stringify({ message: 'Access denied', success: false }), { status: 403 })
-      }
+    const verification = await checkBotId()
+    if (verification?.isBot) {
+      console.warn('BotID blocked request:', {
+        isBot: verification.isBot,
+        isHuman: verification.isHuman,
+        isVerifiedBot: verification.isVerifiedBot,
+        bypassed: verification.bypassed,
+      })
+      return new Response(JSON.stringify({ message: 'Access denied', success: false }), { status: 403 })
     }
 
     const { email, message, legal, phone, lang, utm } = (await request.json()) as Props
