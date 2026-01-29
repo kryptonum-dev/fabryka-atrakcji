@@ -9,7 +9,7 @@ import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
 import { trackEvent } from '@/utils/track-event'
-import { formatAnalyticsUtmString, loadAnalyticsUtm } from '@/utils/analytics-user-storage'
+import { getUtmString, getUtmForSheet } from '@/utils/analytics-user-storage'
 
 export default function Form({
   lang = 'pl',
@@ -35,12 +35,25 @@ export default function Form({
   const onSubmit = async (data: FieldValues) => {
     setStatus({ sending: true, success: undefined })
 
+    // Fire and forget - log to Google Sheet
+    fetch('/api/s3d', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        formType: 'contact_form',
+        email: data.email,
+        phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
+        message: data.message,
+        utm: getUtmForSheet(),
+      }),
+    }).catch(() => {})
+
     try {
-      const utm = formatAnalyticsUtmString(loadAnalyticsUtm())
+      const utmString = getUtmString()
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, lang, ...(utm ? { utm } : {}) }),
+        body: JSON.stringify({ ...data, lang, ...(utmString ? { utm: utmString } : {}) }),
       })
       const responseData = await response.json()
 

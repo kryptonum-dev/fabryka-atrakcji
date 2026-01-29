@@ -20,6 +20,7 @@
     "astro-portabletext": "^0.11.1",
     "botid": "^1.0.0",
     "embla-carousel-react": "^8.5.2",
+    "googleapis": "^170.1.0",
     "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
     "nanostores": "^1.0.1",

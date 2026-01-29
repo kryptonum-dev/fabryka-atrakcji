@@ -36,6 +36,7 @@ export default function Form({
     setStatus({ sending: true, success: undefined })
 
     data.group_id = groupId
+
     try {
       const response = await fetch('/api/newsletter', {
         method: 'POST',

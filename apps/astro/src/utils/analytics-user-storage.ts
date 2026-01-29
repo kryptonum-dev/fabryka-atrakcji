@@ -85,7 +85,7 @@ export function clearAnalyticsUser(): void {
 export function loadAnalyticsUtm(): AnalyticsUtm | null {
   if (!isBrowser()) return null
   try {
-    const raw = window.sessionStorage.getItem(UTM_STORAGE_KEY)
+    const raw = window.localStorage.getItem(UTM_STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as StoredUtm
     return normalizeUtm(parsed)
@@ -100,7 +100,7 @@ export function saveAnalyticsUtm(values: StoredUtm): AnalyticsUtm | null {
   const normalized = normalizeUtm({ ...values, capturedAt: Date.now() })
   if (!normalized) return null
   try {
-    window.sessionStorage.setItem(UTM_STORAGE_KEY, JSON.stringify(normalized))
+    window.localStorage.setItem(UTM_STORAGE_KEY, JSON.stringify(normalized))
     document.dispatchEvent(
       new CustomEvent('analytics_utm_updated', {
         detail: normalized,
@@ -116,7 +116,7 @@ export function saveAnalyticsUtm(values: StoredUtm): AnalyticsUtm | null {
 export function clearAnalyticsUtm(): void {
   if (!isBrowser()) return
   try {
-    window.sessionStorage.removeItem(UTM_STORAGE_KEY)
+    window.localStorage.removeItem(UTM_STORAGE_KEY)
     document.dispatchEvent(
       new CustomEvent('analytics_utm_updated', {
         detail: null,
@@ -150,6 +150,36 @@ export function formatAnalyticsUtmString(utm: AnalyticsUtm | null): string | nul
   })
 
   return normalizedEntries.length ? `?${normalizedEntries.join('&')}` : null
+}
+
+/**
+ * Convenience function: load UTM from storage and format as query string
+ */
+export function getUtmString(): string | null {
+  return formatAnalyticsUtmString(loadAnalyticsUtm())
+}
+
+/**
+ * Format UTM params as multiline text for Google Sheets
+ * Example output:
+ * utm_source=facebook
+ * utm_medium=cpc
+ * utm_campaign=summer
+ */
+export function getUtmForSheet(): string | null {
+  const utm = loadAnalyticsUtm()
+  if (!utm) return null
+
+  const { capturedAt: _capturedAt, ...rest } = utm
+  const lines: string[] = []
+
+  Object.entries(rest).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      lines.push(`${key}=${value}`)
+    }
+  })
+
+  return lines.length ? lines.join('\n') : null
 }
 
 

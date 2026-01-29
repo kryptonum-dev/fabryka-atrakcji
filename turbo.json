@@ -1,21 +1,33 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "globalEnv": [
     "SANITY_API_TOKEN",
     "SANITY_PROJECT_ID",
     "RESEND_API_KEY",
     "MAILERLITE_API_KEY",
-    "EMBEDDINGS_INDEX_BEARER_TOKEN"
+    "EMBEDDINGS_INDEX_BEARER_TOKEN",
+    "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+    "GOOGLE_PRIVATE_KEY",
+    "GOOGLE_SHEET_ID"
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".vercel/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".vercel/**"
+      ],
       "cache": false
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "dev": {
       "cache": false,

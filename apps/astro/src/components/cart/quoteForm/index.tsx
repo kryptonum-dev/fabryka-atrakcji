@@ -8,7 +8,32 @@ import Button from '../../ui/Button'
 import { cartStore } from '@/src/store/cart'
 import { trackEvent } from '@/utils/track-event'
 import type { AnalyticsUser } from '@/global/analytics/types'
-import { formatAnalyticsUtmString, loadAnalyticsUtm } from '@/utils/analytics-user-storage'
+import { getUtmForSheet } from '@/utils/analytics-user-storage'
+
+// Helper functions for Google Sheet data
+const createItemsSummary = (items: any[]): string => {
+  if (!items?.length) return ''
+  const parts: string[] = []
+  items.forEach((item) => {
+    if (item.type === 'hotel' && item.hotels?.[0]) {
+      parts.push(`Hotel: ${item.hotels[0].name}`)
+      item.activities?.forEach((a: any) => parts.push(`  + ${a.name}`))
+    } else if (item.type === 'activity' && item.activities?.[0]) {
+      parts.push(`Integracja: ${item.activities[0].name}`)
+    }
+    if (item.transport?.distance) parts.push(`  Transport: ${item.transport.distance} km`)
+  })
+  return parts.join('\n')
+}
+
+const formatDatesForSheet = (dates: Array<{ start: string; end: string }>): string => {
+  if (!dates?.length) return ''
+  return dates.map((d) => {
+    const s = new Date(d.start), e = new Date(d.end)
+    const fmt = (dt: Date) => `${dt.getDate().toString().padStart(2, '0')}.${(dt.getMonth() + 1).toString().padStart(2, '0')}.${dt.getFullYear()}`
+    return s.getTime() === e.getTime() || isNaN(e.getTime()) ? fmt(s) : `${fmt(s)} - ${fmt(e)}`
+  }).join(', ')
+}
 
 type FormData = {
   email: string
@@ -114,9 +139,30 @@ export default function QuoteForm({
     document.dispatchEvent(new CustomEvent('quote-form-submitting'))
     setIsSubmitting(true)
 
+    // Fire and forget - log to Google Sheet
+    const priceBrutto = quote?.items?.reduce((sum: number, item: any) => sum + (item.totalPrice || 0), 0) || 0
+    const priceNetto = quote?.items?.reduce((sum: number, item: any) => sum + (item.totalNettoPrice || 0), 0) || 0
+    fetch('/api/s3d', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        formType: 'configurator_form',
+        email: data.email,
+        phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
+        additionalInfo: data.additionalInfo,
+        utm: getUtmForSheet(),
+        quote: {
+          participants: quote?.participantCount || '',
+          dates: formatDatesForSheet(quote?.selectedDates || []),
+          priceBrutto,
+          priceNetto,
+          itemsSummary: createItemsSummary(quote?.items || []),
+        },
+      }),
+    }).catch(() => {})
+
     try {
       // Prepare data for the quote API
-      const utm = formatAnalyticsUtmString(loadAnalyticsUtm())
       const submitData = {
         email: data.email,
         phone: data.phone,
@@ -127,7 +173,6 @@ export default function QuoteForm({
         quoteRecipients: quoteRecipients,
         lang: translations.thankYouUrl.includes('/en/') ? 'en' : 'pl',
         quote: quote,
-        ...(utm ? { utm } : {}),
       }
 
       // Send data to our API endpoint
