@@ -8,8 +8,8 @@
     "dev": "sanity dev",
     "start": "sanity start",
     "build": "NODE_OPTIONS='--max-old-space-size=4096' sanity build",
-    "deploy": "sanity deploy",
-    "deploy:staging": "SANITY_STUDIO_HOST=fabryka-atrakcji-staging sanity deploy",
+    "deploy": "SANITY_STUDIO_HOST=fabryka-atrakcji-staging sanity deploy",
+    "deploy:production": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy"
   },
   "keywords": [

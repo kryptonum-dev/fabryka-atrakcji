@@ -1058,11 +1058,12 @@ No staging dataset needed — both Studios share the same dataset. The staging S
 **Goal:** Merge to production.
 
 - [ ] **12.1** Migrate Sanity content from staging to production — deploy the new schemas to the production dataset, copy over the social proof content, form defaults, listing form headings/paragraphs
-- [ ] **12.2** Final review of the `feature/conversion-redesign` branch — code review, check for console.logs, ensure no staging-specific config leaked
-- [ ] **12.3** Merge `feature/conversion-redesign` into `main`
-- [ ] **12.4** Deploy to production
-- [ ] **12.5** Verify production — spot-check all form paths, confirm emails, check redirects
-- [ ] **12.6** Set up analytics tracking — GA4 events for form submissions by page, inquiry item additions, widget interactions. Baseline metrics for before/after comparison
+- [ ] **12.2** Revert `deploy` script in `apps/sanity/package.json` — change `"deploy"` back from staging to production (`sanity deploy`), remove `deploy:production`. During development, `deploy` targets staging as a safety net; this must be reverted before merging.
+- [ ] **12.3** Final review of the `feature/conversion-redesign` branch — code review, check for console.logs, ensure no staging-specific config leaked
+- [ ] **12.4** Merge `feature/conversion-redesign` into `main`
+- [ ] **12.5** Deploy to production (Astro + Sanity Studio)
+- [ ] **12.6** Verify production — spot-check all form paths, confirm emails, check redirects
+- [ ] **12.7** Set up analytics tracking — GA4 events for form submissions by page, inquiry item additions, widget interactions. Baseline metrics for before/after comparison
 
 ---
 
