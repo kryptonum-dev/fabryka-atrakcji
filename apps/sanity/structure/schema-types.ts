@@ -79,6 +79,7 @@ const components = [Components]
 // UI Components
 import cta from '../schema/ui/cta'
 import formState from '../schema/ui/formState'
+import socialProof from '../schema/ui/socialProof'
 import PortableText from '../schema/ui/PortableText'
 import Heading from '../schema/ui/PortableText/Heading'
 import seo from '../schema/ui/seo'
@@ -86,7 +87,7 @@ import formPopup from '../schema/ui/formPopup'
 import quoteItem from '../schema/shared/quoteItem'
 import ActivitiesCarousel from '../schema/components/ActivitiesCarousel'
 
-const ui = [cta, seo, PortableText, Heading, formState, formPopup, quoteItem, ActivitiesCarousel]
+const ui = [cta, seo, PortableText, Heading, formState, socialProof, formPopup, quoteItem, ActivitiesCarousel]
 
 export const schemaTypes = [...singleTypes, ...collectionTypes, ...components, ...ui]
 

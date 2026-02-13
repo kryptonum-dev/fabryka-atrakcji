@@ -33,8 +33,32 @@ export default defineField({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'showInquiries',
+      type: 'boolean',
+      title: 'Pokaż zapisane zapytania',
+      description: 'Gdy włączone, formularz wyświetli zapisane integracje/hotele z localStorage użytkownika',
+      initialValue: true,
+    }),
+    defineField({
+      name: 'socialProof',
+      type: 'socialProof',
+      title: 'Social Proof',
+      description: 'Elementy budujące zaufanie wyświetlane wokół formularza (opcjonalne)',
+    }),
+    defineField({
+      name: 'overrideFormState',
+      type: 'boolean',
+      title: 'Nadpisz komunikaty formularza',
+      description:
+        'Gdy wyłączone, formularz użyje globalnych komunikatów sukcesu/błędu z ustawień globalnych. Włącz, aby ustawić niestandardowe komunikaty dla tego formularza.',
+      initialValue: false,
+    }),
+    defineField({
       name: 'state',
       type: 'formState',
+      title: 'Komunikaty formularza',
+      description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+      hidden: ({ parent }) => !(parent as any)?.overrideFormState,
     }),
     ...sectionId,
   ],

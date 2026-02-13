@@ -1,4 +1,4 @@
-import { Book } from 'lucide-react'
+import { Book, MessageSquare } from 'lucide-react'
 import { defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { defineField } from 'sanity'
@@ -73,6 +73,50 @@ export default defineType({
       group: 'content',
     }),
     defineField({
+      name: 'formHeading',
+      type: 'Heading',
+      title: 'Nagłówek formularza',
+      description: 'Nagłówek formularza zapytania na dole strony listy hoteli',
+      group: 'inquiry',
+    }),
+    defineField({
+      name: 'formParagraph',
+      type: 'PortableText',
+      title: 'Paragraf formularza',
+      description: 'Paragraf formularza zapytania na dole strony listy hoteli',
+      group: 'inquiry',
+    }),
+    defineField({
+      name: 'overrideFormState',
+      type: 'boolean',
+      title: 'Nadpisz komunikaty formularza',
+      description: 'Gdy włączone, użyj niestandardowych komunikatów sukcesu/błędu zamiast globalnych',
+      initialValue: false,
+      group: 'inquiry',
+    }),
+    defineField({
+      name: 'formState',
+      type: 'formState',
+      title: 'Komunikaty formularza',
+      description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+      hidden: ({ document }) => !(document as any)?.overrideFormState,
+      group: 'inquiry',
+    }),
+    defineField({
+      name: 'escapeHatchHeading',
+      type: 'Heading',
+      title: 'Nagłówek "Escape Hatch"',
+      description: 'Nagłówek sekcji "Nie wiesz jaki hotel wybrać?" wyświetlanej nad listą hoteli',
+      group: 'inquiry',
+    }),
+    defineField({
+      name: 'escapeHatchText',
+      type: 'PortableText',
+      title: 'Tekst "Escape Hatch"',
+      description: 'Tekst sekcji "Nie wiesz jaki hotel wybrać?" wyświetlanej nad listą hoteli',
+      group: 'inquiry',
+    }),
+    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',
@@ -84,6 +128,11 @@ export default defineType({
       name: 'content',
       title: 'Treść',
       icon: ComposeIcon,
+    },
+    {
+      name: 'inquiry',
+      title: 'Formularz zapytania',
+      icon: MessageSquare,
     },
     {
       name: 'seo',

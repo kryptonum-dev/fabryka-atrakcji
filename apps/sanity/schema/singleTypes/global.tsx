@@ -316,6 +316,34 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'inquiryFormDefaults',
+      type: 'object',
+      title: 'Domyślne ustawienia formularza zapytania',
+      description: 'Ustawienia współdzielone przez formularze zapytań na stronach list i szczegółów',
+      group: 'forms',
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Domyślny paragraf',
+          description: 'Paragraf wyświetlany pod nagłówkiem formularza (fallback dla szablonów)',
+        }),
+        defineField({
+          name: 'state',
+          type: 'formState',
+          title: 'Stan formularza',
+          description: 'Komunikaty sukcesu i błędu wyświetlane po wysłaniu formularza',
+        }),
+        defineField({
+          name: 'socialProof',
+          type: 'socialProof',
+          title: 'Social Proof',
+          description: 'Elementy budujące zaufanie współdzielone przez wszystkie formularze',
+        }),
+      ],
+    }),
+    defineField({
       name: 'contactRecipients',
       type: 'array',
       title: 'Odbiorcy formularza kontaktowego',
