@@ -24,6 +24,9 @@ This aligns with FA's brand promise: "Zrelaksuj się. My zajmiemy się resztą."
 - [12. Page-by-Page Specifications](#12-page-by-page-specifications)
 - [13. Step-by-Step Implementation Plan](#13-step-by-step-implementation-plan)
 - [14. Files Affected](#14-files-affected)
+- [Appendix A: Form Architecture & Separation](#appendix-a-form-architecture--separation)
+- [Appendix B: Analytics Strategy](#appendix-b-analytics-strategy)
+- [Appendix C: Key Metrics to Track](#appendix-c-key-metrics-to-track)
 
 ---
 
@@ -37,11 +40,11 @@ Fabryka Atrakcji is a B2B corporate event agency. They sell a **consultative ser
 
 100% of Meta Ad traffic lands on three pages:
 
-| Landing Page | Traffic Share | Current Path |
-|---|---|---|
-| `/pl/integracje/` (activities listing) | 40% | Listing → Activity → Cart → Configurator → Quote |
-| `/pl/kontakt/` (contact page) | 40% | Generic form with minimal context |
-| `/pl/hotele/` (hotels listing) | 20% | Listing → Hotel → Cart → Configurator → Quote |
+| Landing Page                           | Traffic Share | Current Path                                     |
+| -------------------------------------- | ------------- | ------------------------------------------------ |
+| `/pl/integracje/` (activities listing) | 40%           | Listing → Activity → Cart → Configurator → Quote |
+| `/pl/kontakt/` (contact page)          | 40%           | Generic form with minimal context                |
+| `/pl/hotele/` (hotels listing)         | 20%           | Listing → Hotel → Cart → Configurator → Quote    |
 
 ### Current User Journey (6-8 Steps)
 
@@ -54,6 +57,7 @@ Each step loses 20-50% of users. At 6 steps with optimistic 70% retention per st
 ### Current Technical Architecture (Relevant Parts)
 
 **Cart System:**
+
 - State: Nanostores with `@nanostores/persistent` (LocalStorage)
 - Items: Hotels and activities with independent configurations
 - Per-item: Participants count, date ranges, selected addons
@@ -62,38 +66,45 @@ Each step loses 20-50% of users. At 6 steps with optimistic 70% retention per st
 - Pricing: Base price + per-person + addons (fixed/per_unit/threshold/individual) + transport + gastronomy
 
 **Cart-Related Pages:**
+
 - `/pl/koszyk/` and `/en/cart/` — Cart/quote builder page
 - `QuoteCartLayout.astro` — Dedicated layout for cart pages
 - ISR excluded: `/pl/koszyk/`, `/en/cart/`
 
 **Cart-Related Components:**
+
 - `components/cart/` — Cart form, activity address form, quote request form
 - `components/offer/` — AddonsPopup, Hero, SubmitSidebar
 - `components/ui/CartLink` — Cart icon with animated badge counter
 
 **Cart-Related Sanity Schemas:**
+
 - `Cart_Page` — Singleton with transport options, addons list, cart states
 - `Quote_Page` — Singleton for the quote request page
 - `Quotes_Collection` — System-generated documents for submitted quotes
 - `addons` shared type — Reusable addon system across activities and hotels
 
 **Cart-Related API Routes:**
+
 - `/api/quotes` (POST/GET) — Quote creation and retrieval
 - `/api/initialQuote` (POST) — Initial quote generation
 - `/api/cart/activity` (GET) — Fetch activity data for cart
 - `/api/cart/hotel` (GET) — Fetch hotel data for cart
 
 **Cart-Related Types:**
+
 - `ExtendedHotelData` — Hotel with cart-specific data
 - `ExtendedActivityData` — Activity with cart-specific data
 - `AddonProps`, `AddonItem`, `ExtraItem` — Addon configuration types
 
 **Contact Form:**
+
 - Existing `ContactForm` component in `components/global/`
 - `/api/contact` (POST) — Contact form submission (Resend email + Google Sheets)
 - Current contact page has two separate forms and minimal context
 
 **Existing Navigation:**
+
 - `Header.astro` — Main navigation with CartLink component
 - `navbar` Sanity singleton — Navigation configuration
 
@@ -124,6 +135,7 @@ Cart, "add to cart," pricing configurator — all suggest a purchase transaction
 ### Problem 5: Contact Page Doesn't Sell (40% of Ad Traffic)
 
 The `/kontakt/` page receives 40% of ad traffic and fails to convert:
+
 - Generic headline: "Jesteśmy dla Ciebie, aby CI pomóc" — no value proposition
 - Zero social proof above the fold
 - No process explanation (what happens after submission)
@@ -147,6 +159,7 @@ The homepage has case studies, but the cart/pricing flow has zero social proof. 
 **New model:** "Tell us what you need → we prepare a tailored proposal"
 
 This means:
+
 - The **contact form** becomes the primary conversion mechanism, not the cart
 - The form appears **on every page** with contextual adaptation
 - Users can optionally "collect" activities/hotels into an inquiry (replacing the cart concept)
@@ -157,34 +170,34 @@ This means:
 
 ## 4. What We Remove
 
-| Element | Current State | Reason for Removal |
-|---|---|---|
-| Cart page (`/pl/koszyk/`, `/en/cart/`) | 6-8 step flow: selection → cart → configurator → pricing → addons → form | Replaced by contact form with context |
-| Price summary/calculator | Sums activities + hotels + addons into total | Price established in conversation |
-| Addons with prices in user path | DJ (3,900 PLN), photographer (3,500 PLN), etc. displayed as add-on products | Łukasz proposes these as package in conversation |
-| Second form on contact page | Two forms: general + topic-specific | One dynamic form |
-| E-commerce language | "Koszyk", "Dodaj do koszyka", "Kompleksowa wycena" | Replaced: "Zapytanie", "Dodaj do zapytania", "Wyślij zapytanie" |
-| `QuoteCartLayout.astro` | Dedicated layout for cart pages | No longer needed |
-| Cart-specific API routes | `/api/cart/activity`, `/api/cart/hotel`, `/api/initialQuote` | Cart data fetching no longer needed |
-| Quotes collection in Sanity | Stored submitted quotes as Sanity documents | Leads are tracked in Google Sheets — Sanity is not the right place for transactional data |
-| `/api/quotes` endpoint | Created Sanity documents for submitted quotes | Removed — form submits via `/api/contact` (email), leads go to Google Sheets |
-| Quotes-related Sanity schemas | `Quote_Page` singleton, quotes collection type | Deleted from schema entirely |
+| Element                                | Current State                                                               | Reason for Removal                                                                        |
+| -------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Cart page (`/pl/koszyk/`, `/en/cart/`) | 6-8 step flow: selection → cart → configurator → pricing → addons → form    | Replaced by contact form with context                                                     |
+| Price summary/calculator               | Sums activities + hotels + addons into total                                | Price established in conversation                                                         |
+| Addons with prices in user path        | DJ (3,900 PLN), photographer (3,500 PLN), etc. displayed as add-on products | Łukasz proposes these as package in conversation                                          |
+| Second form on contact page            | Two forms: general + topic-specific                                         | One dynamic form                                                                          |
+| E-commerce language                    | "Koszyk", "Dodaj do koszyka", "Kompleksowa wycena"                          | Replaced: "Zapytanie", "Dodaj do zapytania", "Wyślij zapytanie"                           |
+| `QuoteCartLayout.astro`                | Dedicated layout for cart pages                                             | No longer needed                                                                          |
+| Cart-specific API routes               | `/api/cart/activity`, `/api/cart/hotel`, `/api/initialQuote`                | Cart data fetching no longer needed                                                       |
+| Quotes collection in Sanity            | Stored submitted quotes as Sanity documents                                 | Leads are tracked in Google Sheets — Sanity is not the right place for transactional data |
+| `/api/quotes` endpoint                 | Created Sanity documents for submitted quotes                               | Removed — form submits via `/api/contact` (email), leads go to Google Sheets              |
+| Quotes-related Sanity schemas          | `Quote_Page` singleton, quotes collection type                              | Deleted from schema entirely                                                              |
 
 ---
 
 ## 5. What We Keep
 
-| Element | Reason |
-|---|---|
-| Prices on activity/hotel detail pages | Budget orientation — users want to know ballpark |
-| Filters on listings | Work well, help exploration |
-| FAQ sections | Good for SEO and trust building |
-| Photo galleries and descriptions | Essential for decision making |
-| URL structure and navigation categories | No URL changes, preserves SEO |
-| Blog, case studies, landing pages | Unrelated to cart flow, keep as-is |
-| `/api/contact` endpoint | Will be extended, not replaced |
-| Google Sheets integration | Lead storage continues — this is the single source of truth for leads |
-| Analytics tracking | Conversion events will be updated |
+| Element                                 | Reason                                                                |
+| --------------------------------------- | --------------------------------------------------------------------- |
+| Prices on activity/hotel detail pages   | Budget orientation — users want to know ballpark                      |
+| Filters on listings                     | Work well, help exploration                                           |
+| FAQ sections                            | Good for SEO and trust building                                       |
+| Photo galleries and descriptions        | Essential for decision making                                         |
+| URL structure and navigation categories | No URL changes, preserves SEO                                         |
+| Blog, case studies, landing pages       | Unrelated to cart flow, keep as-is                                    |
+| `/api/contact` endpoint                 | Will be extended, not replaced                                        |
+| Google Sheets integration               | Lead storage continues — this is the single source of truth for leads |
+| Analytics tracking                      | Conversion events will be updated                                     |
 
 ---
 
@@ -196,27 +209,28 @@ One reusable Preact form component that appears on every relevant page, adapting
 
 **Core fields (always visible):**
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| Imię / Firma | text | Yes | Placeholder: "Jan Kowalski / Nazwa firmy" |
-| Email | email | Yes | |
-| Telefon | tel | No | Label: "Telefon (opcjonalnie — przyspiesza kontakt)" |
-| Ile osób w zespole | select | Yes | Options: do 30 / 31-80 / 81-150 / 150+ |
-| Preferowany termin | text | No | Placeholder: "np. wrzesień 2026, Q3, konkretna data" (NOT a date picker — users often don't have exact dates) |
-| Dodatkowe informacje | textarea | No | Placeholder: "Opisz czego szukasz — budżet, styl, specjalne wymagania..." |
+| Field                | Type     | Required | Notes                                                                                                         |
+| -------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| Imię / Firma         | text     | Yes      | Placeholder: "Jan Kowalski / Nazwa firmy"                                                                     |
+| Email                | email    | Yes      |                                                                                                               |
+| Telefon              | tel      | No       | Label: "Telefon (opcjonalnie — przyspiesza kontakt)"                                                          |
+| Ile osób w zespole   | select   | Yes      | Options: do 30 / 31-80 / 81-150 / 150+                                                                        |
+| Preferowany termin   | text     | No       | Placeholder: "np. wrzesień 2026, Q3, konkretna data" (NOT a date picker — users often don't have exact dates) |
+| Dodatkowe informacje | textarea | No       | Placeholder: "Opisz czego szukasz — budżet, styl, specjalne wymagania..."                                     |
 
 **Contextual fields (page-dependent):**
 
-| Page Context | Additional Fields |
-|---|---|
-| Activity listing | Radio: Typ eventu (Wyjazd z noclegiem / Event w biurze / Gra terenowa / Nie wiem jeszcze) |
-| Hotel listing | Radio: Preferowany region (Góry / Morze / Mazury / Centralna Polska / Brak preferencji) + Checkbox: "Szukasz scenariusza integracji?" |
-| Activity detail page | Hidden field with activity ID/name, heading: "Zapytaj o [name]" |
-| Hotel detail page | Hidden field with hotel ID/name, heading: "Zapytaj o [name]" + Checkbox: "Szukasz scenariusza integracji?" |
-| Contact page (empty storage) | Radio: Typ eventu + heading: "Organizujesz event firmowy? Powiedz nam o swoim zespole — przygotujemy propozycję w 24h." |
+| Page Context                  | Additional Fields                                                                                                                       |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Activity listing              | Radio: Typ eventu (Wyjazd z noclegiem / Event w biurze / Gra terenowa / Nie wiem jeszcze)                                               |
+| Hotel listing                 | Radio: Preferowany region (Góry / Morze / Mazury / Centralna Polska / Brak preferencji) + Checkbox: "Szukasz scenariusza integracji?"   |
+| Activity detail page          | Hidden field with activity ID/name, heading: "Zapytaj o [name]"                                                                         |
+| Hotel detail page             | Hidden field with hotel ID/name, heading: "Zapytaj o [name]" + Checkbox: "Szukasz scenariusza integracji?"                              |
+| Contact page (empty storage)  | Radio: Typ eventu + heading: "Organizujesz event firmowy? Powiedz nam o swoim zespole — przygotujemy propozycję w 24h."                 |
 | Contact page (has selections) | Shows "Twój wybór" section with selected items + core fields + heading: "Świetny wybór! Podaj nam szczegóły — przygotujemy propozycję." |
 
 **Form submission sends:**
+
 - Contact data (name, company, email, phone)
 - Context (team size, timeline, event type/region)
 - Selected activities and hotels (from localStorage if any)
@@ -233,20 +247,22 @@ When users click "Dodaj do zapytania" on an activity or hotel page/card, we stor
 
 ```typescript
 interface InquiryItem {
-  type: "integracja" | "hotel";
-  id: string;       // slug
-  name: string;     // display name
-  image: string;    // thumbnail URL
-  url: string;      // full page URL
+  type: 'integracja' | 'hotel'
+  id: string // slug
+  name: string // display name
+  image: string // thumbnail URL
+  url: string // full page URL
 }
 ```
 
 **Feedback after adding:**
+
 1. Button changes to "Dodano ✓" (green, disabled 2s, then "Dodano — zmień")
 2. Toast notification: "[Name] dodana do zapytania"
 3. Sticky widget appears/updates in bottom-right corner
 
 **Sticky widget (bottom-right corner):**
+
 - Visible on ALL pages when localStorage has ≥1 item
 - Compact box with badge showing count
 - Expandable: list of items (thumbnail + name + X to remove)
@@ -255,6 +271,7 @@ interface InquiryItem {
 - Mobile: smaller but visible, click to expand
 
 **localStorage clearing:**
+
 - After successful form submission
 - After clicking "Wyczyść wybór" in widget
 - Does NOT clear on browser close (feature — user can return)
@@ -262,6 +279,7 @@ interface InquiryItem {
 ### 6.3 Dual CTA on Activity/Hotel Detail Pages
 
 Replace single "Wybierz do kompleksowej wyceny" with:
+
 - **Primary CTA:** "Zapytaj o tę integrację/ten hotel" → smooth scroll to on-page form
 - **Secondary CTA:** "Dodaj do zapytania" → saves to localStorage + feedback
 
@@ -299,6 +317,7 @@ Social proof is **not** scattered between listing cards. Instead, it wraps the c
 ```
 
 This applies identically to:
+
 - `/pl/kontakt/` — full version with logos, metrics, testimonials above + trust element below
 - Activity listings — same wrapper around the form at the bottom of the page
 - Hotel listings — same wrapper around the form at the bottom of the page
@@ -306,6 +325,7 @@ This applies identically to:
 - Hotel detail pages — same wrapper around the on-page form
 
 **Social proof content:**
+
 - **Client logos:** 5-8 company icons/logos of firms FA has worked with (requires assets from FA)
 - **Metrics:** "10+ lat doświadczenia • 200+ zrealizowanych eventów • Zespoły od 10 do 2000 osób • Odpowiedź w 24h"
 - **Testimonials:** 1-2 short quotes with name, company, and photo if available
@@ -449,7 +469,7 @@ import ContactForm from '@/components/global/ContactForm/index.astro'
 // Page data already fetched (includes formHeading, formParagraph from Activities_Page singleton)
 // Global data already fetched (includes inquiryFormDefaults with socialProof, state)
 
-const { formHeading, formParagraph } = pageData  // simple PortableText from singleton
+const { formHeading, formParagraph } = pageData // simple PortableText from singleton
 const { socialProof, state } = globalData.inquiryFormDefaults
 ---
 
@@ -487,7 +507,7 @@ const activity = pageData // current activity document
   state={state}
   variant="activity_detail"
   showInquiries={false}
-  contextItem={{ type: "integracja", id: activity._id, name: activity.name }}
+  contextItem={{ type: 'integracja', id: activity._id, name: activity.name }}
   index={sectionIndex}
 />
 ```
@@ -498,18 +518,19 @@ The `contextItem` prop tells the Preact form to include this activity/hotel as a
 
 **Keep all existing fields** + add:
 
-| New Field | Type | Default | Purpose |
-|---|---|---|---|
-| `showInquiries` | boolean | `true` | When `true`, displays saved inquiry items from localStorage. Set to `true` on contact page, `false` everywhere else. |
-| `socialProof` | object (optional) | empty | When filled, renders social proof above/below the form |
-| `socialProof.clientLogos` | array of images | — | Company logos displayed above the form |
-| `socialProof.metrics` | array of strings | — | e.g., "10+ lat doświadczenia", "200+ eventów" |
-| `socialProof.testimonials` | array of refs to `Testimonial_Collection` | — | Short quotes displayed above the form |
-| `socialProof.trustElement` | PortableText | — | Trust text below the form (e.g., "Odpowiedź w 24h") |
+| New Field                  | Type                                      | Default | Purpose                                                                                                              |
+| -------------------------- | ----------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| `showInquiries`            | boolean                                   | `true`  | When `true`, displays saved inquiry items from localStorage. Set to `true` on contact page, `false` everywhere else. |
+| `socialProof`              | object (optional)                         | empty   | When filled, renders social proof above/below the form                                                               |
+| `socialProof.clientLogos`  | array of images                           | —       | Company logos displayed above the form                                                                               |
+| `socialProof.metrics`      | array of strings                          | —       | e.g., "10+ lat doświadczenia", "200+ eventów"                                                                        |
+| `socialProof.testimonials` | array of refs to `Testimonial_Collection` | —       | Short quotes displayed above the form                                                                                |
+| `socialProof.trustElement` | PortableText                              | —       | Trust text below the form (e.g., "Odpowiedź w 24h")                                                                  |
 
 **NOT in the Sanity schema:** `variant` — always set in code (`general` for page builder, specific values in templates).
 
 Existing fields stay unchanged:
+
 - `headingImage` — optional image beside heading
 - `heading` — editor-controlled heading (PortableText)
 - `paragraph` — editor-controlled paragraph (PortableText)
@@ -518,9 +539,9 @@ Existing fields stay unchanged:
 
 ### `showInquiries` Boolean — What It Controls
 
-| Value | Behavior | Best For |
-|---|---|---|
-| `true` | Shows saved activities/hotels from localStorage above the form fields. Users can remove items. If no items saved, this section is simply hidden. | Contact page (via page builder) |
+| Value   | Behavior                                                                                                                                                                                                      | Best For                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `true`  | Shows saved activities/hotels from localStorage above the form fields. Users can remove items. If no items saved, this section is simply hidden.                                                              | Contact page (via page builder)    |
 | `false` | Inquiry items section never renders. Clean form only. On detail pages, the context comes from the `contextItem` prop (auto-attached hidden field). On listings, context comes from contextual variant fields. | Listings, detail pages (hardcoded) |
 
 ### `global` Singleton — Shared Form Config
@@ -547,10 +568,12 @@ This stores the **shared parts** — social proof and form state. Heading and pa
 Each listing singleton gets simple portable text fields for its hardcoded form:
 
 **`Activities_Page` singleton — add:**
+
 - `formHeading` (Heading) — e.g., "Zapytaj o integrację"
 - `formParagraph` (PortableText) — e.g., "Opisz nam swój zespół, a przygotujemy propozycję."
 
 **`Hotels_Page` singleton — add:**
+
 - `formHeading` (Heading) — e.g., "Zapytaj o hotel"
 - `formParagraph` (PortableText) — e.g., "Powiedz nam o swoim wydarzeniu, a znajdziemy idealny obiekt."
 
@@ -562,25 +585,25 @@ Extended form with new fields:
 
 **Core fields (always visible):**
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| Imię / Firma | text input | Yes | New field |
-| Email | email input | Yes | Existing, unchanged |
-| Telefon | tel input | No | Existing, unchanged |
-| Ile osób w zespole | select | Yes | New: do 30 / 31-80 / 81-150 / 150+ |
-| Preferowany termin | text input | No | New: placeholder "np. wrzesień 2026, Q3" |
-| Dodatkowe informacje | textarea | No | Replaces current "message" field |
-| Legal checkbox | checkbox | Yes | Existing, unchanged |
+| Field                | Type        | Required | Notes                                    |
+| -------------------- | ----------- | -------- | ---------------------------------------- |
+| Imię / Firma         | text input  | Yes      | New field                                |
+| Email                | email input | Yes      | Existing, unchanged                      |
+| Telefon              | tel input   | No       | Existing, unchanged                      |
+| Ile osób w zespole   | select      | Yes      | New: do 30 / 31-80 / 81-150 / 150+       |
+| Preferowany termin   | text input  | No       | New: placeholder "np. wrzesień 2026, Q3" |
+| Dodatkowe informacje | textarea    | No       | Replaces current "message" field         |
+| Legal checkbox       | checkbox    | Yes      | Existing, unchanged                      |
 
 **Contextual fields (controlled by `variant` prop — set in code, not Sanity):**
 
-| Variant | Extra Fields | Set Where |
-|---|---|---|
-| `general` | Radio: Typ eventu (Wyjazd z noclegiem / Event w biurze / Gra terenowa / Nie wiem jeszcze) | Page builder (default) |
-| `activity_listing` | Radio: Typ eventu | Hardcoded in listing template |
-| `hotel_listing` | Radio: Preferowany region + Checkbox: "Szukasz scenariusza integracji?" | Hardcoded in listing template |
-| `activity_detail` | Hidden: activity ID/name (from `contextItem` prop) | Hardcoded in detail template |
-| `hotel_detail` | Hidden: hotel ID/name (from `contextItem` prop) + Checkbox: "Szukasz scenariusza integracji?" | Hardcoded in detail template |
+| Variant            | Extra Fields                                                                                  | Set Where                     |
+| ------------------ | --------------------------------------------------------------------------------------------- | ----------------------------- |
+| `general`          | Radio: Typ eventu (Wyjazd z noclegiem / Event w biurze / Gra terenowa / Nie wiem jeszcze)     | Page builder (default)        |
+| `activity_listing` | Radio: Typ eventu                                                                             | Hardcoded in listing template |
+| `hotel_listing`    | Radio: Preferowany region + Checkbox: "Szukasz scenariusza integracji?"                       | Hardcoded in listing template |
+| `activity_detail`  | Hidden: activity ID/name (from `contextItem` prop)                                            | Hardcoded in detail template  |
+| `hotel_detail`     | Hidden: hotel ID/name (from `contextItem` prop) + Checkbox: "Szukasz scenariusza integracji?" | Hardcoded in detail template  |
 
 **Inquiry items display (when `showInquiries` is true):** Shows saved items from localStorage above the form fields with thumbnail, name, and X to remove.
 
@@ -588,14 +611,14 @@ Extended form with new fields:
 
 ### Summary
 
-| Context | Heading/Paragraph Source | Social Proof Source | Variant | `showInquiries` | `contextItem` |
-|---|---|---|---|---|---|
-| Contact page (page builder) | ContactForm Sanity fields | ContactForm `socialProof` field | `general` (implicit) | `true` (Sanity field) | — |
-| Generic CMS page (page builder) | ContactForm Sanity fields | ContactForm `socialProof` field | `general` (implicit) | Configurable | — |
-| Activity listing (hardcoded) | `Activities_Page.formHeading/formParagraph` | `global.inquiryFormDefaults.socialProof` | `activity_listing` (code) | `false` (code) | — |
-| Hotel listing (hardcoded) | `Hotels_Page.formHeading/formParagraph` | `global.inquiryFormDefaults.socialProof` | `hotel_listing` (code) | `false` (code) | — |
-| Activity detail (hardcoded) | Auto: "Zapytaj o [name]" | `global.inquiryFormDefaults.socialProof` | `activity_detail` (code) | `false` (code) | `{ type, id, name }` |
-| Hotel detail (hardcoded) | Auto: "Zapytaj o [name]" | `global.inquiryFormDefaults.socialProof` | `hotel_detail` (code) | `false` (code) | `{ type, id, name }` |
+| Context                         | Heading/Paragraph Source                    | Social Proof Source                      | Variant                   | `showInquiries`       | `contextItem`        |
+| ------------------------------- | ------------------------------------------- | ---------------------------------------- | ------------------------- | --------------------- | -------------------- |
+| Contact page (page builder)     | ContactForm Sanity fields                   | ContactForm `socialProof` field          | `general` (implicit)      | `true` (Sanity field) | —                    |
+| Generic CMS page (page builder) | ContactForm Sanity fields                   | ContactForm `socialProof` field          | `general` (implicit)      | Configurable          | —                    |
+| Activity listing (hardcoded)    | `Activities_Page.formHeading/formParagraph` | `global.inquiryFormDefaults.socialProof` | `activity_listing` (code) | `false` (code)        | —                    |
+| Hotel listing (hardcoded)       | `Hotels_Page.formHeading/formParagraph`     | `global.inquiryFormDefaults.socialProof` | `hotel_listing` (code)    | `false` (code)        | —                    |
+| Activity detail (hardcoded)     | Auto: "Zapytaj o [name]"                    | `global.inquiryFormDefaults.socialProof` | `activity_detail` (code)  | `false` (code)        | `{ type, id, name }` |
+| Hotel detail (hardcoded)        | Auto: "Zapytaj o [name]"                    | `global.inquiryFormDefaults.socialProof` | `hotel_detail` (code)     | `false` (code)        | `{ type, id, name }` |
 
 ---
 
@@ -603,12 +626,12 @@ Extended form with new fields:
 
 ### New Components to Create
 
-| Component | Type | Location | Hydration | Purpose |
-|---|---|---|---|---|
-| `InquiryForm.tsx` | Preact | `components/global/ContactForm/` | `client:load` / `client:visible` | Replaces `Form.tsx` — extended form with new fields, variants, inquiry items |
-| `InquiryWidget` | Preact | `components/global/InquiryWidget/` | `client:idle` | Sticky bottom-right widget for inquiry items |
-| `EscapeHatch` | Astro | `components/global/EscapeHatch/` | Static | "Nie wiesz od czego zacząć?" block for listings |
-| `InquiryItemCard` | Preact | `components/ui/InquiryItemCard/` | Internal | Used inside InquiryForm/InquiryWidget for displaying saved items |
+| Component         | Type   | Location                           | Hydration                        | Purpose                                                                      |
+| ----------------- | ------ | ---------------------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
+| `InquiryForm.tsx` | Preact | `components/global/ContactForm/`   | `client:load` / `client:visible` | Replaces `Form.tsx` — extended form with new fields, variants, inquiry items |
+| `InquiryWidget`   | Preact | `components/global/InquiryWidget/` | `client:idle`                    | Sticky bottom-right widget for inquiry items                                 |
+| `EscapeHatch`     | Astro  | `components/global/EscapeHatch/`   | Static                           | "Nie wiesz od czego zacząć?" block for listings                              |
+| `InquiryItemCard` | Preact | `components/ui/InquiryItemCard/`   | Internal                         | Used inside InquiryForm/InquiryWidget for displaying saved items             |
 
 Note: Social proof rendering is handled **inside** the evolved `ContactForm/index.astro` — no separate wrapper component needed.
 
@@ -640,31 +663,37 @@ export function getInquiryCount(): number { ... }
 ### API Route Changes
 
 **Modify `/api/contact`:**
+
 - Accept extended fields: team size, timeline, event type, region, selected items from inquiry
 - Include UTM parameters
 - Include source page URL
 - Email template updated with all context
 
 **Delete entirely (git preserves history):**
+
 - `/api/cart/activity`
 - `/api/cart/hotel`
 - `/api/initialQuote`
 - `/api/quotes`
 
 **Keep:**
+
 - `/api/contact` — Extended with new fields
 
 ### Layout Changes
 
 **`Layout.astro`:**
+
 - Add `InquiryWidget` component (renders on all pages when localStorage has items)
 - Remove `CartLink` dependency
 
 **`Header.astro`:**
+
 - Remove `CartLink` component entirely
 - Add a small badge (count) on/beside the existing "Skontaktuj się" link when localStorage has inquiry items — this is a minor enhancement to the existing nav link, not a new component
 
 **`QuoteCartLayout.astro`:**
+
 - Will become unused — can be deprecated
 
 ---
@@ -679,14 +708,14 @@ Keep existing: `headingImage`, `heading`, `paragraph`, `state`, `sectionId`
 
 Add:
 
-| New Field | Type | Default | Purpose |
-|---|---|---|---|
-| `showInquiries` | boolean | `true` | Show/hide saved inquiry items from localStorage |
-| `socialProof` | object (optional) | — | When filled, renders social proof above/below form |
-| `socialProof.clientLogos` | array of images | — | Company logos |
-| `socialProof.metrics` | array of strings | — | Metric strings |
-| `socialProof.testimonials` | array of refs | — | Refs to `Testimonial_Collection` |
-| `socialProof.trustElement` | PortableText | — | Trust text below form |
+| New Field                  | Type              | Default | Purpose                                            |
+| -------------------------- | ----------------- | ------- | -------------------------------------------------- |
+| `showInquiries`            | boolean           | `true`  | Show/hide saved inquiry items from localStorage    |
+| `socialProof`              | object (optional) | —       | When filled, renders social proof above/below form |
+| `socialProof.clientLogos`  | array of images   | —       | Company logos                                      |
+| `socialProof.metrics`      | array of strings  | —       | Metric strings                                     |
+| `socialProof.testimonials` | array of refs     | —       | Refs to `Testimonial_Collection`                   |
+| `socialProof.trustElement` | PortableText      | —       | Trust text below form                              |
 
 **NOT added to schema:** `variant` — this is a code-level prop, always `general` when rendered from the page builder, hardcoded per template otherwise.
 
@@ -714,6 +743,7 @@ Note: No heading/variant/showInquiries here — headings come from listing singl
 ### Listing Page Singletons (modify)
 
 **`Activities_Page` (modify):**
+
 - Add `formHeading` (Heading) — form heading for the activities listing page
 - Add `formParagraph` (PortableText) — form paragraph for the activities listing page
 - Add `overrideFormState` (boolean, default: `false`) — when `true`, use custom success/error messages instead of `global.inquiryFormDefaults.state`
@@ -721,6 +751,7 @@ Note: No heading/variant/showInquiries here — headings come from listing singl
 - Add escape hatch heading + text
 
 **`Hotels_Page` (modify):**
+
 - Add `formHeading` (Heading) — form heading for the hotels listing page
 - Add `formParagraph` (PortableText) — form paragraph for the hotels listing page
 - Add `overrideFormState` (boolean, default: `false`) — same as above
@@ -732,9 +763,11 @@ The override pattern: in the template, check `overrideFormState` — if true, pa
 ### Schema Fields to Add to Activity/Hotel Detail
 
 **`Activities_Collection` (add to existing):**
+
 - Soft blocker message override (optional text — for min participants messaging)
 
 **`Hotels_Collection` (add to existing):**
+
 - (No additional fields needed — heading is auto-generated from hotel name in the template)
 
 Detail page form headings are auto-generated in templates: "Zapytaj o [activity.name]" / "Zapytaj o [hotel.name]". No Sanity fields needed for this.
@@ -754,25 +787,25 @@ All unused schemas are **deleted, not archived**. Git history preserves everythi
 
 ### Components to Modify
 
-| Component | Change |
-|---|---|
-| `components/offer/Hero.astro` | Replace single CTA with dual CTA (primary: scroll to form, secondary: add to inquiry) |
-| `components/ui/ActivityCard` (Preact) | Add "Dodaj do zapytania" button alongside existing card click behavior |
-| `components/ui/HotelCard` (Astro) | Add "Dodaj do zapytania" button |
+| Component                                   | Change                                                                                                                              |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `components/offer/Hero.astro`               | Replace single CTA with dual CTA (primary: scroll to form, secondary: add to inquiry)                                               |
+| `components/ui/ActivityCard` (Preact)       | Add "Dodaj do zapytania" button alongside existing card click behavior                                                              |
+| `components/ui/HotelCard` (Astro)           | Add "Dodaj do zapytania" button                                                                                                     |
 | `components/global/ContactForm/index.astro` | Evolve to render social proof (above/below form), accept `variant` (code prop), `showInquiries`, `socialProof`, `contextItem` props |
-| `components/global/ContactForm/Form.tsx` | Replace with `InquiryForm.tsx` — extended form with team size, timeline, event type, contextual fields, inquiry items display |
-| `components/ui/CartLink` (Astro) | Remove entirely — badge logic added to existing "Skontaktuj się" nav link in Header |
-| `components/ui/Toast` (Astro) | Reuse for "Dodano do zapytania" feedback |
+| `components/global/ContactForm/Form.tsx`    | Replace with `InquiryForm.tsx` — extended form with team size, timeline, event type, contextual fields, inquiry items display       |
+| `components/ui/CartLink` (Astro)            | Remove entirely — badge logic added to existing "Skontaktuj się" nav link in Header                                                 |
+| `components/ui/Toast` (Astro)               | Reuse for "Dodano do zapytania" feedback                                                                                            |
 
 ### Components to Create
 
-| Component | Description |
-|---|---|
+| Component                               | Description                                                                                  |
+| --------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `InquiryForm.tsx` (replaces `Form.tsx`) | Extended Preact form with new fields + contextual variants + inquiry items from localStorage |
-| `InquiryWidget` | Sticky bottom-right widget showing selected items (Preact, `client:idle`) |
-| `EscapeHatch` | "Nie wiesz od czego zacząć?" block for listings (Astro) |
-| `HowItWorks` | 3-step process section for contact page (Astro, page builder component) |
-| `PopularItems` | Featured activities/hotels cards for contact page (Astro) |
+| `InquiryWidget`                         | Sticky bottom-right widget showing selected items (Preact, `client:idle`)                    |
+| `EscapeHatch`                           | "Nie wiesz od czego zacząć?" block for listings (Astro)                                      |
+| `HowItWorks`                            | 3-step process section for contact page (Astro, page builder component)                      |
+| `PopularItems`                          | Featured activities/hotels cards for contact page (Astro)                                    |
 
 No separate `InquiryFormSection` or `SocialProofFormWrapper` — social proof is rendered **inside** `ContactForm/index.astro` when `socialProof` data is present.
 
@@ -780,13 +813,13 @@ No separate `InquiryFormSection` or `SocialProofFormWrapper` — social proof is
 
 All deleted in Phase 11 cleanup. Git history preserves everything — no `unused/` folder.
 
-| Component | Reason |
-|---|---|
-| `components/cart/*` | Entire cart directory — form, activity address form, quote request form |
-| `components/offer/AddonsPopup.astro` | Addons no longer in user path |
-| `components/offer/SubmitSidebar.astro` | Cart submission sidebar no longer needed |
-| Leaflet map integration (cart transport) | Transport selection removed from user path |
-| `components/ui/CartLink` | Replaced by badge on existing "Skontaktuj się" link |
+| Component                                | Reason                                                                  |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| `components/cart/*`                      | Entire cart directory — form, activity address form, quote request form |
+| `components/offer/AddonsPopup.astro`     | Addons no longer in user path                                           |
+| `components/offer/SubmitSidebar.astro`   | Cart submission sidebar no longer needed                                |
+| Leaflet map integration (cart transport) | Transport selection removed from user path                              |
+| `components/ui/CartLink`                 | Replaced by badge on existing "Skontaktuj się" link                     |
 
 ---
 
@@ -816,11 +849,11 @@ All deleted in Phase 11 cleanup. Git history preserves everything — no `unused
    - One form only (not two)
    - Social proof below form: trust element (response time guarantee)
 
-5. **FAQ Section**
+4. **FAQ Section**
    - Moved below form
    - Focused on conversion objections: cost, timeline, what happens next, minimum group size
 
-6. **Popular Items Section**
+5. **Popular Items Section**
    - "Popularne integracje" — 3-4 cards with "Dodaj do zapytania" CTA
    - "Polecane hotele" — 3-4 cards with "Dodaj do zapytania" CTA
    - For users who haven't browsed the catalog
@@ -828,6 +861,7 @@ All deleted in Phase 11 cleanup. Git history preserves everything — no `unused
 ### 12.2 Activity Listing Pages (`/pl/integracje/`, `/pl/integracje/kategoria/[category]`)
 
 **Add (in order):**
+
 1. **Escape Hatch** — below hero, above cards
 2. **"Dodaj do zapytania" button** — on each ActivityCard
 3. **ContactForm** (hardcoded in template) — bottom of page, above FAQ
@@ -839,6 +873,7 @@ All deleted in Phase 11 cleanup. Git history preserves everything — no `unused
 ### 12.3 Hotel Listing Pages (`/pl/hotele/`)
 
 **Add (in order):**
+
 1. **Escape Hatch** — "Nie wiesz jaki hotel wybrać?"
 2. **"Dodaj do zapytania" button** — on each HotelCard
 3. **ContactForm** (hardcoded in template) — bottom of page, above FAQ
@@ -850,6 +885,7 @@ All deleted in Phase 11 cleanup. Git history preserves everything — no `unused
 ### 12.4 Activity Detail Pages (`/pl/integracje/[slug]`)
 
 **Modify:**
+
 1. **Hero CTA** — Replace "Wybierz do kompleksowej wyceny" with:
    - Primary: "Zapytaj o tę integrację" (scroll to form)
    - Secondary: "Dodaj do zapytania" (localStorage)
@@ -862,6 +898,7 @@ All deleted in Phase 11 cleanup. Git history preserves everything — no `unused
    - CTA: "Zapytaj o wycenę" → scroll to form
 
 **Add:**
+
 1. **ContactForm** (hardcoded in template) — after content section, before FAQ
    - Heading: auto-generated "Zapytaj o [activity.name]" in template code
    - Paragraph + social proof + state: from `global.inquiryFormDefaults`
@@ -872,6 +909,7 @@ All deleted in Phase 11 cleanup. Git history preserves everything — no `unused
 ### 12.5 Hotel Detail Pages (`/pl/hotele/[slug]`)
 
 Same pattern as activity detail pages:
+
 - **ContactForm** (hardcoded in template)
 - Heading: auto-generated "Zapytaj o [hotel.name]"
 - `variant="hotel_detail"` (hardcoded), `showInquiries={false}` (hardcoded)
@@ -896,69 +934,151 @@ Same pattern as activity detail pages:
 
 ## 13. Step-by-Step Implementation Plan
 
-### Phase 0: Environment Setup
+### Phase 0: Environment Setup ✅ COMPLETED
 
 **Goal:** Safe working environment — feature branch, staging Studio that deploys schema changes without affecting the production Studio.
 
-- [ ] **0.1** Create a new git branch `feature/conversion-redesign` from `main`
-- [ ] **0.2** Create a staging Sanity Studio — add a new workspace in `sanity.config.ts` (or a separate config) pointing to the **same production dataset** but deployed to a separate Studio URL (e.g., `fabryka-atrakcji-staging.sanity.studio`). This lets us deploy evolved schemas and test them in the Studio without touching the production Studio deployment.
-- [ ] **0.3** Verify both Studios work — production Studio unchanged at its current URL, staging Studio accessible at the new URL, both reading/writing the same dataset
-- [ ] **0.4** Verify local Astro dev environment works — runs against the production dataset as usual
+- [x] **0.1** Create a new git branch `feature/conversion-redesign` from `main`
+- [x] **0.2** Create a staging Sanity Studio — add a new workspace in `sanity.config.ts` (or a separate config) pointing to the **same production dataset** but deployed to a separate Studio URL (e.g., `fabryka-atrakcji-staging.sanity.studio`). This lets us deploy evolved schemas and test them in the Studio without touching the production Studio deployment.
+- [x] **0.3** Verify both Studios work — production Studio unchanged at its current URL, staging Studio accessible at the new URL, both reading/writing the same dataset
+- [x] **0.4** Verify local Astro dev environment works — runs against the production dataset as usual
 
 No staging dataset needed — both Studios share the same dataset. The staging Studio is where we deploy and test new schema fields. Once everything is verified, the production Studio gets updated on go-live.
 
 ---
 
-### Phase 1: Sanity Schema Changes
+### Phase 1: Sanity Schema Changes ✅ COMPLETED
 
 **Goal:** All new schema fields in place before touching any frontend code. Schema deploys to staging only.
 
-- [ ] **1.1** Evolve `apps/sanity/schema/components/ContactForm.ts` — add `showInquiries` (boolean, default `true`) and `socialProof` (optional object with `clientLogos`, `metrics`, `testimonials`, `trustElement` fields)
-- [ ] **1.2** Create a reusable `socialProof` object type if shared across schemas, or define it inline in ContactForm — decide based on whether other page builder components will use the same social proof shape
-- [ ] **1.3** Modify `apps/sanity/schema/singleTypes/global.ts` — add `inquiryFormDefaults` field group containing `paragraph` (PortableText), `state` (formState), and `socialProof` (same object type as ContactForm)
-- [ ] **1.4** Modify `apps/sanity/schema/singleTypes/Activities_Page.ts` — add `formHeading` (Heading), `formParagraph` (PortableText), `overrideFormState` (boolean, default `false`), `formState` (formState, hidden when override is false), and escape hatch fields (`escapeHatchHeading`, `escapeHatchText`)
-- [ ] **1.5** Modify `apps/sanity/schema/singleTypes/Hotels_Page.ts` — same new fields as Activities_Page
-- [ ] **1.6** Modify `apps/sanity/schema/collectionTypes/Activities_Collection.ts` — add soft blocker message override field
-- [ ] **1.7** Deploy schemas to the staging dataset (`npx sanity@latest schema deploy` or via Studio)
-- [ ] **1.8** Populate the staging dataset with test content — fill in `global.inquiryFormDefaults` (social proof logos, metrics, testimonials, trust element, default paragraph, default state), fill listing singleton form headings/paragraphs, and fill the contact page's ContactForm instance with `socialProof` data and `showInquiries: true`
+- [x] **1.1** Evolve `apps/sanity/schema/components/ContactForm.ts` — added `showInquiries` (boolean, default `true`), `socialProof` (socialProof object type), `overrideFormState` (boolean), `responseBadge` (collapsible object with text + icon), `formVisualImage` (image for sidebar)
+- [x] **1.2** Created reusable `socialProof` object type at `apps/sanity/schema/ui/socialProof.ts` — shared across ContactForm and global. Fields: `clientLogos` (image[], max 8), `metrics` (string[]), `testimonials` (reference[] to `Testimonial_Collection`, max 3, language-filtered)
+- [x] **1.3** Modified `apps/sanity/schema/singleTypes/global.tsx` — added `inquiryFormDefaults` field group in "Formularze" group with: `paragraph` (PortableText), `state` (formState), `socialProof`, `formVisualImage` (default sidebar image), `responseBadge` (default badge text + icon). Also added `contactRecipients` (array of emails) and `analytics` config (GA4 ID, Google Ads ID, Meta Pixel ID, Meta Conversion API token)
+- [x] **1.4** Modified `apps/sanity/schema/singleTypes/Activities_Page.ts` — added `formHeading`, `formParagraph`, `overrideFormState`, `formState`, escape hatch fields
+- [x] **1.5** Modified `apps/sanity/schema/singleTypes/Hotels_Page.ts` — same new fields as Activities_Page
+- [x] **1.6** Modified `apps/sanity/schema/collectionTypes/Activities_Collection.ts` — added soft blocker message override field
+- [x] **1.7** Deployed schemas to the staging Studio
+- [x] **1.8** Populated the staging dataset with test content
+
+**Design evolution from original plan:**
+
+- `trustElement` (PortableText below form) was replaced by the `responseBadge` concept — a floating "ODPOWIEDŹ W 24H" pill with configurable text and icon. More visually impactful.
+- `formVisualImage` was added — a sidebar image not in the original plan, providing visual interest alongside the form.
+- `responseBadge` was added as a configurable component-level and global-level field.
 
 ---
 
-### Phase 2: ContactForm Component Evolution (Frontend Core)
+### Phase 2: ContactForm Component Evolution (Frontend Core) ✅ COMPLETED
 
 **Goal:** The ContactForm Astro + Preact component can render social proof, accept `variant`/`contextItem`/`showInquiries` as code props, and display the new form fields. Still renders on the contact page via page builder — no new pages yet.
 
-- [ ] **2.1** Update `ContactForm_Query` GROQ fragment in `ContactForm/index.astro` — add `showInquiries`, `socialProof { clientLogos[]{ asset-> }, metrics, testimonials[]->{ ... }, trustElement }` to the existing query
-- [ ] **2.2** Update `ContactForm/index.astro` Astro component props interface — add `variant` (string, optional, default `"general"`), `contextItem` (optional object), and handle the new `socialProof` + `showInquiries` data from the query
-- [ ] **2.3** Add social proof rendering to `ContactForm/index.astro` — above the form: client logos bar, metrics line, testimonial quotes (conditional on `socialProof` data being present). Below the form: `trustElement` PortableText block
-- [ ] **2.4** Create `InquiryForm.tsx` in `components/global/ContactForm/` — new Preact form component replacing `Form.tsx`. Core fields: name/company, email, phone, team size (select), preferred timeline, additional info (textarea), legal checkbox
-- [ ] **2.5** Add contextual fields logic to `InquiryForm.tsx` — based on `variant` prop: `general`/`activity_listing` show event type radio, `hotel_listing` shows region radio + integration checkbox, `activity_detail`/`hotel_detail` attach `contextItem` as hidden fields
-- [ ] **2.6** Add inquiry items display to `InquiryForm.tsx` — when `showInquiries` is true, read from localStorage and render saved items above form fields (with thumbnail, name, remove button). When no items exist, hide the section
-- [ ] **2.7** Create `InquiryForm.module.scss` — styles for the new form, social proof sections, inquiry items list
-- [ ] **2.8** Update the import in `ContactForm/index.astro` — switch from `Form.tsx` to `InquiryForm.tsx`
-- [ ] **2.9** Test on the contact page — verify the page builder ContactForm still works as before, now with social proof above/below and new form fields. `showInquiries: true` in Sanity, variant defaults to `general`
+- [x] **2.1** Updated `ContactForm_Query` GROQ fragment — fetches `showInquiries`, `overrideFormState`, `formVisualImage`, `responseBadge { text, icon }`, `socialProof { clientLogos[]{ asset-> }, metrics, testimonials[]->{ name, position, company, review, image { profileImage { asset-> } } } }`. Global fallback query fetches `inquiryFormDefaults` with same shape.
+- [x] **2.2** Updated `ContactForm/index.astro` props interface — accepts `variant` (InquiryVariant, default `'general'`), `contextItem` (ContextItem?), `showInquiries` (boolean), `socialProof`, `overrideFormState`, `formVisualImage`, `responseBadge`. Resolution chain: component-level data overrides global defaults.
+- [x] **2.3** Added social proof rendering — metrics pills below heading, animated client logo marquee (below form, with `@keyframes` infinite scroll), floating `responseBadge` ("ODPOWIEDŹ W 24H") above form, sidebar with tilted image card + contact info overlay. Testimonials used as sidebar image fallback.
+- [x] **2.4** Created `InquiryForm.tsx` — Preact form with `react-hook-form`. Core fields: name/company (required), email (required + regex), phone (optional, with country code selector), team size (radio: do 30 / 31-80 / 81-150 / 150+), preferred timeline (text), additional info (textarea), legal checkbox (required).
+- [x] **2.5** Added contextual fields — `hotel_listing` shows region radio + integration checkbox, `hotel_detail` shows integration checkbox, `activity_detail`/`hotel_detail` attach `contextItem` as hidden fields. **Design decision:** Event type radio for `general`/`activity_listing` was intentionally removed — these variants show standard fields only (simpler form = higher conversion).
+- [x] **2.6** Added inquiry items display — reads from `localStorage` key `fa-inquiry-items`, renders items with image/name/remove button, listens to `storage` + custom `inquiry-updated` events for cross-component sync, clears on successful submission.
+- [x] **2.7** Created `InquiryForm.module.scss` — `.fieldPair` (2-col grid, collapses at 46.25rem), `.radioGroup`/`.radioOption` (pill-style radios), `.inquiryItems` (card-based item list), `.stateOverlay` (clips Loader/FormState).
+- [x] **2.8** Switched import in `ContactForm/index.astro` from `Form.tsx` to `InquiryForm.tsx` with `client:load`.
+- [x] **2.9** Verified on contact page — form renders with social proof, new fields, inquiry items support. Backend submission is in test mode (commented out) — this is Phase 3 scope.
+
+**Design evolutions from original plan:**
+
+- Team size uses radio buttons instead of a `<select>` dropdown — better UX for 4 options.
+- Event type radio for `general`/`activity_listing` was intentionally removed — fewer fields = less friction.
+- Testimonials render as sidebar image fallback rather than inline quotes — cleaner visual design.
+- `trustElement` PortableText replaced by `responseBadge` floating pill — more attention-grabbing.
+- Elaborate staggered entrance animations added (IntersectionObserver, 15% threshold, respects `prefers-reduced-motion`).
+- Phone input enhanced with country code selector.
+- Responsive breakpoints: `66.8125rem` (single column), `46.25rem` (faster marquee), `28.6875rem` (full-width, badge becomes inline).
+- Contact info micro-interactions: phone ring animation on hover, email notification animation on hover.
 
 ---
 
-### Phase 3: API Route & Form Submission
+### Phase 3: API Route, Form Submission & Analytics Activation ✅ COMPLETED
 
-**Goal:** The backend can receive and process the extended form data.
+**Goal:** The backend can receive and process the extended form data. Analytics tracking is live on the InquiryForm. All three form paths work independently.
 
-- [ ] **3.1** Update `src/pages/api/contact.ts` — extend the accepted payload: add `name`, `company`, `teamSize`, `preferredTimeline`, `eventType`, `region`, `needsIntegration`, `selectedItems[]` (array of `{ type, id, name }`), `contextItem` (single `{ type, id, name }`), `sourceUrl`, `utmParams`
-- [ ] **3.2** Update the email template in the API route — format the new fields into a readable email for Łukasz. Include selected items with links, context item, team size, timeline, etc.
-- [ ] **3.3** Update validation in the API route — new required fields (name, team size), keep existing validation for email + legal
-- [ ] **3.4** Test form submission end-to-end — submit from the contact page, verify the email arrives with all fields correctly formatted
+**Context — Three Independent Form Paths:**
+
+The system has three forms that are already architecturally separated. They share the `/api/contact` endpoint but send different payloads. The analytics infrastructure (`track-event.ts`, Meta CAPI, consent gating) does NOT need changes — only the event firing in InquiryForm needs to be un-commented.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  INQUIRY FORM (95% of conversions — main CTA)                │
+│  InquiryForm.tsx → POST /api/contact (extended payload)      │
+│  Fields: name, email, phone, teamSize, timeline, info, legal │
+│  + variant fields (region, integration checkbox)             │
+│  + contextItem (detail pages)                                │
+│  + selectedItems (inquiry basket from localStorage)          │
+│  Tracking: GA4 lead + Meta Lead (form_name: inquiry_form)    │
+│  Sheets: /api/s3d (formType: inquiry_form)                   │
+│  Used on: contact page, listings, detail pages               │
+├──────────────────────────────────────────────────────────────┤
+│  FAQ FORM (5% of conversions — unchanged)                    │
+│  FaqForm/Form.tsx → POST /api/contact (simple payload)       │
+│  Fields: email, phone, message, legal                        │
+│  Tracking: GA4 lead + Meta Lead (form_name: faq_form)        │
+│  Sheets: /api/s3d (formType: faq_form)                       │
+│  Used on: FAQ sections (popup via PopupWindow)               │
+│  STATUS: Fully working, no changes needed.                   │
+├──────────────────────────────────────────────────────────────┤
+│  NEWSLETTER (engagement, not conversion — unchanged)         │
+│  Newsletter/Form.tsx → POST /api/newsletter (MailerLite)     │
+│  Fields: email, legal                                        │
+│  Tracking: GA4 generate_lead + Meta Lead (newsletter_form)   │
+│  No Sheets logging                                           │
+│  Used on: footer, blog posts                                 │
+│  STATUS: Fully working, no changes needed.                   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Phase 3 Tasks:**
+
+- [x] **3.1** Updated `src/pages/api/contact.ts` — introduced `BaseProps`, `SimpleFormProps`, `InquiryFormProps` discriminated union. `isInquiryForm()` helper checks for `name` field. Both InquiryForm (extended) and FAQ Form (simple) payloads handled gracefully.
+- [x] **3.2** Created branded email templates in `src/emails/contact-emails.ts` — two templates using Fabryka Atrakcji brand palette (#45051c, #db664e, #74535e, #f5f1ec). **Team notification** (`teamNotification()`): dark burgundy outer background, white card, coral gradient stripe, uppercase labels, all fields in a clean table (only filled fields shown), selected items with links, additional info block, metadata footer (UTM, source, lang). **Client confirmation** (`clientConfirmation()`): minimalistic, same branded layout, simple "We got your message / reply within 24h" — identical for both InquiryForm and FAQ submissions. Email preview route at `/api/email-preview` for iteration without sending real emails.
+- [x] **3.3** Updated validation — `name` required only for inquiry form, `message` required only for FAQ form, `email` + `legal` always required. Both payloads pass cleanly.
+- [x] **3.4** Activated backend submission in `InquiryForm.tsx` — `fetch('/api/contact', ...)` live with full payload (contextItem, selectedItems, sourceUrl, utm). Debug logging added for troubleshooting (to be removed before production).
+- [x] **3.5** Activated analytics tracking in `InquiryForm.tsx` — `trackEvent()` fires GA4 `lead` + Meta `Lead` with `form_name: 'inquiry_form'`.
+- [x] **3.6** Google Sheets logging — code implemented and column mapping updated, but `navigator.sendBeacon('/api/s3d')` is **temporarily commented out** due to `ERR_OSSL_UNSUPPORTED` with `GOOGLE_PRIVATE_KEY` in the local `.env`. The Sheets service (`google-sheets.ts`) correctly handles `formType: 'inquiry_form'` with all new fields. **Needs:** Fix private key format in `.env`, then un-comment the sendBeacon call.
+- [x] **3.7** Updated `src/services/google-sheets.ts` — `LeadData` union includes `InquiryLeadData`. `buildRow()` maps: name+additionalInfo → Wiadomosc, teamSize → Liczba Osob (with labels), timeline → Data Eventu.
+- [x] **3.8** Partial end-to-end testing — (a) email arrives with branded template ✅, (b) Sheets deferred pending .env fix, (c-d) analytics skipped in dev via localhost guards ✅, (e) FAQ Form unchanged ✅, (f) Newsletter unchanged ✅.
+
+**Design evolutions from original plan:**
+
+- Email templates extracted to dedicated `src/emails/contact-emails.ts` module (not inline in contact.ts).
+- Branded HTML templates used instead of React Email (avoids Preact/React module resolution conflicts).
+- Both emails (client + team) share a branded layout with dark burgundy background, coral accent stripe, clean footer.
+- Email preview route (`/api/email-preview`) created for rapid design iteration.
+
+**Dev environment improvements (done during Phase 3):**
+
+- **Analytics dev guards added** — all analytics skip localhost/dev:
+  - `track-event.ts`: hostname check → `console.debug('[Analytics] Skipped — dev environment')`
+  - `/api/analytics/meta/index.ts`: `import.meta.env.DEV` guard → returns 200 no-op
+  - `CookieConsent.client.tsx`: hostname checks in `ensureGtagScript()` and `ensureMetaPixel()` → scripts don't load on localhost
+- **BotID dev guard** — `BotIdInit.astro` skips `initBotId()` on `import.meta.env.DEV`, server-side `checkBotId()` skipped in dev
+
+**Temporary items to clean up before production (Phase 11):**
+
+- `TEST_RECIPIENT` override in `contact.ts` (line 12-13) — remove and restore dynamic recipients
+- BotID dev guards in `BotIdInit.astro` and `contact.ts` — remove `if (!import.meta.env.DEV)` wrappers
+- Debug `console.log('[InquiryForm]')` statements in `InquiryForm.tsx` — remove
+- `/api/email-preview.ts` route — delete
+- Google Sheets `sendBeacon` in `InquiryForm.tsx` — un-comment after fixing `.env` GOOGLE_PRIVATE_KEY
 
 ---
 
-### Phase 4: Contact Page Redesign
+### Phase 4: Contact Page Redesign ✅ COMPLETED
 
 **Goal:** The `/pl/kontakt/` page gets its new structure via the page builder.
 
-- [ ] **4.1** Update the contact page content in Sanity (staging) — restructure the `components[]` array: remove the old two-form layout
-- [ ] **4.2** Ensure the ContactForm instance on the contact page has `showInquiries: true`, `socialProof` filled, and `variant` defaults to `general` (code default)
-- [ ] **4.3** Reorder/add page builder components: Hero section at top, then ContactForm (with social proof), then FAQ (moved below form)
-- [ ] **4.4** Verify the contact page renders correctly — hero, social proof, form with inquiry items support, FAQ below
+- [x] **4.1** Updated the contact page content in Sanity — restructured the `components[]` array, removed the old two-form layout
+- [x] **4.2** ContactForm instance on the contact page has `showInquiries: true`, `socialProof` filled, `variant` defaults to `general` (code default)
+- [x] **4.3** Reordered page builder components: Hero section at top, ContactForm (with social proof, response badge, visual image), FAQ below
+- [x] **4.4** Contact page renders correctly — hero, social proof (metrics, logos, response badge), form with inquiry items support, FAQ below
+
+**Note:** Contact page redesign was done directly by the team in Sanity Studio and frontend templates. The page builder structure, social proof content, and visual design were completed manually.
 
 ---
 
@@ -994,7 +1114,8 @@ No staging dataset needed — both Studios share the same dataset. The staging S
 - [ ] **7.4** Modify `components/ui/Toast` — reuse existing toast for "Dodano do zapytania" feedback
 - [ ] **7.5** Create `InquiryWidget` Preact component — sticky bottom-right widget that appears when localStorage has inquiry items. Shows count, item thumbnails, "Przejdź do formularza" CTA linking to `/pl/kontakt/`
 - [ ] **7.6** Add `InquiryWidget` to `Layout.astro` — renders on all pages with `client:idle` hydration
-- [ ] **7.7** Verify the full flow — add items from listing cards → widget appears → click through to contact page → items shown in the form (`showInquiries: true`) → submit → items included in email
+- [ ] **7.7** Add analytics events — fire GA4 `add_to_inquiry` + Meta `AddToWishlist` when item is added via `addToInquiry()`. Fire GA4 `inquiry_widget_opened` when widget is expanded. Use `trackEvent()` from `track-event.ts` (no new infrastructure needed).
+- [ ] **7.8** Verify the full flow — add items from listing cards → widget appears → click through to contact page → items shown in the form (`showInquiries: true`) → submit → items included in email. Verify analytics: `add_to_inquiry` fires on add, `inquiry_widget_opened` fires on expand.
 
 ---
 
@@ -1049,7 +1170,15 @@ No staging dataset needed — both Studios share the same dataset. The staging S
 - [ ] **11.9** Delete unused Sanity schemas — `Cart_Page`, `Quote_Page`, quotes collection type, `addons` shared type. Remove from schema index and delete files.
 - [ ] **11.10** Delete `QuoteCartLayout.astro` — no longer used
 - [ ] **11.11** Delete unused utilities — `cart.ts` and any cart-related type definitions
-- [ ] **11.12** Verify no broken imports — run `tsc --noEmit` and fix any TypeScript errors from deleted references
+- [ ] **11.12** Delete legacy `ContactForm/Form.tsx` — replaced by `InquiryForm.tsx`. This removes the `contact_form` analytics event. Only `inquiry_form` and `faq_form` remain as lead events.
+- [ ] **11.13** Remove cart page analytics scripts — deleting cart pages removes `view_cart`/`ViewCart` and `begin_checkout`/`InitiateCheckout` events automatically (they live in the page `<script>` tags)
+- [ ] **11.14** Verify no broken imports — run `tsc --noEmit` and fix any TypeScript errors from deleted references
+- [ ] **11.15** Remove Phase 3 temporary dev items:
+  - Remove `TEST_RECIPIENT` override in `src/pages/api/contact.ts` (restore dynamic recipients from Sanity `global.contactRecipients`)
+  - Remove BotID dev guards: `if (!import.meta.env.DEV)` wrappers in `BotIdInit.astro` and `contact.ts`
+  - Remove debug `console.log('[InquiryForm]')` statements in `InquiryForm.tsx`
+  - Delete `/api/email-preview.ts` route (dev-only preview tool)
+  - Un-comment Google Sheets `navigator.sendBeacon('/api/s3d')` in `InquiryForm.tsx` (after fixing `.env` GOOGLE_PRIVATE_KEY format)
 
 ---
 
@@ -1059,11 +1188,16 @@ No staging dataset needed — both Studios share the same dataset. The staging S
 
 - [ ] **12.1** Migrate Sanity content from staging to production — deploy the new schemas to the production dataset, copy over the social proof content, form defaults, listing form headings/paragraphs
 - [ ] **12.2** Revert `deploy` script in `apps/sanity/package.json` — change `"deploy"` back from staging to production (`sanity deploy`), remove `deploy:production`. During development, `deploy` targets staging as a safety net; this must be reverted before merging.
-- [ ] **12.3** Final review of the `feature/conversion-redesign` branch — code review, check for console.logs, ensure no staging-specific config leaked
-- [ ] **12.4** Merge `feature/conversion-redesign` into `main`
+- [ ] **12.3** Final review of the `feature/conversion-redesign` branch — code review, check for console.logs, ensure no staging-specific config leaked. **Critical email recipient cleanup:**
+  - Remove `TEST_RECIPIENT` constant and `IS_DEV` guard in `src/pages/api/contact.ts` (lines 12–19) so `getContactRecipients()` always fetches from Sanity
+  - Ensure `global.contactRecipients` is populated in Sanity with real team emails (e.g., `lukasz@fabryka-atrakcji.com`)
+  - Verify the fallback email (`lukasz@fabryka-atrakcji.com`) is correct
+      x- [ ] **12.4** Merge `feature/conversion-redesign` into `main`
 - [ ] **12.5** Deploy to production (Astro + Sanity Studio)
 - [ ] **12.6** Verify production — spot-check all form paths, confirm emails, check redirects
-- [ ] **12.7** Set up analytics tracking — GA4 events for form submissions by page, inquiry item additions, widget interactions. Baseline metrics for before/after comparison
+- [ ] **12.7** Verify analytics in production — confirm these events fire correctly: (a) `lead` with `form_name: inquiry_form` on InquiryForm submit, (b) `lead` with `form_name: faq_form` on FAQ Form submit, (c) `generate_lead` with `form_name: newsletter_form` on Newsletter submit, (d) `add_to_inquiry` on item add, (e) `PageView`/`page_view` on all pages, (f) `Contact`/`contact` on tel/mailto clicks, (g) `view_item_list`/`view_item` on listing/detail pages. Verify Meta CAPI deduplication works (check Events Manager for duplicate rate).
+- [ ] **12.8** Configure GA4 conversions — mark `lead` and `generate_lead` as conversion events in GA4 admin. Set up custom dimensions for `form_name` to filter by form type in reports.
+- [ ] **12.9** Baseline metrics — record pre-launch conversion rates by page for before/after comparison. Key metrics: form submission rate, submission by `form_name`, listing bounce rate.
 
 ---
 
@@ -1071,76 +1205,293 @@ No staging dataset needed — both Studios share the same dataset. The staging S
 
 ### Pages (Templates) to Modify
 
-| File | Change |
-|---|---|
-| `src/pages/pl/kontakt.astro` (or dynamic page) | Complete redesign |
+| File                                                        | Change                                                                 |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `src/pages/pl/kontakt.astro` (or dynamic page)              | Complete redesign                                                      |
 | `src/templates/ActivitiesListingPage.astro` (or equivalent) | Add EscapeHatch + hardcoded ContactForm (data from singleton + global) |
-| `src/templates/HotelsListingPage.astro` (or equivalent) | Add EscapeHatch + hardcoded ContactForm (data from singleton + global) |
-| `src/templates/ActivityPage.astro` (or equivalent) | Add hardcoded ContactForm with `contextItem`, modify Hero CTA |
-| `src/templates/HotelPage.astro` (or equivalent) | Add hardcoded ContactForm with `contextItem`, modify Hero CTA |
-| `src/pages/pl/koszyk.astro` | Redirect to /kontakt/ |
-| `src/pages/en/cart.astro` | Redirect to /contact/ |
+| `src/templates/HotelsListingPage.astro` (or equivalent)     | Add EscapeHatch + hardcoded ContactForm (data from singleton + global) |
+| `src/templates/ActivityPage.astro` (or equivalent)          | Add hardcoded ContactForm with `contextItem`, modify Hero CTA          |
+| `src/templates/HotelPage.astro` (or equivalent)             | Add hardcoded ContactForm with `contextItem`, modify Hero CTA          |
+| `src/pages/pl/koszyk.astro`                                 | Redirect to /kontakt/                                                  |
+| `src/pages/en/cart.astro`                                   | Redirect to /contact/                                                  |
 
 ### Layouts to Modify
 
-| File | Change |
-|---|---|
-| `src/layouts/Layout.astro` | Add InquiryWidget, remove CartLink dependency |
+| File                       | Change                                                             |
+| -------------------------- | ------------------------------------------------------------------ |
+| `src/layouts/Layout.astro` | Add InquiryWidget, remove CartLink dependency                      |
 | `src/layouts/Header.astro` | Remove CartLink, add badge logic to existing "Skontaktuj się" link |
 
 ### Components to Create
 
-| File | Type | Notes |
-|---|---|---|
-| `src/components/global/ContactForm/InquiryForm.tsx` | Preact | Replaces `Form.tsx` — extended form with new fields, variants, inquiry items |
-| `src/components/global/ContactForm/InquiryForm.module.scss` | Styles | Styles for the extended form |
-| `src/components/global/InquiryWidget/InquiryWidget.tsx` | Preact | Sticky bottom-right widget |
-| `src/components/global/InquiryWidget/InquiryWidget.module.scss` | Styles | |
-| `src/components/global/EscapeHatch/EscapeHatch.astro` | Astro | "Nie wiesz od czego zacząć?" block |
-| `src/components/global/HowItWorks/HowItWorks.astro` | Astro | 3-step process (page builder component for contact page) |
-| `src/components/global/PopularItems/PopularItems.astro` | Astro | Featured activities/hotels (page builder component for contact page) |
+| File                                                            | Type   | Notes                                                                        |
+| --------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------- |
+| `src/components/global/ContactForm/InquiryForm.tsx`             | Preact | Replaces `Form.tsx` — extended form with new fields, variants, inquiry items |
+| `src/components/global/ContactForm/InquiryForm.module.scss`     | Styles | Styles for the extended form                                                 |
+| `src/components/global/InquiryWidget/InquiryWidget.tsx`         | Preact | Sticky bottom-right widget                                                   |
+| `src/components/global/InquiryWidget/InquiryWidget.module.scss` | Styles |                                                                              |
+| `src/components/global/EscapeHatch/EscapeHatch.astro`           | Astro  | "Nie wiesz od czego zacząć?" block                                           |
+| `src/components/global/HowItWorks/HowItWorks.astro`             | Astro  | 3-step process (page builder component for contact page)                     |
+| `src/components/global/PopularItems/PopularItems.astro`         | Astro  | Featured activities/hotels (page builder component for contact page)         |
 
 No `InquiryFormSection` or `SocialProofFormWrapper` — everything is inside the evolved `ContactForm`.
 
 ### Utilities to Create/Modify
 
-| File | Change |
-|---|---|
+| File                         | Change                                          |
+| ---------------------------- | ----------------------------------------------- |
 | `src/utils/inquiry-store.ts` | New — localStorage management for inquiry items |
-| `src/utils/cart.ts` | Delete (git history preserves it) |
+| `src/utils/cart.ts`          | Delete (git history preserves it)               |
 
 ### API Routes to Modify
 
-| File | Change |
-|---|---|
+| File                       | Change                      |
+| -------------------------- | --------------------------- |
 | `src/pages/api/contact.ts` | Extend to accept new fields |
+
+### Files Created in Phase 3
+
+| File                                 | Type        | Purpose                                                                              |
+| ------------------------------------ | ----------- | ------------------------------------------------------------------------------------ |
+| `src/emails/contact-emails.ts`       | TypeScript  | Branded HTML email templates — `clientConfirmation()` and `teamNotification()`       |
+| `src/pages/api/email-preview.ts`     | API Route   | Dev-only preview of email templates (renders mock data as HTML, no email sent)        |
+
+### Files Modified in Phase 3
+
+| File                                                        | Change                                                                                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `src/pages/api/contact.ts`                                  | Discriminated union types, `isInquiryForm()` helper, branded email templates, TEST_RECIPIENT override (temporary)  |
+| `src/components/global/ContactForm/InquiryForm.tsx`         | Backend submission activated, analytics activated, debug logging added, Google Sheets sendBeacon commented out      |
+| `src/utils/track-event.ts`                                  | Added localhost/127.0.0.1 guard — skips all analytics in dev                                                       |
+| `src/pages/api/analytics/meta/index.ts`                     | Added `import.meta.env.DEV` guard — returns 200 no-op in dev                                                      |
+| `src/components/cookie-consent/CookieConsent.client.tsx`    | Added localhost checks in `ensureGtagScript()` and `ensureMetaPixel()` — scripts don't load in dev                 |
+| `src/components/global/BotIdInit.astro`                     | Added `import.meta.env.DEV` guard — BotID doesn't initialize in dev                                               |
+| `tsconfig.json`                                             | Added `@/emails/*` path alias                                                                                      |
 
 ### Sanity Schemas to Modify
 
-| File | Change |
-|---|---|
-| `apps/sanity/schema/singleTypes/global.ts` | Add `inquiryFormDefaults` field group (paragraph, state, socialProof) |
-| `apps/sanity/schema/singleTypes/Activities_Page.ts` | Add `formHeading`, `formParagraph`, `overrideFormState`, `formState`, escape hatch fields |
-| `apps/sanity/schema/singleTypes/Hotels_Page.ts` | Add `formHeading`, `formParagraph`, `overrideFormState`, `formState`, escape hatch fields |
-| `apps/sanity/schema/components/ContactForm.ts` | Add `showInquiries`, `socialProof` fields (evolve, don't replace) |
-| `apps/sanity/schema/collectionTypes/Activities_Collection.ts` | Add form heading override |
-| `apps/sanity/schema/collectionTypes/Hotels_Collection.ts` | Add form heading override |
+| File                                                          | Change                                                                                    |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `apps/sanity/schema/singleTypes/global.ts`                    | Add `inquiryFormDefaults` field group (paragraph, state, socialProof)                     |
+| `apps/sanity/schema/singleTypes/Activities_Page.ts`           | Add `formHeading`, `formParagraph`, `overrideFormState`, `formState`, escape hatch fields |
+| `apps/sanity/schema/singleTypes/Hotels_Page.ts`               | Add `formHeading`, `formParagraph`, `overrideFormState`, `formState`, escape hatch fields |
+| `apps/sanity/schema/components/ContactForm.ts`                | Add `showInquiries`, `socialProof` fields (evolve, don't replace)                         |
+| `apps/sanity/schema/collectionTypes/Activities_Collection.ts` | Add form heading override                                                                 |
+| `apps/sanity/schema/collectionTypes/Hotels_Collection.ts`     | Add form heading override                                                                 |
 
 ---
 
-## Appendix: Key Metrics to Track
+## Appendix A: Form Architecture & Separation
+
+### Three Independent Form Systems
+
+The project has three distinct form systems. They are already architecturally separated — different components, different submission endpoints (or shared endpoint with different payloads), different analytics event names.
+
+**1. InquiryForm (Main CTA — ~95% of expected conversions)**
+
+| Aspect    | Detail                                                                                                                                                                                         |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component | `components/global/ContactForm/InquiryForm.tsx` (Preact, `client:load`)                                                                                                                        |
+| Wrapper   | `components/global/ContactForm/index.astro` (social proof, layout, animations)                                                                                                                 |
+| Fields    | name, email, phone (country selector), teamSize (radio), timeline, additionalInfo, legal + variant fields (region, integration checkbox) + contextItem (hidden) + selectedItems (localStorage) |
+| API       | `POST /api/contact` (extended payload)                                                                                                                                                         |
+| Sheets    | `navigator.sendBeacon('/api/s3d')` with `formType: 'inquiry_form'`                                                                                                                             |
+| Analytics | GA4 `lead` + Meta `Lead` with `form_name: 'inquiry_form'`                                                                                                                                      |
+| Used on   | Contact page (page builder), listing pages (hardcoded), detail pages (hardcoded)                                                                                                               |
+| Variants  | `general`, `activity_listing`, `hotel_listing`, `activity_detail`, `hotel_detail`                                                                                                              |
+
+**2. FAQ Form (Secondary — ~5% of expected conversions)**
+
+| Aspect    | Detail                                                          |
+| --------- | --------------------------------------------------------------- |
+| Component | `components/ui/FaqForm/Form.tsx` (Preact, `client:idle`)        |
+| Wrapper   | `components/ui/FaqForm/index.astro` (popup via `PopupWindow`)   |
+| Fields    | email, phone (country selector), message (textarea), legal      |
+| API       | `POST /api/contact` (simple payload)                            |
+| Sheets    | `navigator.sendBeacon('/api/s3d')` with `formType: 'faq_form'`  |
+| Analytics | GA4 `lead` + Meta `Lead` with `form_name: 'faq_form'`           |
+| Used on   | FAQ sections (`global/Faq.astro`, offer Faq PortableText block) |
+| Status    | **Fully working, no changes needed**                            |
+
+**3. Newsletter (Engagement, not lead conversion)**
+
+| Aspect    | Detail                                                                               |
+| --------- | ------------------------------------------------------------------------------------ |
+| Component | `components/global/Newsletter/Form.tsx` + `blog/post/content-pt/newsletter/Form.tsx` |
+| Fields    | email, legal                                                                         |
+| API       | `POST /api/newsletter` (MailerLite subscription)                                     |
+| Sheets    | None                                                                                 |
+| Analytics | GA4 `generate_lead` + Meta `Lead` with `form_name: 'newsletter_form'`                |
+| Used on   | Footer (global), blog posts (inline)                                                 |
+| Status    | **Fully working, no changes needed**                                                 |
+
+### Shared `/api/contact` Endpoint
+
+Both InquiryForm and FAQ Form submit to `/api/contact`. The endpoint must handle both payload shapes:
+
+```
+InquiryForm payload (extended):
+{
+  name, email, phone, teamSize, timeline, additionalInfo, legal,
+  region?, needsIntegration?, contextItem?, selectedItems[],
+  sourceUrl, lang, utm
+}
+
+FAQ Form payload (simple):
+{
+  email, phone, message, legal, lang, utm
+}
+```
+
+The API differentiates by checking for the presence of `name` or `teamSize` fields. All new fields are optional in validation, so the FAQ Form's simple payload passes without changes.
+
+### Legacy Form (To Be Removed)
+
+`ContactForm/Form.tsx` — the old simple contact form. Still exists in the codebase but is no longer imported by `ContactForm/index.astro` (replaced by `InquiryForm.tsx`). Will be deleted in Phase 11 cleanup. Tracked as `form_name: 'contact_form'`.
+
+### Cart/Configurator Form (To Be Removed)
+
+`cart/quoteForm/index.tsx` — the configurator quote form. Tracked as `form_name: 'configurator_form'`. Entire cart directory deleted in Phase 11.
+
+---
+
+## Appendix B: Analytics Strategy
+
+### Current Analytics Infrastructure (DO NOT MODIFY)
+
+The analytics system is production-tested and well-engineered. The core infrastructure stays unchanged throughout the redesign:
+
+| Component                   | Path                                  | Purpose                                                                                                                                                                                  |
+| --------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `track-event.ts`            | `src/utils/track-event.ts`            | Unified dispatch to GA4 + Meta Pixel + Meta CAPI. Handles consent gating, event queuing, readiness checks, retry logic, event deduplication (shared `eventId` between Pixel + CAPI).     |
+| `analytics-user-storage.ts` | `src/utils/analytics-user-storage.ts` | Persistent user identity (email, phone) in localStorage. UTM capture/persistence with `capturedAt` timestamps. `getUtmString()` for API payloads, `getUtmForSheet()` for Sheets logging. |
+| `CookieConsent.client.tsx`  | Cookie consent UI                     | GA4 Consent Mode (cookieless pings in denied state), Meta Pixel strict blocking (no script until consent). See `ai/analytics-implementation-guide.md` for critical implementation notes. |
+| `/api/analytics/meta`       | Server-side CAPI                      | Fetches Pixel ID + token from Sanity `global.analytics`. SHA-256 hashes PII. Extracts `_fbp`/`_fbc` cookies. Deduplicates with client-side pixel via `event_id`.                         |
+| `Analytics.astro`           | Layout component                      | Fires automatic `page_view`/`PageView` on every page. Fires `contact`/`Contact` on `mailto:`/`tel:` link clicks.                                                                         |
+
+**Critical rules (from `ai/analytics-implementation-guide.md`):**
+
+- Do NOT remove "Default Denied" initialization for GA4
+- Do NOT call `fbq('init')` directly — use `fbq.callMethod.apply()`
+- Do NOT merge GA4 and Meta queuing paths
+- Always use `applyMetaPixelUserData` for Advanced Matching updates
+
+### Analytics Events — Complete Map After Redesign
+
+#### Form Events (by `form_name`)
+
+| Form        | GA4 Event       | GA4 `form_name`   | Meta Event | Meta `contentName` | Google Sheets        | Status                |
+| ----------- | --------------- | ----------------- | ---------- | ------------------ | -------------------- | --------------------- |
+| InquiryForm | `lead`          | `inquiry_form`    | `Lead`     | `inquiry_form`     | Yes (`inquiry_form`) | **Enable in Phase 3** |
+| FAQ Form    | `lead`          | `faq_form`        | `Lead`     | `faq_form`         | Yes (`faq_form`)     | Working ✅            |
+| Newsletter  | `generate_lead` | `newsletter_form` | `Lead`     | `newsletter_form`  | No                   | Working ✅            |
+
+#### Page-Level Events (automatic, from `Analytics.astro`)
+
+| Trigger                        | GA4 Event   | Meta Event | Status     |
+| ------------------------------ | ----------- | ---------- | ---------- |
+| Every page load                | `page_view` | `PageView` | Working ✅ |
+| Click `mailto:` or `tel:` link | `contact`   | `Contact`  | Working ✅ |
+
+#### Listing & Detail Page Events (from template `<script>` tags)
+
+| Page Type              | GA4 Event        | Meta Event     | Status     |
+| ---------------------- | ---------------- | -------------- | ---------- |
+| Hotels listing         | `view_item_list` | `ViewCategory` | Working ✅ |
+| Activities listing     | `view_item_list` | `ViewCategory` | Working ✅ |
+| Single hotel detail    | `view_item`      | `ViewContent`  | Working ✅ |
+| Single activity detail | `view_item`      | `ViewContent`  | Working ✅ |
+
+#### Events to Add (Phase 7-8, with inquiry system)
+
+| Trigger                    | GA4 Event               | Meta Event      | When    |
+| -------------------------- | ----------------------- | --------------- | ------- |
+| "Dodaj do zapytania" click | `add_to_inquiry`        | `AddToWishlist` | Phase 7 |
+| Inquiry widget expand      | `inquiry_widget_opened` | — (GA4 only)    | Phase 7 |
+
+#### Events to Remove (Phase 11, with cart cleanup)
+
+| Current Event     | GA4                          | Meta                         | Source                 | Reason                  |
+| ----------------- | ---------------------------- | ---------------------------- | ---------------------- | ----------------------- |
+| Cart view         | `view_cart`                  | `ViewCart`                   | Cart page script       | Cart page removed       |
+| Checkout start    | `begin_checkout`             | `InitiateCheckout`           | Cart page script       | Cart flow removed       |
+| Configurator lead | `lead` (`configurator_form`) | `Lead` (`configurator_form`) | `cart/quoteForm/`      | Quote form removed      |
+| Old contact lead  | `lead` (`contact_form`)      | `Lead` (`contact_form`)      | `ContactForm/Form.tsx` | Replaced by InquiryForm |
+
+### Analytics Implementation by Phase
+
+| Phase        | Analytics Work                                                                                                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Phase 3**  | Un-comment `trackEvent()` and `sendBeacon('/api/s3d')` in `InquiryForm.tsx`. Update `/api/s3d` Sheets column mapping. No infrastructure changes.                                           |
+| **Phase 7**  | Add `add_to_inquiry` event in `inquiry-store.ts` when item is added. Add `inquiry_widget_opened` event in `InquiryWidget.tsx`.                                                             |
+| **Phase 11** | Delete cart page scripts (removes `view_cart`, `begin_checkout`). Delete `cart/quoteForm/` (removes `configurator_form`). Delete `ContactForm/Form.tsx` (removes `contact_form`).          |
+| **Phase 12** | Verify all events fire correctly in production. Set up GA4 conversion events for `lead` (InquiryForm + FAQ) and `generate_lead` (Newsletter). Configure Meta custom conversions if needed. |
+
+### Google Sheets Logging
+
+Forms log to Google Sheets via `navigator.sendBeacon('/api/s3d')` (fire-and-forget). The `/api/s3d` route uses `googleapis` to append rows.
+
+**Current Sheets columns:**
+
+| Column           | `inquiry_form`              | `faq_form`     | `configurator_form` (removed in Phase 11) |
+| ---------------- | --------------------------- | -------------- | ----------------------------------------- |
+| STATUS           | (empty)                     | (empty)        | (empty)                                   |
+| KOMENTARZ        | (empty)                     | (empty)        | (empty)                                   |
+| Data             | auto-timestamp              | auto-timestamp | auto-timestamp                            |
+| Typ Formularza   | `inquiry_form`              | `faq_form`     | `configurator_form`                       |
+| Email            | email                       | email          | email                                     |
+| Telefon          | phone                       | phone          | phone                                     |
+| Wiadomosc        | additionalInfo              | message        | message                                   |
+| Liczba Osob      | teamSize                    | —              | participants count                        |
+| Data Eventu      | timeline                    | —              | date range                                |
+| Wartosc (PLN)    | —                           | —              | calculated price                          |
+| Szczegoly Oferty | selectedItems + contextItem | —              | cart items detail                         |
+| UTM              | utm params                  | utm params     | utm params                                |
+
+**Newsletter does NOT log to Sheets** — it only goes to MailerLite via `/api/newsletter`.
+
+### UTM Parameter Flow
+
+1. **Capture:** `track-event.ts` → `extractUtmFromUrl()` → saves to `localStorage` key `analytics-utm` with `capturedAt` timestamp
+2. **Persist:** Stays in localStorage across pages. New URL UTMs overwrite stored values.
+3. **Usage:**
+   - Email templates: `getUtmString()` → query string format → included in `/api/contact` payload
+   - Google Sheets: `getUtmForSheet()` → multiline text → sent via `/api/s3d`
+   - Meta CAPI: `utm` field in CAPI payload → server extracts and forwards
+   - GA4: Auto-captured from URL by GA4 (standard behavior, not explicitly passed)
+
+### Sanity Analytics Configuration
+
+The `global` Sanity document stores analytics IDs in the `analytics` object:
+
+| Field                    | Format          | Used By                                                                       |
+| ------------------------ | --------------- | ----------------------------------------------------------------------------- |
+| `ga4Id`                  | `G-XXXXXXXXXX`  | `CookieConsent.client.tsx` (loads gtag.js)                                    |
+| `googleAdsMeasurementId` | `AW-XXXXXXXXX`  | `CookieConsent.client.tsx` (Google Ads remarketing)                           |
+| `metaPixelId`            | 15-digit number | `CookieConsent.client.tsx` (loads fbevents.js) + `/api/analytics/meta` (CAPI) |
+| `metaConversionToken`    | Secret token    | `/api/analytics/meta` (server-side CAPI auth)                                 |
+
+Also: `global.googleData` stores `rating` + `ratingCount` for potential future structured data / social proof.
+
+---
+
+## Appendix C: Key Metrics to Track
 
 After implementation, measure:
 
 1. **Form submission rate** — % of visitors who submit any form (primary KPI)
 2. **Form submission rate by page** — Which pages generate the most leads
-3. **Inquiry items per submission** — Average number of activities/hotels attached
-4. **Time to form** — How quickly users reach the form from landing
-5. **Contact page conversion rate** — Before vs. after redesign
-6. **Listing page bounce rate** — Before vs. after escape hatch addition
-7. **Lead quality** — Does the new form provide enough context for Łukasz to prepare proposals efficiently
+3. **Form submission by type** — `inquiry_form` vs `faq_form` vs `newsletter_form` breakdown
+4. **Inquiry items per submission** — Average number of activities/hotels attached
+5. **Time to form** — How quickly users reach the form from landing
+6. **Contact page conversion rate** — Before vs. after redesign
+7. **Listing page bounce rate** — Before vs. after escape hatch addition
+8. **Lead quality** — Does the new form provide enough context for Łukasz to prepare proposals efficiently
+9. **Add-to-inquiry rate** — % of detail/listing page visitors who add items (Phase 7+)
+10. **Inquiry widget engagement** — How often widget is expanded, how often CTA is clicked (Phase 7+)
 
 ---
 
-*Strategy created: February 13, 2026*
-*Sources: PROJECT_OVERVIEW.md, Notion diagnosis (Feb 6, 2026), Notion specification (Feb 9, 2026), Meta Ads traffic analysis*
+_Strategy created: February 13, 2026_
+_Last updated: February 16, 2026 — Phase 0-4 marked complete, branded email templates created, analytics dev guards added, form submission end-to-end tested_
+_Sources: PROJECT_OVERVIEW.md, Notion diagnosis (Feb 6, 2026), Notion specification (Feb 9, 2026), Meta Ads traffic analysis_

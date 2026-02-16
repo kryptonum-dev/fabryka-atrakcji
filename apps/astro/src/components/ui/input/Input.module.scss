@@ -36,6 +36,11 @@
     background-color: $background;
     border-radius: 0.25rem;
 
+    /* Elevate phone input so country dropdown overlays sibling fields */
+    &:has(:global(.react-international-phone-input-container)) {
+      z-index: 5;
+    }
+
     &::before,
     &::after {
       position: absolute;

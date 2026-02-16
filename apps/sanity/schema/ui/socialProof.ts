@@ -45,12 +45,6 @@ export default defineField({
       ],
       validation: (Rule) => Rule.max(3),
     }),
-    defineField({
-      name: 'trustElement',
-      type: 'PortableText',
-      title: 'Element zaufania',
-      description: 'Tekst wyświetlany pod formularzem, np. "Odpowiedź w 24h"',
-    }),
   ],
   options: {
     collapsible: true,

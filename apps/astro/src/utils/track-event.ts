@@ -640,6 +640,12 @@ export function trackEvent<
       : Math.random().toString(36).slice(2))
   }
 
+  // Skip all analytics on localhost / dev
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.debug('[Analytics] Skipped — dev environment')
+    return params.eventId || crypto.randomUUID()
+  }
+
   const now = Date.now()
   const eventId = params.eventId || (typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()

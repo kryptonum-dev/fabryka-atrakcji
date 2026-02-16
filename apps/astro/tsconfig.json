@@ -10,6 +10,7 @@
       "@/utils/*": ["./src/utils/*"],
       "@/assets/*": ["./src/assets/*"],
       "@/templates/*": ["./src/templates/*"],
+      "@/emails/*": ["./src/emails/*"],
       "@/public/*": ["./public/*"]
     }
   }

@@ -185,6 +185,7 @@ async function ensureMetaPixel(pixelId: string | null | undefined, selection: Co
   if (!pixelId || !isBrowser()) {
     return
   }
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return
 
   // CRITICAL: Only load script if marketing consent is granted
   // Meta Pixel has no cookieless mode (unlike GA4)
@@ -251,6 +252,7 @@ function ensureGtagScript(primaryId?: string | null) {
   if (!primaryId || !isBrowser()) {
     return Promise.resolve()
   }
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return Promise.resolve()
 
   if (gtagScriptPromise) {
     return gtagScriptPromise

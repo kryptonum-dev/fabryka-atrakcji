@@ -49,6 +49,51 @@ export const translations = {
         required: 'Temat jest wymagany',
       },
       submit: 'Wyślij wiadomość',
+      inquiry: {
+        name: {
+          label: 'Imię / Firma',
+          required: 'Imię lub nazwa firmy jest wymagana',
+          placeholder: 'Jan Kowalski / Nazwa firmy',
+        },
+        phone: {
+          label: 'Telefon (opcjonalnie — przyspiesza kontakt)',
+        },
+        teamSize: {
+          label: 'Ile osób w zespole?',
+          required: 'Wybierz liczbę osób',
+          placeholder: 'Wybierz...',
+          options: {
+            small: 'do 30',
+            medium: '31-80',
+            large: '81-150',
+            xlarge: '150+',
+          },
+        },
+        timeline: {
+          label: 'Preferowany termin',
+          placeholder: 'np. wrzesień 2026, Q3, konkretna data',
+        },
+        additionalInfo: {
+          label: 'Dodatkowe informacje',
+          placeholder: 'Opisz czego szukasz — budżet, styl, specjalne wymagania...',
+        },
+        region: {
+          label: 'Preferowany region',
+          options: {
+            mountains: 'Góry',
+            sea: 'Morze',
+            mazury: 'Mazury',
+            central: 'Centralna Polska',
+            none: 'Brak preferencji',
+          },
+        },
+        needsIntegration: 'Szukasz scenariusza integracji?',
+        items: {
+          heading: 'Twój wybór',
+          remove: 'Usuń',
+        },
+        submit: 'Wyślij zapytanie',
+      },
     },
   },
   en: {
@@ -98,6 +143,51 @@ export const translations = {
         required: 'Subject is required',
       },
       submit: 'Send message',
+      inquiry: {
+        name: {
+          label: 'Name / Company',
+          required: 'Name or company name is required',
+          placeholder: 'John Smith / Company name',
+        },
+        phone: {
+          label: 'Phone (optional — speeds up contact)',
+        },
+        teamSize: {
+          label: 'How many people in your team?',
+          required: 'Please select team size',
+          placeholder: 'Select...',
+          options: {
+            small: 'up to 30',
+            medium: '31-80',
+            large: '81-150',
+            xlarge: '150+',
+          },
+        },
+        timeline: {
+          label: 'Preferred date',
+          placeholder: 'e.g. September 2026, Q3, specific date',
+        },
+        additionalInfo: {
+          label: 'Additional information',
+          placeholder: 'Describe what you need — budget, style, special requirements...',
+        },
+        region: {
+          label: 'Preferred region',
+          options: {
+            mountains: 'Mountains',
+            sea: 'Seaside',
+            mazury: 'Masuria',
+            central: 'Central Poland',
+            none: 'No preference',
+          },
+        },
+        needsIntegration: 'Looking for a team-building scenario?',
+        items: {
+          heading: 'Your selection',
+          remove: 'Remove',
+        },
+        submit: 'Send inquiry',
+      },
     },
   },
 }

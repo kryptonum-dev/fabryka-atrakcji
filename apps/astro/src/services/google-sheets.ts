@@ -14,7 +14,7 @@ const GOOGLE_PRIVATE_KEY = (
 // --- Interfaces ---
 
 export interface BaseLeadData {
-  formType: 'contact_form' | 'faq_form' | 'configurator_form';
+  formType: 'contact_form' | 'faq_form' | 'configurator_form' | 'inquiry_form';
   email: string;
   phone?: string;
   utm?: string; // All UTM params as formatted text (one per line)
@@ -23,6 +23,14 @@ export interface BaseLeadData {
 export interface ContactLeadData extends BaseLeadData {
   formType: 'contact_form' | 'faq_form';
   message?: string;
+}
+
+export interface InquiryLeadData extends BaseLeadData {
+  formType: 'inquiry_form';
+  name?: string;
+  teamSize?: string;
+  timeline?: string;
+  additionalInfo?: string;
 }
 
 export interface QuoteLeadData extends BaseLeadData {
@@ -37,7 +45,7 @@ export interface QuoteLeadData extends BaseLeadData {
   };
 }
 
-export type LeadData = ContactLeadData | QuoteLeadData;
+export type LeadData = ContactLeadData | InquiryLeadData | QuoteLeadData;
 
 // --- Helper Functions ---
 
@@ -56,21 +64,45 @@ const formatDate = (date: Date): string => {
  * 6: Wiadomość, 7: Liczba Osób, 8: Data Eventu, 9: Wartość (PLN),
  * 10: Szczegóły Oferty, 11: UTM
  */
+const teamSizeLabels: Record<string, string> = {
+  'do-30': 'do 30 osób',
+  '31-80': '31-80 osób',
+  '81-150': '81-150 osób',
+  '150+': '150+ osób',
+};
+
 const buildRow = (data: LeadData): string[] => {
   const isQuote = data.formType === 'configurator_form' && 'quote' in data;
+  const isInquiry = data.formType === 'inquiry_form';
   const quoteData = isQuote ? (data as QuoteLeadData).quote : null;
+  const inquiryData = isInquiry ? (data as InquiryLeadData) : null;
 
   // Get message field based on form type
   let message = '';
-  if ('message' in data && data.message) {
+  if (inquiryData) {
+    const parts: string[] = [];
+    if (inquiryData.name) parts.push(`Imię/Firma: ${inquiryData.name}`);
+    if (inquiryData.additionalInfo) parts.push(inquiryData.additionalInfo);
+    message = parts.join('\n');
+  } else if ('message' in data && data.message) {
     message = data.message;
   } else if ('additionalInfo' in data && data.additionalInfo) {
     message = data.additionalInfo;
   }
 
-  // Format dates for quote
+  // Team size / participants
+  let teamSize = '';
+  if (inquiryData?.teamSize) {
+    teamSize = teamSizeLabels[inquiryData.teamSize] || inquiryData.teamSize;
+  } else if (quoteData) {
+    teamSize = String(quoteData.participants);
+  }
+
+  // Event dates / timeline
   let eventDates = '';
-  if (quoteData) {
+  if (inquiryData?.timeline) {
+    eventDates = inquiryData.timeline;
+  } else if (quoteData) {
     eventDates = Array.isArray(quoteData.dates) ? quoteData.dates.join(', ') : quoteData.dates;
   }
 
@@ -91,7 +123,7 @@ const buildRow = (data: LeadData): string[] => {
     data.email, // 4: Email
     data.phone ? `'${data.phone}` : '', // 5: Telefon (prefixed with ' to prevent number formatting)
     message, // 6: Wiadomość
-    quoteData ? String(quoteData.participants) : '', // 7: Liczba Osób
+    teamSize, // 7: Liczba Osób
     eventDates, // 8: Data Eventu
     priceValue, // 9: Wartość (PLN) - Brutto + Netto
     quoteData?.itemsSummary || '', // 10: Szczegóły Oferty

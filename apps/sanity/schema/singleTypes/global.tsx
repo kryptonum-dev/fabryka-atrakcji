@@ -341,6 +341,33 @@ export default defineType({
           title: 'Social Proof',
           description: 'Elementy budujące zaufanie współdzielone przez wszystkie formularze',
         }),
+        defineField({
+          name: 'formVisualImage',
+          type: 'image',
+          title: 'Domyślne zdjęcie sekcji formularza',
+          description:
+            'Domyślny obraz lewej kolumny w formularzu kontaktowym. Używany, gdy sekcja ContactForm nie ma ustawionego własnego obrazu.',
+        }),
+        defineField({
+          name: 'responseBadge',
+          type: 'object',
+          title: 'Domyślny badge odpowiedzi',
+          description: 'Domyślny tekst i ikona badge przy formularzu zapytania.',
+          options: { collapsible: true, collapsed: true },
+          fields: [
+            defineField({
+              name: 'text',
+              type: 'string',
+              title: 'Tekst badge',
+            }),
+            defineField({
+              name: 'icon',
+              type: 'image',
+              title: 'Ikona badge',
+              description: 'Mała ikona wyświetlana po lewej stronie tekstu badge.',
+            }),
+          ],
+        }),
       ],
     }),
     defineField({

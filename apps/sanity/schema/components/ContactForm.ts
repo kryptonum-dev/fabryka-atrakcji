@@ -21,6 +21,13 @@ export default defineField({
       description: 'Jeśli dodane, zdjęcie pojawi się po lewej stronie nagłówka, wymiary zdjęcia to 28x28 px',
     }),
     defineField({
+      name: 'formVisualImage',
+      type: 'image',
+      title: 'Zdjęcie sekcji formularza',
+      description:
+        'Oddzielne zdjęcie do lewej kolumny przy formularzu (hero kontaktowy). Jeśli puste, użyte zostanie zdjęcie domyślne z ustawień globalnych.',
+    }),
+    defineField({
       name: 'heading',
       type: 'Heading',
       title: 'Nagłówek',
@@ -52,6 +59,27 @@ export default defineField({
       description:
         'Gdy wyłączone, formularz użyje globalnych komunikatów sukcesu/błędu z ustawień globalnych. Włącz, aby ustawić niestandardowe komunikaty dla tego formularza.',
       initialValue: false,
+    }),
+    defineField({
+      name: 'responseBadge',
+      type: 'object',
+      title: 'Badge odpowiedzi (nad formularzem)',
+      description:
+        'Opcjonalny badge widoczny przy formularzu. Jeśli puste, użyte zostaną ustawienia globalne.',
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        defineField({
+          name: 'text',
+          type: 'string',
+          title: 'Tekst badge',
+        }),
+        defineField({
+          name: 'icon',
+          type: 'image',
+          title: 'Ikona badge',
+          description: 'Mała ikona wyświetlana po lewej stronie tekstu badge.',
+        }),
+      ],
     }),
     defineField({
       name: 'state',
