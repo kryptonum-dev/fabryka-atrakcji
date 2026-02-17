@@ -334,6 +334,7 @@ export default defineType({
           type: 'formState',
           title: 'Stan formularza',
           description: 'Komunikaty sukcesu i błędu wyświetlane po wysłaniu formularza',
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'socialProof',

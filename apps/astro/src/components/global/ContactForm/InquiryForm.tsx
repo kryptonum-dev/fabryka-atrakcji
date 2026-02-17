@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect, useRef } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import Button from '@/src/components/ui/Button'
 import Checkbox from '@/src/components/ui/checkbox'
@@ -10,15 +10,12 @@ import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
 import { trackEvent } from '@/utils/track-event'
 import { getUtmString, getUtmForSheet } from '@/utils/analytics-user-storage'
+import { dispatchToast } from '@/src/utils/events'
 import styles from './InquiryForm.module.scss'
 
-export type InquiryItem = {
-  type: 'integracja' | 'hotel'
-  id: string
-  name: string
-  image: string
-  url: string
-}
+import { getInquiryItems, removeFromInquiry, type InquiryItem } from '@/src/utils/inquiry-store'
+
+export type { InquiryItem }
 
 export type ContextItem = {
   type: string
@@ -42,24 +39,6 @@ type Props = {
   children?: any
 }
 
-const INQUIRY_STORAGE_KEY = 'fa-inquiry-items'
-
-function getInquiryItems(): InquiryItem[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(INQUIRY_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-function removeInquiryItem(id: string): InquiryItem[] {
-  const items = getInquiryItems().filter((item) => item.id !== id)
-  localStorage.setItem(INQUIRY_STORAGE_KEY, JSON.stringify(items))
-  return items
-}
-
 export default function InquiryForm({
   lang = 'pl',
   formState,
@@ -70,12 +49,17 @@ export default function InquiryForm({
 }: Props) {
   const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })
   const [inquiryItems, setInquiryItems] = useState<InquiryItem[]>([])
+  const [isInquiryReady, setIsInquiryReady] = useState(!showInquiries)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const t = translations[lang]
+  const activityCount = inquiryItems.filter((item) => item.type === 'integracja').length
+  const hotelCount = inquiryItems.filter((item) => item.type === 'hotel').length
 
   useEffect(() => {
     if (showInquiries) {
       setInquiryItems(getInquiryItems())
+      setIsInquiryReady(true)
 
       const handleUpdate = () => setInquiryItems(getInquiryItems())
       window.addEventListener('storage', handleUpdate)
@@ -84,8 +68,18 @@ export default function InquiryForm({
         window.removeEventListener('storage', handleUpdate)
         document.removeEventListener('inquiry-updated', handleUpdate)
       }
+    } else {
+      setIsInquiryReady(true)
     }
   }, [showInquiries])
+
+  useEffect(() => {
+    const contactSection = formRef.current?.closest('.ContactForm')
+    if (!contactSection || !showInquiries) return
+    if (isInquiryReady) {
+      contactSection.classList.remove('has-inquiry-pending')
+    }
+  }, [showInquiries, isInquiryReady])
 
   const {
     register,
@@ -148,9 +142,9 @@ export default function InquiryForm({
         reset()
 
         if (showInquiries) {
-          localStorage.removeItem(INQUIRY_STORAGE_KEY)
+          const { clearInquiry } = await import('@/src/utils/inquiry-store')
+          clearInquiry()
           setInquiryItems([])
-          document.dispatchEvent(new CustomEvent('inquiry-updated'))
         }
 
         trackEvent({
@@ -187,38 +181,59 @@ export default function InquiryForm({
     setStatus({ sending: false, success: undefined })
   }
 
-  const handleRemoveItem = (id: string) => {
-    const updated = removeInquiryItem(id)
+  const handleRemoveItem = (item: InquiryItem) => {
+    const updated = removeFromInquiry(item.id)
     setInquiryItems(updated)
-    document.dispatchEvent(new CustomEvent('inquiry-updated'))
+    dispatchToast(t.form.inquiry.items.removedAlert, 'success')
   }
 
   const isFilled = status.sending || status.success !== undefined
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={styles.InquiryForm}>
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className={styles.InquiryForm}>
       {/* Inquiry items display */}
-      {showInquiries && inquiryItems.length > 0 && (
+      {showInquiries && isInquiryReady && inquiryItems.length > 0 && (
         <div className={styles.inquiryItems} aria-hidden={isFilled}>
-          <p className={styles.inquiryHeading}>{t.form.inquiry.items.heading}</p>
+          <div className={styles.inquiryHeader}>
+            <p className={styles.inquiryHeading}>{t.form.inquiry.items.heading}</p>
+            <div className={styles.inquiryStats}>
+              <span className={`${styles.inquiryStat} ${styles.activityStat}`}>
+                {lang === 'pl' ? 'Integracje' : 'Activities'}: {activityCount}
+              </span>
+              <span className={`${styles.inquiryStat} ${styles.hotelStat}`}>
+                {lang === 'pl' ? 'Hotele' : 'Hotels'}: {hotelCount}
+              </span>
+            </div>
+          </div>
           <ul className={styles.inquiryList}>
             {inquiryItems.map((item) => (
-              <li key={item.id} className={styles.inquiryItem}>
-                {item.image && (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className={styles.inquiryImage}
-                    width={48}
-                    height={48}
-                    loading="lazy"
-                  />
-                )}
-                <span className={styles.inquiryName}>{item.name}</span>
+              <li key={item.id} className={styles.inquiryItem} data-type={item.type}>
+                <a href={item.url} className={styles.inquiryContent}>
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className={styles.inquiryImage}
+                      width={48}
+                      height={48}
+                      loading="lazy"
+                    />
+                  )}
+                  <div className={styles.inquiryMeta}>
+                    <span className={styles.inquiryName}>{item.name}</span>
+                    <span
+                      className={`${styles.inquiryType} ${
+                        item.type === 'hotel' ? styles.hotelType : styles.activityType
+                      }`}
+                    >
+                      <span>{item.type === 'hotel' ? (lang === 'pl' ? 'Hotel' : 'Hotel') : (lang === 'pl' ? 'Integracja' : 'Activity')}</span>
+                    </span>
+                  </div>
+                </a>
                 <button
                   type="button"
                   className={styles.inquiryRemove}
-                  onClick={() => handleRemoveItem(item.id)}
+                  onClick={() => handleRemoveItem(item)}
                   aria-label={`${t.form.inquiry.items.remove} ${item.name}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">

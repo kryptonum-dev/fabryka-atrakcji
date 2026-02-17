@@ -25,6 +25,8 @@ import FileView, { FileView_Query } from '@/src/components/ui/content-pt/offer/F
 import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
 import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
+import ContactForm from '@/src/components/global/ContactForm/index.astro'
+
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export type SingleActivityProps = {
@@ -32,6 +34,10 @@ export type SingleActivityProps = {
   activitiesPage: {
     name: string
     slug: string
+    detailFormDefaults?: {
+      heading?: PortableTextValue
+      paragraph?: PortableTextValue
+    }
   }
   _type: 'Activities_Collection'
   name: string
@@ -109,6 +115,10 @@ export type SingleActivityProps = {
     }>
     additionalInfo?: string
   }
+  formOverrides?: {
+    heading?: PortableTextValue
+    paragraph?: PortableTextValue
+  }
   components: ComponentsProps
   content: ContentPTProps['value']
 }
@@ -125,7 +135,11 @@ export async function fetchData(slug: string, lang: Language) {
       _id,
       "activitiesPage": *[_type == "Activities_Page" && language == $language][0] {
         name,
-        "slug": slug.current
+        "slug": slug.current,
+        detailFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
       },
       _type,
       name,
@@ -215,6 +229,10 @@ export async function fetchData(slug: string, lang: Language) {
         ImageWithHeadingAndText_Query,
         FileView_Query,
       ])}
+      formOverrides {
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+      },
       ${Components_Query}
     }
   `,
@@ -249,6 +267,10 @@ export async function staticPaths(lang: Language) {
 
 const { page, metadata } = Astro.props
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const formHeading = page.formOverrides?.heading || page.activitiesPage.detailFormDefaults?.heading
+const formParagraph = page.formOverrides?.paragraph || page.activitiesPage.detailFormDefaults?.paragraph
+const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
 ---
 
 <Layout {...metadata}>
@@ -300,7 +322,19 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
       name={page.name}
     />
   </article>
-  <Components data={page.components} hasPreviousSections />
+  <Components data={filteredComponents} hasPreviousSections />
+  {formHeading && (
+    <ContactForm
+      index={10}
+      sectionId="contact-form"
+      heading={formHeading}
+      paragraph={formParagraph || []}
+      variant="activity_detail"
+      showInquiries={false}
+      animate={false}
+      contextItem={{ type: 'integracja', id: page._id, name: page.name }}
+    />
+  )}
   <AddonsPopup addons={page.addons} type="activities" />
   <RemoveConfirmation
     itemId={page._id}

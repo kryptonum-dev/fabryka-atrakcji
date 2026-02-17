@@ -8,8 +8,17 @@ import Components, { Components_Query, type ComponentsProps } from '@/src/compon
 import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/hotels/Listing.astro'
 import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
+import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import type { FormStateTypes } from '@/src/global/types'
 
 export const ITEMS_PER_PAGE = 16
+
+type FormProps = {
+  formHeading?: PortableTextValue
+  formParagraph?: PortableTextValue
+  overrideFormState?: boolean
+  formState?: FormStateTypes
+}
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
@@ -45,7 +54,8 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
       noResults: {
         components: ComponentsProps
       }
-    } & ListingProps
+    } & ListingProps &
+      FormProps
   >({
     query: `
       *[_type == "Hotels_Page" && language == $language][0] {
@@ -53,6 +63,24 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
         "slug": slug.current,
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
+        ${PortableTextQuery('formHeading')}
+        ${PortableTextQuery('formParagraph')}
+        overrideFormState,
+        formState {
+          success {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
         checklist[],
         noResults {
           ${Components_Query}
@@ -143,6 +171,8 @@ const breadcrumbs = [
   { name: page.name, path: page.slug },
   ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
+
+const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
 ---
 
 <Layout {...metadata}>
@@ -166,7 +196,19 @@ const breadcrumbs = [
     stars={page.stars}
     roomRangeCounts={page.roomRangeCounts}
   />
-  <Components data={page.listing.length > 0 ? page.components : page?.noResults?.components} hasPreviousSections />
+  {page.formHeading && (
+    <ContactForm
+      index={10}
+      heading={page.formHeading}
+      paragraph={page.formParagraph || []}
+      overrideFormState={page.overrideFormState}
+      state={page.formState}
+      variant="hotel_listing"
+      showInquiries={false}
+      animate={false}
+    />
+  )}
+  <Components data={page.listing.length > 0 ? filteredComponents : page?.noResults?.components} hasPreviousSections />
 </Layout>
 
 <script>

@@ -54,6 +54,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@sanity/assist": "^3.2.2",
+        "@sanity/client": "^7.15.0",
         "@sanity/document-internationalization": "^3.3.3",
         "@sanity/embeddings-index-ui": "^2.0.1",
         "@sanity/icons": "^3.7.0",
@@ -5202,6 +5203,8 @@
     "sanity/semver": ["semver@7.7.1", "", { "bin": "bin/semver.js" }, ""],
 
     "sanity/vite": ["vite@6.3.6", "", { "dependencies": { "esbuild": "^0.25.0", "fdir": "^6.4.4", "picomatch": "^4.0.2", "postcss": "^8.5.3", "rollup": "^4.34.9", "tinyglobby": "^0.2.13" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "peerDependencies": { "@types/node": "^18.0.0 || ^20.0.0 || >=22.0.0", "jiti": ">=1.21.0", "less": "*", "lightningcss": "^1.21.0", "sass": "*", "sass-embedded": "*", "stylus": "*", "sugarss": "*", "terser": "^5.16.0", "tsx": "^4.8.1", "yaml": "^2.4.2" }, "optionalPeers": ["less", "lightningcss", "sass-embedded", "stylus", "tsx"], "bin": "bin/vite.js" }, "sha512-0msEVHJEScQbhkbVTb/4iHZdJ6SXp/AvxL2sjwYQFfBqleHtnCqv1J3sa9zbWz/6kW1m9Tfzn92vW+kZ1WV6QA=="],
+
+    "sanity-app/@sanity/client": ["@sanity/client@7.15.0", "", { "dependencies": { "@sanity/eventsource": "^5.0.2", "get-it": "^8.7.0", "nanoid": "^3.3.11", "rxjs": "^7.0.0" } }, "sha512-3RlK9c1lhNT4c4PhQp9/z6Zghb7n/HCmB5U1AgX8eFQBnx7vDUPwBge3mOakCh279cUA4e+8uys+rN9oQsrjXA=="],
 
     "sanity-plugin-media-i18n/date-fns": ["date-fns@2.30.0", "", { "dependencies": { "@babel/runtime": "^7.21.0" } }, ""],
 

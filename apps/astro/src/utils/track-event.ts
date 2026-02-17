@@ -28,6 +28,7 @@ type MetaEventName =
   | 'Login'
   | 'Logout'
   | 'Download'
+  | 'AddToWishlist'
 
 type MetaEventParamsMap = {
   CompleteRegistration: Record<string, never>
@@ -112,6 +113,12 @@ type MetaEventParamsMap = {
     file_name?: string
     file_type?: string
   }
+  AddToWishlist: {
+    content_ids?: string[]
+    content_type?: string
+    value?: number
+    currency?: string
+  }
 }
 
 type Ga4EventName =
@@ -135,6 +142,8 @@ type Ga4EventName =
   | 'lead'
   | 'contact'
   | 'view_cart'
+  | 'add_to_inquiry'
+  | 'inquiry_widget_opened'
 
 type Ga4EventParamsMap = {
   sign_up: {
@@ -224,6 +233,14 @@ type Ga4EventParamsMap = {
     currency?: string
     value?: number
     items?: Array<Record<string, unknown>>
+  }
+  add_to_inquiry: {
+    item_id?: string
+    item_name?: string
+    item_type?: string
+  }
+  inquiry_widget_opened: {
+    item_count?: number
   }
 }
 

@@ -807,6 +807,28 @@ export default defineType({
       group: 'content',
     }),
     defineField({
+      name: 'formOverrides',
+      type: 'object',
+      title: 'Nadpisania formularza kontaktowego',
+      description: 'Opcjonalne nadpisania nagłówka i paragrafu formularza kontaktowego dla tego hotelu.',
+      options: { collapsible: true, collapsed: true },
+      group: 'content',
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślny nagłówek formularza kontaktowego.',
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślny paragraf formularza kontaktowego.',
+        }),
+      ],
+    }),
+    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',

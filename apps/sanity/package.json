@@ -10,13 +10,16 @@
     "build": "NODE_OPTIONS='--max-old-space-size=4096' sanity build",
     "deploy": "SANITY_STUDIO_HOST=fabryka-atrakcji-staging sanity deploy",
     "deploy:production": "sanity deploy",
-    "deploy-graphql": "sanity graphql deploy"
+    "deploy-graphql": "sanity graphql deploy",
+    "migrate:contact-form-overrides:dry-run": "bun run scripts/migrate-contact-form-overrides.ts",
+    "migrate:contact-form-overrides:apply": "bun run scripts/migrate-contact-form-overrides.ts --apply"
   },
   "keywords": [
     "sanity"
   ],
   "dependencies": {
     "@sanity/assist": "^3.2.2",
+    "@sanity/client": "^7.15.0",
     "@sanity/document-internationalization": "^3.3.3",
     "@sanity/embeddings-index-ui": "^2.0.1",
     "@sanity/icons": "^3.7.0",

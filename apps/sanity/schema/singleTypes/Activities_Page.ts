@@ -1,8 +1,8 @@
-import { Book, MessageSquare } from 'lucide-react'
+import { Book } from 'lucide-react'
 import { defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { defineField } from 'sanity'
-import { ComposeIcon, SearchIcon } from '@sanity/icons'
+import { CommentIcon, ComposeIcon, SearchIcon } from '@sanity/icons'
 import { getLanguagePreview } from '../../structure/languages'
 
 const name = 'Activities_Page'
@@ -113,6 +113,7 @@ export default defineType({
       title: 'Nagłówek formularza',
       description: 'Nagłówek formularza zapytania na dole strony listy integracji',
       group: 'inquiry',
+      fieldset: 'listingForm',
     }),
     defineField({
       name: 'formParagraph',
@@ -120,6 +121,7 @@ export default defineType({
       title: 'Paragraf formularza',
       description: 'Paragraf formularza zapytania na dole strony listy integracji',
       group: 'inquiry',
+      fieldset: 'listingForm',
     }),
     defineField({
       name: 'overrideFormState',
@@ -128,6 +130,7 @@ export default defineType({
       description: 'Gdy włączone, użyj niestandardowych komunikatów sukcesu/błędu zamiast globalnych',
       initialValue: false,
       group: 'inquiry',
+      fieldset: 'listingForm',
     }),
     defineField({
       name: 'formState',
@@ -136,6 +139,32 @@ export default defineType({
       description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
       hidden: ({ document }) => !(document as any)?.overrideFormState,
       group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'detailFormDefaults',
+      type: 'object',
+      title: 'Domyślny formularz na stronie integracji',
+      description:
+        'Domyślny nagłówek i paragraf formularza kontaktowego na podstronach poszczególnych integracji. Można nadpisać w każdej integracji osobno.',
+      group: 'inquiry',
+      options: { collapsible: true, collapsed: false },
+      validation: (Rule) => Rule.required().error('Domyślny formularz na stronie integracji jest wymagany'),
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek formularza',
+          description: 'Domyślny nagłówek formularza na podstronie integracji',
+          validation: (Rule) => Rule.required().error('Nagłówek jest wymagany'),
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf formularza',
+          description: 'Domyślny paragraf formularza na podstronie integracji',
+        }),
+      ],
     }),
     defineField({
       name: 'escapeHatchHeading',
@@ -143,6 +172,7 @@ export default defineType({
       title: 'Nagłówek "Escape Hatch"',
       description: 'Nagłówek sekcji "Nie wiesz od czego zacząć?" wyświetlanej nad listą integracji',
       group: 'inquiry',
+      fieldset: 'escapeHatch',
     }),
     defineField({
       name: 'escapeHatchText',
@@ -150,6 +180,7 @@ export default defineType({
       title: 'Tekst "Escape Hatch"',
       description: 'Tekst sekcji "Nie wiesz od czego zacząć?" wyświetlanej nad listą integracji',
       group: 'inquiry',
+      fieldset: 'escapeHatch',
     }),
     defineField({
       name: 'seo',
@@ -157,6 +188,18 @@ export default defineType({
       title: 'SEO',
       group: 'seo',
     }),
+  ],
+  fieldsets: [
+    {
+      name: 'listingForm',
+      title: 'Formularz na stronie listy integracji',
+      options: { collapsible: true, collapsed: false },
+    },
+    {
+      name: 'escapeHatch',
+      title: 'Sekcja "Escape Hatch"',
+      options: { collapsible: true, collapsed: false },
+    },
   ],
   groups: [
     {
@@ -167,7 +210,7 @@ export default defineType({
     {
       name: 'inquiry',
       title: 'Formularz zapytania',
-      icon: MessageSquare,
+      icon: CommentIcon,
     },
     {
       name: 'seo',

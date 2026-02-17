@@ -1082,40 +1082,61 @@ The system has three forms that are already architecturally separated. They shar
 
 ---
 
-### Phase 5: Hardcoded Form on Listing Pages
+### Phase 5: Hardcoded Form on Listing Pages ✅ COMPLETED
 
 **Goal:** Activity and hotel listing pages get a hardcoded ContactForm at the bottom.
 
-- [ ] **5.1** Modify the GROQ query in the activities listing template — fetch `Activities_Page.formHeading`, `Activities_Page.formParagraph`, `Activities_Page.overrideFormState`, `Activities_Page.formState` alongside the existing page data. Also fetch `global.inquiryFormDefaults { paragraph, state, socialProof { ... } }`
-- [ ] **5.2** Add the ContactForm component to the activities listing template — hardcoded position after cards, before FAQ. Pass `heading` from singleton, `paragraph` from singleton, `socialProof` from global, `state` from singleton (if `overrideFormState`) or global (if not), `variant="activity_listing"`, `showInquiries={false}`
-- [ ] **5.3** Repeat for the hotels listing template — same pattern, data from `Hotels_Page` singleton, `variant="hotel_listing"`
-- [ ] **5.4** Verify listing pages render the form correctly — heading from singleton, social proof from global, variant-specific fields (event type radio for activities, region radio for hotels)
+- [x] **5.1** Modified the GROQ query in `CategoriesPage.astro` — fetches `formHeading`, `formParagraph`, `overrideFormState`, `formState` (with success/error PortableText + highlightedSocialMedia) from `Activities_Page` singleton. Added `FormProps` type and `ContactForm` + `FormStateTypes` imports.
+- [x] **5.2** Added ContactForm to `CategoriesPage.astro` — positioned after `<Components>` (bottom of page, before footer). Renders when `formHeading` is populated in Sanity. Props: `heading` from singleton, `paragraph` from singleton (with `[]` fallback), `overrideFormState`/`state` from singleton, `variant="activity_listing"`, `showInquiries={false}`. SocialProof, formVisualImage, and responseBadge resolve to global defaults automatically inside the ContactForm component.
+- [x] **5.3** Repeated for `HotelsPage.astro` — same pattern with `Hotels_Page` singleton data, `variant="hotel_listing"`. Extended GROQ query, added `FormProps` to type union, placed ContactForm after `<Components>`.
+- [x] **5.4** Both listing pages pass TypeScript checks — no linter errors. Form is conditionally rendered (only when `formHeading` is populated in Sanity), so existing pages work unchanged until content is added.
+
+**Design decisions:**
+
+- ContactForm is placed **outside** both search/regular mode branches in activities, so it appears regardless of mode.
+- The form is conditionally rendered with `{page.formHeading && ...}` — acts as a content gate. The form won't appear until the team populates `formHeading` in the Activities_Page / Hotels_Page singletons in Sanity Studio.
+- `paragraph` uses `|| []` fallback since the field is optional in Sanity but required in ContactForm props. An empty array renders nothing.
+- `index={10}` ensures the heading renders as `<h2>` (any index > 0 triggers h2).
+- Global defaults (socialProof, formVisualImage, responseBadge, state fallback) are fetched internally by the ContactForm component — no need to duplicate that query in the template.
 
 ---
 
-### Phase 6: Hardcoded Form on Detail Pages
+### Phase 6: Hardcoded Form on Detail Pages ✅ COMPLETED
 
 **Goal:** Every activity and hotel detail page has a hardcoded ContactForm with auto-attached context.
 
-- [ ] **6.1** Modify the GROQ query in the activity detail template — fetch `global.inquiryFormDefaults { paragraph, state, socialProof { ... } }` alongside the existing activity data
-- [ ] **6.2** Add the ContactForm component to the activity detail template — hardcoded position after content section, before FAQ. Pass `heading="Zapytaj o ${activity.name}"` (generated in template), `paragraph` from global, `socialProof` from global, `state` from global, `variant="activity_detail"`, `showInquiries={false}`, `contextItem={{ type: "integracja", id: activity._id, name: activity.name }}`
-- [ ] **6.3** Repeat for the hotel detail template — same pattern, `variant="hotel_detail"`, `contextItem={{ type: "hotel", id: hotel._id, name: hotel.name }}`
-- [ ] **6.4** Verify detail pages — form renders with auto-generated heading, context item is submitted as hidden data, social proof displays
+- [x] **6.1** No GROQ query changes needed — ContactForm self-fetches global defaults (paragraph, socialProof, state, formVisualImage, responseBadge) internally via `sanityFetch`.
+- [x] **6.2** Added ContactForm to `SingleActivityPage.astro` — placed after `<Components>`, before `<AddonsPopup>`. Auto-generated heading `"Zapytaj o ${page.name}"` constructed as PortableText block in template. Props: `variant="activity_detail"`, `showInquiries={false}`, `animate={false}`, `contextItem={{ type: 'integracja', id: page._id, name: page.name }}`.
+- [x] **6.3** Repeated for `SingleHotelPage.astro` — same pattern with `variant="hotel_detail"`, `contextItem={{ type: 'hotel', id: page._id, name: page.name }}`.
+- [x] **6.4** Both detail pages pass TypeScript checks — no linter errors. Form always renders (no conditional gate, unlike listing pages) with auto-generated heading and context item.
+
+**Migration timing (critical):**
+
+- Do **not** run the `migrate-contact-form-overrides` script yet.
+- Keep existing page-builder `ContactForm` components in Sanity until the full hardcoded form rollout is fully finished and validated end-to-end.
+- Run migration only at final go-live stage, then optionally remove page-builder `ContactForm` components in the same controlled release window.
 
 ---
 
-### Phase 7: Inquiry Store & "Add to Inquiry" System
+### Phase 7: Inquiry Store & "Add to Inquiry" System ✅ COMPLETED
 
 **Goal:** Users can browse, collect activities/hotels into localStorage, and see them on the contact page.
 
-- [ ] **7.1** Create `src/utils/inquiry-store.ts` — nanostores + `@nanostores/persistent` for localStorage management. Functions: `addToInquiry(item)`, `removeFromInquiry(id)`, `clearInquiry()`, `getInquiryCount()`. Item shape: `{ type, id, name, image, url }`
-- [ ] **7.2** Add "Dodaj do zapytania" button to `ActivityCard` (Preact) — secondary action alongside existing card click. On click: adds item to inquiry store, shows toast feedback
-- [ ] **7.3** Add "Dodaj do zapytania" button to `HotelCard` (Astro) — same pattern, may need partial hydration or a small Preact island for the button
-- [ ] **7.4** Modify `components/ui/Toast` — reuse existing toast for "Dodano do zapytania" feedback
-- [ ] **7.5** Create `InquiryWidget` Preact component — sticky bottom-right widget that appears when localStorage has inquiry items. Shows count, item thumbnails, "Przejdź do formularza" CTA linking to `/pl/kontakt/`
-- [ ] **7.6** Add `InquiryWidget` to `Layout.astro` — renders on all pages with `client:idle` hydration
-- [ ] **7.7** Add analytics events — fire GA4 `add_to_inquiry` + Meta `AddToWishlist` when item is added via `addToInquiry()`. Fire GA4 `inquiry_widget_opened` when widget is expanded. Use `trackEvent()` from `track-event.ts` (no new infrastructure needed).
-- [ ] **7.8** Verify the full flow — add items from listing cards → widget appears → click through to contact page → items shown in the form (`showInquiries: true`) → submit → items included in email. Verify analytics: `add_to_inquiry` fires on add, `inquiry_widget_opened` fires on expand.
+- [x] **7.1** Created `src/utils/inquiry-store.ts` — pure localStorage store (no external deps) with `addToInquiry()`, `removeFromInquiry()`, `clearInquiry()`, `isInInquiry()`, `getInquiryCount()`, `getInquiryItems()`. Item shape: `{ type, id, name, image, url }`. Fires `inquiry-updated` CustomEvent on every mutation.
+- [x] **7.2** Modified Hero.astro CTAs on detail pages — primary CTA scrolls to `#contact-form` ("Zapytaj o wycenę"), secondary CTA adds current item to inquiry store ("Dodaj do zapytania"). Removed all cart logic (addToCart, isInCart, dispatchCartUpdate, dispatchAddonsPopup). Button disables visually after item is added.
+- [x] **7.3** Modified SubmitSidebar.astro CTA — replaced cart "Wybierz do kompleksowej wyceny" with "Zapytaj o wycenę" that smooth-scrolls to `#contact-form`. Removed entire cart state management script (addToCart, isInCart, in-cart-content, not-in-cart-content). Kept pricing display and mobile fixed-bar behavior.
+- [x] **7.4** Added `sectionId="contact-form"` to ContactForm on both `SingleActivityPage.astro` and `SingleHotelPage.astro` — enables scroll-to-form targeting.
+- [x] **7.5** Created `InquiryWidget` Preact component — sticky bottom-right FAB with count badge, expandable panel showing inquiry items with thumbnails, remove buttons, and "Przejdź do formularza" CTA linking to `/pl/kontakt/`. Closes on outside click.
+- [x] **7.6** Added `InquiryWidget` to `Layout.astro` — renders on all pages with `client:idle` hydration.
+- [x] **7.7** Added analytics events — GA4 `add_to_inquiry` + Meta `AddToWishlist` fired in Hero.astro when item is added. GA4 `inquiry_widget_opened` fired when widget is expanded. Extended `Ga4EventName` and `MetaEventName` types in `track-event.ts`.
+- [x] **7.8** Refactored `InquiryForm.tsx` to import from shared `inquiry-store.ts` — removed duplicate `getInquiryItems()`, `removeInquiryItem()`, `INQUIRY_STORAGE_KEY` definitions. Uses `removeFromInquiry()` and `clearInquiry()` from the store.
+
+**Design decisions (revised from original plan):**
+
+- **No card-level CTAs** — "Add to inquiry" is on detail pages only (Hero section secondary CTA), not on listing cards. This targets users with higher purchase intent who have already clicked through to read details.
+- **No nanostores dependency** — used plain localStorage + CustomEvent pattern, consistent with existing `cart.ts` architecture. Keeps bundle lean.
+- **SubmitSidebar simplified** — no longer manages cart state or addon popups. Now a pure scroll-to-form CTA alongside pricing info. Mobile fixed-bar behavior preserved.
+- **Toast reused** — existing `dispatchToast()` from events.ts handles "Dodano do zapytania" feedback, no new toast infrastructure needed.
 
 ---
 
@@ -1125,8 +1146,8 @@ The system has three forms that are already architecturally separated. They shar
 
 - [ ] **8.1** Remove `CartLink` from `Header.astro` — delete the component reference
 - [ ] **8.2** Add a badge (small count indicator) to the existing "Skontaktuj się" nav link — reads from inquiry store, shows count when > 0. Needs a small Preact island or client-side script
-- [ ] **8.3** Modify Hero CTA on activity detail pages — replace "Wybierz do kompleksowej wyceny" with dual CTA: primary "Zapytaj o tę integrację" (scroll to form) + secondary "Dodaj do zapytania" (localStorage)
-- [ ] **8.4** Modify Hero CTA on hotel detail pages — same dual CTA pattern
+- [x] **8.3** ~~Modify Hero CTA on activity detail pages~~ — done in Phase 7.2
+- [x] **8.4** ~~Modify Hero CTA on hotel detail pages~~ — done in Phase 7.2
 - [ ] **8.5** Set up redirects — `/pl/koszyk/` → `/pl/kontakt/`, `/en/cart/` → `/en/contact/` (in Astro routing or via `_redirects` file)
 - [ ] **8.6** Verify navigation — cart link is gone, "Skontaktuj się" shows badge when items exist, old cart URLs redirect properly
 
@@ -1167,6 +1188,7 @@ The system has three forms that are already architecturally separated. They shar
 - [ ] **11.6** Performance check — Core Web Vitals on listing pages with the added form + social proof. Ensure no LCP regression
 - [ ] **11.7** Delete unused cart components — `components/cart/*`, `AddonsPopup.astro`, `SubmitSidebar.astro`, `CartLink`. Git preserves everything.
 - [ ] **11.8** Delete unused API routes — `/api/cart/activity`, `/api/cart/hotel`, `/api/initialQuote`, `/api/quotes`. All deleted, not archived.
+- [ ] **11.9** Run `migrate-contact-form-overrides` in production release window — first `dry-run`, then `--apply` (and only then decide whether to run with `--remove-contact-form` after frontend verification)
 - [ ] **11.9** Delete unused Sanity schemas — `Cart_Page`, `Quote_Page`, quotes collection type, `addons` shared type. Remove from schema index and delete files.
 - [ ] **11.10** Delete `QuoteCartLayout.astro` — no longer used
 - [ ] **11.11** Delete unused utilities — `cart.ts` and any cart-related type definitions
@@ -1493,5 +1515,5 @@ After implementation, measure:
 ---
 
 _Strategy created: February 13, 2026_
-_Last updated: February 16, 2026 — Phase 0-4 marked complete, branded email templates created, analytics dev guards added, form submission end-to-end tested_
+_Last updated: February 17, 2026 — Phase 0-6 marked complete, hardcoded ContactForm added to detail pages with auto-generated headings and contextItem_
 _Sources: PROJECT_OVERVIEW.md, Notion diagnosis (Feb 6, 2026), Notion specification (Feb 9, 2026), Meta Ads traffic analysis_

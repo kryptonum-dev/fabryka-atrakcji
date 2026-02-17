@@ -100,6 +100,7 @@ export default defineField({
         defineField({
           name: 'formState',
           type: 'formState',
+          validation: (Rule) => Rule.required(),
         }),
       ],
       validation: (Rule) =>

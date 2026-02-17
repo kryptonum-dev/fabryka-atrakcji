@@ -7,7 +7,6 @@ import Image from '@/src/components/ui/image/index.astro'
 import PopupWindow from '@/src/components/ui/PopupWindow/index.astro'
 import CloseButton from '@/src/components/ui/PopupWindow/CloseButton.astro'
 import type { SingleHotelProps } from '@/src/templates/hotels/SingleHotelPage.astro'
-import Loader from '@/src/components/ui/Loader.astro'
 
 type HeroProps = SingleActivityProps | SingleHotelProps
 
@@ -50,10 +49,11 @@ const translations = {
       onConference: 'na konferencji',
       onBanquet: 'na bankiecie',
     },
-    getPrice: 'Wybierz do kompleksowej wyceny',
-    removeFromQuote: 'Usuń z wyceny',
-    addedAlert: 'Dodano do wyceny',
-    removedAlert: 'Usunięto z wyceny',
+    scrollToForm: 'Zapytaj o wycenę',
+    addToInquiry: 'Dodaj do zapytania',
+    removeFromInquiry: 'Usuń z zapytania',
+    addedAlert: 'Dodano do zapytania',
+    removedAlert: 'Usunięto z zapytania',
   },
   en: {
     activities: {
@@ -91,10 +91,11 @@ const translations = {
       onConference: 'on conference',
       onBanquet: 'on banquet',
     },
-    getPrice: 'Get a comprehensive price estimate',
-    removeFromQuote: 'Remove from quote',
-    addedAlert: 'Added to quote',
-    removedAlert: 'Removed from quote',
+    scrollToForm: 'Ask for a quote',
+    addToInquiry: 'Add to inquiry',
+    removeFromInquiry: 'Remove from inquiry',
+    addedAlert: 'Added to inquiry',
+    removedAlert: 'Removed from inquiry',
   },
 }
 
@@ -181,7 +182,7 @@ function getVoivodeshipName(key: string): string {
 }
 
 const props = Astro.props as HeroProps
-const { title, description, _type, addons, _id, name, pricing } = props
+const { title, description, _type, _id, name, pricing } = props
 
 // Handle mediaList vs imageList with full backward compatibility
 const mediaItems = (() => {
@@ -199,6 +200,10 @@ const imageList = mediaItems.map((item) => item.image)
 
 const pricePerPerson = (pricing as any)?.additionalPersonPrice || (pricing as any)?.pricePerPerson
 
+// Get first image URL and current slug for inquiry store
+const firstImageUrl = imageList[0]?.asset?.url || ''
+const currentSlug = props.slug || ''
+
 const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
           <mask id="path-1-inside-1_6107_29788" fill="white">
             <path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/>
@@ -214,17 +219,16 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   class="Hero max-width"
   data-type={_type}
   data-id={_id}
-  data-has-addons={addons?.hasAddons ? 'true' : 'false'}
-  data-min-one-addon={addons?.minOneAddon ? 'true' : 'false'}
-  data-addons-choice={addons?.addonsChoice || 'unlimited'}
   data-lang={lang}
   data-name={name}
   data-price={pricePerPerson}
+  data-image={firstImageUrl}
+  data-slug={currentSlug}
   data-text={JSON.stringify({
-    addToCart: t.getPrice,
-    removeFromCart: t.removeFromQuote,
-    addToCartAlert: t.addedAlert,
-    removeFromCartAlert: t.removedAlert,
+    addToInquiry: t.addToInquiry,
+    removeFromInquiry: t.removeFromInquiry,
+    addedAlert: t.addedAlert,
+    removedAlert: t.removedAlert,
   })}
 >
   {
@@ -271,19 +275,20 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   <PortableText value={title} heading="h1" class="heading" />
   <p class="description">{description}</p>
   <div class="buttons">
-    <Button theme="primary" shade="dark" href="#content"
-      >{_type === 'Activities_Collection' ? t.activities.readMore : t.hotels.readMore}</Button
+    <Button theme="primary" shade="dark" href="#contact-form" className="scroll-to-form-btn"
+      >{t.scrollToForm}</Button
     >
     <Button
       theme="primary"
       shade="light"
-      disabled
+      className="add-to-inquiry-btn"
       data-type={_type === 'Activities_Collection' ? 'activities' : 'hotels'}
+      disabled
+      data-loading="true"
+      data-label-add={t.addToInquiry}
+      data-label-remove={t.removeFromInquiry}
     >
-      <Loader />
-      <span>
-        {t.getPrice}
-      </span>
+      <Fragment set:html="&nbsp;" />
     </Button>
   </div>
   <ul class="details">
@@ -624,57 +629,46 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
       flex-wrap: wrap;
       gap: 0.75rem;
 
-      :global(button[data-theme='primary'][data-shade='light']) {
-        position: relative;
+      :global(.add-to-inquiry-btn) {
+        min-width: var(--inquiry-btn-width, 14rem);
 
-        :global(div[aria-label='Ładowanie...']) {
-          position: absolute;
-          inset: 0;
-          margin: auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 1 !important;
-          visibility: visible !important;
-          transition:
-            opacity 300ms var(--easing),
-            visibility 300ms;
-          background: none;
-          backdrop-filter: none;
-          width: 1.5rem;
-          height: 1.5rem;
-          border-radius: 0;
+        :global(> span) {
+          flex: 1;
+          text-align: center;
+        }
+      }
 
-          :global(svg) {
-            width: 1.5rem;
-            height: 1.5rem;
+      :global(.add-to-inquiry-btn[data-in-inquiry='true']) {
+        background-color: var(--primary-100);
+        border-color: var(--primary-300);
+      }
+
+      :global(.add-to-inquiry-btn[data-loading='true']) {
+        pointer-events: none;
+
+        :global(> span) {
+          position: relative;
+          color: transparent !important;
+
+          &::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 1.125rem;
+            height: 1.125rem;
+            margin: -0.5625rem 0 0 -0.5625rem;
+            border: 2px solid var(--primary-200);
+            border-top-color: var(--primary-500);
+            border-radius: 50%;
+            animation: inquiry-spin 0.6s linear infinite;
           }
         }
+      }
 
-        // Group all initially hidden elements
-        :global(span span),
-        :global(div:first-of-type),
-        :global(div:first-of-type div) {
-          opacity: 0;
-          visibility: hidden;
-          transition:
-            opacity 300ms var(--easing),
-            visibility 300ms;
-        }
-
-        &[data-loaded='true'] {
-          :global(div[aria-label='Ładowanie...']) {
-            opacity: 0 !important;
-            visibility: hidden !important;
-          }
-
-          // Show all elements together
-          :global(span span),
-          :global(div:first-of-type),
-          :global(div:first-of-type div > svg) {
-            opacity: 1;
-            visibility: visible;
-          }
+      @keyframes inquiry-spin {
+        to {
+          transform: rotate(360deg);
         }
       }
     }
@@ -1582,153 +1576,117 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 </style>
 
 <script>
-  import { addToCart, isInCart } from '@/src/store/cart'
-  import { dispatchCartUpdate, dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
+  import { addToInquiry, removeFromInquiry, isInInquiry } from '@/src/utils/inquiry-store'
+  import { dispatchToast } from '@/src/utils/events'
   import { trackEvent } from '@/utils/track-event'
 
-  // Get references to the hero section and button
   const heroSection = document.querySelector('.Hero')! as HTMLElement
-  const toggleButton = document.querySelector('button[data-theme="primary"][data-shade="light"]')! as HTMLButtonElement
-
-  // Video popup elements (only for Activities)
-  // const pageType = heroSection?.dataset.type
+  const inquiryButton = document.querySelector('.add-to-inquiry-btn') as HTMLButtonElement
+  const scrollButton = document.querySelector('.scroll-to-form-btn') as HTMLAnchorElement
 
   const videoPopup = document.querySelector('.video-popup') as HTMLElement
   const videoIframe = document.querySelector('.video-iframe') as HTMLIFrameElement
   const videoCloseButton = document.querySelector('.video-close-button') as HTMLButtonElement
   const galleryPopup = document.querySelector('.popup') as HTMLElement
 
-  // Get data attributes
-  const itemId = heroSection.dataset.id
-  const itemType = heroSection.dataset.type === 'Hotels_Collection' ? 'hotels' : 'activities'
-  const hasAddons = heroSection.dataset.hasAddons === 'true'
-  const requiresAddons = hasAddons && heroSection.dataset.minOneAddon === 'true'
-  const translations = JSON.parse(heroSection.getAttribute('data-text') || '{}')
+  const itemId = heroSection.dataset.id || ''
   const itemName = heroSection.dataset.name || ''
+  const itemImage = heroSection.dataset.image || ''
+  const itemSlug = heroSection.dataset.slug || ''
+  const itemType = heroSection.dataset.type === 'Hotels_Collection' ? 'hotel' : 'integracja'
+  const translations = JSON.parse(heroSection.getAttribute('data-text') || '{}')
 
-  // Function to update the button text based on cart state
-  function updateButtonState() {
-    if (!itemId || !itemType) return
-
-    const inCart = isInCart(itemId, itemType)
-    const textState = toggleButton.querySelector('span:last-of-type span')
-
-    if (textState) {
-      textState.textContent = inCart ? translations.removeFromCart : translations.addToCart
-      toggleButton.dataset.cart = inCart ? 'true' : 'false'
-    }
-
-    if (inCart) {
-      setTimeout(() => {
-        toggleButton.setAttribute('data-remove-trigger', 'true')
-      }, 50)
-    } else {
-      setTimeout(() => {
-        toggleButton.removeAttribute('data-remove-trigger')
-      }, 50)
-    }
-
-    // Enable button and show content
-    toggleButton.disabled = false
-    toggleButton.dataset.loaded = 'true'
+  // Smooth scroll for primary CTA
+  if (scrollButton) {
+    scrollButton.addEventListener('click', (e) => {
+      const target = document.getElementById('contact-form')
+      if (target) {
+        e.preventDefault()
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    })
   }
 
-  // Handle click on the toggle button
-  toggleButton.addEventListener('click', () => {
-    if (!itemId || !itemType) return
+  // Measure longest label and lock button width to prevent layout shift
+  if (inquiryButton) {
+    const labelAdd = inquiryButton.dataset.labelAdd || ''
+    const labelRemove = inquiryButton.dataset.labelRemove || ''
+    const textSpan = inquiryButton.querySelector('span') as HTMLElement
+    if (textSpan) {
+      const original = textSpan.textContent
+      textSpan.style.visibility = 'hidden'
+      textSpan.textContent = labelAdd
+      const wAdd = inquiryButton.offsetWidth
+      textSpan.textContent = labelRemove
+      const wRemove = inquiryButton.offsetWidth
+      textSpan.textContent = original
+      textSpan.style.visibility = ''
+      inquiryButton.style.setProperty('--inquiry-btn-width', `${Math.max(wAdd, wRemove)}px`)
+    }
+  }
 
-    const inCart = isInCart(itemId, itemType)
-    const itemPriceValue = heroSection.dataset.price ? Number(heroSection.dataset.price) : undefined
-    if (inCart) return
+  // Update inquiry button state
+  function updateInquiryButton() {
+    if (!inquiryButton || !itemId) return
+    const inInquiry = isInInquiry(itemId)
+    const textSpan = inquiryButton.querySelector('span') as HTMLElement
+    if (textSpan) {
+      textSpan.textContent = inInquiry ? translations.removeFromInquiry : translations.addToInquiry
+    }
+    inquiryButton.dataset.inInquiry = inInquiry ? 'true' : 'false'
+    inquiryButton.dataset.loading = 'false'
+    inquiryButton.disabled = false
+  }
 
-    // If item has addons and requires them, open the addons popup
-    if (requiresAddons) {
-      // Open the addon selection popup without adding to cart immediately
-      dispatchAddonsPopup({
-        itemId,
-        itemType,
-        hasAddons,
-        isEditing: false,
-        minOneAddon: heroSection.dataset.minOneAddon === 'true',
-        requiresAddons,
-        addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
-        name: itemName,
-      })
-    } else {
-      // Add to cart immediately if no addons required
-      addToCart({
+  // Toggle inquiry on click
+  if (inquiryButton) {
+    inquiryButton.addEventListener('click', () => {
+      if (!itemId) return
+
+      if (isInInquiry(itemId)) {
+        removeFromInquiry(itemId)
+        dispatchToast(translations.removedAlert, 'success')
+        updateInquiryButton()
+        return
+      }
+
+      const added = addToInquiry({
+        type: itemType as 'integracja' | 'hotel',
         id: itemId,
-        type: itemType,
-        addOns: [],
-      })
-
-      // Track the add to cart event
-
-      trackEvent({
-        ga4: {
-          eventName: 'add_to_cart',
-          params: {
-            currency: 'PLN',
-            value: itemPriceValue,
-            items: [
-              {
-                item_id: itemId,
-                item_name: itemName,
-                price: itemPriceValue,
-              },
-            ],
-          },
-        },
-        meta: {
-          eventName: 'AddToCart',
-          contentName: itemName,
-          params: {
-            content_ids: itemId ? [itemId] : undefined,
-            content_type: itemType,
-            value: itemPriceValue,
-            currency: itemPriceValue ? 'PLN' : undefined,
-          },
-        },
-      })
-      // If has optional addons, open the popup
-      dispatchAddonsPopup({
-        itemId,
-        itemType,
-        hasAddons,
-        isEditing: false,
-        minOneAddon: false,
-        requiresAddons: false,
-        addonsChoice: heroSection.dataset.addonsChoice || 'unlimited',
         name: itemName,
+        image: itemImage,
+        url: itemSlug,
       })
 
-      // Update button text
-      updateButtonState()
+      if (added) {
+        dispatchToast(translations.addedAlert, 'success')
+        updateInquiryButton()
 
-      // Dispatch cart update event
-      dispatchCartUpdate(itemId, itemType, 'add')
-
-      // Also dispatch addons-popup-confirmed event for the badge animation
-      document.dispatchEvent(
-        new CustomEvent('addons-popup-confirmed', {
-          detail: {
-            itemId,
-            itemType,
-            addons: [],
+        trackEvent({
+          ga4: {
+            eventName: 'add_to_inquiry',
+            params: {
+              item_id: itemId,
+              item_name: itemName,
+              item_type: itemType,
+            },
+          },
+          meta: {
+            eventName: 'AddToWishlist',
+            contentName: itemName,
+            params: {
+              content_ids: [itemId],
+              content_type: itemType,
+            },
           },
         })
-      )
-    }
-  })
+      }
+    })
+  }
 
-  // Listen for cart updates
-  listenToCartUpdates(updateButtonState)
-
-  // Initialize button state on page load
-  document.addEventListener('DOMContentLoaded', updateButtonState)
-
-  // Also check immediately in case the DOM is already loaded
-  updateButtonState()
+  // Listen for external inquiry updates (e.g. removed from widget)
+  document.addEventListener('inquiry-updated', updateInquiryButton)
+  updateInquiryButton()
 
   // Video popup functionality (Activities only)
   if (videoPopup && videoIframe && videoCloseButton) {

@@ -49,6 +49,7 @@ export default defineField({
       type: 'formState',
       title: 'Stan formularza',
       fieldset: 'form',
+      validation: (Rule) => Rule.required(),
     }),
   ],
   fieldsets: [

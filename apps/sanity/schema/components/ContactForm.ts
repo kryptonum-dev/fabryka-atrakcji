@@ -88,6 +88,13 @@ export default defineField({
       description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
       hidden: ({ parent }) => !(parent as any)?.overrideFormState,
     }),
+    defineField({
+      name: 'animate',
+      type: 'boolean',
+      title: 'Animacja wejścia',
+      description: 'Gdy włączone, formularz animuje się przy wejściu w pole widzenia. Wyłącz dla formularzy osadzonych na listingach.',
+      initialValue: true,
+    }),
     ...sectionId,
   ],
   preview: {

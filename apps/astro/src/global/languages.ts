@@ -91,6 +91,7 @@ export const translations = {
         items: {
           heading: 'Twój wybór',
           remove: 'Usuń',
+          removedAlert: 'Usunięto z zapytania',
         },
         submit: 'Wyślij zapytanie',
       },
@@ -185,6 +186,7 @@ export const translations = {
         items: {
           heading: 'Your selection',
           remove: 'Remove',
+          removedAlert: 'Removed from inquiry',
         },
         submit: 'Send inquiry',
       },
