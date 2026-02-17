@@ -1,5 +1,5 @@
 import { BarChartIcon, CaseIcon, CommentIcon, SearchIcon, UsersIcon } from '@sanity/icons'
-import { CogIcon } from 'lucide-react'
+import { CogIcon, User2Icon } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { getLanguagePreview } from '../../structure/languages'
 
@@ -372,6 +372,94 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'listingFilters',
+      type: 'object',
+      title: 'Ustawienia filtrów listingów',
+      description: 'Konfiguracja opcji filtrów na listingach (integracje i hotele).',
+      group: 'filters',
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: 'activityParticipantGroups',
+          type: 'array',
+          title: 'Grupy "Liczba osób" (integracje)',
+          description:
+            'Zakresy uczestników używane w filtrze "Liczba osób" na listingu integracji. Wymagane: 2-6 grup.',
+          of: [
+            defineField({
+              name: 'participantGroup',
+              type: 'object',
+              title: 'Grupa',
+              fields: [
+                defineField({
+                  name: 'label',
+                  type: 'string',
+                  title: 'Etykieta',
+                  description: 'Np. "1-30", "31-80", "150+".',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'min',
+                  type: 'number',
+                  title: 'Min',
+                  validation: (Rule) => Rule.required().min(1),
+                }),
+                defineField({
+                  name: 'max',
+                  type: 'number',
+                  title: 'Max (opcjonalne)',
+                  description: 'Pozostaw puste dla zakresu otwartego (np. 150+).',
+                  validation: (Rule) => Rule.min(1),
+                }),
+              ],
+              preview: {
+                select: { label: 'label', min: 'min', max: 'max' },
+                prepare: ({ label, min, max }) => ({
+                  media: User2Icon,
+                  title: label || `${min}${typeof max === 'number' ? `-${max}` : '+'}`,
+                }),
+              },
+              validation: (Rule) =>
+                Rule.custom((value) => {
+                  const group = value as { min?: number; max?: number } | undefined
+                  if (!group) return true
+                  if (typeof group.max === 'number' && typeof group.min === 'number' && group.max < group.min) {
+                    return 'Pole "max" musi być większe lub równe "min".'
+                  }
+                  return true
+                }),
+            }),
+          ],
+          validation: (Rule) => Rule.required().min(2).max(6),
+        }),
+        defineField({
+          name: 'hotelLocationOptions',
+          type: 'array',
+          title: 'Opcje "Lokalizacja" (hotele)',
+          description:
+            'Lista lokalizacji wyświetlana w filtrze "Lokalizacja" na listingu hoteli. Wymagane: 2-6 pozycji.',
+          of: [
+            defineField({
+              name: 'location',
+              type: 'reference',
+              to: [{ type: 'Locations_Collection' }],
+              options: {
+                disableNew: true,
+                filter: ({ document }) => {
+                  const language = (document as { language?: string })?.language
+                  return {
+                    filter: '!(_id in path("drafts.**")) && language == $lang',
+                    params: { lang: language },
+                  }
+                },
+              },
+            }),
+          ],
+          validation: (Rule) => Rule.required().min(2).max(6),
+        }),
+      ],
+    }),
+    defineField({
       name: 'contactRecipients',
       type: 'array',
       title: 'Odbiorcy formularza kontaktowego',
@@ -402,6 +490,11 @@ export default defineType({
       name: 'forms',
       title: 'Formularze',
       icon: CommentIcon,
+    },
+    {
+      name: 'filters',
+      title: 'Filtry listingów',
+      icon: SearchIcon,
     },
     {
       name: 'analytics',

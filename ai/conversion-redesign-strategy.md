@@ -1153,26 +1153,19 @@ The system has three forms that are already architecturally separated. They shar
 
 ---
 
-### Phase 9: Escape Hatch & Listing Enhancements
+### Phase 9: Escape Hatch & Listing Enhancements ✅ COMPLETED
 
 **Goal:** Users who don't know what to pick get a clear path to the form.
 
-- [ ] **9.1** Create `EscapeHatch` Astro component — "Nie wiesz od czego zacząć?" block with heading, short text, and CTA button scrolling to the form
-- [ ] **9.2** Add EscapeHatch to the activities listing template — positioned below hero, above cards. Content from `Activities_Page` singleton (escape hatch heading + text)
-- [ ] **9.3** Add EscapeHatch to the hotels listing template — same pattern, content from `Hotels_Page` singleton
-- [ ] **9.4** Add soft blocker to activity detail pages — replace hard "minimum 40 osób" with encouraging message + CTA to form (content from `Activities_Collection` soft blocker field)
-- [ ] **9.5** Update individual price messaging on activity detail pages — replace "Cena dostępna w wycenie" with "Cena ustalana indywidualnie" + "Zapytaj o wycenę" CTA scrolling to form
-
----
-
-### Phase 10: Contact Page Polish
-
-**Goal:** Final sections on the redesigned contact page.
-
-- [ ] **10.1** Create `HowItWorks` page builder component (Sanity schema + Astro component) — 3-step process: "Wypełniasz formularz" → "Oddzwaniamy w 24h" → "Przygotowujemy propozycję"
-- [ ] **10.2** Create `PopularItems` page builder component (Sanity schema + Astro component) — Featured activities/hotels with "Dodaj do zapytania" buttons, for users who reach the contact page without browsing the catalog
-- [ ] **10.3** Add both components to the contact page in Sanity (staging) — HowItWorks above the form, PopularItems below FAQ
-- [ ] **10.4** Verify the complete contact page flow — Hero → HowItWorks → Social Proof + Form → FAQ → PopularItems
+- [x] **9.1** Added inline "escape hint" to activity category listings (`apps/astro/src/components/activites/category/Listing.astro`) with CMS-editable text from `Activities_Page` (`escapeHatchHeading`, `escapeHatchText`).
+- [x] **9.2** Added inline "escape hint" to hotels listing (`apps/astro/src/components/hotels/Listing.astro`) with CMS-editable text from `Hotels_Page`.
+- [x] **9.3** Wired GROQ + props in `ActivitiesPage.astro` and `HotelsPage.astro` and styled hint with subtle left border + global `.link` usage.
+- [x] ~~**9.4**~~ Soft blocker step removed from scope (intentionally not implemented).
+- [x] **9.4** Updated individual pricing message + CTA behavior in `SubmitSidebar.astro` and moved all form anchors to language-aware IDs (`#kontakt` / `#contact`) across hero/sidebar/listing flows.
+- [x] **9.5** Added global Sanity-driven listing filters (`listingFilters`) in `global.tsx`:
+  - `activityParticipantGroups` (min 2, max 6)
+  - `hotelLocationOptions` (min 2, max 6)
+  and wired them in listings + ContactForm (`index.astro`/`InquiryForm.tsx`) so team size / location options are CMS-managed across all contact form contexts.
 
 ---
 
@@ -1214,7 +1207,7 @@ The system has three forms that are already architecturally separated. They shar
   - Remove `TEST_RECIPIENT` constant and `IS_DEV` guard in `src/pages/api/contact.ts` (lines 12–19) so `getContactRecipients()` always fetches from Sanity
   - Ensure `global.contactRecipients` is populated in Sanity with real team emails (e.g., `lukasz@fabryka-atrakcji.com`)
   - Verify the fallback email (`lukasz@fabryka-atrakcji.com`) is correct
-      x- [ ] **12.4** Merge `feature/conversion-redesign` into `main`
+    x- [ ] **12.4** Merge `feature/conversion-redesign` into `main`
 - [ ] **12.5** Deploy to production (Astro + Sanity Studio)
 - [ ] **12.6** Verify production — spot-check all form paths, confirm emails, check redirects
 - [ ] **12.7** Verify analytics in production — confirm these events fire correctly: (a) `lead` with `form_name: inquiry_form` on InquiryForm submit, (b) `lead` with `form_name: faq_form` on FAQ Form submit, (c) `generate_lead` with `form_name: newsletter_form` on Newsletter submit, (d) `add_to_inquiry` on item add, (e) `PageView`/`page_view` on all pages, (f) `Contact`/`contact` on tel/mailto clicks, (g) `view_item_list`/`view_item` on listing/detail pages. Verify Meta CAPI deduplication works (check Events Manager for duplicate rate).
@@ -1229,20 +1222,18 @@ The system has three forms that are already architecturally separated. They shar
 
 | File                                                        | Change                                                                 |
 | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `src/pages/pl/kontakt.astro` (or dynamic page)              | Complete redesign                                                      |
+| `src/pages/pl/kontakt.astro` (or dynamic page)              | Keep current structure (no extra contact-page polish scope)            |
 | `src/templates/ActivitiesListingPage.astro` (or equivalent) | Add EscapeHatch + hardcoded ContactForm (data from singleton + global) |
 | `src/templates/HotelsListingPage.astro` (or equivalent)     | Add EscapeHatch + hardcoded ContactForm (data from singleton + global) |
 | `src/templates/ActivityPage.astro` (or equivalent)          | Add hardcoded ContactForm with `contextItem`, modify Hero CTA          |
 | `src/templates/HotelPage.astro` (or equivalent)             | Add hardcoded ContactForm with `contextItem`, modify Hero CTA          |
-| `src/pages/pl/koszyk.astro`                                 | Redirect to /kontakt/                                                  |
-| `src/pages/en/cart.astro`                                   | Redirect to /contact/                                                  |
 
 ### Layouts to Modify
 
 | File                       | Change                                                             |
 | -------------------------- | ------------------------------------------------------------------ |
 | `src/layouts/Layout.astro` | Add InquiryWidget, remove CartLink dependency                      |
-| `src/layouts/Header.astro` | Remove CartLink, add badge logic to existing "Skontaktuj się" link |
+| `src/layouts/Header.astro` | Remove CartLink (no nav badge step; replaced by InquiryWidget)     |
 
 ### Components to Create
 
@@ -1252,9 +1243,6 @@ The system has three forms that are already architecturally separated. They shar
 | `src/components/global/ContactForm/InquiryForm.module.scss`     | Styles | Styles for the extended form                                                 |
 | `src/components/global/InquiryWidget/InquiryWidget.tsx`         | Preact | Sticky bottom-right widget                                                   |
 | `src/components/global/InquiryWidget/InquiryWidget.module.scss` | Styles |                                                                              |
-| `src/components/global/EscapeHatch/EscapeHatch.astro`           | Astro  | "Nie wiesz od czego zacząć?" block                                           |
-| `src/components/global/HowItWorks/HowItWorks.astro`             | Astro  | 3-step process (page builder component for contact page)                     |
-| `src/components/global/PopularItems/PopularItems.astro`         | Astro  | Featured activities/hotels (page builder component for contact page)         |
 
 No `InquiryFormSection` or `SocialProofFormWrapper` — everything is inside the evolved `ContactForm`.
 
@@ -1273,22 +1261,22 @@ No `InquiryFormSection` or `SocialProofFormWrapper` — everything is inside the
 
 ### Files Created in Phase 3
 
-| File                                 | Type        | Purpose                                                                              |
-| ------------------------------------ | ----------- | ------------------------------------------------------------------------------------ |
-| `src/emails/contact-emails.ts`       | TypeScript  | Branded HTML email templates — `clientConfirmation()` and `teamNotification()`       |
-| `src/pages/api/email-preview.ts`     | API Route   | Dev-only preview of email templates (renders mock data as HTML, no email sent)        |
+| File                             | Type       | Purpose                                                                        |
+| -------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| `src/emails/contact-emails.ts`   | TypeScript | Branded HTML email templates — `clientConfirmation()` and `teamNotification()` |
+| `src/pages/api/email-preview.ts` | API Route  | Dev-only preview of email templates (renders mock data as HTML, no email sent) |
 
 ### Files Modified in Phase 3
 
-| File                                                        | Change                                                                                                             |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `src/pages/api/contact.ts`                                  | Discriminated union types, `isInquiryForm()` helper, branded email templates, TEST_RECIPIENT override (temporary)  |
-| `src/components/global/ContactForm/InquiryForm.tsx`         | Backend submission activated, analytics activated, debug logging added, Google Sheets sendBeacon commented out      |
-| `src/utils/track-event.ts`                                  | Added localhost/127.0.0.1 guard — skips all analytics in dev                                                       |
-| `src/pages/api/analytics/meta/index.ts`                     | Added `import.meta.env.DEV` guard — returns 200 no-op in dev                                                      |
-| `src/components/cookie-consent/CookieConsent.client.tsx`    | Added localhost checks in `ensureGtagScript()` and `ensureMetaPixel()` — scripts don't load in dev                 |
-| `src/components/global/BotIdInit.astro`                     | Added `import.meta.env.DEV` guard — BotID doesn't initialize in dev                                               |
-| `tsconfig.json`                                             | Added `@/emails/*` path alias                                                                                      |
+| File                                                     | Change                                                                                                            |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `src/pages/api/contact.ts`                               | Discriminated union types, `isInquiryForm()` helper, branded email templates, TEST_RECIPIENT override (temporary) |
+| `src/components/global/ContactForm/InquiryForm.tsx`      | Backend submission activated, analytics activated, debug logging added, Google Sheets sendBeacon commented out    |
+| `src/utils/track-event.ts`                               | Added localhost/127.0.0.1 guard — skips all analytics in dev                                                      |
+| `src/pages/api/analytics/meta/index.ts`                  | Added `import.meta.env.DEV` guard — returns 200 no-op in dev                                                      |
+| `src/components/cookie-consent/CookieConsent.client.tsx` | Added localhost checks in `ensureGtagScript()` and `ensureMetaPixel()` — scripts don't load in dev                |
+| `src/components/global/BotIdInit.astro`                  | Added `import.meta.env.DEV` guard — BotID doesn't initialize in dev                                               |
+| `tsconfig.json`                                          | Added `@/emails/*` path alias                                                                                     |
 
 ### Sanity Schemas to Modify
 

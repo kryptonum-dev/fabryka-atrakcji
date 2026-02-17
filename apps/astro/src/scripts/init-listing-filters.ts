@@ -25,24 +25,54 @@ let filterState: FilterState = {
   duration: null,
 }
 
+function parseParticipantsRange(value: string): { min: number | null; max: number | null } {
+  const [minRaw, maxRaw] = value.split('-')
+  const min = minRaw ? parseInt(minRaw, 10) : null
+  const max = maxRaw ? parseInt(maxRaw, 10) : null
+
+  return {
+    min: Number.isFinite(min) ? min : null,
+    max: Number.isFinite(max) ? max : null,
+  }
+}
+
+function findParticipantsValueFromParams(params: URLSearchParams): string | null {
+  const currentMin = params.get('minParticipants')
+  const currentMax = params.get('maxParticipants')
+  const participantInputs = Array.from(
+    document.querySelectorAll<HTMLInputElement>('.filter-group[data-param-name="participants"] input[value]')
+  )
+
+  for (const input of participantInputs) {
+    const value = input.value
+    const { min, max } = parseParticipantsRange(value)
+
+    if (max !== null) {
+      const hasMatchingMax = currentMax === String(max)
+      const hasMatchingMin =
+        currentMin === String(min) || (currentMin === null && typeof min === 'number' && min <= 1)
+
+      if (hasMatchingMax && hasMatchingMin) {
+        return value
+      }
+      continue
+    }
+
+    if (currentMin === String(min) && currentMax === null) {
+      return value
+    }
+  }
+
+  return null
+}
+
 // Parse current URL params to initialize state
 function initializeFilterState() {
   const params = new URLSearchParams(window.location.search)
 
   // Participants
   if (params.has('minParticipants') || params.has('maxParticipants')) {
-    const min = params.get('minParticipants')
-    const max = params.get('maxParticipants')
-
-    if (min === '150' && !max) {
-      filterState.participants = '150-'
-    } else if (min === '81' && max === '150') {
-      filterState.participants = '81-150'
-    } else if (min === '31' && max === '80') {
-      filterState.participants = '31-80'
-    } else if (max === '30' && !min) {
-      filterState.participants = '1-30'
-    }
+    filterState.participants = findParticipantsValueFromParams(params)
   }
 
   // Activity type
@@ -430,16 +460,15 @@ applyButton.addEventListener('click', () => {
 
   // Add participants filter
   if (filterState.participants) {
-    if (filterState.participants === '1-30') {
-      params.set('maxParticipants', '30')
-    } else if (filterState.participants === '31-80') {
-      params.set('minParticipants', '31')
-      params.set('maxParticipants', '80')
-    } else if (filterState.participants === '81-150') {
-      params.set('minParticipants', '81')
-      params.set('maxParticipants', '150')
-    } else if (filterState.participants === '150-') {
-      params.set('minParticipants', '150')
+    const { min, max } = parseParticipantsRange(filterState.participants)
+
+    if (max !== null) {
+      params.set('maxParticipants', String(max))
+      if (typeof min === 'number' && min > 1) {
+        params.set('minParticipants', String(min))
+      }
+    } else if (min !== null) {
+      params.set('minParticipants', String(min))
     }
   }
 

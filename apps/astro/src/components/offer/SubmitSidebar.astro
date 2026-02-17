@@ -60,9 +60,9 @@ const translations = {
     },
     currency: 'zł',
     pricingPrefix: 'Szacowany koszt: ',
-    pricingNotAvailable: 'Ceny tego hotelu nie są publicznie dostępne.',
-    contactLink: 'Zapytaj nas o cennik hotelu',
-    pricingNotAvailableSuffix: ', lub dowiedz się o cenie po uzyskaniu szczegółowej wyceny.',
+    pricingNotAvailable: 'Cena ustalana indywidualnie — zależy od terminu, liczby osób i zakresu.',
+    contactLink: 'Zapytaj o wycenę',
+    pricingNotAvailableSuffix: '',
     activityAlert: 'Koszt może różnić się w zależności od lokalizacji i wybranego scenariusza',
     callout: 'Poznaj wstępną wycenę – bez podawania danych!',
     buttonText: 'Zapytaj o wycenę',
@@ -77,9 +77,9 @@ const translations = {
     },
     currency: 'PLN',
     pricingPrefix: 'Estimated cost: ',
-    pricingNotAvailable: 'Pricing for this hotel is not publicly available.',
-    contactLink: 'Ask us about hotel pricing',
-    pricingNotAvailableSuffix: ', or find out the price after getting a detailed quote.',
+    pricingNotAvailable: 'Price set individually — depends on dates, group size and scope.',
+    contactLink: 'Ask for a quote',
+    pricingNotAvailableSuffix: '',
     activityAlert: 'The cost may vary depending on the location and chosen scenario',
     callout: 'Get an initial estimate - without providing data!',
     buttonText: 'Ask for a quote',
@@ -153,18 +153,17 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
       ) : (
         <div class="price-not-available">
           <p>
-            <span>{t.pricingNotAvailable}</span>{' '}
-            <a class="link" data-shade="light" target="_blank" href={t.contactUrl}>
-              {t.contactLink}
-            </a>
-            <span>{t.pricingNotAvailableSuffix}</span>
+            <span>{t.pricingNotAvailable}</span>
           </p>
+          <a class="link pricing-cta" href={lang === 'pl' ? '#kontakt' : '#contact'}>
+            {t.contactLink}
+          </a>
         </div>
       )
     }
 
     <div class="cta-content">
-      <Button className="scroll-to-form-sidebar" href="#contact-form">{t.buttonText}</Button>
+      <Button className="scroll-to-form-sidebar" href={lang === 'pl' ? '#kontakt' : '#contact'}>{t.buttonText}</Button>
       {
         type === 'activities' && (
           <p class="activity-alert">
@@ -623,7 +622,7 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
   // Smooth scroll for CTA
   if (scrollBtn) {
     scrollBtn.addEventListener('click', (e) => {
-      const target = document.getElementById('contact-form')
+      const target = document.getElementById('kontakt') || document.getElementById('contact')
       if (target) {
         e.preventDefault()
         target.scrollIntoView({ behavior: 'smooth', block: 'start' })

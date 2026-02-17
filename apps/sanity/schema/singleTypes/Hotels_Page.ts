@@ -133,17 +133,19 @@ export default defineType({
     }),
     defineField({
       name: 'escapeHatchHeading',
-      type: 'Heading',
-      title: 'Nagłówek "Escape Hatch"',
-      description: 'Nagłówek sekcji "Nie wiesz jaki hotel wybrać?" wyświetlanej nad listą hoteli',
+      type: 'string',
+      title: 'Tekst podpowiedzi',
+      description:
+        'Tekst podpowiedzi wyświetlanej pod checklistą, np. "Nie wiesz jaki hotel wybrać?"',
       group: 'inquiry',
       fieldset: 'escapeHatch',
     }),
     defineField({
       name: 'escapeHatchText',
-      type: 'PortableText',
-      title: 'Tekst "Escape Hatch"',
-      description: 'Tekst sekcji "Nie wiesz jaki hotel wybrać?" wyświetlanej nad listą hoteli',
+      type: 'string',
+      title: 'Tekst linku CTA',
+      description:
+        'Tekst linku kierującego do formularza, np. "Wyślij zapytanie — zaproponujemy sprawdzone opcje."',
       group: 'inquiry',
       fieldset: 'escapeHatch',
     }),
@@ -162,7 +164,7 @@ export default defineType({
     },
     {
       name: 'escapeHatch',
-      title: 'Sekcja "Escape Hatch"',
+      title: 'Podpowiedź "Escape Hatch"',
       options: { collapsible: true, collapsed: false },
     },
   ],

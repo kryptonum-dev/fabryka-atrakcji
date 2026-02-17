@@ -108,6 +108,10 @@ const global = await sanityFetch<{
     formVisualImage?: ImageDataProps
     responseBadge?: ResponseBadgeData
   }
+  listingFilters?: {
+    activityParticipantGroups?: { label: string; min: number; max?: number }[]
+    hotelLocationOptions?: { name: string }[]
+  }
 }>({
   query: `*[_type == "global" && language == $language][0]{
     email,
@@ -116,6 +120,10 @@ const global = await sanityFetch<{
       from,
       to,
       closedWeekends,
+    },
+    listingFilters {
+      activityParticipantGroups[] { label, min, max },
+      hotelLocationOptions[] -> { name },
     },
     inquiryFormDefaults {
       ${ImageDataQuery('formVisualImage')}
@@ -227,6 +235,15 @@ const clientFormStates = resolvedState
       success: { heading: '', paragraph: '', highlightedSocialMedia: [] },
       error: { heading: '', paragraph: '' },
     }
+
+// Map CMS-driven participant groups → team size radio options
+const cmsTeamSizeOptions = global.listingFilters?.activityParticipantGroups
+  ?.map((g) => ({ value: g.max ? `${g.min}-${g.max}` : `${g.min}+`, label: g.label }))
+
+// Map CMS-driven hotel locations → region radio options
+const cmsRegionOptions = global.listingFilters?.hotelLocationOptions
+  ?.filter((loc): loc is { name: string } => Boolean(loc?.name))
+  .map((loc) => ({ value: loc.name.toLowerCase().replace(/\s+/g, '-'), label: loc.name }))
 ---
 
 <section
@@ -316,6 +333,8 @@ const clientFormStates = resolvedState
       variant={variant}
       showInquiries={showInquiries}
       contextItem={contextItem}
+      teamSizeOptions={cmsTeamSizeOptions}
+      regionOptions={cmsRegionOptions}
     >
       <div class="response-badge" aria-label={responseBadgeText}>
         {responseBadgeIconSvg ? (

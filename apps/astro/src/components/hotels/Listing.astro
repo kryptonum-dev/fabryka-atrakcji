@@ -66,6 +66,8 @@ type Props = {
     range81_150: number
     range150plus: number
   }
+  escapeHintText?: string
+  escapeHintCta?: string
 }
 
 export type ListingProps = Props
@@ -241,18 +243,33 @@ export const Listing_Query = (orderClause: string) => {
 
   return `
     "totalItems": count(*[_type == 'Hotels_Collection' ${createBaseFilter()}]),
-    "locations": *[_type == 'Locations_Collection' && language == $language] {
-      _id,
-      name,
-      "slug": slug.current,
-      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: false,
-        amenities: true,
-        stars: true,
-        rooms: true,
-        price: true,
-      })} && references(^._id)])
-    },
+    "locations": select(
+      defined(*[_type == "global" && language == $language][0].listingFilters.hotelLocationOptions[0]) =>
+        *[_type == "global" && language == $language][0].listingFilters.hotelLocationOptions[]->{
+          _id,
+          name,
+          "slug": slug.current,
+          "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+            location: false,
+            amenities: true,
+            stars: true,
+            rooms: true,
+            price: true,
+          })} && references(^._id)])
+        },
+      *[_type == 'Locations_Collection' && language == $language] {
+        _id,
+        name,
+        "slug": slug.current,
+        "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+          location: false,
+          amenities: true,
+          stars: true,
+          rooms: true,
+          price: true,
+        })} && references(^._id)])
+      }
+    ),
     "amenities": *[_type == 'Amenities_Collection' && language == $language] {
       _id,
       name,
@@ -349,6 +366,8 @@ const {
   stars,
   roomRangeCounts,
   priceRange,
+  escapeHintText,
+  escapeHintCta,
 } = Astro.props
 
 const params = Astro.url.searchParams
@@ -380,12 +399,14 @@ const roomsRangeItems = [
   },
 ].filter((item) => item.isSelected || item.count > 0)
 
-const locationItems = locations.map((location) => ({
-  name: location.name,
-  count: location.count,
-  isSelected: location.slug === params.get('location'),
-  value: location.slug,
-}))
+const locationItems = locations
+  .filter((location): location is LocationOption => Boolean(location?._id && location?.slug))
+  .map((location) => ({
+    name: location.name,
+    count: location.count,
+    isSelected: location.slug === params.get('location'),
+    value: location.slug,
+  }))
 
 // Process amenities to handle both comma-separated values and multiple parameters
 const amenitiesParam = params.get('amenities')
@@ -483,6 +504,12 @@ const shouldDisableFilters = totalItems === 0
         ))
       }
     </ul>
+    {escapeHintText && escapeHintCta && (
+      <p class="escape-hint">
+        {escapeHintText}{' '}
+        <a class="link"  data-shade="light" href={lang === 'pl' ? '#kontakt' : '#contact'}>{escapeHintCta}</a>
+      </p>
+    )}
   </header>
   <div class="wrapper max-width">
     <div class="filters">
@@ -652,6 +679,33 @@ const shouldDisableFilters = totalItems === 0
               margin-top: 3px;
             }
           }
+        }
+
+        .escape-hint {
+          margin-top: clamp(0.75rem, calc(1vw / 0.48), 1rem);
+          padding-left: 0.75rem;
+          position: relative;
+          font-size: var(--typography-body-m, 0.875rem);
+          color: var(--primary-400, #94a3b8);
+          line-height: 1.5;
+          justify-self: center;
+          max-width: max-content;
+          z-index: 10;
+
+          &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.125rem;
+            bottom: 0.125rem;
+            width: 1px;
+            background-color: var(--primary-500, #db664e);
+            opacity: 0.7;
+          }
+
+    
+
+    
         }
       }
 

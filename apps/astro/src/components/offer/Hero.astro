@@ -275,7 +275,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   <PortableText value={title} heading="h1" class="heading" />
   <p class="description">{description}</p>
   <div class="buttons">
-    <Button theme="primary" shade="dark" href="#contact-form" className="scroll-to-form-btn"
+    <Button theme="primary" shade="dark" href={lang === 'pl' ? '#kontakt' : '#contact'} className="scroll-to-form-btn"
       >{t.scrollToForm}</Button
     >
     <Button
@@ -1599,7 +1599,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   // Smooth scroll for primary CTA
   if (scrollButton) {
     scrollButton.addEventListener('click', (e) => {
-      const target = document.getElementById('contact-form')
+      const target = document.getElementById('kontakt') || document.getElementById('contact')
       if (target) {
         e.preventDefault()
         target.scrollIntoView({ behavior: 'smooth', block: 'start' })

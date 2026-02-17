@@ -30,6 +30,11 @@ export type InquiryVariant =
   | 'activity_detail'
   | 'hotel_detail'
 
+export type FormSelectOption = {
+  value: string
+  label: string
+}
+
 type Props = {
   lang?: Language
   formState: ClientFormStateTypes
@@ -37,6 +42,8 @@ type Props = {
   showInquiries?: boolean
   contextItem?: ContextItem
   children?: any
+  teamSizeOptions?: FormSelectOption[]
+  regionOptions?: FormSelectOption[]
 }
 
 export default function InquiryForm({
@@ -46,6 +53,8 @@ export default function InquiryForm({
   showInquiries = false,
   contextItem,
   children,
+  teamSizeOptions,
+  regionOptions,
 }: Props) {
   const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })
   const [inquiryItems, setInquiryItems] = useState<InquiryItem[]>([])
@@ -302,13 +311,22 @@ export default function InquiryForm({
       <fieldset className={styles.radioGroup} aria-hidden={isFilled}>
         <legend className={styles.radioLegend}>{t.form.inquiry.teamSize.label}</legend>
         <div className={styles.radioOptions}>
-          {Object.entries(t.form.inquiry.teamSize.options).map(([key, label]) => (
-            <label key={key} className={styles.radioOption}>
-              <input type="radio" value={key} disabled={isFilled} {...register('teamSize')} />
-              <span className={styles.radioMark} />
-              <span>{label}</span>
-            </label>
-          ))}
+          {teamSizeOptions && teamSizeOptions.length > 0
+            ? teamSizeOptions.map((opt) => (
+                <label key={opt.value} className={styles.radioOption}>
+                  <input type="radio" value={opt.value} disabled={isFilled} {...register('teamSize')} />
+                  <span className={styles.radioMark} />
+                  <span>{opt.label}</span>
+                </label>
+              ))
+            : Object.entries(t.form.inquiry.teamSize.options).map(([key, label]) => (
+                <label key={key} className={styles.radioOption}>
+                  <input type="radio" value={key} disabled={isFilled} {...register('teamSize')} />
+                  <span className={styles.radioMark} />
+                  <span>{label}</span>
+                </label>
+              ))
+          }
         </div>
       </fieldset>
 
@@ -317,13 +335,28 @@ export default function InquiryForm({
         <fieldset className={styles.radioGroup} aria-hidden={isFilled}>
           <legend className={styles.radioLegend}>{t.form.inquiry.region.label}</legend>
           <div className={styles.radioOptions}>
-            {Object.entries(t.form.inquiry.region.options).map(([key, label]) => (
-              <label key={key} className={styles.radioOption}>
-                <input type="radio" value={key} disabled={isFilled} {...register('region')} />
-                <span className={styles.radioMark} />
-                <span>{label}</span>
-              </label>
-            ))}
+            {regionOptions && regionOptions.length > 0
+              ? regionOptions.map((opt) => (
+                  <label key={opt.value} className={styles.radioOption}>
+                    <input type="radio" value={opt.value} disabled={isFilled} {...register('region')} />
+                    <span className={styles.radioMark} />
+                    <span>{opt.label}</span>
+                  </label>
+                ))
+              : Object.entries(t.form.inquiry.region.options).filter(([key]) => key !== 'none').map(([key, label]) => (
+                  <label key={key} className={styles.radioOption}>
+                    <input type="radio" value={key} disabled={isFilled} {...register('region')} />
+                    <span className={styles.radioMark} />
+                    <span>{label}</span>
+                  </label>
+                ))
+            }
+            {/* Always append "No preference" as the last option */}
+            <label key="none" className={styles.radioOption}>
+              <input type="radio" value="none" disabled={isFilled} {...register('region')} />
+              <span className={styles.radioMark} />
+              <span>{t.form.inquiry.region.options.none}</span>
+            </label>
           </div>
         </fieldset>
       )}

@@ -231,7 +231,7 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
   {formHeading && (
     <ContactForm
       index={10}
-      sectionId="contact-form"
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
       heading={formHeading}
       paragraph={formParagraph || []}
       variant="hotel_detail"

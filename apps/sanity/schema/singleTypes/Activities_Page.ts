@@ -168,17 +168,19 @@ export default defineType({
     }),
     defineField({
       name: 'escapeHatchHeading',
-      type: 'Heading',
-      title: 'Nagłówek "Escape Hatch"',
-      description: 'Nagłówek sekcji "Nie wiesz od czego zacząć?" wyświetlanej nad listą integracji',
+      type: 'string',
+      title: 'Tekst podpowiedzi',
+      description:
+        'Tekst podpowiedzi wyświetlanej pod opisem kategorii, np. "Nie wiesz od czego zacząć?"',
       group: 'inquiry',
       fieldset: 'escapeHatch',
     }),
     defineField({
       name: 'escapeHatchText',
-      type: 'PortableText',
-      title: 'Tekst "Escape Hatch"',
-      description: 'Tekst sekcji "Nie wiesz od czego zacząć?" wyświetlanej nad listą integracji',
+      type: 'string',
+      title: 'Tekst linku CTA',
+      description:
+        'Tekst linku kierującego do formularza, np. "Wyślij zapytanie — dobierzemy najlepszą integrację."',
       group: 'inquiry',
       fieldset: 'escapeHatch',
     }),
@@ -197,7 +199,7 @@ export default defineType({
     },
     {
       name: 'escapeHatch',
-      title: 'Sekcja "Escape Hatch"',
+      title: 'Podpowiedź "Escape Hatch"',
       options: { collapsible: true, collapsed: false },
     },
   ],

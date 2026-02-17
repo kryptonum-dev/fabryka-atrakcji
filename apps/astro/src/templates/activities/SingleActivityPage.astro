@@ -322,11 +322,10 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
       name={page.name}
     />
   </article>
-  <Components data={filteredComponents} hasPreviousSections />
   {formHeading && (
     <ContactForm
       index={10}
-      sectionId="contact-form"
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
       heading={formHeading}
       paragraph={formParagraph || []}
       variant="activity_detail"
@@ -335,6 +334,7 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
       contextItem={{ type: 'integracja', id: page._id, name: page.name }}
     />
   )}
+  <Components data={filteredComponents} hasPreviousSections />
   <AddonsPopup addons={page.addons} type="activities" />
   <RemoveConfirmation
     itemId={page._id}

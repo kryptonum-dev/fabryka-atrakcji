@@ -6,7 +6,12 @@ import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
-import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/category/Listing.astro'
+import Listing, {
+  DEFAULT_PARTICIPANT_GROUPS,
+  Listing_Query,
+  type ListingProps,
+  type ParticipantFilterGroup,
+} from '@/src/components/activites/category/Listing.astro'
 import { NoSearchResults_Query } from '@/src/components/activites/NoSearchResults.astro'
 import { parseFilters, getOrderClause } from '@/utils/filters'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
@@ -40,6 +45,39 @@ export async function fetchData(
   const filters = parseFilters(searchParams || new URLSearchParams())
   const orderClause = getOrderClause(filters.order)
 
+  const globalFilters = await sanityFetchWithCdn<{
+    listingFilters?: {
+      activityParticipantGroups?: ParticipantFilterGroup[]
+    }
+  }>({
+    query: `
+      *[_type == "global" && language == $language][0] {
+        listingFilters {
+          activityParticipantGroups[]{
+            label,
+            min,
+            max
+          }
+        }
+      }
+    `,
+    params: { language: lang },
+  })
+
+  const participantGroups = (() => {
+    const configured = (globalFilters?.listingFilters?.activityParticipantGroups || [])
+      .filter((group) => typeof group?.label === 'string' && typeof group?.min === 'number')
+      .map((group) => ({
+        label: group.label,
+        min: group.min,
+        ...(typeof group.max === 'number' ? { max: group.max } : {}),
+      }))
+      .slice(0, 6)
+      .filter((group) => typeof group.max !== 'number' || group.max >= group.min)
+
+    return configured.length >= 2 ? configured : DEFAULT_PARTICIPANT_GROUPS
+  })()
+
   // Build the full category slug to match exactly (with trailing slash)
   const categorySlug = lang === 'pl' ? `/pl/integracje/kategoria/${category}/` : `/en/activities/category/${category}/`
 
@@ -62,6 +100,8 @@ export async function fetchData(
         }
       }
       components: ComponentsProps
+      escapeHatchHeading?: string
+      escapeHatchText?: string
     } & ListingProps &
       FormProps
   >({
@@ -71,6 +111,8 @@ export async function fetchData(
         "slug": slug.current,
         ${PortableTextQuery('formHeading')}
         ${PortableTextQuery('formParagraph')}
+        escapeHatchHeading,
+        escapeHatchText,
         overrideFormState,
         formState {
           success {
@@ -102,7 +144,7 @@ export async function fetchData(
           },
           ${Components_Query}
         },
-        ${Listing_Query(orderClause)}
+        ${Listing_Query(orderClause, participantGroups)}
         ${Components_Query}
       }
     `,
@@ -125,7 +167,7 @@ export async function fetchData(
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
 
   const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
-  return { page, metadata }
+  return { page, metadata, participantGroups }
 }
 
 export async function staticPathsCategory(lang: Language) {
@@ -170,7 +212,7 @@ export async function staticPathsCategoryPage(lang: Language) {
     .flat()
 }
 
-const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl, doNotIndex } = Astro.props
+const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl, doNotIndex, participantGroups } = Astro.props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 const totalPages = Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
@@ -257,10 +299,14 @@ const formParagraph = page.selectedCategory?.formOverrides?.paragraph || page.fo
     durationCounts={page.durationCounts}
     priceRange={page.priceRange}
     noResults={page.noResults}
+    participantGroups={participantGroups}
+    escapeHintText={page.escapeHatchHeading}
+    escapeHintCta={page.escapeHatchText}
   />
   {formHeading && (
     <ContactForm
       index={10}
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
       heading={formHeading}
       paragraph={formParagraph || []}
       overrideFormState={page.overrideFormState}
