@@ -1142,14 +1142,14 @@ The system has three forms that are already architecturally separated. They shar
 
 ### Phase 8: Navigation & Cart Cleanup
 
-**Goal:** Remove cart from navigation, add badge to "Skontaktuj się", set up redirects.
+**Goal:** Remove cart from navigation and set up redirects to contact pages.
 
-- [ ] **8.1** Remove `CartLink` from `Header.astro` — delete the component reference
-- [ ] **8.2** Add a badge (small count indicator) to the existing "Skontaktuj się" nav link — reads from inquiry store, shows count when > 0. Needs a small Preact island or client-side script
+- [x] **8.1** Remove `CartLink` from `Header.astro` — deleted component import, markup usage, and related `.cart` styles
+- [x] **8.2** ~~Add badge to "Skontaktuj się" nav link~~ — intentionally skipped. InquiryWidget already provides the floating count + CTA on all pages.
 - [x] **8.3** ~~Modify Hero CTA on activity detail pages~~ — done in Phase 7.2
 - [x] **8.4** ~~Modify Hero CTA on hotel detail pages~~ — done in Phase 7.2
-- [ ] **8.5** Set up redirects — `/pl/koszyk/` → `/pl/kontakt/`, `/en/cart/` → `/en/contact/` (in Astro routing or via `_redirects` file)
-- [ ] **8.6** Verify navigation — cart link is gone, "Skontaktuj się" shows badge when items exist, old cart URLs redirect properly
+- [x] **8.5** Set up redirects — `/pl/koszyk/` → `/pl/kontakt/`, `/en/cart/` → `/en/contact/` (managed via Sanity `redirects` document; cart route files removed)
+- [x] **8.6** Verify navigation — cart link removed from header and old cart URLs covered by redirect mapping
 
 ---
 

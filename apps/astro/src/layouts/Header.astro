@@ -5,7 +5,6 @@ import { ImageDataQuery, type ImageDataProps } from '../components/ui/image'
 import { getLangFromPath, type Language } from '../global/languages'
 import sanityFetch from '../utils/sanity.fetch'
 import Button from '../components/ui/Button'
-import CartLink from '../components/ui/CartLink.astro'
 import LanguageSwitcher from '../components/ui/LanguageSwitcher.astro'
 
 type Props = {
@@ -358,7 +357,6 @@ const { minify = false, alternates } = Astro.props as Props
           <a class="nav-link nav-link-green" href={t.contactUrl}>
             {t.contactText}
           </a>
-          <CartLink inverted />
           <LanguageSwitcher inverted alternates={alternates} />
         </nav>
       )
@@ -382,7 +380,6 @@ const { minify = false, alternates } = Astro.props as Props
       !minify && (
         <div class="languages-container">
           <LanguageSwitcher alternates={alternates} />
-          <CartLink />
         </div>
       )
     }
@@ -1174,10 +1171,6 @@ const { minify = false, alternates } = Astro.props as Props
           }
         }
 
-        :global(.cart) {
-          display: none;
-        }
-
         :global(.language-switcher) {
           display: none;
         }
@@ -1190,10 +1183,6 @@ const { minify = false, alternates } = Astro.props as Props
 
         > :global(.language-switcher) {
           flex-shrink: 0;
-        }
-        > :global(.cart) {
-          position: relative;
-          z-index: 3;
         }
       }
 
@@ -1341,14 +1330,6 @@ const { minify = false, alternates } = Astro.props as Props
               }
             }
 
-            :global(.cart) {
-              display: flex;
-              gap: 0.5rem;
-              padding-top: 0.25rem;
-              border-top: 0.0625rem solid var(--neutral-300, #ede6de);
-              margin-top: 1.25rem;
-            }
-
             :global(.language-switcher) {
               display: block;
             }
@@ -1357,10 +1338,6 @@ const { minify = false, alternates } = Astro.props as Props
         &[data-mobile-open='true'] {
           .container {
             .logo {
-              z-index: -1;
-            }
-
-            :global(.cart) {
               z-index: -1;
             }
 
@@ -1416,10 +1393,6 @@ const { minify = false, alternates } = Astro.props as Props
           .logo {
             grid-column: 1 / 2;
             justify-self: start;
-          }
-          :global(.cart) {
-            grid-column: 2 / 3;
-            justify-self: end;
           }
           .minify {
             max-width: 18rem;

@@ -40,8 +40,6 @@ export default defineConfig({
             bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
             exclude: [
               /^\/api\/.+/,
-              /^\/pl\/koszyk/,
-              /^\/en\/cart/,
               /.*\/filtr.*/, // Exclude any URL containing "/filtr"
               /.*\/filter.*/, // Exclude any URL containing "/filtr"
             ],
