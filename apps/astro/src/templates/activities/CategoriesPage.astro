@@ -20,7 +20,7 @@ import { ImageDataQuery } from '@/src/components/ui/image'
 import ActivitiesCarousel, {
   type Props as ActivitiesCarouselProps,
 } from '@/src/components/global/ActivitiesCarousel/index.astro'
-import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import { DEFAULT_PARTICIPANT_GROUPS } from '@/src/components/activites/category/Listing.astro'
 import type { FormStateTypes } from '@/src/global/types'
 
 export const ITEMS_PER_PAGE = 8
@@ -235,6 +235,7 @@ const totalPages = isSearchPage(page)
           <>
             <SearchBar value={searchQuery} hasWrapper />
             <ActivitiesListing
+              participantGroups={DEFAULT_PARTICIPANT_GROUPS}
               totalActivitiesByCategory={page.totalActivitiesByCategory}
               listing={page.listing}
               currentCategory={null}
