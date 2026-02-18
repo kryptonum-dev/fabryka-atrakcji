@@ -124,12 +124,14 @@ export default defineType({
           type: 'Heading',
           title: 'Domyślny nagłówek formularza',
           description: 'Globalny fallback nagłówka formularza, gdy niższe poziomy nie mają własnej wartości.',
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'paragraph',
           type: 'PortableText',
           title: 'Domyślny paragraf formularza',
           description: 'Globalny fallback paragrafu formularza, gdy niższe poziomy nie mają własnej wartości.',
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'state',

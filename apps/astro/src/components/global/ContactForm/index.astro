@@ -198,7 +198,7 @@ const cmsTeamSizeOptions = global.listingFilters?.activityParticipantGroups
 // Map CMS-driven hotel locations → region radio options
 const cmsRegionOptions = global.listingFilters?.hotelLocationOptions
   ?.filter((loc): loc is { name: string } => Boolean(loc?.name))
-  .map((loc) => ({ value: loc.name.toLowerCase().replace(/\s+/g, '-'), label: loc.name }))
+  .map((loc) => ({ value: loc.name, label: loc.name }))
 ---
 
 <section
@@ -610,7 +610,7 @@ const cmsRegionOptions = global.listingFilters?.hotelLocationOptions
       transform-origin: 50% 8%;
 
       :global(img) {
-        position: relative;
+        position: absolute;
         z-index: 0;
         width: 100%;
         height: 100%;

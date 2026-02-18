@@ -33,6 +33,24 @@ const getAbsoluteItemUrl = (url?: string): string | null => {
   return `${SITE}/${normalized}`
 }
 
+const getCanonicalSourceUrl = (url?: string): string | null => {
+  if (!url?.trim()) return null
+  const raw = url.trim()
+
+  try {
+    if (/^https?:\/\//i.test(raw)) {
+      const parsed = new URL(raw)
+      const normalizedPath = `${parsed.pathname}${parsed.search}${parsed.hash}`
+      return new URL(normalizedPath, SITE).toString()
+    }
+
+    if (raw.startsWith('/')) return `${SITE}${raw}`
+    return `${SITE}/${raw}`
+  } catch {
+    return SITE
+  }
+}
+
 // ─── shared pieces ───────────────────────────────────────────────
 
 const fontStack = "'Helvetica Neue', Helvetica, Arial, sans-serif"
@@ -162,6 +180,7 @@ const regionLabels: Record<string, string> = {
   mazury: 'Mazury',
   centralna: 'Centralna Polska',
   brak: 'Brak preferencji',
+  none: 'Brak preferencji',
 }
 
 const hasPhone = (phone?: string) => !!phone && phone !== '+48'
@@ -189,7 +208,11 @@ export const teamNotification = (d: TeamNotificationData) => {
 
   // Context item
   if (d.contextItem) {
-    rows.push(row('Dotyczy', `<strong>${d.contextItem.name}</strong> <span style="color:#74535e;font-size:12px;">${d.contextItem.type}</span>`))
+    const contextUrl = getCanonicalSourceUrl(d.sourceUrl)
+    const contextLabel = contextUrl
+      ? `<a href="${contextUrl}" target="_blank" style="color:#45051c;text-decoration:underline;text-decoration-color:#db664e;text-underline-offset:2px;"><strong>${d.contextItem.name}</strong></a>`
+      : `<strong>${d.contextItem.name}</strong>`
+    rows.push(row('Dotyczy', `${contextLabel} <span style="color:#74535e;font-size:12px;">${d.contextItem.type}</span>`))
   }
 
   // Selected items
@@ -232,7 +255,8 @@ export const teamNotification = (d: TeamNotificationData) => {
 
   // Metadata footer
   const metaParts: string[] = []
-  if (d.sourceUrl) metaParts.push(`Źródło: ${d.sourceUrl}`)
+  const canonicalSourceUrl = getCanonicalSourceUrl(d.sourceUrl)
+  if (canonicalSourceUrl) metaParts.push(`Źródło: ${canonicalSourceUrl}`)
   metaParts.push(`UTM: ${d.utm?.trim() || 'brak danych'}`)
   metaParts.push(`Język: ${d.lang}`)
   const metaBlock = `
