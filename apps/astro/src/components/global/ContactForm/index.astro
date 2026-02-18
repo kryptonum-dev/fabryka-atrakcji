@@ -32,28 +32,11 @@ export const ContactForm_Query = `
   _type == "ContactForm" => {
     ${ImageDataQuery('headingImage')}
     ${ImageDataQuery('formVisualImage')}
-    responseBadge {
-      text,
-      ${ImageDataQuery('icon')}
-    },
     ${PortableTextQuery('heading')}
     ${PortableTextQuery('paragraph')}
     showInquiries,
     overrideFormState,
     animate,
-    socialProof {
-      ${ImageDataQuery('clientLogos[]')}
-      metrics,
-      testimonials[] -> {
-        name,
-        position,
-        company,
-        ${PortableTextQuery('review')}
-        image {
-          ${ImageDataQuery('profileImage')}
-        },
-      },
-    },
     state {
       success {
         ${PortableTextQuery('heading')}
@@ -72,20 +55,9 @@ export const ContactForm_Query = `
   },
 `
 
-type TestimonialData = {
-  name: string
-  position: string
-  company: string
-  review: PortableTextValue
-  image?: {
-    profileImage?: ImageDataProps
-  }
-}
-
 type SocialProofData = {
   clientLogos?: ImageDataProps[]
   metrics?: string[]
-  testimonials?: TestimonialData[]
 }
 
 type ResponseBadgeData = {
@@ -102,7 +74,6 @@ const global = await sanityFetch<{
     closedWeekends: boolean
   }
   inquiryFormDefaults?: {
-    paragraph?: PortableTextValue
     state?: FormStateTypes
     socialProof?: SocialProofData
     formVisualImage?: ImageDataProps
@@ -131,7 +102,6 @@ const global = await sanityFetch<{
         text,
         ${ImageDataQuery('icon')}
       },
-      ${PortableTextQuery('paragraph')}
       state {
         success {
           ${PortableTextQuery('heading')}
@@ -150,15 +120,6 @@ const global = await sanityFetch<{
       socialProof {
         ${ImageDataQuery('clientLogos[]')}
         metrics,
-        testimonials[] -> {
-          name,
-          position,
-          company,
-          ${PortableTextQuery('review')}
-          image {
-            ${ImageDataQuery('profileImage')}
-          },
-        },
       },
     },
   }`,
@@ -172,13 +133,11 @@ type Props = {
   sectionId?: string
   headingImage?: ImageDataProps
   formVisualImage?: ImageDataProps
-  responseBadge?: ResponseBadgeData
   heading: PortableTextValue
   paragraph: PortableTextValue
   state?: FormStateTypes
   showInquiries?: boolean
   overrideFormState?: boolean
-  socialProof?: SocialProofData
   variant?: InquiryVariant
   contextItem?: ContextItem
   animate?: boolean
@@ -189,13 +148,11 @@ const {
   sectionId,
   headingImage,
   formVisualImage,
-  responseBadge,
   heading,
   paragraph,
   state,
   showInquiries = true,
   overrideFormState = false,
-  socialProof,
   variant = 'general',
   contextItem,
   animate = true,
@@ -208,14 +165,12 @@ const OpenHoursText = getOpenHours({
 // Resolve form state: component-level override takes priority, then global defaults
 const resolvedState = overrideFormState && state ? state : (global.inquiryFormDefaults?.state || state)
 
-// Resolve social proof: component-level takes priority if it has any content
-const hasSocialProof = socialProof?.clientLogos?.length || socialProof?.metrics?.length || socialProof?.testimonials?.length
-const resolvedSocialProof = hasSocialProof ? socialProof : global.inquiryFormDefaults?.socialProof
+// Social proof and response badge are global-only.
+const resolvedSocialProof = global.inquiryFormDefaults?.socialProof
 const featuredClientLogos = (resolvedSocialProof?.clientLogos || []).slice(0, 6)
 const marqueeClientLogos = featuredClientLogos.length > 1 ? [...featuredClientLogos, ...featuredClientLogos] : featuredClientLogos
-const sidebarImage = formVisualImage || global.inquiryFormDefaults?.formVisualImage || resolvedSocialProof?.testimonials?.[0]?.image?.profileImage
-const hasResponseBadgeOverride = Boolean(responseBadge?.text || responseBadge?.icon)
-const resolvedResponseBadge = hasResponseBadgeOverride ? responseBadge : global.inquiryFormDefaults?.responseBadge
+const sidebarImage = formVisualImage || global.inquiryFormDefaults?.formVisualImage
+const resolvedResponseBadge = global.inquiryFormDefaults?.responseBadge
 const responseBadgeText = resolvedResponseBadge?.text || t.responseBox
 const responseBadgeIconSvg = await imageToInlineSvg(resolvedResponseBadge?.icon?.asset?.url || '')
 

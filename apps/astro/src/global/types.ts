@@ -89,17 +89,7 @@ export type BaseHotelProps = {
     groupPeopleCount?: number
     pricePerPerson: number
   }
-  addons?: AddonProps
   alerts?: Alert[]
-  gastronomy?: {
-    type: 'lunch' | 'supper' | 'coffee-break' | 'grill' | 'open-bar'
-    count: number
-    name: string
-    options?: {
-      level?: 'standard' | 'premium' | 'luxury'
-      style?: 'buffet' | 'menu'
-    }
-  }
 }
 
 export type Alert = {
@@ -152,59 +142,5 @@ export type BaseActivityProps = {
     maxParticipants: number
     additionalPersonPrice: number
   }
-  addons?: AddonProps
   alerts?: Alert[]
-}
-
-export type AddonProps = {
-  hasAddons: boolean
-  heading?: PortableTextValue
-  addonsChoice?: 'unlimited' | 'limited'
-  minOneAddon?: boolean
-  addonsLayout?: 'vertical' | 'horizontal'
-  addonsHaveImage?: boolean
-  addonsList?: Array<AddonItem>
-  additionalInfo?: string
-  fullAddonsList?: Array<AddonItem>
-}
-
-export type AddonItem = {
-  _key: string
-  name: string
-  image?: ImageDataProps
-  pricing: {
-    type: 'fixed' | 'per_unit' | 'threshold' | 'individual'
-    fixedPrice?: number
-    perUnit?: {
-      price: number
-      hasCount: boolean
-      singular: string
-      plural: string
-    }
-    threshold?: {
-      basePrice: number
-      maxUnits: number
-      additionalPrice: number
-      singular: string
-      plural: string
-    }
-  }
-  description?: string
-}
-
-export type ExtraItem = {
-  _key: string
-  name: string
-  image: ImageDataProps
-  pricing: {
-    type: string
-    pricePerKm?: number
-    fixedPrice: number
-    threshold: {
-      basePrice: number
-      maxUnits: number
-      additionalPrice: number
-      singular: boolean
-    }
-  }
 }

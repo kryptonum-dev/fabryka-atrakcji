@@ -13,6 +13,26 @@
 
 const SITE = 'https://www.fabryka-atrakcji.com'
 
+const normalizeLegacyItemPath = (path: string): string =>
+  path
+    .replace('/pl/integracja/', '/pl/integracje/')
+    .replace('/en/activity/', '/en/activities/')
+
+const getAbsoluteItemUrl = (url?: string): string | null => {
+  if (!url?.trim()) return null
+  const raw = url.trim()
+
+  if (/^https?:\/\//i.test(raw)) {
+    const parsed = new URL(raw)
+    const normalizedPath = normalizeLegacyItemPath(`${parsed.pathname}${parsed.search}${parsed.hash}`)
+    return new URL(normalizedPath, SITE).toString()
+  }
+
+  const normalized = normalizeLegacyItemPath(raw)
+  if (normalized.startsWith('/')) return `${SITE}${normalized}`
+  return `${SITE}/${normalized}`
+}
+
 // ─── shared pieces ───────────────────────────────────────────────
 
 const fontStack = "'Helvetica Neue', Helvetica, Arial, sans-serif"
@@ -177,8 +197,9 @@ export const teamNotification = (d: TeamNotificationData) => {
   if (d.selectedItems && d.selectedItems.length > 0) {
     const list = d.selectedItems
       .map((item) => {
-        const label = item.url
-          ? `<a href="${item.url}" target="_blank" style="color:#45051c;text-decoration:underline;text-decoration-color:#db664e;text-underline-offset:2px;">${item.name}</a>`
+        const itemUrl = getAbsoluteItemUrl(item.url)
+        const label = itemUrl
+          ? `<a href="${itemUrl}" target="_blank" style="color:#45051c;text-decoration:underline;text-decoration-color:#db664e;text-underline-offset:2px;">${item.name}</a>`
           : `<strong>${item.name}</strong>`
         return `<li style="padding:4px 0;font-size:14px;color:#45051c;">${label} <span style="color:#74535e;font-size:11px;text-transform:uppercase;letter-spacing:0.03em;">${item.type}</span></li>`
       })

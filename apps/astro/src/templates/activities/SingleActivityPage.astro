@@ -22,21 +22,26 @@ import ImageWithHeadingAndText, {
   ImageWithHeadingAndText_Query,
 } from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
 import FileView, { FileView_Query } from '@/src/components/ui/content-pt/offer/FileView.astro'
-import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
-import AddonsPopup from '@/src/components/offer/AddonsPopup.astro'
-import RemoveConfirmation from '@/src/components/ui/RemoveConfirmation.astro'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import type { FormStateTypes } from '@/src/global/types'
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>>
 
 export type SingleActivityProps = {
   _id: string
+  globalFormDefaults?: {
+    heading?: PortableTextValue
+    paragraph?: PortableTextValue
+  }
   activitiesPage: {
     name: string
     slug: string
     detailFormDefaults?: {
       heading?: PortableTextValue
       paragraph?: PortableTextValue
+      formVisualImage?: ImageDataProps
+      overrideFormState?: boolean
+      formState?: FormStateTypes
     }
   }
   _type: 'Activities_Collection'
@@ -83,41 +88,12 @@ export type SingleActivityProps = {
     maxParticipants: number
     additionalPersonPrice: number
   }
-  addons?: {
-    hasAddons: boolean
-    heading?: PortableTextValue
-    addonsChoice?: 'unlimited' | 'limited'
-    minOneAddon?: boolean
-    addonsLayout?: 'vertical' | 'horizontal'
-    addonsHaveImage?: boolean
-    addonsList?: Array<{
-      _key: string
-      name: string
-      image?: ImageDataProps
-      pricing: {
-        type: 'fixed' | 'per_unit' | 'threshold' | 'individual'
-        fixedPrice?: number
-        perUnit?: {
-          price: number
-          hasCount: boolean
-          singular: string
-          plural: string
-        }
-        threshold?: {
-          basePrice: number
-          maxUnits: number
-          additionalPrice: number
-          singular: string
-          plural: string
-        }
-      }
-      description?: string
-    }>
-    additionalInfo?: string
-  }
   formOverrides?: {
     heading?: PortableTextValue
     paragraph?: PortableTextValue
+    formVisualImage?: ImageDataProps
+    overrideFormState?: boolean
+    formState?: FormStateTypes
   }
   components: ComponentsProps
   content: ContentPTProps['value']
@@ -133,12 +109,33 @@ export async function fetchData(slug: string, lang: Language) {
     query: `
     *[_type == 'Activities_Collection' && language == $language && slug.current == $slug][0] {
       _id,
+      "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+      },
       "activitiesPage": *[_type == "Activities_Page" && language == $language][0] {
         name,
         "slug": slug.current,
         detailFormDefaults {
           ${PortableTextQuery('heading')}
           ${PortableTextQuery('paragraph')}
+          ${ImageDataQuery('formVisualImage')}
+          overrideFormState,
+          formState {
+            success {
+              ${PortableTextQuery('heading')}
+              ${PortableTextQuery('paragraph')}
+              highlightedSocialMedia[] -> {
+                name,
+                link,
+                iconString,
+              },
+            },
+            error {
+              ${PortableTextQuery('heading')}
+              ${PortableTextQuery('paragraph')}
+            },
+          },
         },
       },
       _type,
@@ -185,38 +182,6 @@ export async function fetchData(slug: string, lang: Language) {
         maxParticipants,
         additionalPersonPrice
       },
-      addons{
-        hasAddons,
-        ${PortableTextQuery('heading')}
-        addonsChoice,
-        minOneAddon,
-        addonsLayout,
-        addonsHaveImage,
-        addonsList[] {
-          _key,
-          name,
-          ${ImageDataQuery('image')}
-          pricing {
-            type,
-            fixedPrice,
-            perUnit {
-              price,
-              hasCount,
-              singular,
-              plural
-            },
-            threshold {
-              basePrice,
-              maxUnits,
-              additionalPrice,
-              singular,
-              plural
-            },
-          },
-          description
-        },
-        additionalInfo
-      },
       ${ContentPT_Query([
         RowsWithIcons_Query,
         Faq_Query,
@@ -232,6 +197,23 @@ export async function fetchData(slug: string, lang: Language) {
       formOverrides {
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
+        ${ImageDataQuery('formVisualImage')}
+        overrideFormState,
+        formState {
+          success {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
       },
       ${Components_Query}
     }
@@ -268,8 +250,14 @@ export async function staticPaths(lang: Language) {
 const { page, metadata } = Astro.props
 const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
-const formHeading = page.formOverrides?.heading || page.activitiesPage.detailFormDefaults?.heading
-const formParagraph = page.formOverrides?.paragraph || page.activitiesPage.detailFormDefaults?.paragraph
+const formHeading = page.formOverrides?.heading || page.activitiesPage.detailFormDefaults?.heading || page.globalFormDefaults?.heading
+const formParagraph =
+  page.formOverrides?.paragraph || page.activitiesPage.detailFormDefaults?.paragraph || page.globalFormDefaults?.paragraph
+const formVisualImage = page.formOverrides?.formVisualImage || page.activitiesPage.detailFormDefaults?.formVisualImage
+const resolvedOverrideFormState = page.formOverrides?.overrideFormState ?? page.activitiesPage.detailFormDefaults?.overrideFormState
+const resolvedFormState = page.formOverrides?.overrideFormState
+  ? page.formOverrides?.formState
+  : page.activitiesPage.detailFormDefaults?.formState
 const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
 ---
 
@@ -283,16 +271,7 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
   />
   <Hero {...page} _type="Activities_Collection" />
 
-  <article
-    class="wrapper max-width"
-    id="content"
-    data-item-id={page._id}
-    data-item-type="activities"
-    data-item-name={page.name}
-    data-has-addons={page.addons?.hasAddons || false}
-    data-requires-addons={page.addons?.minOneAddon || false}
-    data-addons-choice={page.addons?.addonsChoice || 'unlimited'}
-  >
+  <article class="wrapper max-width" id="content">
     <div class="content">
       <ContentPT
         value={page.content}
@@ -310,17 +289,6 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
         }}
       />
     </div>
-    <SubmitSidebar
-      id={page._id}
-      type="activities"
-      basePrice={{
-        amount: page.pricing.basePrice,
-        maxPeople: page.pricing.maxParticipants,
-      }}
-      perPersonPrice={page.pricing.additionalPersonPrice}
-      addons={page.addons}
-      name={page.name}
-    />
   </article>
   {formHeading && (
     <ContactForm
@@ -328,6 +296,9 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
       sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
       heading={formHeading}
       paragraph={formParagraph || []}
+      formVisualImage={formVisualImage}
+      overrideFormState={resolvedOverrideFormState}
+      state={resolvedFormState}
       variant="activity_detail"
       showInquiries={false}
       animate={false}
@@ -335,14 +306,6 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
     />
   )}
   <Components data={filteredComponents} hasPreviousSections />
-  <AddonsPopup addons={page.addons} type="activities" />
-  <RemoveConfirmation
-    itemId={page._id}
-    itemType="activities"
-    hasAddons={!!page.addons?.hasAddons}
-    lang={lang}
-    itemName={page.name}
-  />
 </Layout>
 
 <style lang="scss">

@@ -12,9 +12,6 @@ const normalizeUrl = (domain: string, path: string) => {
 // Types to exclude from sitemap
 const excludedTypes = [
   'NotFound_Page',
-  'Cart_Page',
-  'ThankYouPage',
-  'Quote_Page',
   'Amenities_Collection',
   'ActivitiesType_Collection',
   'Locations_Collection',

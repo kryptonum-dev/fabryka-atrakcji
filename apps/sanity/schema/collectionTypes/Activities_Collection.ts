@@ -13,7 +13,6 @@ import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
 import FileView from '../ui/PortableText/content/offer/FileView'
-import { createAddonsObject } from '../shared/addons'
 import { createAlertsObject } from '../shared/alerts'
 
 const title = 'Integracje'
@@ -41,11 +40,6 @@ export default defineType({
     {
       name: 'pricing',
       title: 'Cennik',
-      icon: CreditCardIcon,
-    },
-    {
-      name: 'addons',
-      title: 'Dodatki',
       icon: CreditCardIcon,
     },
     {
@@ -501,47 +495,6 @@ export default defineType({
         }),
       ],
     }),
-    createAddonsObject({
-      title: 'Dodatki do integracji',
-      description: 'Zarządzaj dodatkami do integracji',
-      labels: {
-        hasAddons: {
-          title: 'Czy integracja ma dodatki?',
-          description: 'Zaznacz, jeśli integracja ma możliwość wyboru dodatków.',
-        },
-        heading: {
-          title: 'Nagłówek okienka dodatków',
-          description: 'Nagłówek okienka dodatków, pojawia się przy wybieraniu dodatków do danej integracji',
-        },
-        addonsChoice: {
-          title: 'Możliwość wyboru dodatków',
-          description:
-            'Wybierz, ile maksymalnie dodatków może wybrać użytkownik. Przy wyborze maks. 1 dodatku, pole "Wybór ilości" zostaje automatycznie wyłączone.',
-        },
-        minOneAddon: {
-          title: 'Wymagany wybór co najmniej jednego dodatku',
-          description: 'Wybierz, czy użytkownik musi wybrać co najmniej jeden dodatek.',
-        },
-        addonsLayout: {
-          title: 'Układ dodatków',
-          description:
-            'Wybierz układ dodatków. Układ pionowy (Dodatki wypisane jeden po drugim w formie wierszy tabeli) - używany gdy dodatki mają zdjęcia. Układ poziomy (Dodatki porozmieszczane w kafelkach) - używany gdy dodatki nie mają zdjęć.',
-        },
-        addonsHaveImage: {
-          title: 'Dodatki mają zdjęcia',
-          description:
-            'Wybierz, czy dodatki mają zdjęcia. Jeśli zaznaczysz to pole, każdy dodatek będzie wymagał dodania zdjęcia.',
-        },
-        addonsList: {
-          title: 'Lista dodatków',
-          description: 'Dodaj dodatki do integracji',
-        },
-        additionalInfo: {
-          title: 'Dodatkowe informacje (opcjonalne)',
-          description: 'Dodaj dodatkowe informacje o dodatkach - pojawiają się poniżej listy dodatków',
-        },
-      },
-    }),
     createAlertsObject({
       paragraph: 'Alerty wyświetlane w koszyku dla tego hotelu.',
     }),
@@ -570,7 +523,8 @@ export default defineType({
       name: 'formOverrides',
       type: 'object',
       title: 'Nadpisania formularza kontaktowego',
-      description: 'Opcjonalne nadpisania nagłówka i paragrafu formularza kontaktowego dla tej integracji.',
+      description:
+        'Opcjonalne nadpisania formularza kontaktowego dla tej integracji (nagłówek, paragraf, obraz, komunikaty).',
       options: { collapsible: true, collapsed: false },
       group: 'content',
       fields: [
@@ -585,6 +539,26 @@ export default defineType({
           type: 'PortableText',
           title: 'Paragraf formularza',
           description: 'Jeśli uzupełnione, zastąpi domyślny paragraf formularza kontaktowego.',
+        }),
+        defineField({
+          name: 'formVisualImage',
+          type: 'image',
+          title: 'Zdjęcie sekcji formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślne zdjęcie sekcji formularza.',
+        }),
+        defineField({
+          name: 'overrideFormState',
+          type: 'boolean',
+          title: 'Nadpisz komunikaty formularza',
+          description: 'Włącz, aby użyć niestandardowych komunikatów sukcesu/błędu dla tej integracji.',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'formState',
+          type: 'formState',
+          title: 'Komunikaty formularza',
+          description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+          hidden: ({ parent }) => !(parent as { overrideFormState?: boolean })?.overrideFormState,
         }),
       ],
     }),

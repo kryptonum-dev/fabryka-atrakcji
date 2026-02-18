@@ -14,14 +14,14 @@ const GOOGLE_PRIVATE_KEY = (
 // --- Interfaces ---
 
 export interface BaseLeadData {
-  formType: 'contact_form' | 'faq_form' | 'configurator_form' | 'inquiry_form';
+  formType: 'faq_form' | 'inquiry_form';
   email: string;
   phone?: string;
   utm?: string; // All UTM params as formatted text (one per line)
 }
 
-export interface ContactLeadData extends BaseLeadData {
-  formType: 'contact_form' | 'faq_form';
+export interface FaqLeadData extends BaseLeadData {
+  formType: 'faq_form';
   message?: string;
 }
 
@@ -33,19 +33,7 @@ export interface InquiryLeadData extends BaseLeadData {
   additionalInfo?: string;
 }
 
-export interface QuoteLeadData extends BaseLeadData {
-  formType: 'configurator_form';
-  additionalInfo?: string;
-  quote: {
-    participants: number | string;
-    dates: string | string[];
-    priceBrutto: number | string;
-    priceNetto: number | string;
-    itemsSummary: string;
-  };
-}
-
-export type LeadData = ContactLeadData | InquiryLeadData | QuoteLeadData;
+export type LeadData = FaqLeadData | InquiryLeadData;
 
 // --- Helper Functions ---
 
@@ -72,9 +60,7 @@ const teamSizeLabels: Record<string, string> = {
 };
 
 const buildRow = (data: LeadData): string[] => {
-  const isQuote = data.formType === 'configurator_form' && 'quote' in data;
   const isInquiry = data.formType === 'inquiry_form';
-  const quoteData = isQuote ? (data as QuoteLeadData).quote : null;
   const inquiryData = isInquiry ? (data as InquiryLeadData) : null;
 
   // Get message field based on form type
@@ -94,25 +80,12 @@ const buildRow = (data: LeadData): string[] => {
   let teamSize = '';
   if (inquiryData?.teamSize) {
     teamSize = teamSizeLabels[inquiryData.teamSize] || inquiryData.teamSize;
-  } else if (quoteData) {
-    teamSize = String(quoteData.participants);
   }
 
   // Event dates / timeline
   let eventDates = '';
   if (inquiryData?.timeline) {
     eventDates = inquiryData.timeline;
-  } else if (quoteData) {
-    eventDates = Array.isArray(quoteData.dates) ? quoteData.dates.join(', ') : quoteData.dates;
-  }
-
-  // Format price with brutto and netto on separate lines
-  let priceValue = '';
-  if (quoteData) {
-    const lines: string[] = [];
-    if (quoteData.priceBrutto) lines.push(`Brutto: ${quoteData.priceBrutto} PLN`);
-    if (quoteData.priceNetto) lines.push(`Netto: ${quoteData.priceNetto} PLN`);
-    priceValue = lines.join('\n');
   }
 
   return [
@@ -125,8 +98,8 @@ const buildRow = (data: LeadData): string[] => {
     message, // 6: Wiadomość
     teamSize, // 7: Liczba Osób
     eventDates, // 8: Data Eventu
-    priceValue, // 9: Wartość (PLN) - Brutto + Netto
-    quoteData?.itemsSummary || '', // 10: Szczegóły Oferty
+    '', // 9: Wartość (PLN)
+    '', // 10: Szczegóły Oferty
     data.utm || '', // 11: UTM (all params, one per line)
   ];
 };

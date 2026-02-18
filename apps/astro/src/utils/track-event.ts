@@ -13,14 +13,10 @@ type MetaEventName =
   | 'ViewContent'
   | 'ViewCategory'
   | 'Search'
-  | 'AddToCart'
-  | 'RemoveFromCart'
-  | 'InitiateCheckout'
   | 'AddPaymentInfo'
   | 'Purchase'
   | 'Lead'
   | 'Contact'
-  | 'ViewCart'
   | 'CompleteRegistration'
   | 'PageScroll'
   | 'TimeOnPage'
@@ -53,25 +49,6 @@ type MetaEventParamsMap = {
   Search: {
     search_string?: string
   }
-  AddToCart: {
-    content_ids?: string[]
-    content_type?: string
-    value?: number
-    currency?: string
-    quantity?: number
-  }
-  RemoveFromCart: {
-    content_ids?: string[]
-    content_type?: string
-    value?: number
-    currency?: string
-    quantity?: number
-  }
-  InitiateCheckout: {
-    value?: number
-    currency?: string
-    content_ids?: string[]
-  }
   AddPaymentInfo: {
     payment_type?: string
     value?: number
@@ -91,11 +68,6 @@ type MetaEventParamsMap = {
   Contact: {
     contact_type?: string
     contact_value?: string
-  }
-  ViewCart: {
-    value?: number
-    currency?: string
-    content_ids?: string[]
   }
   PageScroll: {
     percent_scrolled?: number
@@ -127,9 +99,6 @@ type Ga4EventName =
   | 'view_item_list'
   | 'view_item'
   | 'search'
-  | 'add_to_cart'
-  | 'remove_from_cart'
-  | 'begin_checkout'
   | 'add_payment_info'
   | 'purchase'
   | 'scroll'
@@ -141,7 +110,6 @@ type Ga4EventName =
   | 'file_download'
   | 'lead'
   | 'contact'
-  | 'view_cart'
   | 'add_to_inquiry'
   | 'inquiry_widget_opened'
 
@@ -166,22 +134,6 @@ type Ga4EventParamsMap = {
   }
   search: {
     search_term?: string
-  }
-  add_to_cart: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
-  }
-  remove_from_cart: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
-  }
-  begin_checkout: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
-    coupon?: string
   }
   add_payment_info: {
     currency?: string
@@ -228,11 +180,6 @@ type Ga4EventParamsMap = {
   contact: {
     contact_type?: string
     contact_value?: string
-  }
-  view_cart: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
   }
   add_to_inquiry: {
     item_id?: string
@@ -344,8 +291,6 @@ const META_STANDARD_EVENTS = new Set<MetaEventName>([
   'PageView',
   'ViewContent',
   'Search',
-  'AddToCart',
-  'InitiateCheckout',
   'AddPaymentInfo',
   'Purchase',
   'CompleteRegistration',

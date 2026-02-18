@@ -1593,6 +1593,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
   const itemName = heroSection.dataset.name || ''
   const itemImage = heroSection.dataset.image || ''
   const itemSlug = heroSection.dataset.slug || ''
+  const itemUrl = itemSlug ? new URL(itemSlug, window.location.origin).toString() : window.location.href
   const itemType = heroSection.dataset.type === 'Hotels_Collection' ? 'hotel' : 'integracja'
   const translations = JSON.parse(heroSection.getAttribute('data-text') || '{}')
 
@@ -1655,7 +1656,7 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
         id: itemId,
         name: itemName,
         image: itemImage,
-        url: itemSlug,
+        url: itemUrl,
       })
 
       if (added) {

@@ -27,14 +27,10 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
 const translations = {
   pl: {
-    addToCart: 'Wybierz do kompleksowej wyceny',
-    viewCart: 'Przejdź do koszyka',
-    cartUrl: '/pl/koszyk/',
+    cta: 'Zapytaj o wycenę',
   },
   en: {
-    addToCart: 'Choose for a comprehensive estimate',
-    viewCart: 'View in cart',
-    cartUrl: '/en/cart/',
+    cta: 'Ask for a quote',
   },
 }
 const t = translations[lang]
@@ -42,7 +38,7 @@ const t = translations[lang]
 const { node } = Astro.props as Props
 ---
 
-<section class="NextSteps" data-translations={JSON.stringify(t)}>
+<section class="NextSteps">
   <PortableText value={node.heading} heading="h2" />
   <div class="timeline-wrapper">
     <ol>
@@ -64,10 +60,7 @@ const { node } = Astro.props as Props
     </div>
   </div>
 
-  <!-- Dynamic button that changes based on cart state -->
-  <Button id="next-steps-cart-button" theme="primary" data-cart="false">
-    {t.addToCart}
-  </Button>
+  <Button theme="primary" href={lang === 'pl' ? '#kontakt' : '#contact'}>{t.cta}</Button>
 </section>
 
 <style lang="scss">
@@ -222,7 +215,6 @@ const { node } = Astro.props as Props
         padding-right: 1.75rem;
       }
 
-      // Cart button state styles
     }
   }
 </style>
@@ -269,184 +261,5 @@ const { node } = Astro.props as Props
       }
     )
     section.querySelectorAll('li').forEach((item) => observer.observe(item))
-  })
-</script>
-
-<script>
-  import { addToCart, isInCart } from '@/src/store/cart'
-  import { dispatchCartUpdate, dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
-  import { trackEvent } from '@/utils/track-event'
-
-  // Initialize cart functionality for each NextSteps section
-  document.querySelectorAll<HTMLElement>('.NextSteps').forEach((section) => {
-    const button = section.querySelector('#next-steps-cart-button') as HTMLButtonElement
-    if (!button) return
-
-    // Get item data from the parent article element
-    const articleElement = section.closest('article[data-item-id]') as HTMLElement
-    if (!articleElement) return
-
-    const itemId = articleElement.dataset.itemId
-    const itemType = articleElement.dataset.itemType as 'hotels' | 'activities'
-    const itemName = articleElement.dataset.itemName || ''
-    const hasAddons = articleElement.dataset.hasAddons === 'true'
-    const requiresAddons = articleElement.dataset.requiresAddons === 'true'
-    const addonsChoice = articleElement.dataset.addonsChoice || 'unlimited'
-    const translations = JSON.parse(section.dataset.translations || '{}')
-
-    // Skip if essential data is missing
-    if (!itemId || !itemType) return
-
-    // Function to update button state based on cart status
-    function updateButtonState() {
-      if (!itemId || !itemType) return
-
-      const inCart = isInCart(itemId, itemType)
-      const buttonSpan = button.querySelector('span')
-
-      if (inCart) {
-        // Item is in cart - make button redirect to cart
-        button.setAttribute('data-cart', 'true')
-        button.removeAttribute('data-remove-trigger')
-
-        // Convert button to link behavior
-        button.setAttribute('data-href', translations.cartUrl)
-        if (buttonSpan) {
-          buttonSpan.textContent = translations.viewCart
-        }
-
-        // Remove any existing click handlers and add redirect handler
-        button.onclick = (e) => {
-          e.preventDefault()
-          window.location.href = translations.cartUrl
-        }
-      } else {
-        // Item is not in cart - make button add to cart
-        button.setAttribute('data-cart', 'false')
-        button.removeAttribute('data-href')
-
-        if (buttonSpan) {
-          buttonSpan.textContent = translations.addToCart
-        }
-
-        // Add click handler for adding to cart
-        button.onclick = (e) => {
-          e.preventDefault()
-          handleAddToCart()
-        }
-      }
-    }
-
-    // Function to handle adding item to cart
-    function handleAddToCart() {
-      if (!itemId || !itemType) return
-
-      const itemPriceAttr = document.querySelector('.Hero')?.getAttribute('data-price') || ''
-      const itemPrice = Number(itemPriceAttr) || undefined
-
-      // If item requires addons, open popup first without adding to cart
-      if (requiresAddons) {
-        // Open addon selection popup without adding to cart immediately
-        dispatchAddonsPopup({
-          itemId,
-          itemType,
-          hasAddons,
-          isEditing: false,
-          minOneAddon: requiresAddons,
-          requiresAddons,
-          addonsChoice,
-          name: itemName,
-        })
-      } else {
-        // Add to cart immediately if no addons required
-        addToCart({
-          id: itemId,
-          type: itemType,
-          addOns: [],
-        })
-
-        // Track the add to cart event
-        trackEvent({
-          ga4: {
-            eventName: 'add_to_cart',
-            params: {
-              currency: 'PLN',
-              value: itemPrice,
-              items: [
-                {
-                  item_id: itemId,
-                  item_name: itemName,
-                  price: itemPrice,
-                },
-              ],
-            },
-          },
-          meta: {
-            eventName: 'AddToCart',
-            contentName: itemName,
-            params: {
-              content_ids: itemId ? [itemId] : undefined,
-              content_type: itemType,
-              value: itemPrice,
-              currency: itemPrice ? 'PLN' : undefined,
-            },
-          },
-        })
-
-        // Always open addons popup for confirmation, regardless of whether addons exist
-        dispatchAddonsPopup({
-          itemId,
-          itemType,
-          hasAddons,
-          isEditing: false,
-          minOneAddon: false,
-          requiresAddons: false,
-          addonsChoice,
-          name: itemName,
-        })
-
-        // Update button state
-        updateButtonState()
-
-        // Dispatch cart update event
-        dispatchCartUpdate(itemId, itemType, 'add')
-
-        // Also dispatch addons-popup-confirmed event for the badge animation
-        document.dispatchEvent(
-          new CustomEvent('addons-popup-confirmed', {
-            detail: {
-              itemId,
-              itemType,
-              addons: [],
-            },
-          })
-        )
-      }
-    }
-
-    // Listen for cart updates from other components
-    listenToCartUpdates(() => {
-      updateButtonState()
-    })
-
-    // Initialize button state on page load
-    updateButtonState()
-
-    // Also listen for specific cart events
-    document.addEventListener('cart-updated', (event: Event) => {
-      const customEvent = event as CustomEvent
-      const detail = customEvent.detail as any
-      if (detail.itemId === itemId && detail.itemType === itemType) {
-        updateButtonState()
-      }
-    })
-
-    document.addEventListener('addons-popup-confirmed', (event: Event) => {
-      const customEvent = event as CustomEvent
-      const detail = customEvent.detail as any
-      if (detail.itemId === itemId && detail.itemType === itemType) {
-        updateButtonState()
-      }
-    })
   })
 </script>

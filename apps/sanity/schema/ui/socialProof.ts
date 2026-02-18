@@ -20,31 +20,6 @@ export default defineField({
       description: 'np. "10+ lat doświadczenia", "200+ zrealizowanych eventów"',
       of: [{ type: 'string' }],
     }),
-    defineField({
-      name: 'testimonials',
-      type: 'array',
-      title: 'Opinie',
-      description: '1-2 krótkie opinie wyświetlane nad formularzem',
-      of: [
-        {
-          type: 'reference',
-          to: [{ type: 'Testimonial_Collection' }],
-          options: {
-            disableNew: true,
-            filter: ({ parent, document }) => {
-              const language = (document as { language?: string })?.language
-              const selectedIds =
-                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
-              return {
-                filter: '!(_id in $selectedIds) && !(_id in path("drafts.**")) && language == $lang',
-                params: { selectedIds, lang: language },
-              }
-            },
-          },
-        },
-      ],
-      validation: (Rule) => Rule.max(3),
-    }),
   ],
   options: {
     collapsible: true,

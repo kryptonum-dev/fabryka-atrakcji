@@ -16,12 +16,14 @@ import { NoSearchResults_Query } from '@/src/components/activites/NoSearchResult
 import { parseFilters, getOrderClause } from '@/utils/filters'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 
 export const ITEMS_PER_PAGE = 16
 
 type FormProps = {
   formHeading?: PortableTextValue
   formParagraph?: PortableTextValue
+  formVisualImage?: ImageDataProps
   overrideFormState?: boolean
   formState?: FormStateTypes
 }
@@ -85,6 +87,10 @@ export async function fetchData(
     {
       name: string
       slug: string
+      globalFormDefaults?: {
+        heading?: PortableTextValue
+        paragraph?: PortableTextValue
+      }
       selectedCategory: {
         name: string
         slug: string
@@ -97,6 +103,9 @@ export async function fetchData(
         formOverrides?: {
           heading?: PortableTextValue
           paragraph?: PortableTextValue
+          formVisualImage?: ImageDataProps
+          overrideFormState?: boolean
+          formState?: FormStateTypes
         }
       }
       components: ComponentsProps
@@ -109,8 +118,13 @@ export async function fetchData(
       *[_type == "Activities_Page" && language == $language][0] {
         name,
         "slug": slug.current,
+        "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
         ${PortableTextQuery('formHeading')}
         ${PortableTextQuery('formParagraph')}
+        ${ImageDataQuery('formVisualImage')}
         escapeHatchHeading,
         escapeHatchText,
         overrideFormState,
@@ -141,6 +155,23 @@ export async function fetchData(
           formOverrides {
             ${PortableTextQuery('heading')}
             ${PortableTextQuery('paragraph')}
+            ${ImageDataQuery('formVisualImage')}
+            overrideFormState,
+            formState {
+              success {
+                ${PortableTextQuery('heading')}
+                ${PortableTextQuery('paragraph')}
+                highlightedSocialMedia[] -> {
+                  name,
+                  link,
+                  iconString,
+                },
+              },
+              error {
+                ${PortableTextQuery('heading')}
+                ${PortableTextQuery('paragraph')}
+              },
+            },
           },
           ${Components_Query}
         },
@@ -276,8 +307,14 @@ const componentsToRender = (() => {
 })()
 
 // Resolve form heading/paragraph: category override → singleton default
-const formHeading = page.selectedCategory?.formOverrides?.heading || page.formHeading
-const formParagraph = page.selectedCategory?.formOverrides?.paragraph || page.formParagraph
+const formHeading = page.selectedCategory?.formOverrides?.heading || page.formHeading || page.globalFormDefaults?.heading
+const formParagraph =
+  page.selectedCategory?.formOverrides?.paragraph || page.formParagraph || page.globalFormDefaults?.paragraph
+const formVisualImage = page.selectedCategory?.formOverrides?.formVisualImage || page.formVisualImage
+const resolvedOverrideFormState = page.selectedCategory?.formOverrides?.overrideFormState ?? page.overrideFormState
+const resolvedFormState = page.selectedCategory?.formOverrides?.overrideFormState
+  ? page.selectedCategory?.formOverrides?.formState
+  : page.formState
 ---
 
 <Layout {...metadata}>
@@ -309,8 +346,9 @@ const formParagraph = page.selectedCategory?.formOverrides?.paragraph || page.fo
       sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
       heading={formHeading}
       paragraph={formParagraph || []}
-      overrideFormState={page.overrideFormState}
-      state={page.formState}
+      formVisualImage={formVisualImage}
+      overrideFormState={resolvedOverrideFormState}
+      state={resolvedFormState}
       variant="activity_listing"
       showInquiries={false}
       animate={false}

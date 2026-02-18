@@ -30,6 +30,24 @@ This aligns with FA's brand promise: "Zrelaksuj się. My zajmiemy się resztą."
 
 ---
 
+## Implementation Delta (2026-02-18)
+
+This section is the source of truth for the latest implemented model. Where older sections conflict, this section wins.
+
+- `socialProof` is **global-only** (`global.inquiryFormDefaults.socialProof`).
+- `responseBadge` is **global-only** (`global.inquiryFormDefaults.responseBadge`).
+- `inquiryFormDefaults` now includes global fallback `heading` + `paragraph` (in addition to `state`, `formVisualImage`, `socialProof`, `responseBadge`).
+- The page-builder `ContactForm` keeps required `heading` + `paragraph`, but no longer owns social proof/badge.
+- Listing/detail heading+paragraph now use cascade:
+  - Activities listing: category override -> `Activities_Page.formHeading/formParagraph` -> global fallback
+  - Hotels listing: `Hotels_Page.formHeading/formParagraph` -> global fallback
+  - Activity detail: `Activities_Collection.formOverrides` -> `Activities_Page.detailFormDefaults` -> global fallback
+  - Hotel detail: `Hotels_Collection.formOverrides` -> `Hotels_Page.detailFormDefaults` -> global fallback
+- Listing/detail image+state are also overridable at lower levels and fallback to global.
+- `detailFormDefaults` on `Activities_Page` and `Hotels_Page` are optional (not required) to allow clean fallback.
+
+---
+
 ## 1. Current State Analysis
 
 ### Business Context
@@ -951,20 +969,20 @@ No staging dataset needed — both Studios share the same dataset. The staging S
 
 **Goal:** All new schema fields in place before touching any frontend code. Schema deploys to staging only.
 
-- [x] **1.1** Evolve `apps/sanity/schema/components/ContactForm.ts` — added `showInquiries` (boolean, default `true`), `socialProof` (socialProof object type), `overrideFormState` (boolean), `responseBadge` (collapsible object with text + icon), `formVisualImage` (image for sidebar)
-- [x] **1.2** Created reusable `socialProof` object type at `apps/sanity/schema/ui/socialProof.ts` — shared across ContactForm and global. Fields: `clientLogos` (image[], max 8), `metrics` (string[]), `testimonials` (reference[] to `Testimonial_Collection`, max 3, language-filtered)
-- [x] **1.3** Modified `apps/sanity/schema/singleTypes/global.tsx` — added `inquiryFormDefaults` field group in "Formularze" group with: `paragraph` (PortableText), `state` (formState), `socialProof`, `formVisualImage` (default sidebar image), `responseBadge` (default badge text + icon). Also added `contactRecipients` (array of emails) and `analytics` config (GA4 ID, Google Ads ID, Meta Pixel ID, Meta Conversion API token)
+- [x] **1.1** Evolve `apps/sanity/schema/components/ContactForm.ts` — added `showInquiries` (boolean, default `true`), `overrideFormState` (boolean), `state` override support, and `formVisualImage` (image override). `heading` + `paragraph` remain required.
+- [x] **1.2** Updated reusable `socialProof` object type at `apps/sanity/schema/ui/socialProof.ts` — now contains shared `clientLogos` and `metrics` only (testimonials removed from contact-form flow).
+- [x] **1.3** Modified `apps/sanity/schema/singleTypes/global.tsx` — `inquiryFormDefaults` now stores global fallback `heading`, `paragraph`, `state`, `socialProof`, `formVisualImage`, `responseBadge`. Also includes `contactRecipients` and analytics config.
 - [x] **1.4** Modified `apps/sanity/schema/singleTypes/Activities_Page.ts` — added `formHeading`, `formParagraph`, `overrideFormState`, `formState`, escape hatch fields
 - [x] **1.5** Modified `apps/sanity/schema/singleTypes/Hotels_Page.ts` — same new fields as Activities_Page
-- [x] **1.6** Modified `apps/sanity/schema/collectionTypes/Activities_Collection.ts` — added soft blocker message override field
+- [x] **1.6** Modified `ActivitiesCategory_Collection`, `Activities_Collection`, and `Hotels_Collection` — expanded `formOverrides` to support heading, paragraph, formVisualImage, overrideFormState, and formState.
 - [x] **1.7** Deployed schemas to the staging Studio
 - [x] **1.8** Populated the staging dataset with test content
 
 **Design evolution from original plan:**
 
-- `trustElement` (PortableText below form) was replaced by the `responseBadge` concept — a floating "ODPOWIEDŹ W 24H" pill with configurable text and icon. More visually impactful.
-- `formVisualImage` was added — a sidebar image not in the original plan, providing visual interest alongside the form.
-- `responseBadge` was added as a configurable component-level and global-level field.
+- `trustElement` concept was dropped; shared trust signal is now the global `responseBadge`.
+- `formVisualImage` is used as a global fallback with per-context overrides.
+- `responseBadge` is global-only (not component-level).
 
 ---
 
@@ -972,9 +990,9 @@ No staging dataset needed — both Studios share the same dataset. The staging S
 
 **Goal:** The ContactForm Astro + Preact component can render social proof, accept `variant`/`contextItem`/`showInquiries` as code props, and display the new form fields. Still renders on the contact page via page builder — no new pages yet.
 
-- [x] **2.1** Updated `ContactForm_Query` GROQ fragment — fetches `showInquiries`, `overrideFormState`, `formVisualImage`, `responseBadge { text, icon }`, `socialProof { clientLogos[]{ asset-> }, metrics, testimonials[]->{ name, position, company, review, image { profileImage { asset-> } } } }`. Global fallback query fetches `inquiryFormDefaults` with same shape.
-- [x] **2.2** Updated `ContactForm/index.astro` props interface — accepts `variant` (InquiryVariant, default `'general'`), `contextItem` (ContextItem?), `showInquiries` (boolean), `socialProof`, `overrideFormState`, `formVisualImage`, `responseBadge`. Resolution chain: component-level data overrides global defaults.
-- [x] **2.3** Added social proof rendering — metrics pills below heading, animated client logo marquee (below form, with `@keyframes` infinite scroll), floating `responseBadge` ("ODPOWIEDŹ W 24H") above form, sidebar with tilted image card + contact info overlay. Testimonials used as sidebar image fallback.
+- [x] **2.1** Updated `ContactForm_Query` GROQ fragment — fetches `showInquiries`, `overrideFormState`, `formVisualImage`, and `state` for page-builder context. Global fetch resolves `inquiryFormDefaults` (`heading`, `paragraph`, `state`, `socialProof`, `formVisualImage`, `responseBadge`) for fallback.
+- [x] **2.2** Updated `ContactForm/index.astro` props interface — keeps `variant`, `contextItem`, `showInquiries`, `overrideFormState`, `formVisualImage`; social proof and response badge resolve from global defaults.
+- [x] **2.3** Implemented social-proof rendering in ContactForm — global metrics + logo marquee + global response badge. Sidebar image fallback uses global/default image chain (no testimonial-image fallback).
 - [x] **2.4** Created `InquiryForm.tsx` — Preact form with `react-hook-form`. Core fields: name/company (required), email (required + regex), phone (optional, with country code selector), team size (radio: do 30 / 31-80 / 81-150 / 150+), preferred timeline (text), additional info (textarea), legal checkbox (required).
 - [x] **2.5** Added contextual fields — `hotel_listing` shows region radio + integration checkbox, `hotel_detail` shows integration checkbox, `activity_detail`/`hotel_detail` attach `contextItem` as hidden fields. **Design decision:** Event type radio for `general`/`activity_listing` was intentionally removed — these variants show standard fields only (simpler form = higher conversion).
 - [x] **2.6** Added inquiry items display — reads from `localStorage` key `fa-inquiry-items`, renders items with image/name/remove button, listens to `storage` + custom `inquiry-updated` events for cross-component sync, clears on successful submission.
@@ -1086,9 +1104,9 @@ The system has three forms that are already architecturally separated. They shar
 
 **Goal:** Activity and hotel listing pages get a hardcoded ContactForm at the bottom.
 
-- [x] **5.1** Modified the GROQ query in `CategoriesPage.astro` — fetches `formHeading`, `formParagraph`, `overrideFormState`, `formState` (with success/error PortableText + highlightedSocialMedia) from `Activities_Page` singleton. Added `FormProps` type and `ContactForm` + `FormStateTypes` imports.
-- [x] **5.2** Added ContactForm to `CategoriesPage.astro` — positioned after `<Components>` (bottom of page, before footer). Renders when `formHeading` is populated in Sanity. Props: `heading` from singleton, `paragraph` from singleton (with `[]` fallback), `overrideFormState`/`state` from singleton, `variant="activity_listing"`, `showInquiries={false}`. SocialProof, formVisualImage, and responseBadge resolve to global defaults automatically inside the ContactForm component.
-- [x] **5.3** Repeated for `HotelsPage.astro` — same pattern with `Hotels_Page` singleton data, `variant="hotel_listing"`. Extended GROQ query, added `FormProps` to type union, placed ContactForm after `<Components>`.
+- [x] **5.1** Modified listing queries (`CategoriesPage.astro`, `ActivitiesPage.astro`, `HotelsPage.astro`) to fetch listing-level form fields and global fallback heading/paragraph.
+- [x] **5.2** Activities listing now cascades heading/paragraph/image/state: category override -> `Activities_Page` -> global fallback.
+- [x] **5.3** Hotels listing now cascades heading/paragraph/image/state: `Hotels_Page` -> global fallback.
 - [x] **5.4** Both listing pages pass TypeScript checks — no linter errors. Form is conditionally rendered (only when `formHeading` is populated in Sanity), so existing pages work unchanged until content is added.
 
 **Design decisions:**
@@ -1105,10 +1123,10 @@ The system has three forms that are already architecturally separated. They shar
 
 **Goal:** Every activity and hotel detail page has a hardcoded ContactForm with auto-attached context.
 
-- [x] **6.1** No GROQ query changes needed — ContactForm self-fetches global defaults (paragraph, socialProof, state, formVisualImage, responseBadge) internally via `sanityFetch`.
-- [x] **6.2** Added ContactForm to `SingleActivityPage.astro` — placed after `<Components>`, before `<AddonsPopup>`. Auto-generated heading `"Zapytaj o ${page.name}"` constructed as PortableText block in template. Props: `variant="activity_detail"`, `showInquiries={false}`, `animate={false}`, `contextItem={{ type: 'integracja', id: page._id, name: page.name }}`.
-- [x] **6.3** Repeated for `SingleHotelPage.astro` — same pattern with `variant="hotel_detail"`, `contextItem={{ type: 'hotel', id: page._id, name: page.name }}`.
-- [x] **6.4** Both detail pages pass TypeScript checks — no linter errors. Form always renders (no conditional gate, unlike listing pages) with auto-generated heading and context item.
+- [x] **6.1** Extended detail-page GROQ queries to fetch singleton detail defaults + item-level overrides + global fallback heading/paragraph.
+- [x] **6.2** Activity detail cascade: `Activities_Collection.formOverrides` -> `Activities_Page.detailFormDefaults` -> global fallback; passes `contextItem`.
+- [x] **6.3** Hotel detail cascade: `Hotels_Collection.formOverrides` -> `Hotels_Page.detailFormDefaults` -> global fallback; passes `contextItem`.
+- [x] **6.4** Detail forms render with context item and optional local overrides; singleton detail defaults are no longer required.
 
 **Migration timing (critical):**
 
@@ -1179,14 +1197,14 @@ The system has three forms that are already architecturally separated. They shar
 - [ ] **11.4** Test i18n — verify PL and EN paths both work (forms, redirects, headings, social proof)
 - [ ] **11.5** Accessibility audit — keyboard navigation through form fields, ARIA labels, focus management, 44px touch targets on all interactive elements
 - [ ] **11.6** Performance check — Core Web Vitals on listing pages with the added form + social proof. Ensure no LCP regression
-- [ ] **11.7** Delete unused cart components — `components/cart/*`, `AddonsPopup.astro`, `SubmitSidebar.astro`, `CartLink`. Git preserves everything.
-- [ ] **11.8** Delete unused API routes — `/api/cart/activity`, `/api/cart/hotel`, `/api/initialQuote`, `/api/quotes`. All deleted, not archived.
+- [x] **11.7** Delete unused cart components — `components/cart/*`, `AddonsPopup.astro`, `SubmitSidebar.astro`, `CartLink`. Git preserves everything.
+- [x] **11.8** Delete unused API routes — `/api/cart/activity`, `/api/cart/hotel`, `/api/initialQuote`, `/api/quotes`. All deleted, not archived.
 - [ ] **11.9** Run `migrate-contact-form-overrides` in production release window — first `dry-run`, then `--apply` (and only then decide whether to run with `--remove-contact-form` after frontend verification)
-- [ ] **11.9** Delete unused Sanity schemas — `Cart_Page`, `Quote_Page`, quotes collection type, `addons` shared type. Remove from schema index and delete files.
-- [ ] **11.10** Delete `QuoteCartLayout.astro` — no longer used
-- [ ] **11.11** Delete unused utilities — `cart.ts` and any cart-related type definitions
-- [ ] **11.12** Delete legacy `ContactForm/Form.tsx` — replaced by `InquiryForm.tsx`. This removes the `contact_form` analytics event. Only `inquiry_form` and `faq_form` remain as lead events.
-- [ ] **11.13** Remove cart page analytics scripts — deleting cart pages removes `view_cart`/`ViewCart` and `begin_checkout`/`InitiateCheckout` events automatically (they live in the page `<script>` tags)
+- [x] **11.9** Delete unused Sanity schemas — `Cart_Page`, `Quote_Page`, quotes collection type, `addons` shared type. Remove from schema index and delete files.
+- [x] **11.10** Delete `QuoteCartLayout.astro` — no longer used
+- [x] **11.11** Delete unused utilities — `cart.ts` and any cart-related type definitions
+- [x] **11.12** Delete legacy `ContactForm/Form.tsx` — replaced by `InquiryForm.tsx`. This removes the `contact_form` analytics event. Only `inquiry_form` and `faq_form` remain as lead events.
+- [x] **11.13** Remove cart page analytics scripts — deleting cart pages removes `view_cart`/`ViewCart` and `begin_checkout`/`InitiateCheckout` events automatically (they live in the page `<script>` tags)
 - [ ] **11.14** Verify no broken imports — run `tsc --noEmit` and fix any TypeScript errors from deleted references
 - [ ] **11.15** Remove Phase 3 temporary dev items:
   - Remove `TEST_RECIPIENT` override in `src/pages/api/contact.ts` (restore dynamic recipients from Sanity `global.contactRecipients`)

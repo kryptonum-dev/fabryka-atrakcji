@@ -1,8 +1,7 @@
-import { BookOpen, FileArchive, Handshake, Hotel, House, HouseIcon, Receipt, Settings2, Users2Icon } from 'lucide-react'
+import { BookOpen, FileArchive, Handshake, Hotel, House, Settings2, Users2Icon } from 'lucide-react'
 import type { StructureResolver } from 'sanity/structure'
 import { createCollection } from '../utils/create-collection'
 import { createSingleton } from '../utils/create-singleton'
-import { PricingSummaryView } from '../views/PricingSummaryView'
 
 export const structure: StructureResolver = (S, context) =>
   S.list()
@@ -54,23 +53,6 @@ export const structure: StructureResolver = (S, context) =>
             ])
         ),
       S.listItem()
-        .title('Wyceny')
-        .icon(Receipt)
-        .child(
-          S.documentTypeList('Quotes_Collection')
-            .title('Wyceny')
-            .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
-            .child((documentId) =>
-              S.document()
-                .documentId(documentId)
-                .schemaType('Quotes_Collection')
-                .views([
-                  S.view.form().title('Dane podstawowe'),
-                  S.view.component(PricingSummaryView).title('Podsumowanie cenowe'),
-                ])
-            )
-        ),
-      S.listItem()
         .title('Blog')
         .icon(BookOpen)
         .child(
@@ -104,9 +86,6 @@ export const structure: StructureResolver = (S, context) =>
                     .title('Media społecznościowe')
                     .child((documentId) => S.document().documentId(documentId).schemaType('SocialMedia_Collection'))
                 ),
-              createSingleton({ S, name: 'Cart_Page' }),
-              createSingleton({ S, name: 'Quote_Page' }),
-              createSingleton({ S, name: 'ThankYouPage' }),
               createSingleton({ S, name: 'NotFound_Page' }),
               createSingleton({ S, name: 'TermsAndConditions_Page' }),
               createSingleton({ S, name: 'PrivacyPolicy_Page' }),

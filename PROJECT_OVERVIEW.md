@@ -619,7 +619,6 @@ footer ──→ SocialMedia_Collection (social links)
 **Custom Studio Components**:
 
 - `StarRating` - Hotel star rating input
-- `PricingSummaryView` - Quote pricing breakdown view
 - `CustomInput` - Enhanced PortableText input
 - `Preview` - Document preview
 

@@ -11,9 +11,6 @@ import redirects from '../schema/singleTypes/redirects'
 import TermsAndConditions_Page from '../schema/singleTypes/legal/TermsAndConditions_Page'
 import PrivacyPolicy_Page from '../schema/singleTypes/legal/PrivacyPolicy_Page'
 import Hotels_Page from '../schema/singleTypes/Hotels_Page'
-import Cart_Page from '../schema/singleTypes/Cart_Page'
-import Quote_Page from '../schema/singleTypes/Quote_Page'
-import ThankYouPage from '../schema/singleTypes/ThankYouPage'
 const singleTypes = [
   global,
   redirects,
@@ -27,9 +24,6 @@ const singleTypes = [
   TermsAndConditions_Page,
   PrivacyPolicy_Page,
   Hotels_Page,
-  Cart_Page,
-  Quote_Page,
-  ThankYouPage,
 ]
 
 // Collections Types
@@ -49,7 +43,6 @@ import Author_Collection from '../schema/collectionTypes/Author_Collection'
 import ActivitiesType_Collection from '../schema/collectionTypes/ActivitiesType_Collection'
 import Hotels_Collection from '../schema/collectionTypes/Hotels_Collection'
 import Locations_Collection from '../schema/collectionTypes/Locations_Collection'
-import Quotes_Collection from '../schema/collectionTypes/Quotes_Collection'
 
 const collectionTypes = [
   Faq_Collection,
@@ -68,7 +61,6 @@ const collectionTypes = [
   Hotels_Collection,
   Locations_Collection,
   Amenities_Collection,
-  Quotes_Collection,
 ]
 
 // Components
@@ -84,16 +76,15 @@ import PortableText from '../schema/ui/PortableText'
 import Heading from '../schema/ui/PortableText/Heading'
 import seo from '../schema/ui/seo'
 import formPopup from '../schema/ui/formPopup'
-import quoteItem from '../schema/shared/quoteItem'
 import ActivitiesCarousel from '../schema/components/ActivitiesCarousel'
 
-const ui = [cta, seo, PortableText, Heading, formState, socialProof, formPopup, quoteItem, ActivitiesCarousel]
+const ui = [cta, seo, PortableText, Heading, formState, socialProof, formPopup, ActivitiesCarousel]
 
 export const schemaTypes = [...singleTypes, ...collectionTypes, ...components, ...ui]
 
 export const i18nTypes = [...singleTypes, ...collectionTypes]
   .map((type) => type.name)
-  .filter((name) => !['redirects', 'Quotes_Collection'].includes(name))
+  .filter((name) => !['redirects'].includes(name))
 
 export const singletonActions = new Set(['publish', 'discardChanges', 'restore'])
 export const singletonTypes = new Set(singleTypes.map((type) => type.name as string))

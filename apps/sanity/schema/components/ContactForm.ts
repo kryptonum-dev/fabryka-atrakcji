@@ -47,39 +47,12 @@ export default defineField({
       initialValue: true,
     }),
     defineField({
-      name: 'socialProof',
-      type: 'socialProof',
-      title: 'Social Proof',
-      description: 'Elementy budujące zaufanie wyświetlane wokół formularza (opcjonalne)',
-    }),
-    defineField({
       name: 'overrideFormState',
       type: 'boolean',
       title: 'Nadpisz komunikaty formularza',
       description:
         'Gdy wyłączone, formularz użyje globalnych komunikatów sukcesu/błędu z ustawień globalnych. Włącz, aby ustawić niestandardowe komunikaty dla tego formularza.',
       initialValue: false,
-    }),
-    defineField({
-      name: 'responseBadge',
-      type: 'object',
-      title: 'Badge odpowiedzi (nad formularzem)',
-      description:
-        'Opcjonalny badge widoczny przy formularzu. Jeśli puste, użyte zostaną ustawienia globalne.',
-      options: { collapsible: true, collapsed: true },
-      fields: [
-        defineField({
-          name: 'text',
-          type: 'string',
-          title: 'Tekst badge',
-        }),
-        defineField({
-          name: 'icon',
-          type: 'image',
-          title: 'Ikona badge',
-          description: 'Mała ikona wyświetlana po lewej stronie tekstu badge.',
-        }),
-      ],
     }),
     defineField({
       name: 'state',

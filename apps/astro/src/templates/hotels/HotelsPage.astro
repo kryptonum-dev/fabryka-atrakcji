@@ -10,12 +10,14 @@ import Listing, { Listing_Query, type ListingProps } from '@/src/components/hote
 import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 
 export const ITEMS_PER_PAGE = 16
 
 type FormProps = {
   formHeading?: PortableTextValue
   formParagraph?: PortableTextValue
+  formVisualImage?: ImageDataProps
   overrideFormState?: boolean
   formState?: FormStateTypes
 }
@@ -47,6 +49,10 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
     {
       name: string
       slug: string
+      globalFormDefaults?: {
+        heading?: PortableTextValue
+        paragraph?: PortableTextValue
+      }
       heading: PortableTextValue
       paragraph: PortableTextValue
       checklist: string[]
@@ -63,10 +69,15 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
       *[_type == "Hotels_Page" && language == $language][0] {
         name,
         "slug": slug.current,
+        "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
         ${PortableTextQuery('formHeading')}
         ${PortableTextQuery('formParagraph')}
+        ${ImageDataQuery('formVisualImage')}
         escapeHatchHeading,
         escapeHatchText,
         overrideFormState,
@@ -177,6 +188,8 @@ const breadcrumbs = [
 ]
 
 const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
+const resolvedFormHeading = page.formHeading || page.globalFormDefaults?.heading
+const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.paragraph
 ---
 
 <Layout {...metadata}>
@@ -202,12 +215,13 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
     escapeHintText={page.escapeHatchHeading}
     escapeHintCta={page.escapeHatchText}
   />
-  {page.formHeading && (
+  {resolvedFormHeading && (
     <ContactForm
       index={10}
       sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
-      heading={page.formHeading}
-      paragraph={page.formParagraph || []}
+      heading={resolvedFormHeading}
+      paragraph={resolvedFormParagraph || []}
+      formVisualImage={page.formVisualImage}
       overrideFormState={page.overrideFormState}
       state={page.formState}
       variant="hotel_listing"
