@@ -9,14 +9,14 @@ import type { APIRoute } from 'astro'
 
 const RESEND_API_KEY = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY
 
-// TEST OVERRIDE — remove after testing
-const TEST_RECIPIENT = 'oliwier@kryptonum.eu'
-const IS_DEV = import.meta.env.DEV
+// STAGING/PREVIEW OVERRIDE — remove before production merge
+const PREVIEW_RECIPIENTS = ['oliwier@kryptonum.eu']
+const IS_PREVIEW_DEPLOYMENT = process.env.VERCEL_ENV === 'preview'
 
 const getContactRecipients = async (lang: string): Promise<string[]> => {
-  if (IS_DEV && TEST_RECIPIENT) {
-    console.log(`[DEV] Overriding recipients to: ${TEST_RECIPIENT}`)
-    return [TEST_RECIPIENT]
+  if (IS_PREVIEW_DEPLOYMENT && PREVIEW_RECIPIENTS.length > 0) {
+    console.log(`[PREVIEW] Overriding recipients to: ${PREVIEW_RECIPIENTS.join(', ')}`)
+    return PREVIEW_RECIPIENTS
   }
 
   try {
