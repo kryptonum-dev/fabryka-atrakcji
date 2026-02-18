@@ -22,6 +22,7 @@ import ImageWithHeadingAndText, {
   ImageWithHeadingAndText_Query,
 } from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
 import FileView, { FileView_Query } from '@/src/components/ui/content-pt/offer/FileView.astro'
+import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
 
@@ -289,6 +290,16 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
         }}
       />
     </div>
+    <SubmitSidebar
+      id={page._id}
+      type="activities"
+      basePrice={{
+        amount: page.pricing.basePrice,
+        maxPeople: page.pricing.maxParticipants,
+      }}
+      perPersonPrice={page.pricing.additionalPersonPrice}
+      name={page.name}
+    />
   </article>
   {formHeading && (
     <ContactForm

@@ -23,6 +23,7 @@ import ImageWithHeadingAndText, {
 import RowsWithIcons, { RowsWithIcons_Query } from '@/src/components/ui/content-pt/offer/RowsWithIcons.astro'
 import Timeline, { Timeline_Query } from '@/src/components/ui/content-pt/offer/Timeline.astro'
 import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer/NextSteps.astro'
+import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { BaseHotelProps, FormStateTypes } from '@/src/global/types'
 import Image, { Image_Query } from '@/src/components/ui/content-pt/shared/Image.astro'
@@ -223,6 +224,19 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
         }}
       />
     </div>
+    <SubmitSidebar
+      id={page._id}
+      type="hotels"
+      basePrice={page.pricing?.pricingVisible && page.pricing.hasFixedGroupPrice
+        ? {
+            amount: page.pricing.groupPrice!,
+            maxPeople: page.pricing.groupPeopleCount!,
+          }
+        : undefined}
+      perPersonPrice={page.pricing?.pricingVisible ? page.pricing.pricePerPerson || 0 : 0}
+      name={page.name}
+      pricingVisible={page.pricing?.pricingVisible}
+    />
   </article>
   {formHeading && (
     <ContactForm
