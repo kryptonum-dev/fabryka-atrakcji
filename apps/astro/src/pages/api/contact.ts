@@ -64,6 +64,8 @@ type InquiryFormProps = BaseProps & {
 type Props = SimpleFormProps | InquiryFormProps
 
 const isInquiryForm = (data: Props): data is InquiryFormProps => 'name' in data && !!data.name
+const MIN_ADDITIONAL_INFO_LETTERS = 16
+const countLetters = (value: string) => (value.match(/\p{L}/gu) || []).length
 
 // --- Email helpers ---
 
@@ -134,6 +136,16 @@ export const POST: APIRoute = async ({ request }) => {
     if (isInquiryForm(data)) {
       if (!data.name) {
         return new Response(JSON.stringify({ message: 'Missing name field', success: false }), { status: 400 })
+      }
+
+      const additionalInfo = data.additionalInfo?.trim() || ''
+      const isAdditionalInfoValid = additionalInfo.length > 0 && countLetters(additionalInfo) >= MIN_ADDITIONAL_INFO_LETTERS
+      if (!isAdditionalInfoValid) {
+        const message =
+          lang === 'en'
+            ? 'Additional information is required and must contain at least 16 letters'
+            : 'Dodatkowe informacje są wymagane i muszą zawierać co najmniej 16 liter'
+        return new Response(JSON.stringify({ message, success: false }), { status: 400 })
       }
     } else {
       if (!data.message) {

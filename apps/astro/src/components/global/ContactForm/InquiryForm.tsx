@@ -64,6 +64,7 @@ export default function InquiryForm({
   const t = translations[lang]
   const activityCount = inquiryItems.filter((item) => item.type === 'integracja').length
   const hotelCount = inquiryItems.filter((item) => item.type === 'hotel').length
+  const countLetters = (value: string) => (value.match(/\p{L}/gu) || []).length
 
   useEffect(() => {
     if (showInquiries) {
@@ -373,7 +374,14 @@ export default function InquiryForm({
         aria-hidden={isFilled}
         disabled={isFilled}
         label={t.form.inquiry.additionalInfo.label}
-        register={register('additionalInfo')}
+        register={register('additionalInfo', {
+          required: { value: true, message: t.form.inquiry.additionalInfo.required },
+          validate: {
+            hasContent: (value: string) => value?.trim().length > 0 || t.form.inquiry.additionalInfo.required,
+            minLetters: (value: string) =>
+              countLetters(value || '') >= 16 || t.form.inquiry.additionalInfo.minLength,
+          },
+        })}
         errors={errors}
         isTextarea
         placeholder={t.form.inquiry.additionalInfo.placeholder}

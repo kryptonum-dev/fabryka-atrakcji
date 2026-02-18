@@ -76,6 +76,8 @@ export const translations = {
         additionalInfo: {
           label: 'Dodatkowe informacje',
           placeholder: 'Opisz czego szukasz — budżet, styl, specjalne wymagania...',
+          required: 'Dodatkowe informacje są wymagane',
+          minLength: 'Opis musi zawierać co najmniej 16 liter',
         },
         region: {
           label: 'Preferowany region',
@@ -171,6 +173,8 @@ export const translations = {
         additionalInfo: {
           label: 'Additional information',
           placeholder: 'Describe what you need — budget, style, special requirements...',
+          required: 'Additional information is required',
+          minLength: 'Description must contain at least 16 letters',
         },
         region: {
           label: 'Preferred region',

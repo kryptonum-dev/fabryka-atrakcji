@@ -1183,7 +1183,7 @@ The system has three forms that are already architecturally separated. They shar
 - [x] **9.5** Added global Sanity-driven listing filters (`listingFilters`) in `global.tsx`:
   - `activityParticipantGroups` (min 2, max 6)
   - `hotelLocationOptions` (min 2, max 6)
-  and wired them in listings + ContactForm (`index.astro`/`InquiryForm.tsx`) so team size / location options are CMS-managed across all contact form contexts.
+    and wired them in listings + ContactForm (`index.astro`/`InquiryForm.tsx`) so team size / location options are CMS-managed across all contact form contexts.
 
 ---
 
@@ -1191,12 +1191,12 @@ The system has three forms that are already architecturally separated. They shar
 
 **Goal:** Everything works, old code is cleaned up, ready for production.
 
-- [ ] **11.1** Full end-to-end testing on staging — test every form submission path (contact page, activity listing, hotel listing, activity detail, hotel detail), verify emails arrive correctly
-- [ ] **11.2** Test inquiry flow end-to-end — add items from listings → see widget → navigate to contact page → see items in form → submit → items in email
-- [ ] **11.3** Test edge cases — empty localStorage, 10+ inquiry items, form validation errors, success/error states, state override on listings
-- [ ] **11.4** Test i18n — verify PL and EN paths both work (forms, redirects, headings, social proof)
-- [ ] **11.5** Accessibility audit — keyboard navigation through form fields, ARIA labels, focus management, 44px touch targets on all interactive elements
-- [ ] **11.6** Performance check — Core Web Vitals on listing pages with the added form + social proof. Ensure no LCP regression
+- [x] **11.1** Full end-to-end testing on staging — test every form submission path (contact page, activity listing, hotel listing, activity detail, hotel detail), verify emails arrive correctly
+- [x] **11.2** Test inquiry flow end-to-end — add items from listings → see widget → navigate to contact page → see items in form → submit → items in email
+- [x] **11.3** Test edge cases — empty localStorage, 10+ inquiry items, form validation errors, success/error states, state override on listings
+- [x] **11.4** Test i18n — verify PL and EN paths both work (forms, redirects, headings, social proof)
+- [x] **11.5** Accessibility audit — keyboard navigation through form fields, ARIA labels, focus management, 44px touch targets on all interactive elements
+- [x] **11.6** Performance check — Core Web Vitals on listing pages with the added form + social proof. Ensure no LCP regression
 - [x] **11.7** Delete unused cart components — `components/cart/*`, `AddonsPopup.astro`, `SubmitSidebar.astro`, `CartLink`. Git preserves everything.
 - [x] **11.8** Delete unused API routes — `/api/cart/activity`, `/api/cart/hotel`, `/api/initialQuote`, `/api/quotes`. All deleted, not archived.
 - [ ] **11.9** Run `migrate-contact-form-overrides` in production release window — first `dry-run`, then `--apply` (and only then decide whether to run with `--remove-contact-form` after frontend verification)
@@ -1205,7 +1205,7 @@ The system has three forms that are already architecturally separated. They shar
 - [x] **11.11** Delete unused utilities — `cart.ts` and any cart-related type definitions
 - [x] **11.12** Delete legacy `ContactForm/Form.tsx` — replaced by `InquiryForm.tsx`. This removes the `contact_form` analytics event. Only `inquiry_form` and `faq_form` remain as lead events.
 - [x] **11.13** Remove cart page analytics scripts — deleting cart pages removes `view_cart`/`ViewCart` and `begin_checkout`/`InitiateCheckout` events automatically (they live in the page `<script>` tags)
-- [ ] **11.14** Verify no broken imports — run `tsc --noEmit` and fix any TypeScript errors from deleted references
+- [x] **11.14** Verify no broken imports — run `tsc --noEmit` and fix any TypeScript errors from deleted references
 - [ ] **11.15** Remove Phase 3 temporary dev items:
   - Remove `TEST_RECIPIENT` override in `src/pages/api/contact.ts` (restore dynamic recipients from Sanity `global.contactRecipients`)
   - Remove BotID dev guards: `if (!import.meta.env.DEV)` wrappers in `BotIdInit.astro` and `contact.ts`
@@ -1248,10 +1248,10 @@ The system has three forms that are already architecturally separated. They shar
 
 ### Layouts to Modify
 
-| File                       | Change                                                             |
-| -------------------------- | ------------------------------------------------------------------ |
-| `src/layouts/Layout.astro` | Add InquiryWidget, remove CartLink dependency                      |
-| `src/layouts/Header.astro` | Remove CartLink (no nav badge step; replaced by InquiryWidget)     |
+| File                       | Change                                                         |
+| -------------------------- | -------------------------------------------------------------- |
+| `src/layouts/Layout.astro` | Add InquiryWidget, remove CartLink dependency                  |
+| `src/layouts/Header.astro` | Remove CartLink (no nav badge step; replaced by InquiryWidget) |
 
 ### Components to Create
 
