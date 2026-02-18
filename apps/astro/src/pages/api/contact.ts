@@ -9,16 +9,7 @@ import type { APIRoute } from 'astro'
 
 const RESEND_API_KEY = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY
 
-// STAGING/PREVIEW OVERRIDE — remove before production merge
-const PREVIEW_RECIPIENTS = ['oliwier@kryptonum.eu']
-const IS_PREVIEW_DEPLOYMENT = process.env.VERCEL_ENV === 'preview'
-
 const getContactRecipients = async (lang: string): Promise<string[]> => {
-  if (IS_PREVIEW_DEPLOYMENT && PREVIEW_RECIPIENTS.length > 0) {
-    console.log(`[PREVIEW] Overriding recipients to: ${PREVIEW_RECIPIENTS.join(', ')}`)
-    return PREVIEW_RECIPIENTS
-  }
-
   try {
     const query = `*[_type == "global" && language == $lang][0].contactRecipients`
     const recipients = await sanityFetch<string[]>({ query, params: { lang } })
