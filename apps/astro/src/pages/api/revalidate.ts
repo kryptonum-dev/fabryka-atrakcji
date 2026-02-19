@@ -23,12 +23,14 @@ const SKIP_REFERENCE_LOOKUP = new Set(['global', 'Index_Page', 'Activities_Page'
  */
 async function resolveAffectedUrls(doc: SanityDocRef): Promise<string[]> {
   const directUrls = getDirectUrls(doc)
+  console.log(`[revalidate] Document: ${doc._type} ${doc._id} (slug: ${doc.slug?.current ?? 'none'}, lang: ${doc.language ?? '?'})`)
+  console.log(`[revalidate] Direct URLs (${directUrls.length}):`, directUrls)
 
   if (SKIP_REFERENCE_LOOKUP.has(doc._type)) {
+    console.log(`[revalidate] Skipping reference lookup for singleton type "${doc._type}"`)
     return directUrls
   }
 
-  // Query published documents that reference this _id.
   // Must use useCdn: false — the CDN caches reference-graph query results and may
   // not reflect the latest document relationships immediately after a mutation.
   const referencingDocs = await client.withConfig({ useCdn: false }).fetch<SanityDocRef[]>(
@@ -36,21 +38,32 @@ async function resolveAffectedUrls(doc: SanityDocRef): Promise<string[]> {
     { id: doc._id }
   )
 
+  console.log(`[revalidate] Reference lookup found ${referencingDocs.length} doc(s):`, referencingDocs.map((d) => `${d._type} ${d._id}`))
+
   const referenceUrls = referencingDocs.flatMap((ref) => getDirectUrls(ref))
 
-  return [...new Set([...directUrls, ...referenceUrls])]
+  const allUrls = [...new Set([...directUrls, ...referenceUrls])]
+  console.log(`[revalidate] Total unique URLs to invalidate: ${allUrls.length}`)
+  return allUrls
 }
 
 async function revalidateUrls(urls: string[]): Promise<void> {
-  await Promise.allSettled(
+  const results = await Promise.allSettled(
     urls.map((url) =>
       fetch(url, {
         method: 'HEAD',
         headers: { 'x-prerender-revalidate': ISR_BYPASS_TOKEN },
-      })
+      }).then((res) => ({ url, status: res.status }))
     )
   )
-  console.log(`[revalidate] Invalidated ${urls.length} URL(s):`, urls)
+
+  for (const r of results) {
+    if (r.status === 'fulfilled') {
+      console.log(`[revalidate] HEAD ${r.value.status} ${r.value.url}`)
+    } else {
+      console.error(`[revalidate] FAILED ${r.reason}`)
+    }
+  }
 }
 
 export const POST: APIRoute = async ({ request }) => {
