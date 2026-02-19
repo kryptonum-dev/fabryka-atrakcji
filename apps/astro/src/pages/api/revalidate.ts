@@ -105,8 +105,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const urls = await resolveAffectedUrls(doc)
 
-    // Fire-and-forget — respond immediately so Sanity does not time out
-    revalidateUrls(urls).catch((err) => console.error('[revalidate] HEAD request failed:', err))
+    await revalidateUrls(urls)
 
     return new Response(JSON.stringify({ revalidating: urls.length, urls }), {
       status: 200,
