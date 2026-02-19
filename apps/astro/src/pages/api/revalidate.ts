@@ -105,14 +105,22 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const urls = await resolveAffectedUrls(doc)
 
-    // Wait for Sanity CDN to propagate the mutation before purging ISR cache.
-    // Without this delay the re-render triggered by the next visitor may still
-    // fetch stale data from the CDN and re-cache the old page.
-    const CDN_PROPAGATION_DELAY_MS = 5_000
+    // Wait for Sanity CDN to propagate the mutation. The HEAD request with the
+    // bypass token triggers an immediate re-render (REVALIDATED). If the CDN
+    // still serves stale data at that moment, the page gets re-cached with old
+    // content. 10 seconds covers Sanity's CDN propagation window reliably.
+    const CDN_PROPAGATION_DELAY_MS = 10_000
     console.log(`[revalidate] Waiting ${CDN_PROPAGATION_DELAY_MS}ms for Sanity CDN propagation...`)
     await new Promise((resolve) => setTimeout(resolve, CDN_PROPAGATION_DELAY_MS))
 
     await revalidateUrls(urls)
+
+    // The HEAD requests above trigger a REVALIDATED re-render. Wait briefly,
+    // then send GET requests to force a second re-render as a safety net — in
+    // case the first re-render still caught stale CDN data.
+    await new Promise((resolve) => setTimeout(resolve, 2_000))
+    console.log(`[revalidate] Sending follow-up GET requests to warm cache...`)
+    await Promise.allSettled(urls.map((url) => fetch(url, { method: 'GET' })))
 
     return new Response(JSON.stringify({ revalidating: urls.length, urls }), {
       status: 200,
