@@ -1,5 +1,5 @@
 import { BarChartIcon, CaseIcon, CommentIcon, SearchIcon, UsersIcon } from '@sanity/icons'
-import { CogIcon } from 'lucide-react'
+import { CogIcon, User2Icon } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { getLanguagePreview } from '../../structure/languages'
 
@@ -110,6 +110,178 @@ export default defineType({
         'Lista ID grup z MailerLite, które mają dostęp do pliku PDF. Pozostaw puste, aby umożliwić dostęp wszystkim.',
       of: [{ type: 'string' }],
       group: 'forms',
+    }),
+    defineField({
+      name: 'inquiryFormDefaults',
+      type: 'object',
+      title: 'Domyślne ustawienia formularza zapytania',
+      description: 'Ustawienia współdzielone przez formularze zapytań na stronach list i szczegółów',
+      group: 'forms',
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Domyślny nagłówek formularza',
+          description: 'Globalny fallback nagłówka formularza, gdy niższe poziomy nie mają własnej wartości.',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Domyślny paragraf formularza',
+          description: 'Globalny fallback paragrafu formularza, gdy niższe poziomy nie mają własnej wartości.',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'state',
+          type: 'formState',
+          title: 'Stan formularza',
+          description: 'Komunikaty sukcesu i błędu wyświetlane po wysłaniu formularza',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'socialProof',
+          type: 'socialProof',
+          title: 'Social Proof',
+          description: 'Elementy budujące zaufanie współdzielone przez wszystkie formularze',
+        }),
+        defineField({
+          name: 'formVisualImage',
+          type: 'image',
+          title: 'Domyślne zdjęcie sekcji formularza',
+          description:
+            'Domyślny obraz lewej kolumny w formularzu kontaktowym. Używany, gdy sekcja ContactForm nie ma ustawionego własnego obrazu.',
+        }),
+        defineField({
+          name: 'responseBadge',
+          type: 'object',
+          title: 'Domyślny badge odpowiedzi',
+          description: 'Domyślny tekst i ikona badge przy formularzu zapytania.',
+          options: { collapsible: true, collapsed: true },
+          fields: [
+            defineField({
+              name: 'text',
+              type: 'string',
+              title: 'Tekst badge',
+            }),
+            defineField({
+              name: 'icon',
+              type: 'image',
+              title: 'Ikona badge',
+              description: 'Mała ikona wyświetlana po lewej stronie tekstu badge.',
+            }),
+          ],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'listingFilters',
+      type: 'object',
+      title: 'Ustawienia filtrów listingów',
+      description: 'Konfiguracja opcji filtrów na listingach (integracje i hotele).',
+      group: 'filters',
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: 'activityParticipantGroups',
+          type: 'array',
+          title: 'Grupy "Liczba osób" (integracje)',
+          description:
+            'Zakresy uczestników używane w filtrze "Liczba osób" na listingu integracji. Wymagane: 2-6 grup.',
+          of: [
+            defineField({
+              name: 'participantGroup',
+              type: 'object',
+              title: 'Grupa',
+              fields: [
+                defineField({
+                  name: 'label',
+                  type: 'string',
+                  title: 'Etykieta',
+                  description: 'Np. "1-30", "31-80", "150+".',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'min',
+                  type: 'number',
+                  title: 'Min',
+                  validation: (Rule) => Rule.required().min(1),
+                }),
+                defineField({
+                  name: 'max',
+                  type: 'number',
+                  title: 'Max (opcjonalne)',
+                  description: 'Pozostaw puste dla zakresu otwartego (np. 150+).',
+                  validation: (Rule) => Rule.min(1),
+                }),
+              ],
+              preview: {
+                select: { label: 'label', min: 'min', max: 'max' },
+                prepare: ({ label, min, max }) => ({
+                  media: User2Icon,
+                  title: label || `${min}${typeof max === 'number' ? `-${max}` : '+'}`,
+                }),
+              },
+              validation: (Rule) =>
+                Rule.custom((value) => {
+                  const group = value as { min?: number; max?: number } | undefined
+                  if (!group) return true
+                  if (typeof group.max === 'number' && typeof group.min === 'number' && group.max < group.min) {
+                    return 'Pole "max" musi być większe lub równe "min".'
+                  }
+                  return true
+                }),
+            }),
+          ],
+          validation: (Rule) => Rule.required().min(2).max(6),
+        }),
+        defineField({
+          name: 'hotelLocationOptions',
+          type: 'array',
+          title: 'Opcje "Lokalizacja" (hotele)',
+          description:
+            'Lista lokalizacji wyświetlana w filtrze "Lokalizacja" na listingu hoteli. Wymagane: 2-6 pozycji.',
+          of: [
+            defineField({
+              name: 'location',
+              type: 'reference',
+              to: [{ type: 'Locations_Collection' }],
+              options: {
+                disableNew: true,
+                filter: ({ document }) => {
+                  const language = (document as { language?: string })?.language
+                  return {
+                    filter: '!(_id in path("drafts.**")) && language == $lang',
+                    params: { lang: language },
+                  }
+                },
+              },
+            }),
+          ],
+          validation: (Rule) => Rule.required().min(2).max(6),
+        }),
+      ],
+    }),
+    defineField({
+      name: 'contactRecipients',
+      type: 'array',
+      title: 'Odbiorcy formularza kontaktowego',
+      description:
+        'Adresy email, na które będą wysyłane wiadomości z formularza kontaktowego. Przynajmniej jeden adres jest wymagany.',
+      group: 'forms',
+      of: [
+        {
+          type: 'string',
+          validation: (Rule) =>
+            Rule.custom((email: string | undefined) => {
+              if (!email) return 'Email jest wymagany'
+              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
+              return emailRegex.test(email) ? true : 'Nieprawidłowy format adresu email'
+            }),
+        },
+      ],
+      validation: (Rule) => Rule.required().min(1),
     }),
     defineField({
       name: 'analytics',
@@ -315,26 +487,7 @@ export default defineType({
         }),
       ],
     }),
-    defineField({
-      name: 'contactRecipients',
-      type: 'array',
-      title: 'Odbiorcy formularza kontaktowego',
-      description:
-        'Adresy email, na które będą wysyłane wiadomości z formularza kontaktowego. Przynajmniej jeden adres jest wymagany.',
-      group: 'forms',
-      of: [
-        {
-          type: 'string',
-          validation: (Rule) =>
-            Rule.custom((email: string | undefined) => {
-              if (!email) return 'Email jest wymagany'
-              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
-              return emailRegex.test(email) ? true : 'Nieprawidłowy format adresu email'
-            }),
-        },
-      ],
-      validation: (Rule) => Rule.required().min(1),
-    }),
+    
   ],
   groups: [
     {
@@ -346,6 +499,11 @@ export default defineType({
       name: 'forms',
       title: 'Formularze',
       icon: CommentIcon,
+    },
+    {
+      name: 'filters',
+      title: 'Filtry formularza',
+      icon: SearchIcon,
     },
     {
       name: 'analytics',

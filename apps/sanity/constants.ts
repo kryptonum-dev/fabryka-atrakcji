@@ -38,7 +38,7 @@ export const API_VERSION: string = '2024-03-05'
  * Used to identify the Sanity Studio instance in the application.
  * @constant
  */
-export const STUDIO_HOST: string = 'fabryka-atrakcji'
+export const STUDIO_HOST: string = process.env.SANITY_STUDIO_HOST || 'fabryka-atrakcji'
 
 /**
  * Application title.

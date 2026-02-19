@@ -13,14 +13,10 @@ type MetaEventName =
   | 'ViewContent'
   | 'ViewCategory'
   | 'Search'
-  | 'AddToCart'
-  | 'RemoveFromCart'
-  | 'InitiateCheckout'
   | 'AddPaymentInfo'
   | 'Purchase'
   | 'Lead'
   | 'Contact'
-  | 'ViewCart'
   | 'CompleteRegistration'
   | 'PageScroll'
   | 'TimeOnPage'
@@ -28,6 +24,7 @@ type MetaEventName =
   | 'Login'
   | 'Logout'
   | 'Download'
+  | 'AddToWishlist'
 
 type MetaEventParamsMap = {
   CompleteRegistration: Record<string, never>
@@ -52,25 +49,6 @@ type MetaEventParamsMap = {
   Search: {
     search_string?: string
   }
-  AddToCart: {
-    content_ids?: string[]
-    content_type?: string
-    value?: number
-    currency?: string
-    quantity?: number
-  }
-  RemoveFromCart: {
-    content_ids?: string[]
-    content_type?: string
-    value?: number
-    currency?: string
-    quantity?: number
-  }
-  InitiateCheckout: {
-    value?: number
-    currency?: string
-    content_ids?: string[]
-  }
   AddPaymentInfo: {
     payment_type?: string
     value?: number
@@ -91,11 +69,6 @@ type MetaEventParamsMap = {
     contact_type?: string
     contact_value?: string
   }
-  ViewCart: {
-    value?: number
-    currency?: string
-    content_ids?: string[]
-  }
   PageScroll: {
     percent_scrolled?: number
   }
@@ -112,6 +85,12 @@ type MetaEventParamsMap = {
     file_name?: string
     file_type?: string
   }
+  AddToWishlist: {
+    content_ids?: string[]
+    content_type?: string
+    value?: number
+    currency?: string
+  }
 }
 
 type Ga4EventName =
@@ -120,9 +99,6 @@ type Ga4EventName =
   | 'view_item_list'
   | 'view_item'
   | 'search'
-  | 'add_to_cart'
-  | 'remove_from_cart'
-  | 'begin_checkout'
   | 'add_payment_info'
   | 'purchase'
   | 'scroll'
@@ -134,7 +110,8 @@ type Ga4EventName =
   | 'file_download'
   | 'lead'
   | 'contact'
-  | 'view_cart'
+  | 'add_to_inquiry'
+  | 'inquiry_widget_opened'
 
 type Ga4EventParamsMap = {
   sign_up: {
@@ -157,22 +134,6 @@ type Ga4EventParamsMap = {
   }
   search: {
     search_term?: string
-  }
-  add_to_cart: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
-  }
-  remove_from_cart: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
-  }
-  begin_checkout: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
-    coupon?: string
   }
   add_payment_info: {
     currency?: string
@@ -220,10 +181,13 @@ type Ga4EventParamsMap = {
     contact_type?: string
     contact_value?: string
   }
-  view_cart: {
-    currency?: string
-    value?: number
-    items?: Array<Record<string, unknown>>
+  add_to_inquiry: {
+    item_id?: string
+    item_name?: string
+    item_type?: string
+  }
+  inquiry_widget_opened: {
+    item_count?: number
   }
 }
 
@@ -327,8 +291,6 @@ const META_STANDARD_EVENTS = new Set<MetaEventName>([
   'PageView',
   'ViewContent',
   'Search',
-  'AddToCart',
-  'InitiateCheckout',
   'AddPaymentInfo',
   'Purchase',
   'CompleteRegistration',
@@ -638,6 +600,12 @@ export function trackEvent<
     return params.eventId || (typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : Math.random().toString(36).slice(2))
+  }
+
+  // Skip all analytics on localhost / dev
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.debug('[Analytics] Skipped — dev environment')
+    return params.eventId || crypto.randomUUID()
   }
 
   const now = Date.now()

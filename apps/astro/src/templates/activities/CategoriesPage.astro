@@ -20,8 +20,17 @@ import { ImageDataQuery } from '@/src/components/ui/image'
 import ActivitiesCarousel, {
   type Props as ActivitiesCarouselProps,
 } from '@/src/components/global/ActivitiesCarousel/index.astro'
+import { DEFAULT_PARTICIPANT_GROUPS } from '@/src/components/activites/category/Listing.astro'
+import type { FormStateTypes } from '@/src/global/types'
 
 export const ITEMS_PER_PAGE = 8
+
+type FormProps = {
+  formHeading?: PortableTextValue
+  formParagraph?: PortableTextValue
+  overrideFormState?: boolean
+  formState?: FormStateTypes
+}
 
 type BasePageProps = {
   name: string
@@ -29,7 +38,7 @@ type BasePageProps = {
   heading: PortableTextValue
   components: ComponentsProps
   activitiesCarousel: ActivitiesCarouselProps
-}
+} & FormProps
 
 type SearchPageProps = BasePageProps & ActivitiesListingProps & NoSearchResultsProps
 type RegularPageProps = BasePageProps &
@@ -93,6 +102,24 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
         "slug": slug.current,
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
+        ${PortableTextQuery('formHeading')}
+        ${PortableTextQuery('formParagraph')}
+        overrideFormState,
+        formState {
+          success {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
         ${NoSearchResults_Query}
         ${searchQuery ? ActivitiesListing_Query(orderClause) : Listing_Query}
         ${Components_Query}
@@ -187,6 +214,9 @@ const isRegularPage = (page: SearchPageProps | RegularPageProps): page is Regula
   return 'totalItems' in page
 }
 
+// Filter out page builder ContactForms — we use the hardcoded one from the singleton instead
+const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
+
 // Get the total pages based on the page type
 const totalPages = isSearchPage(page)
   ? Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
@@ -205,6 +235,7 @@ const totalPages = isSearchPage(page)
           <>
             <SearchBar value={searchQuery} hasWrapper />
             <ActivitiesListing
+              participantGroups={DEFAULT_PARTICIPANT_GROUPS}
               totalActivitiesByCategory={page.totalActivitiesByCategory}
               listing={page.listing}
               currentCategory={null}
@@ -216,7 +247,7 @@ const totalPages = isSearchPage(page)
               noResults={page.noResults}
             />
             <Components
-              data={page.listing.length > 0 ? page.components : page.noResults.components}
+              data={page.listing.length > 0 ? filteredComponents : page.noResults.components}
               hasPreviousSections
             />
           </>
@@ -232,7 +263,7 @@ const totalPages = isSearchPage(page)
               currentPage={currentPage}
             />
             <ActivitiesCarousel {...page.activitiesCarousel} />
-            <Components data={page.components} hasPreviousSections />
+            <Components data={filteredComponents} hasPreviousSections />
           </>
         )
   }

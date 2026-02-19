@@ -41,6 +41,7 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
       email: data.email,
       phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
       message: data.message,
+      sourceUrl: window.location.href,
       utm: getUtmForSheet(),
     }))
 

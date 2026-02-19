@@ -8,8 +8,19 @@ import Components, { Components_Query, type ComponentsProps } from '@/src/compon
 import { getLangFromPath, type Language } from '@/global/languages'
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/hotels/Listing.astro'
 import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
+import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import type { FormStateTypes } from '@/src/global/types'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 
 export const ITEMS_PER_PAGE = 16
+
+type FormProps = {
+  formHeading?: PortableTextValue
+  formParagraph?: PortableTextValue
+  formVisualImage?: ImageDataProps
+  overrideFormState?: boolean
+  formState?: FormStateTypes
+}
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
@@ -38,6 +49,10 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
     {
       name: string
       slug: string
+      globalFormDefaults?: {
+        heading?: PortableTextValue
+        paragraph?: PortableTextValue
+      }
       heading: PortableTextValue
       paragraph: PortableTextValue
       checklist: string[]
@@ -45,14 +60,42 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
       noResults: {
         components: ComponentsProps
       }
-    } & ListingProps
+      escapeHatchHeading?: string
+      escapeHatchText?: string
+    } & ListingProps &
+      FormProps
   >({
     query: `
       *[_type == "Hotels_Page" && language == $language][0] {
         name,
         "slug": slug.current,
+        "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
+        ${PortableTextQuery('formHeading')}
+        ${PortableTextQuery('formParagraph')}
+        ${ImageDataQuery('formVisualImage')}
+        escapeHatchHeading,
+        escapeHatchText,
+        overrideFormState,
+        formState {
+          success {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
         checklist[],
         noResults {
           ${Components_Query}
@@ -143,6 +186,10 @@ const breadcrumbs = [
   { name: page.name, path: page.slug },
   ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
+
+const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
+const resolvedFormHeading = page.formHeading || page.globalFormDefaults?.heading
+const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.paragraph
 ---
 
 <Layout {...metadata}>
@@ -165,8 +212,24 @@ const breadcrumbs = [
     checklist={page.checklist}
     stars={page.stars}
     roomRangeCounts={page.roomRangeCounts}
+    escapeHintText={page.escapeHatchHeading}
+    escapeHintCta={page.escapeHatchText}
   />
-  <Components data={page.listing.length > 0 ? page.components : page?.noResults?.components} hasPreviousSections />
+  {resolvedFormHeading && (
+    <ContactForm
+      index={10}
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
+      heading={resolvedFormHeading}
+      paragraph={resolvedFormParagraph || []}
+      formVisualImage={page.formVisualImage}
+      overrideFormState={page.overrideFormState}
+      state={page.formState}
+      variant="hotel_listing"
+      showInquiries={false}
+      animate={false}
+    />
+  )}
+  <Components data={page.listing.length > 0 ? filteredComponents : page?.noResults?.components} hasPreviousSections />
 </Layout>
 
 <script>

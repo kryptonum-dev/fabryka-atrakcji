@@ -2,7 +2,7 @@ import { Book } from 'lucide-react'
 import { defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { defineField } from 'sanity'
-import { ComposeIcon, SearchIcon } from '@sanity/icons'
+import { CommentIcon, ComposeIcon, SearchIcon } from '@sanity/icons'
 import { getLanguagePreview } from '../../structure/languages'
 
 const name = 'Activities_Page'
@@ -108,17 +108,137 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'formHeading',
+      type: 'Heading',
+      title: 'Nagłówek formularza',
+      description: 'Nagłówek formularza zapytania na dole strony listy integracji',
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'formParagraph',
+      type: 'PortableText',
+      title: 'Paragraf formularza',
+      description: 'Paragraf formularza zapytania na dole strony listy integracji',
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'formVisualImage',
+      type: 'image',
+      title: 'Zdjęcie sekcji formularza',
+      description: 'Opcjonalne zdjęcie formularza na stronie listy integracji (nadpisuje globalne domyślne).',
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'overrideFormState',
+      type: 'boolean',
+      title: 'Nadpisz komunikaty formularza',
+      description: 'Gdy włączone, użyj niestandardowych komunikatów sukcesu/błędu zamiast globalnych',
+      initialValue: false,
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'formState',
+      type: 'formState',
+      title: 'Komunikaty formularza',
+      description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+      hidden: ({ document }) => !(document as any)?.overrideFormState,
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'detailFormDefaults',
+      type: 'object',
+      title: 'Domyślny formularz na stronie integracji',
+      description:
+        'Domyślne ustawienia formularza kontaktowego na podstronach poszczególnych integracji. Można nadpisać w każdej integracji osobno.',
+      group: 'inquiry',
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek formularza',
+          description: 'Domyślny nagłówek formularza na podstronie integracji',
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf formularza',
+          description: 'Domyślny paragraf formularza na podstronie integracji',
+        }),
+        defineField({
+          name: 'formVisualImage',
+          type: 'image',
+          title: 'Zdjęcie sekcji formularza',
+          description: 'Domyślne zdjęcie formularza na podstronie integracji.',
+        }),
+        defineField({
+          name: 'overrideFormState',
+          type: 'boolean',
+          title: 'Nadpisz komunikaty formularza',
+          description: 'Gdy włączone, użyj niestandardowych komunikatów sukcesu/błędu zamiast globalnych.',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'formState',
+          type: 'formState',
+          title: 'Komunikaty formularza',
+          description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+          hidden: ({ parent }) => !(parent as { overrideFormState?: boolean })?.overrideFormState,
+        }),
+      ],
+    }),
+    defineField({
+      name: 'escapeHatchHeading',
+      type: 'string',
+      title: 'Tekst podpowiedzi',
+      description:
+        'Tekst podpowiedzi wyświetlanej pod opisem kategorii, np. "Nie wiesz od czego zacząć?"',
+      group: 'inquiry',
+      fieldset: 'escapeHatch',
+    }),
+    defineField({
+      name: 'escapeHatchText',
+      type: 'string',
+      title: 'Tekst linku CTA',
+      description:
+        'Tekst linku kierującego do formularza, np. "Wyślij zapytanie — dobierzemy najlepszą integrację."',
+      group: 'inquiry',
+      fieldset: 'escapeHatch',
+    }),
+    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',
       group: 'seo',
     }),
   ],
+  fieldsets: [
+    {
+      name: 'listingForm',
+      title: 'Formularz na stronie listy integracji',
+      options: { collapsible: true, collapsed: false },
+    },
+    {
+      name: 'escapeHatch',
+      title: 'Podpowiedź "Escape Hatch"',
+      options: { collapsible: true, collapsed: false },
+    },
+  ],
   groups: [
     {
       name: 'content',
       title: 'Treść',
       icon: ComposeIcon,
+    },
+    {
+      name: 'inquiry',
+      title: 'Formularz zapytania',
+      icon: CommentIcon,
     },
     {
       name: 'seo',

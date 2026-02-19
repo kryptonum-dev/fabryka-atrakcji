@@ -1,4 +1,4 @@
-import { Hotel, Utensils } from 'lucide-react'
+import { Hotel } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import {
@@ -7,8 +7,6 @@ import {
   CreditCardIcon,
   SearchIcon,
   DocumentTextIcon,
-  TagIcon,
-  BasketIcon,
 } from '@sanity/icons'
 import createPortableText from '../ui/PortableText/content/index'
 import Image from '../ui/PortableText/content/shared/Image'
@@ -24,132 +22,7 @@ import StarRating from '../ui/StarRating'
 import Amenities from '../ui/PortableText/content/hotel/Amenities'
 import StayingRules from '../ui/PortableText/content/hotel/StayingRules'
 import Location from '../ui/PortableText/content/hotel/Location'
-import { createAddonsObject } from '../shared/addons'
 import { createAlertsObject } from '../shared/alerts'
-
-// Reusable gastronomy field definitions
-const createGastronomyAvailabilityField = (description: string) =>
-  defineField({
-    name: 'availability',
-    type: 'string',
-    title: 'Dostępność opcji',
-    description,
-    options: {
-      list: [
-        {
-          title: 'Niedostępne - hotel nie oferuje tej opcji',
-          value: 'disabled',
-        },
-        {
-          title: 'Dostępne - cena ukryta (bezpłatne lub do uzgodnienia)',
-          value: 'priceHidden',
-        },
-        {
-          title: 'Dostępne - z widoczną ceną',
-          value: 'withPrice',
-        },
-      ],
-      layout: 'radio',
-    },
-    initialValue: 'withPrice',
-    validation: (Rule) => Rule.required().error('Dostępność opcji jest wymagana'),
-  })
-
-const createGastronomyPriceField = () =>
-  defineField({
-    name: 'pricePerService',
-    type: 'number',
-    title: 'Cena za serwis (PLN)',
-    description: 'Cena bez VAT - tylko liczby całkowite',
-    hidden: ({ parent }) => parent?.availability !== 'withPrice',
-    validation: (Rule) =>
-      Rule.custom((value, context) => {
-        const parent = context.parent as { availability?: string }
-        if (parent?.availability !== 'withPrice') return true
-        if (!value) return 'Cena jest wymagana gdy opcja ma widoczną cenę'
-        if (value < 1) return 'Cena musi być większa niż 0'
-        if (!Number.isInteger(value)) return 'Cena musi być liczbą całkowitą'
-        return true
-      }),
-  })
-
-const createGrillPriceField = () =>
-  defineField({
-    name: 'pricePerService',
-    type: 'number',
-    title: 'Cena za serwis grillowy (PLN)',
-    description: 'Cena bez VAT za jeden serwis grillowy - tylko liczby całkowite',
-    hidden: ({ parent }) => parent?.availability !== 'withPrice',
-    validation: (Rule) =>
-      Rule.custom((value, context) => {
-        const parent = context.parent as { availability?: string }
-        if (parent?.availability !== 'withPrice') return true
-        if (!value) return 'Cena jest wymagana gdy opcja ma widoczną cenę'
-        if (value < 1) return 'Cena musi być większa niż 0'
-        if (!Number.isInteger(value)) return 'Cena musi być liczbą całkowitą'
-        return true
-      }),
-  })
-
-const createMealLevelField = () =>
-  defineField({
-    name: 'level',
-    type: 'string',
-    title: 'Poziom',
-    options: {
-      list: [
-        { title: 'Economy', value: 'economy' },
-        { title: 'Standard', value: 'standard' },
-        { title: 'Exclusive', value: 'exclusive' },
-      ],
-      layout: 'radio',
-      direction: 'horizontal',
-    },
-    validation: (Rule) => Rule.required().error('Poziom jest wymagany'),
-  })
-
-const createMealStyleField = () =>
-  defineField({
-    name: 'style',
-    type: 'string',
-    title: 'Sposób serwowania',
-    options: {
-      list: [
-        { title: 'Served (na talerzu)', value: 'served' },
-        { title: 'Buffet (szwedzki stół)', value: 'buffet' },
-      ],
-      layout: 'radio',
-      direction: 'horizontal',
-    },
-    validation: (Rule) => Rule.required().error('Sposób serwowania jest wymagany'),
-  })
-
-const createMealPriceField = () =>
-  defineField({
-    name: 'pricePerService',
-    type: 'number',
-    title: 'Cena za serwis (PLN)',
-    description: 'Cena bez VAT - tylko liczby całkowite',
-    hidden: ({ parent }) => parent?.hidePricing,
-    validation: (Rule) =>
-      Rule.custom((value, context) => {
-        const parent = context.parent as { hidePricing?: boolean }
-        if (parent?.hidePricing) return true
-        if (!value) return 'Cena jest wymagana jeśli nie jest ukryta'
-        if (value < 1) return 'Cena musi być większa niż 0'
-        if (!Number.isInteger(value)) return 'Cena musi być liczbą całkowitą'
-        return true
-      }),
-  })
-
-const createMealHidePricingField = () =>
-  defineField({
-    name: 'hidePricing',
-    type: 'boolean',
-    title: 'Ukryj cenę',
-    description: 'Nie pokazuj ceny - opcja może być bezpłatna lub do ustalenia indywidualnie',
-    initialValue: false,
-  })
 
 const title = 'Hotele'
 const icon = Hotel
@@ -177,16 +50,6 @@ export default defineType({
       name: 'pricing',
       title: 'Cennik',
       icon: CreditCardIcon,
-    },
-    {
-      name: 'addons',
-      title: 'Dodatki',
-      icon: BasketIcon,
-    },
-    {
-      name: 'gastronomy',
-      title: 'Gastronomia',
-      icon: TagIcon,
     },
     {
       name: 'alerts',
@@ -581,205 +444,6 @@ export default defineType({
         }),
       ],
     }),
-    createAddonsObject({
-      title: 'Dodatki do hotelu',
-      description: 'Zarządzaj dodatkami do hotelu',
-      labels: {
-        hasAddons: {
-          title: 'Czy hotel ma dodatki?',
-          description: 'Zaznacz, jeśli hotel ma możliwość wyboru dodatków.',
-        },
-        heading: {
-          title: 'Nagłówek okienka dodatków',
-          description: 'Nagłówek okienka dodatków, pojawia się przy wybieraniu dodatków do hotelu',
-        },
-        addonsChoice: {
-          title: 'Możliwość wyboru dodatków',
-          description:
-            'Wybierz, ile maksymalnie dodatków może wybrać użytkownik. Przy wyborze maks. 1 dodatku, pole "Wybór ilości" zostaje automatycznie wyłączone.',
-        },
-        minOneAddon: {
-          title: 'Wymagany wybór co najmniej jednego dodatku',
-          description: 'Wybierz, czy użytkownik musi wybrać co najmniej jeden dodatek.',
-        },
-        addonsLayout: {
-          title: 'Układ dodatków',
-          description:
-            'Wybierz układ dodatków. Układ pionowy (Dodatki wypisane jeden po drugim w formie wierszy tabeli) - używany gdy dodatki mają zdjęcia. Układ poziomy (Dodatki porozmieszczane w kafelkach) - używany gdy dodatki nie mają zdjęć.',
-        },
-        addonsHaveImage: {
-          title: 'Dodatki mają zdjęcia',
-          description:
-            'Wybierz, czy dodatki mają zdjęcia. Jeśli zaznaczysz to pole, każdy dodatek będzie wymagał dodania zdjęcia.',
-        },
-        addonsList: {
-          title: 'Lista dodatków',
-          description: 'Dodaj dodatki do hotelu',
-        },
-        additionalInfo: {
-          title: 'Dodatkowe informacje (opcjonalne)',
-          description: 'Dodaj dodatkowe informacje o dodatkach - pojawiają się poniżej listy dodatków',
-        },
-      },
-    }),
-    defineField({
-      name: 'gastronomy',
-      type: 'object',
-      title: 'Gastronomia',
-      group: 'gastronomy',
-      description: 'Ustaw cennik gastronomii dla hotelu',
-      fields: [
-        defineField({
-          name: 'lunch',
-          type: 'array',
-          title: 'Opcje lunchowe',
-          description: 'Wybierz dostępne kombinacje poziomów i sposobów serwowania lunchu',
-          of: [
-            {
-              type: 'object',
-              title: 'Opcja lunchowa',
-              fields: [
-                createMealLevelField(),
-                createMealStyleField(),
-                createMealPriceField(),
-                createMealHidePricingField(),
-              ],
-              preview: {
-                select: {
-                  level: 'level',
-                  style: 'style',
-                  price: 'pricePerService',
-                  hidePricing: 'hidePricing',
-                },
-                prepare: ({ level, style, price, hidePricing }: any) => ({
-                  title: `${level?.charAt(0).toUpperCase() + level?.slice(1)} ${style?.charAt(0).toUpperCase() + style?.slice(1)}`,
-                  subtitle: hidePricing ? 'Cena ukryta' : `${price || 0} PLN/serwis`,
-                  media: Utensils,
-                }),
-              },
-            },
-          ],
-          validation: (Rule) =>
-            Rule.custom((items) => {
-              if (!items || !Array.isArray(items)) return true
-              const combinations = new Set()
-              for (const item of items) {
-                const typedItem = item as { level?: string; style?: string }
-                if (typedItem.level && typedItem.style) {
-                  const combo = `${typedItem.level}-${typedItem.style}`
-                  if (combinations.has(combo)) {
-                    return `Kombinacja "${typedItem.level} ${typedItem.style}" już istnieje. Każda kombinacja poziomu i stylu może wystąpić tylko raz.`
-                  }
-                  combinations.add(combo)
-                }
-              }
-              return true
-            }),
-        }),
-        defineField({
-          name: 'supper',
-          type: 'array',
-          title: 'Opcje kolacyjne',
-          description: 'Wybierz dostępne kombinacje poziomów i sposobów serwowania kolacji',
-          of: [
-            {
-              type: 'object',
-              title: 'Opcja kolacyjna',
-              fields: [
-                createMealLevelField(),
-                createMealStyleField(),
-                createMealPriceField(),
-                createMealHidePricingField(),
-              ],
-              preview: {
-                select: {
-                  level: 'level',
-                  style: 'style',
-                  price: 'pricePerService',
-                  hidePricing: 'hidePricing',
-                },
-                prepare: ({ level, style, price, hidePricing }: any) => ({
-                  title: `${level?.charAt(0).toUpperCase() + level?.slice(1)} ${style?.charAt(0).toUpperCase() + style?.slice(1)}`,
-                  subtitle: hidePricing ? 'Cena ukryta' : `${price || 0} PLN/serwis`,
-                  media: Utensils,
-                }),
-              },
-            },
-          ],
-          validation: (Rule) =>
-            Rule.custom((items) => {
-              if (!items || !Array.isArray(items)) return true
-              const combinations = new Set()
-              for (const item of items) {
-                const typedItem = item as { level?: string; style?: string }
-                if (typedItem.level && typedItem.style) {
-                  const combo = `${typedItem.level}-${typedItem.style}`
-                  if (combinations.has(combo)) {
-                    return `Kombinacja "${typedItem.level} ${typedItem.style}" już istnieje. Każda kombinacja poziomu i stylu może wystąpić tylko raz.`
-                  }
-                  combinations.add(combo)
-                }
-              }
-              return true
-            }),
-        }),
-        defineField({
-          name: 'openBar',
-          type: 'array',
-          title: 'Open Bar',
-          description: 'Wybierz dostępne poziomy dla Open Bar',
-          of: [
-            {
-              type: 'object',
-              title: 'Opcja Open Bar',
-              fields: [createMealLevelField(), createMealPriceField(), createMealHidePricingField()],
-              preview: {
-                select: {
-                  level: 'level',
-                  price: 'pricePerService',
-                  hidePricing: 'hidePricing',
-                },
-                prepare: ({ level, price, hidePricing }: any) => ({
-                  title: `Open Bar ${level?.charAt(0).toUpperCase() + level?.slice(1)}`,
-                  subtitle: hidePricing ? 'Cena ukryta' : `${price || 0} PLN/serwis`,
-                  media: Utensils,
-                }),
-              },
-            },
-          ],
-          validation: (Rule) =>
-            Rule.custom((items) => {
-              if (!items || !Array.isArray(items)) return true
-              const levels = new Set()
-              for (const item of items) {
-                const typedItem = item as { level?: string }
-                if (typedItem.level) {
-                  if (levels.has(typedItem.level)) {
-                    return `Poziom "${typedItem.level}" już istnieje. Każdy poziom może wystąpić tylko raz.`
-                  }
-                  levels.add(typedItem.level)
-                }
-              }
-              return true
-            }),
-        }),
-        defineField({
-          name: 'coffeeBreak',
-          type: 'object',
-          title: 'Coffee Break',
-          fields: [
-            createGastronomyAvailabilityField('Wybierz dostępność coffee break w hotelu'),
-            createGastronomyPriceField(),
-          ],
-        }),
-        defineField({
-          name: 'grill',
-          type: 'object',
-          title: 'Grill',
-          fields: [createGastronomyAvailabilityField('Wybierz dostępność grilla w hotelu'), createGrillPriceField()],
-        }),
-      ],
-    }),
     createAlertsObject({
       paragraph: 'Alerty wyświetlane w koszyku dla tego hotelu.',
     }),
@@ -805,6 +469,48 @@ export default defineType({
       type: 'components',
       title: 'Komponenty podstrony (opcjonalne)',
       group: 'content',
+    }),
+    defineField({
+      name: 'formOverrides',
+      type: 'object',
+      title: 'Nadpisania formularza kontaktowego',
+      description: 'Opcjonalne nadpisania formularza kontaktowego dla tego hotelu (nagłówek, paragraf, obraz, komunikaty).',
+      options: { collapsible: true, collapsed: false },
+      group: 'content',
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślny nagłówek formularza kontaktowego.',
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślny paragraf formularza kontaktowego.',
+        }),
+        defineField({
+          name: 'formVisualImage',
+          type: 'image',
+          title: 'Zdjęcie sekcji formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślne zdjęcie sekcji formularza.',
+        }),
+        defineField({
+          name: 'overrideFormState',
+          type: 'boolean',
+          title: 'Nadpisz komunikaty formularza',
+          description: 'Włącz, aby użyć niestandardowych komunikatów sukcesu/błędu dla tego hotelu.',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'formState',
+          type: 'formState',
+          title: 'Komunikaty formularza',
+          description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+          hidden: ({ parent }) => !(parent as { overrideFormState?: boolean })?.overrideFormState,
+        }),
+      ],
     }),
     defineField({
       name: 'seo',

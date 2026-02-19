@@ -53,23 +53,12 @@ export default defineConfig({
         return input.filter(({ action }) => action && singletonActions.has(action))
       }
 
-      // For Quotes_Collection - allow only viewing, deleting and custom actions
-      if (context.schemaType === 'Quotes_Collection') {
-        return input.filter(({ action }) => {
-          // Allow custom actions (they don't have a standard action type)
-          if (!action) return true
-
-          // Allow only specific built-in actions
-          return action === 'delete' || action === 'restore'
-        })
-      }
-
       // For all other types
       return input
     },
     newDocumentOptions: (prev, { creationContext }) => {
       const { type, schemaType } = creationContext
-      if (type === 'structure' && (schemaType == 'SocialMedia_Collection' || schemaType == 'Quotes_Collection')) {
+      if (type === 'structure' && schemaType == 'SocialMedia_Collection') {
         return []
       }
       return prev

@@ -145,6 +145,14 @@ async function postWithRetry(url: string, body: unknown, maxRetries = 2) {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  // Skip Meta CAPI in dev
+  if (import.meta.env.DEV) {
+    return new Response(
+      JSON.stringify({ success: false, message: 'Skipped in dev' }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    )
+  }
+
   let config: MetaAnalyticsConfig
   try {
     config = await getMetaAnalyticsConfig()

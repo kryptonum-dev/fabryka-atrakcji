@@ -7,8 +7,8 @@
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",
-    "groq": "^3.78.0",
-    "turbo": "^2.4.4"
+    "groq": "^5.9.0",
+    "turbo": "^2.8.7"
   },
   "engines": {
     "node": ">=18"

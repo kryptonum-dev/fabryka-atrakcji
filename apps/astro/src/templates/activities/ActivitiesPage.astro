@@ -6,11 +6,27 @@ import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
-import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/category/Listing.astro'
+import Listing, {
+  DEFAULT_PARTICIPANT_GROUPS,
+  Listing_Query,
+  type ListingProps,
+  type ParticipantFilterGroup,
+} from '@/src/components/activites/category/Listing.astro'
 import { NoSearchResults_Query } from '@/src/components/activites/NoSearchResults.astro'
 import { parseFilters, getOrderClause } from '@/utils/filters'
+import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import type { FormStateTypes } from '@/src/global/types'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 
 export const ITEMS_PER_PAGE = 16
+
+type FormProps = {
+  formHeading?: PortableTextValue
+  formParagraph?: PortableTextValue
+  formVisualImage?: ImageDataProps
+  overrideFormState?: boolean
+  formState?: FormStateTypes
+}
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   currentPage: number
@@ -31,6 +47,39 @@ export async function fetchData(
   const filters = parseFilters(searchParams || new URLSearchParams())
   const orderClause = getOrderClause(filters.order)
 
+  const globalFilters = await sanityFetchWithCdn<{
+    listingFilters?: {
+      activityParticipantGroups?: ParticipantFilterGroup[]
+    }
+  }>({
+    query: `
+      *[_type == "global" && language == $language][0] {
+        listingFilters {
+          activityParticipantGroups[]{
+            label,
+            min,
+            max
+          }
+        }
+      }
+    `,
+    params: { language: lang },
+  })
+
+  const participantGroups = (() => {
+    const configured = (globalFilters?.listingFilters?.activityParticipantGroups || [])
+      .filter((group) => typeof group?.label === 'string' && typeof group?.min === 'number')
+      .map((group) => ({
+        label: group.label,
+        min: group.min,
+        ...(typeof group.max === 'number' ? { max: group.max } : {}),
+      }))
+      .slice(0, 6)
+      .filter((group) => typeof group.max !== 'number' || group.max >= group.min)
+
+    return configured.length >= 2 ? configured : DEFAULT_PARTICIPANT_GROUPS
+  })()
+
   // Build the full category slug to match exactly (with trailing slash)
   const categorySlug = lang === 'pl' ? `/pl/integracje/kategoria/${category}/` : `/en/activities/category/${category}/`
 
@@ -38,6 +87,10 @@ export async function fetchData(
     {
       name: string
       slug: string
+      globalFormDefaults?: {
+        heading?: PortableTextValue
+        paragraph?: PortableTextValue
+      }
       selectedCategory: {
         name: string
         slug: string
@@ -47,14 +100,49 @@ export async function fetchData(
         }
         overwriteActivityPageComponents?: boolean
         components?: ComponentsProps
+        formOverrides?: {
+          heading?: PortableTextValue
+          paragraph?: PortableTextValue
+          formVisualImage?: ImageDataProps
+          overrideFormState?: boolean
+          formState?: FormStateTypes
+        }
       }
       components: ComponentsProps
-    } & ListingProps
+      escapeHatchHeading?: string
+      escapeHatchText?: string
+    } & ListingProps &
+      FormProps
   >({
     query: `
       *[_type == "Activities_Page" && language == $language][0] {
         name,
         "slug": slug.current,
+        "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+        ${PortableTextQuery('formHeading')}
+        ${PortableTextQuery('formParagraph')}
+        ${ImageDataQuery('formVisualImage')}
+        escapeHatchHeading,
+        escapeHatchText,
+        overrideFormState,
+        formState {
+          success {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
         ${NoSearchResults_Query}
         "selectedCategory": *[_type == "ActivitiesCategory_Collection" && slug.current == $categorySlug][0] {
           name,
@@ -64,9 +152,30 @@ export async function fetchData(
             long,
           },
           overwriteActivityPageComponents,
+          formOverrides {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            ${ImageDataQuery('formVisualImage')}
+            overrideFormState,
+            formState {
+              success {
+                ${PortableTextQuery('heading')}
+                ${PortableTextQuery('paragraph')}
+                highlightedSocialMedia[] -> {
+                  name,
+                  link,
+                  iconString,
+                },
+              },
+              error {
+                ${PortableTextQuery('heading')}
+                ${PortableTextQuery('paragraph')}
+              },
+            },
+          },
           ${Components_Query}
         },
-        ${Listing_Query(orderClause)}
+        ${Listing_Query(orderClause, participantGroups)}
         ${Components_Query}
       }
     `,
@@ -89,7 +198,7 @@ export async function fetchData(
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
 
   const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
-  return { page, metadata }
+  return { page, metadata, participantGroups }
 }
 
 export async function staticPathsCategory(lang: Language) {
@@ -134,7 +243,7 @@ export async function staticPathsCategoryPage(lang: Language) {
     .flat()
 }
 
-const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl, doNotIndex } = Astro.props
+const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl, doNotIndex, participantGroups } = Astro.props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 const totalPages = Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
@@ -177,10 +286,10 @@ const breadcrumbs = [
   ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
 
-// Determine which components to use based on the category settings
+// Determine which components to use based on the category settings, filtering out page builder ContactForms
 const componentsToRender = (() => {
-  const categoryComponents = page.selectedCategory?.components || []
-  const activityPageComponents = page.components || []
+  const categoryComponents = (page.selectedCategory?.components || []).filter((c) => c._type !== 'ContactForm')
+  const activityPageComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
 
   // If category has no components, always use activity page components
   if (categoryComponents.length === 0) {
@@ -196,6 +305,16 @@ const componentsToRender = (() => {
   // This handles cases where overwriteActivityPageComponents is false, null, or undefined
   return [...activityPageComponents, ...categoryComponents]
 })()
+
+// Resolve form heading/paragraph: category override → singleton default
+const formHeading = page.selectedCategory?.formOverrides?.heading || page.formHeading || page.globalFormDefaults?.heading
+const formParagraph =
+  page.selectedCategory?.formOverrides?.paragraph || page.formParagraph || page.globalFormDefaults?.paragraph
+const formVisualImage = page.selectedCategory?.formOverrides?.formVisualImage || page.formVisualImage
+const resolvedOverrideFormState = page.selectedCategory?.formOverrides?.overrideFormState ?? page.overrideFormState
+const resolvedFormState = page.selectedCategory?.formOverrides?.overrideFormState
+  ? page.selectedCategory?.formOverrides?.formState
+  : page.formState
 ---
 
 <Layout {...metadata}>
@@ -217,7 +336,24 @@ const componentsToRender = (() => {
     durationCounts={page.durationCounts}
     priceRange={page.priceRange}
     noResults={page.noResults}
+    participantGroups={participantGroups}
+    escapeHintText={page.escapeHatchHeading}
+    escapeHintCta={page.escapeHatchText}
   />
+  {formHeading && (
+    <ContactForm
+      index={10}
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
+      heading={formHeading}
+      paragraph={formParagraph || []}
+      formVisualImage={formVisualImage}
+      overrideFormState={resolvedOverrideFormState}
+      state={resolvedFormState}
+      variant="activity_listing"
+      showInquiries={false}
+      animate={false}
+    />
+  )}
   <Components data={page.listing.length > 0 ? componentsToRender : page.noResults.components} hasPreviousSections />
 </Layout>
 

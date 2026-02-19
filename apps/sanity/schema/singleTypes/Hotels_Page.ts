@@ -1,8 +1,8 @@
-import { Book } from 'lucide-react'
+import { Book, MessageSquare } from 'lucide-react'
 import { defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { defineField } from 'sanity'
-import { ComposeIcon, SearchIcon } from '@sanity/icons'
+import { CommentIcon, ComposeIcon, SearchIcon } from '@sanity/icons'
 import { getLanguagePreview } from '../../structure/languages'
 
 const name = 'Hotels_Page'
@@ -73,17 +73,137 @@ export default defineType({
       group: 'content',
     }),
     defineField({
+      name: 'formHeading',
+      type: 'Heading',
+      title: 'Nagłówek formularza',
+      description: 'Nagłówek formularza zapytania na dole strony listy hoteli',
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'formParagraph',
+      type: 'PortableText',
+      title: 'Paragraf formularza',
+      description: 'Paragraf formularza zapytania na dole strony listy hoteli',
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'formVisualImage',
+      type: 'image',
+      title: 'Zdjęcie sekcji formularza',
+      description: 'Opcjonalne zdjęcie formularza na stronie listy hoteli (nadpisuje globalne domyślne).',
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'overrideFormState',
+      type: 'boolean',
+      title: 'Nadpisz komunikaty formularza',
+      description: 'Gdy włączone, użyj niestandardowych komunikatów sukcesu/błędu zamiast globalnych',
+      initialValue: false,
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'formState',
+      type: 'formState',
+      title: 'Komunikaty formularza',
+      description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+      hidden: ({ document }) => !(document as any)?.overrideFormState,
+      group: 'inquiry',
+      fieldset: 'listingForm',
+    }),
+    defineField({
+      name: 'detailFormDefaults',
+      type: 'object',
+      title: 'Domyślny formularz na stronie hotelu',
+      description:
+        'Domyślne ustawienia formularza kontaktowego na podstronach poszczególnych hoteli. Można nadpisać w każdym hotelu osobno.',
+      group: 'inquiry',
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek formularza',
+          description: 'Domyślny nagłówek formularza na podstronie hotelu',
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf formularza',
+          description: 'Domyślny paragraf formularza na podstronie hotelu',
+        }),
+        defineField({
+          name: 'formVisualImage',
+          type: 'image',
+          title: 'Zdjęcie sekcji formularza',
+          description: 'Domyślne zdjęcie formularza na podstronie hotelu.',
+        }),
+        defineField({
+          name: 'overrideFormState',
+          type: 'boolean',
+          title: 'Nadpisz komunikaty formularza',
+          description: 'Gdy włączone, użyj niestandardowych komunikatów sukcesu/błędu zamiast globalnych.',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'formState',
+          type: 'formState',
+          title: 'Komunikaty formularza',
+          description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+          hidden: ({ parent }) => !(parent as { overrideFormState?: boolean })?.overrideFormState,
+        }),
+      ],
+    }),
+    defineField({
+      name: 'escapeHatchHeading',
+      type: 'string',
+      title: 'Tekst podpowiedzi',
+      description:
+        'Tekst podpowiedzi wyświetlanej pod checklistą, np. "Nie wiesz jaki hotel wybrać?"',
+      group: 'inquiry',
+      fieldset: 'escapeHatch',
+    }),
+    defineField({
+      name: 'escapeHatchText',
+      type: 'string',
+      title: 'Tekst linku CTA',
+      description:
+        'Tekst linku kierującego do formularza, np. "Wyślij zapytanie — zaproponujemy sprawdzone opcje."',
+      group: 'inquiry',
+      fieldset: 'escapeHatch',
+    }),
+    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',
       group: 'seo',
     }),
   ],
+  fieldsets: [
+    {
+      name: 'listingForm',
+      title: 'Formularz na stronie listy hoteli',
+      options: { collapsible: true, collapsed: false },
+    },
+    {
+      name: 'escapeHatch',
+      title: 'Podpowiedź "Escape Hatch"',
+      options: { collapsible: true, collapsed: false },
+    },
+  ],
   groups: [
     {
       name: 'content',
       title: 'Treść',
       icon: ComposeIcon,
+    },
+    {
+      name: 'inquiry',
+      title: 'Formularz zapytania',
+      icon: CommentIcon,
     },
     {
       name: 'seo',

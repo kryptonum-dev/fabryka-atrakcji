@@ -60,22 +60,13 @@ const translations = {
     },
     currency: 'zł',
     pricingPrefix: 'Szacowany koszt: ',
-    pricingNotAvailable: 'Ceny tego hotelu nie są publicznie dostępne.',
-    contactLink: 'Zapytaj nas o cennik hotelu',
-    pricingNotAvailableSuffix: ', lub dowiedz się o cenie po uzyskaniu szczegółowej wyceny.',
+    pricingNotAvailable: 'Cena ustalana indywidualnie — zależy od terminu, liczby osób i zakresu.',
+    contactLink: 'Zapytaj o wycenę',
+    pricingNotAvailableSuffix: '',
     activityAlert: 'Koszt może różnić się w zależności od lokalizacji i wybranego scenariusza',
     callout: 'Poznaj wstępną wycenę – bez podawania danych!',
-    buttonText: 'Wybierz do kompleksowej wyceny',
-    viewInCart: 'Przejdź do koszyka',
-    removeFromEstimate: 'Usuń z wyceny',
-    changeAddons: 'Zmień opcje',
-    removedAlert: 'Usunięto z wyceny',
-    cartUrl: '/pl/koszyk/',
+    buttonText: 'Zapytaj o wycenę',
     contactUrl: '/pl/kontakt/',
-    alreadyInCart: {
-      hotel: 'Ten hotel już jest w Twojej wycenie',
-      activity: 'Ta integracja jest już w Twojej wycenie',
-    },
   },
   en: {
     people: {
@@ -86,22 +77,13 @@ const translations = {
     },
     currency: 'PLN',
     pricingPrefix: 'Estimated cost: ',
-    pricingNotAvailable: 'Pricing for this hotel is not publicly available.',
-    contactLink: 'Ask us about hotel pricing',
-    pricingNotAvailableSuffix: ', or find out the price after getting a detailed quote.',
+    pricingNotAvailable: 'Price set individually — depends on dates, group size and scope.',
+    contactLink: 'Ask for a quote',
+    pricingNotAvailableSuffix: '',
     activityAlert: 'The cost may vary depending on the location and chosen scenario',
     callout: 'Get an initial estimate - without providing data!',
-    buttonText: 'Choose for a comprehensive estimate',
-    viewInCart: 'View in cart',
-    removeFromEstimate: 'Remove from estimate',
-    changeAddons: 'Change options',
-    removedAlert: 'Removed from estimate',
-    cartUrl: '/en/cart/',
+    buttonText: 'Ask for a quote',
     contactUrl: '/en/contact/',
-    alreadyInCart: {
-      hotel: 'This hotel is already in your estimate',
-      activity: 'This activity is already in your estimate',
-    },
   },
 }
 
@@ -119,10 +101,6 @@ function getPeopleText(participants: number, lang: Language) {
 }
 
 const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true } = Astro.props
-const hasAddons = addons?.hasAddons || false
-
-// Prepare data for data attributes
-const translationsJson = JSON.stringify(translations)
 ---
 
 <div
@@ -131,11 +109,7 @@ const translationsJson = JSON.stringify(translations)
   data-id={id}
   data-type={type}
   data-lang={lang}
-  data-translations={translationsJson}
-  data-has-addons={hasAddons}
-  data-min-one-addon={addons?.minOneAddon || false}
   data-name={name}
-  data-addons-choice={addons?.addonsChoice || 'unlimited'}
 >
   <div class="sidebar-placeholder" id="sidebar-placeholder"></div>
   <div class="wrapper" id="sidebar-wrapper">
@@ -179,18 +153,14 @@ const translationsJson = JSON.stringify(translations)
       ) : (
         <div class="price-not-available">
           <p>
-            <span>{t.pricingNotAvailable}</span>{' '}
-            <a class="link" data-shade="light" target="_blank" href={t.contactUrl}>
-              {t.contactLink}
-            </a>
-            <span>{t.pricingNotAvailableSuffix}</span>
+            <span>{t.pricingNotAvailable}</span>
           </p>
         </div>
       )
     }
 
-    <div class="not-in-cart-content">
-      <Button className="add-to-cart-button">{t.buttonText}</Button>
+    <div class="cta-content">
+      <Button className="scroll-to-form-sidebar" href={lang === 'pl' ? '#kontakt' : '#contact'}>{t.buttonText}</Button>
       {
         type === 'activities' && (
           <p class="activity-alert">
@@ -204,40 +174,6 @@ const translationsJson = JSON.stringify(translations)
             </svg>
             <span>{t.activityAlert}</span>
           </p>
-        )
-      }
-    </div>
-
-    <div class="in-cart-content">
-      <div class="status-text">
-        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" fill="none">
-          <path
-            fill="#F67258"
-            fill-rule="evenodd"
-            d="M6.896 2.134c-.163.138-.244.207-.33.265a1.809 1.809 0 0 1-.657.272c-.103.02-.209.029-.422.046-.534.043-.801.064-1.024.143-.515.182-.92.587-1.103 1.103-.079.223-.1.49-.143 1.024a3.82 3.82 0 0 1-.045.421 1.809 1.809 0 0 1-.272.657c-.058.087-.127.168-.266.33-.347.408-.521.612-.623.825a1.809 1.809 0 0 0 0 1.56c.102.213.276.417.623.825.139.163.208.244.266.33.133.2.225.422.272.657.02.102.028.209.045.421.043.535.064.802.143 1.025.182.515.588.92 1.103 1.103.223.078.49.1 1.024.142.213.017.32.026.422.046.234.046.458.139.656.272.087.058.168.127.33.266.409.347.612.521.826.623a1.808 1.808 0 0 0 1.56 0c.213-.102.417-.276.825-.623.162-.139.243-.208.33-.266a1.81 1.81 0 0 1 .657-.272c.102-.02.208-.029.42-.046.535-.042.802-.064 1.025-.142.516-.182.921-.588 1.103-1.103.079-.223.1-.49.143-1.025.017-.212.025-.319.045-.42.047-.236.14-.459.272-.658.059-.086.128-.167.266-.33.348-.408.522-.612.623-.825a1.808 1.808 0 0 0 0-1.56c-.101-.213-.275-.417-.623-.825-.138-.162-.207-.243-.266-.33a1.808 1.808 0 0 1-.272-.657c-.02-.102-.028-.208-.045-.421-.043-.534-.064-.801-.143-1.024a1.809 1.809 0 0 0-1.103-1.103c-.223-.08-.49-.1-1.024-.143-.213-.017-.319-.025-.421-.046a1.81 1.81 0 0 1-.657-.272c-.087-.058-.168-.127-.33-.265-.408-.348-.612-.522-.825-.624a1.809 1.809 0 0 0-1.56 0c-.214.102-.418.276-.825.624Zm4.52 4.442a.543.543 0 1 0-.767-.768L7.415 9.042 6.352 7.979a.543.543 0 0 0-.767.767l1.447 1.447a.543.543 0 0 0 .767 0l3.617-3.617Z"
-            clip-rule="evenodd"></path>
-        </svg>
-        <span>{t.alreadyInCart[type === 'hotels' ? 'hotel' : 'activity']}</span>
-      </div>
-      {
-        hasAddons ? (
-          <>
-            <Button className="change-addons-button" theme="primary" shade="dark">
-              {t.changeAddons}
-            </Button>
-            <Button className="remove-from-cart-button" theme="primary" shade="light" data-remove-trigger>
-              {t.removeFromEstimate}
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button className="view-cart-button" theme="primary" shade="dark" href={t.cartUrl}>
-              {t.viewInCart}
-            </Button>
-            <Button className="remove-from-cart-button" theme="primary" shade="light" data-remove-trigger>
-              {t.removeFromEstimate}
-            </Button>
-          </>
         )
       }
     </div>
@@ -304,29 +240,10 @@ const translationsJson = JSON.stringify(translations)
         z-index: 2;
       }
 
-      .not-in-cart-content,
-      .in-cart-content {
-        display: none;
+      .cta-content {
+        display: flex;
         flex-direction: column;
         gap: 0.75rem;
-      }
-
-      .not-in-cart-content.visible,
-      .in-cart-content.visible {
-        display: flex;
-      }
-
-      .status-text {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--primary-800);
-        font-size: var(--typography-body-l);
-        margin-bottom: 0.5rem;
-
-        svg {
-          flex-shrink: 0;
-        }
       }
 
       .group-price {
@@ -453,13 +370,11 @@ const translationsJson = JSON.stringify(translations)
 
         .activity-alert,
         .callout,
-        .callout-mobile,
-        .status-text {
+        .callout-mobile {
           display: none;
         }
 
-        .not-in-cart-content,
-        .in-cart-content {
+        .cta-content {
           gap: 0.5rem;
         }
 
@@ -479,8 +394,7 @@ const translationsJson = JSON.stringify(translations)
             margin-bottom: 1rem;
           }
 
-          .not-in-cart-content,
-          .in-cart-content {
+          .cta-content {
             width: 100%;
           }
         }
@@ -583,8 +497,7 @@ const translationsJson = JSON.stringify(translations)
           align-self: center;
         }
 
-        .not-in-cart-content,
-        .in-cart-content {
+        .cta-content {
           grid-column: 2 / 3;
           grid-row: 1 / 3;
           align-self: center;
@@ -638,8 +551,7 @@ const translationsJson = JSON.stringify(translations)
           margin-bottom: 1rem;
         }
 
-        .not-in-cart-content,
-        .in-cart-content {
+        .cta-content {
           margin-bottom: 0.75rem;
         }
       }
@@ -697,25 +609,23 @@ const translationsJson = JSON.stringify(translations)
 </style>
 
 <script>
-  import { trackEvent } from '@/utils/track-event'
-  import { addToCart, isInCart } from '@/src/store/cart'
-  import { dispatchAddonsPopup, listenToCartUpdates } from '@/src/utils/events'
-
   const sidebar = document.getElementById('submit-sidebar')!
-  const addToCartButton = document.querySelector('.add-to-cart-button')!
-  const changeAddonsButton = document.querySelector('.change-addons-button')
+  const scrollBtn = document.querySelector('.scroll-to-form-sidebar') as HTMLAnchorElement
   const faqSection = document.getElementById('faq-section-marker')
   const loader = document.querySelector('.sidebar-loader') as HTMLElement
-  const notInCartContent = document.querySelector('.not-in-cart-content') as HTMLElement
-  const inCartContent = document.querySelector('.in-cart-content') as HTMLElement
   const wrapper = document.getElementById('sidebar-wrapper')!
   const placeholder = document.getElementById('sidebar-placeholder')!
 
-  // Get data from attributes
-  const itemId = sidebar.dataset.id
-  const itemType = sidebar.dataset.type as 'hotels' | 'activities'
-  const hasAddons = sidebar.dataset.hasAddons === 'true'
-  const itemName = sidebar.dataset.name || ''
+  // Smooth scroll for CTA
+  if (scrollBtn) {
+    scrollBtn.addEventListener('click', (e) => {
+      const target = document.getElementById('kontakt') || document.getElementById('contact')
+      if (target) {
+        e.preventDefault()
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    })
+  }
 
   // Check if viewport width is below 1089px
   const isMobileView = () => window.innerWidth <= 1089
@@ -723,7 +633,7 @@ const translationsJson = JSON.stringify(translations)
   // Handle scroll and fixed positioning on mobile
   let isFixed = false
   let wrapperHeight = 0
-  let staticWrapperHeight = 0 // New variable to store static height
+  let staticWrapperHeight = 0
   let ticking = false
   let lastScrollY = window.scrollY
   let wasScrollingUp = false
@@ -733,12 +643,11 @@ const translationsJson = JSON.stringify(translations)
     const newHeight = wrapper.offsetHeight
     if (newHeight !== wrapperHeight) {
       wrapperHeight = newHeight
-      // Store static height only when not fixed
       if (!isFixed) {
         staticWrapperHeight = newHeight
       }
       if (isFixed) {
-        placeholder.style.height = `${staticWrapperHeight}px` // Use static height
+        placeholder.style.height = `${staticWrapperHeight}px`
       }
     }
   }
@@ -747,17 +656,15 @@ const translationsJson = JSON.stringify(translations)
     if (!isMobileView()) return
 
     const scrollPosition = window.scrollY
-    const sidebarBottomPosition = placeholder.offsetTop + staticWrapperHeight // Use static height
+    const sidebarBottomPosition = placeholder.offsetTop + staticWrapperHeight
     const shouldBeFixed = scrollPosition > sidebarBottomPosition
     const isScrollingUp = scrollPosition < lastScrollY
 
-    // Handle initial fixed state
     if (shouldBeFixed && !isFixed) {
       isFixed = true
       wrapper.classList.add('is-fixed')
-      placeholder.style.height = `${staticWrapperHeight}px` // Use static height
+      placeholder.style.height = `${staticWrapperHeight}px`
 
-      // Skip animation on initial load if already scrolled past sidebar
       if (!isInitialLoad) {
         requestAnimationFrame(() => {
           wrapper.classList.add('scrolling-down')
@@ -769,15 +676,11 @@ const translationsJson = JSON.stringify(translations)
           wrapper.style.transition = ''
         })
       }
-    }
-    // Handle switching back to static
-    else if (!shouldBeFixed && isFixed) {
+    } else if (!shouldBeFixed && isFixed) {
       isFixed = false
       wrapper.classList.remove('is-fixed', 'scrolling-up', 'scrolling-down')
       placeholder.style.height = '0'
-    }
-    // Update scroll direction when already fixed
-    else if (isFixed && isScrollingUp !== wasScrollingUp) {
+    } else if (isFixed && isScrollingUp !== wasScrollingUp) {
       if (isScrollingUp) {
         wrapper.classList.add('scrolling-up')
         wrapper.classList.remove('scrolling-down')
@@ -792,7 +695,6 @@ const translationsJson = JSON.stringify(translations)
     isInitialLoad = false
   }
 
-  // Check overlap function
   const checkOverlap = () => {
     if (!faqSection) return
 
@@ -810,7 +712,6 @@ const translationsJson = JSON.stringify(translations)
       const faqRect = faqSection.getBoundingClientRect()
       const articleRect = articleSection?.getBoundingClientRect()
 
-      // Check if we're past the article section in mobile view
       if (isMobile && articleRect && wrapper.classList.contains('is-fixed')) {
         const isPastArticle = articleRect.bottom <= window.innerHeight
         if (isPastArticle) {
@@ -822,11 +723,10 @@ const translationsJson = JSON.stringify(translations)
         }
       }
 
-      // Different overlap conditions for mobile and desktop
       const isOverlapping =
         isMobile && wrapper.classList.contains('is-fixed')
-          ? sidebarRect.top >= faqRect.top && sidebarRect.top <= faqRect.bottom // Mobile: sidebar is within FAQ section bounds
-          : sidebarRect.bottom > faqRect.top && sidebarRect.top < faqRect.bottom // Desktop: any overlap
+          ? sidebarRect.top >= faqRect.top && sidebarRect.top <= faqRect.bottom
+          : sidebarRect.bottom > faqRect.top && sidebarRect.top < faqRect.bottom
 
       if (isOverlapping) {
         sidebar.classList.add('is-overlapping-faq')
@@ -836,13 +736,11 @@ const translationsJson = JSON.stringify(translations)
         wrapper.classList.remove('is-overlapping-faq')
       }
     } else {
-      // Remove classes when position is not valid
       sidebar.classList.remove('is-overlapping-faq')
       wrapper.classList.remove('is-overlapping-faq')
     }
   }
 
-  // Initial setup after loader is hidden
   const initializeSidebar = () => {
     if (loader) {
       loader.style.opacity = '0'
@@ -850,10 +748,8 @@ const translationsJson = JSON.stringify(translations)
         'transitionend',
         () => {
           loader.style.display = 'none'
-          // Update initial measurements after loader is hidden
           updateWrapperHeight()
           updateFixedState()
-          // Start observing height changes
           resizeObserver.observe(wrapper)
         },
         { once: true }
@@ -861,7 +757,6 @@ const translationsJson = JSON.stringify(translations)
     }
   }
 
-  // Create ResizeObserver to monitor height changes
   const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
       if (entry.target === wrapper) {
@@ -870,156 +765,21 @@ const translationsJson = JSON.stringify(translations)
     }
   })
 
-  // Listen for cart state changes
-  listenToCartUpdates(() => {
-    // Update sidebar state to reflect current cart
-    updateSidebarState()
-
-    // Force height update after DOM changes
-    requestAnimationFrame(() => {
-      updateWrapperHeight()
-    })
-  })
-
-  // Listen for add to cart button click
-  addToCartButton.addEventListener('click', () => {
-    if (itemId && itemType) {
-      const requiresAddons = sidebar.dataset.hasAddons === 'true' && sidebar.dataset.minOneAddon === 'true'
-      const itemPriceAttr = document.querySelector('.Hero')?.getAttribute('data-price') || ''
-      const itemPrice = Number(itemPriceAttr) || undefined
-
-      // If the item requires addons, DON'T add to cart immediately
-      if (!requiresAddons) {
-        // Add to cart only if no addons required
-        addToCart({
-          id: itemId,
-          type: itemType,
-          addOns: [],
-        })
-
-        // Track the add to cart event
-        trackEvent({
-          ga4: {
-            eventName: 'add_to_cart',
-            params: {
-              currency: 'PLN',
-              value: itemPrice,
-              items: [
-                {
-                  item_id: itemId,
-                  item_name: itemName,
-                  price: itemPrice,
-                },
-              ],
-            },
-          },
-          meta: {
-            eventName: 'AddToCart',
-            contentName: itemName,
-            params: {
-              content_ids: itemId ? [itemId] : undefined,
-              content_type: itemType,
-              value: itemPrice,
-              currency: itemPrice ? 'PLN' : undefined,
-            },
-          },
-        })
-        // Update sidebar state and height
-        updateSidebarState()
-        setTimeout(updateWrapperHeight, 0)
-
-        // Dispatch addons-popup-confirmed event for the badge animation
-        document.dispatchEvent(
-          new CustomEvent('addons-popup-confirmed', {
-            detail: {
-              itemId,
-              itemType,
-              addons: [],
-            },
-          })
-        )
-      }
-
-      // Always open popup - it will show either addons interface or confirmation
-      dispatchAddonsPopup({
-        itemId,
-        itemType,
-        hasAddons,
-        isEditing: false,
-        minOneAddon: sidebar.dataset.minOneAddon === 'true',
-        requiresAddons,
-        addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
-        name: itemName,
-      })
-
-      // Only update sidebar state if item was not added (will be updated by addon selection)
-      if (requiresAddons) {
-        updateSidebarState()
-        setTimeout(updateWrapperHeight, 0)
-      }
-    }
-  })
-
-  // Handle change addons button
-  if (changeAddonsButton) {
-    changeAddonsButton.addEventListener('click', () => {
-      if (itemId && itemType && hasAddons) {
-        const requiresAddons = sidebar.dataset.hasAddons === 'true' && sidebar.dataset.minOneAddon === 'true'
-
-        dispatchAddonsPopup({
-          itemId,
-          itemType,
-          hasAddons: true, // This is always true if the change button exists
-          isEditing: true,
-          requiresAddons,
-          addonsChoice: sidebar.dataset.addonsChoice || 'unlimited',
-          minOneAddon: sidebar.dataset.minOneAddon === 'true',
-          name: itemName,
-        })
-      }
-    })
-  }
-
-  // Update sidebar state based on cart status
-  const updateSidebarState = () => {
-    if (itemId && itemType) {
-      const inCart = isInCart(itemId, itemType)
-
-      if (inCart) {
-        notInCartContent.classList.remove('visible')
-        inCartContent.classList.add('visible')
-      } else {
-        notInCartContent.classList.add('visible')
-        inCartContent.classList.remove('visible')
-      }
-    }
-  }
-
-  // Initial setup
   initializeSidebar()
-  updateSidebarState()
   checkOverlap()
-
-  // Set initial state without animation if needed
   updateWrapperHeight()
   updateFixedState()
 
-  // Handle resize
   window.addEventListener('resize', () => {
-    const currentIsMobile = isMobileView()
-
-    // If switching from mobile to desktop view
-    if (!currentIsMobile && isFixed) {
+    if (!isMobileView() && isFixed) {
       isFixed = false
       wrapper.classList.remove('is-fixed', 'scrolling-up', 'scrolling-down')
       placeholder.style.height = '0'
     }
-
     updateWrapperHeight()
     updateFixedState()
   })
 
-  // Handle scroll
   window.addEventListener('scroll', () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {

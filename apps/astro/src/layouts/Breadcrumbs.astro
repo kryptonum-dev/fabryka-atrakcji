@@ -152,7 +152,7 @@ const breadcrumbsData = [
 
     &[data-first-item-type="ContactForm"] {
       position: absolute;
-      top: 5rem;
+      top: 1rem;
       left: 50%;      
       transform: translateX(-50%);
       padding-top: 0;
@@ -162,9 +162,28 @@ const breadcrumbsData = [
       padding-right: var(--pageMargin);
 
       @media (max-width: 66.8125rem) {
-        max-width: calc(50rem + var(--pageMargin) * 2);
-        top: clamp(0.375rem, calc(0.5vw / 0.48), 1rem);
+        // max-width: calc(50rem + var(--pageMargin) * 2);
+       
+        // top: clamp(0.375rem, calc(0.5vw / 0.48), 1rem); 
       }
+
+      @media (max-width: 37.4375rem) {
+        top: 0.375rem;
+      }
+
+      @media (max-width: 28.6875rem) {
+        top: 0.5rem;
+        color: #fff;
+
+         a {
+          color: #fff;
+
+          &::after {
+            background-color: var(--primary-400, #74535e);
+          }
+        }
+      }
+
     }
 
     &[data-first-item-type="NotFound"] {

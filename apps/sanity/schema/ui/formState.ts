@@ -14,19 +14,17 @@ export default defineField({
           name: 'heading',
           type: 'Heading',
           title: 'Nagłówek',
-          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'paragraph',
           type: 'PortableText',
           title: 'Paragraf',
-          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'highlightedSocialMedia',
           type: 'array',
           title: 'Wyróżnione media społecznościowe',
-          validation: (Rule) => Rule.required().length(2).error('Musisz wybrać dokładnie 2 media społecznościowe'),
+          validation: (Rule) => Rule.max(2).error('Musisz wybrać maksymalnie 2 media społecznościowe'),
           of: [
             {
               type: 'reference',
@@ -46,7 +44,6 @@ export default defineField({
           ],
         }),
       ],
-      validation: (Rule) => Rule.required(),
       options: {
         collapsible: true,
         collapsed: false,
@@ -61,16 +58,13 @@ export default defineField({
           name: 'heading',
           type: 'Heading',
           title: 'Nagłówek',
-          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'paragraph',
           type: 'PortableText',
           title: 'Paragraf',
-          validation: (Rule) => Rule.required(),
         }),
       ],
-      validation: (Rule) => Rule.required(),
       options: {
         collapsible: true,
         collapsed: false,
@@ -159,5 +153,4 @@ export default defineField({
       ],
     },
   },
-  validation: (Rule) => Rule.required(),
 })

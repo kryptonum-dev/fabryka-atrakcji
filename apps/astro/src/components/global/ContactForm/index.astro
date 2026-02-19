@@ -5,25 +5,24 @@ import PortableText, { PortableTextQuery, type PortableTextValue } from '../../u
 import sanityFetch from '@/src/utils/sanity.fetch'
 import { getOpenHours } from '@/src/utils/get-open-hours'
 import type { FormStateTypes } from '@/src/global/types'
-import Form from './Form'
+import InquiryForm, { type InquiryVariant, type ContextItem } from './InquiryForm'
 import { toPlainText } from '@/src/utils/to-plain-text'
+import imageToInlineSvg from '@/utils/image-to-inline-svg'
 
 const language = getLangFromPath(Astro.url.pathname) as Language
 
 const translations = {
   pl: {
-    sendButton: 'Wyślij wiadomość',
-    tryAgain: 'Spróbuj ponownie',
     responseBox: 'Odpowiadamy do 24h',
     phoneContact: 'Skontaktuj się telefonicznie',
-    emailContact: 'Napisz do nas',
+    emailContact: 'Napisz do nas',
+    trustedBy: 'Zaufali nam',
   },
   en: {
-    sendButton: 'Send message',
-    tryAgain: 'Try again',
     responseBox: 'We respond within 24 hours',
     phoneContact: 'Call us by phone',
     emailContact: 'Write to us',
+    trustedBy: 'Trusted by',
   },
 }
 
@@ -32,25 +31,39 @@ const t = translations[language]
 export const ContactForm_Query = `
   _type == "ContactForm" => {
     ${ImageDataQuery('headingImage')}
+    ${ImageDataQuery('formVisualImage')}
     ${PortableTextQuery('heading')}
     ${PortableTextQuery('paragraph')}
-    state{
-      success{
+    showInquiries,
+    overrideFormState,
+    animate,
+    state {
+      success {
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
         highlightedSocialMedia[] -> {
-            name,
-            link,
-            iconString,
+          name,
+          link,
+          iconString,
         },
       },
-      error{
+      error {
         ${PortableTextQuery('heading')}
         ${PortableTextQuery('paragraph')}
       },
     },
   },
 `
+
+type SocialProofData = {
+  clientLogos?: ImageDataProps[]
+  metrics?: string[]
+}
+
+type ResponseBadgeData = {
+  text?: string
+  icon?: ImageDataProps
+}
 
 const global = await sanityFetch<{
   email: string
@@ -60,6 +73,16 @@ const global = await sanityFetch<{
     to: string
     closedWeekends: boolean
   }
+  inquiryFormDefaults?: {
+    state?: FormStateTypes
+    socialProof?: SocialProofData
+    formVisualImage?: ImageDataProps
+    responseBadge?: ResponseBadgeData
+  }
+  listingFilters?: {
+    activityParticipantGroups?: { label: string; min: number; max?: number }[]
+    hotelLocationOptions?: { name: string }[]
+  }
 }>({
   query: `*[_type == "global" && language == $language][0]{
     email,
@@ -68,7 +91,37 @@ const global = await sanityFetch<{
       from,
       to,
       closedWeekends,
-    }
+    },
+    listingFilters {
+      activityParticipantGroups[] { label, min, max },
+      hotelLocationOptions[] -> { name },
+    },
+    inquiryFormDefaults {
+      ${ImageDataQuery('formVisualImage')}
+      responseBadge {
+        text,
+        ${ImageDataQuery('icon')}
+      },
+      state {
+        success {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+          highlightedSocialMedia[] -> {
+            name,
+            link,
+            iconString,
+          },
+        },
+        error {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+      },
+      socialProof {
+        ${ImageDataQuery('clientLogos[]')}
+        metrics,
+      },
+    },
   }`,
   params: {
     language,
@@ -78,54 +131,185 @@ const global = await sanityFetch<{
 type Props = {
   index: number
   sectionId?: string
-  headingImage: ImageDataProps
+  headingImage?: ImageDataProps
+  formVisualImage?: ImageDataProps
   heading: PortableTextValue
   paragraph: PortableTextValue
-  state: FormStateTypes
+  state?: FormStateTypes
+  showInquiries?: boolean
+  overrideFormState?: boolean
+  variant?: InquiryVariant
+  contextItem?: ContextItem
+  animate?: boolean
 }
 
-const { index, sectionId, headingImage, heading, paragraph, state } = Astro.props
+const {
+  index,
+  sectionId,
+  headingImage,
+  formVisualImage,
+  heading,
+  paragraph,
+  state,
+  showInquiries = true,
+  overrideFormState = false,
+  variant = 'general',
+  contextItem,
+  animate = true,
+} = Astro.props
 
 const OpenHoursText = getOpenHours({
   ...global.openHours,
 })
 
-const clientFormStates = {
-  success: {
-    ...state.success,
-    heading: toPlainText(state.success.heading),
-    paragraph: toPlainText(state.success.paragraph),
-  },
-  error: {
-    heading: toPlainText(state.error.heading),
-    paragraph: toPlainText(state.error.paragraph),
-  },
-}
+// Resolve form state: component-level override takes priority, then global defaults
+const resolvedState = overrideFormState && state ? state : (global.inquiryFormDefaults?.state || state)
+
+// Social proof and response badge are global-only.
+const resolvedSocialProof = global.inquiryFormDefaults?.socialProof
+const featuredClientLogos = (resolvedSocialProof?.clientLogos || []).slice(0, 6)
+const marqueeClientLogos = featuredClientLogos.length > 1 ? [...featuredClientLogos, ...featuredClientLogos] : featuredClientLogos
+const sidebarImage = formVisualImage || global.inquiryFormDefaults?.formVisualImage
+const resolvedResponseBadge = global.inquiryFormDefaults?.responseBadge
+const responseBadgeText = resolvedResponseBadge?.text || t.responseBox
+const responseBadgeIconSvg = await imageToInlineSvg(resolvedResponseBadge?.icon?.asset?.url || '')
+
+const clientFormStates = resolvedState
+  ? {
+      success: {
+        ...resolvedState.success,
+        heading: toPlainText(resolvedState.success?.heading),
+        paragraph: toPlainText(resolvedState.success?.paragraph),
+      },
+      error: {
+        heading: toPlainText(resolvedState.error?.heading),
+        paragraph: toPlainText(resolvedState.error?.paragraph),
+      },
+    }
+  : {
+      success: { heading: '', paragraph: '', highlightedSocialMedia: [] },
+      error: { heading: '', paragraph: '' },
+    }
+
+// Map CMS-driven participant groups → team size radio options
+const cmsTeamSizeOptions = global.listingFilters?.activityParticipantGroups
+  ?.map((g) => ({ value: g.max ? `${g.min}-${g.max}` : `${g.min}+`, label: g.label }))
+
+// Map CMS-driven hotel locations → region radio options
+const cmsRegionOptions = global.listingFilters?.hotelLocationOptions
+  ?.filter((loc): loc is { name: string } => Boolean(loc?.name))
+  .map((loc) => ({ value: loc.name, label: loc.name }))
 ---
 
-<section class="ContactForm max-width" id={sectionId}>
+<section
+  class={`ContactForm max-width${!animate ? ' no-animate' : ''}${showInquiries ? ' has-inquiry-pending' : ''}`}
+  id={sectionId}
+  data-show-inquiries={showInquiries ? 'true' : 'false'}
+>
+  <!-- Header: centered heading area -->
   <header class="header">
-    <div class="wrapper">
-      <div class="profile">
-        <Image {...headingImage} sizes="28px" />
+    {/* Background image for tablet/mobile — hidden on desktop */}
+    {sidebarImage && (
+      <div class="header-bg" aria-hidden="true">
+        <Image {...sidebarImage} sizes="(max-width: 66.8125rem) 100vw, 0px" />
       </div>
-      <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+    )}
+    <div class="header-content">
+      <div class="title-row">
+        {headingImage && (
+          <div class="profile">
+            <Image {...headingImage} sizes="28px" />
+          </div>
+        )}
+        <PortableText value={heading} class="heading" heading={index === 0 ? 'h1' : 'h2'} />
+      </div>
+      <PortableText value={paragraph} class="paragraph" />
+      {resolvedSocialProof?.metrics && resolvedSocialProof.metrics.length > 0 && (
+        <ul class="metrics">
+          {resolvedSocialProof.metrics.map((metric) => (
+            <li class="metric">{metric}</li>
+          ))}
+        </ul>
+      )}
+
     </div>
-    <PortableText value={paragraph} class="paragraph" />
   </header>
-  <Form client:load lang={language} formState={clientFormStates}>
-    <div class="response">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-        ><path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-          d="M7.999 1.334a6.667 6.667 0 1 0 0 13.333 6.667 6.667 0 0 0 0-13.333Zm-.515 4.38L6.14 6.783c-.563.448-.845.672-.79.923l.003.012c.062.25.42.345 1.134.536.397.107.596.16.689.31l.005.008c.09.153.038.343-.064.725l-.027.1c-.283 1.057-.425 1.586-.152 1.757.273.17.707-.175 1.576-.867l1.343-1.07c.564-.448.845-.673.79-.923l-.003-.013c-.062-.249-.42-.344-1.134-.536-.397-.106-.595-.16-.689-.31l-.004-.008c-.09-.152-.039-.343.063-.724l.027-.1c.283-1.058.425-1.586.152-1.757-.273-.17-.707.175-1.575.866Z"
-          fill="#F67258"></path></svg
-      >
-      <span>{t.responseBox}</span>
-    </div>
-  </Form>
-  <div class="contact">
+
+  <!-- Main: Form card + Sidebar -->
+  <div class="main">
+    <aside class="sidebar">
+      <div class="visual">
+        {sidebarImage ? (
+          <Image {...sidebarImage} sizes="(max-width: 66.8125rem) 100vw, 33vw" />
+        ) : (
+          <div class="visual-fallback" />
+        )}
+        <div class="contact">
+          <div class="phone">
+            <div class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
+                ><path
+                  d="m14.296 10.755-.38.377s-.902.897-3.365-1.552c-2.462-2.448-1.56-3.345-1.56-3.345l.239-.238c.589-.585.644-1.525.13-2.211L8.31 2.382c-.636-.85-1.865-.962-2.593-.237l-1.308 1.3c-.362.36-.604.826-.575 1.342.076 1.322.674 4.166 4.01 7.484 3.54 3.52 6.86 3.66 8.218 3.533.43-.04.803-.26 1.104-.558l1.184-1.178c.8-.794.574-2.156-.449-2.712l-1.592-.865c-.67-.365-1.489-.258-2.014.264Z"
+                  fill="#F67258"></path></svg
+              >
+            </div>
+            <div class="text">
+              <span>{t.phoneContact}</span><a href={`tel:${global.tel}`}>{global.tel}</a><span>{OpenHoursText}</span>
+            </div>
+          </div>
+          <div class="email">
+            <div class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
+                ><path
+                  d="M8.418 16.666v1.667a.625.625 0 1 0 1.25 0v-1.667h-1.25ZM13.001 16.666h-1.25v1.667a.625.625 0 1 0 1.25 0v-1.667Z"
+                  fill="#F67258"></path><path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="m14.986 5.487.213-.043c.347-.07.705-.036 1.034.095a2.93 2.93 0 0 0 1.804.124l.051-.013c.436-.11.744-.515.744-.981V2.893c0-.614-.553-1.067-1.129-.923-.33.082-.677.058-.994-.068l-.06-.025a2.931 2.931 0 0 0-1.668-.154l-.374.075c-.45.09-.775.499-.775.975v5.794c0 .33.258.599.577.599a.588.588 0 0 0 .577-.6v-3.08Z"
+                  fill="#F67258"></path><path
+                  d="M12.585 5v3.567c0 .976.773 1.85 1.827 1.85 1.053 0 1.826-.874 1.826-1.85v-1.71c.635.17 1.3.19 1.947.055.41.702.65 1.55.65 2.463v5.146c0 1.185-.824 2.146-1.84 2.146h-6.077V9.375c0-1.692-.693-3.312-1.848-4.375h3.515Z"
+                  fill="#F67258"></path><path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M2.168 9.375C2.168 6.959 3.847 5 5.918 5c2.071 0 3.75 1.959 3.75 4.375v7.292h-5.64c-1.027 0-1.86-.972-1.86-2.17V9.374Zm1.875 3.958c0-.345.28-.625.625-.625h2.5a.625.625 0 0 1 0 1.25h-2.5a.625.625 0 0 1-.625-.625Z"
+                  fill="#F67258"></path></svg
+              >
+            </div>
+            <div class="text"><span>{t.emailContact}</span><a href={`mailto:${global.email}`}>{global.email}</a></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <InquiryForm
+      client:load
+      lang={language}
+      formState={clientFormStates}
+      variant={variant}
+      showInquiries={showInquiries}
+      contextItem={contextItem}
+      teamSizeOptions={cmsTeamSizeOptions}
+      regionOptions={cmsRegionOptions}
+    >
+      <div class="response-badge" aria-label={responseBadgeText}>
+        {responseBadgeIconSvg ? (
+          <Fragment set:html={responseBadgeIconSvg} />
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+            ><path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M7 1.167a5.833 5.833 0 1 0 0 11.666A5.833 5.833 0 0 0 7 1.167Zm-.45 3.833a.625.625 0 0 1 1.25 0v1.75h1.283a.625.625 0 1 1 0 1.25H6.55A.625.625 0 0 1 5.925 7.375V5Z"
+              fill="currentColor"></path></svg
+          >
+        )}
+        <span>{responseBadgeText}</span>
+      </div>
+    </InquiryForm>
+  </div>
+
+  {/* Contact info — hidden on desktop, shown below form on tablet/mobile */}
+  <div class="mobile-contact">
     <div class="phone">
       <div class="icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" fill="none"
@@ -159,28 +343,97 @@ const clientFormStates = {
       <div class="text"><span>{t.emailContact}</span><a href={`mailto:${global.email}`}>{global.email}</a></div>
     </div>
   </div>
+
+  {featuredClientLogos.length > 0 && (
+    <div class="logo-marquee" aria-label="Company logos">
+      <div class="logo-marquee-track">
+        <div class="logo-marquee-content">
+          {marqueeClientLogos.map((logo) => (
+            <div class="logo-item">
+              <Image {...logo} sizes="(max-width: 46.25rem) 96px, 124px" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
 </section>
 
 <style lang="scss">
   .ContactForm {
-    display: grid;
-    grid-template-columns: 1fr clamp(17.5rem, calc(16.875vw / 0.48), 25.625rem) clamp(
-        10rem,
-        calc(10.625vw / 0.48),
-        19.1875rem
-      );
-    padding: clamp(3.5rem, calc(5vw / 0.48), 5rem) 0 clamp(3rem, calc(5vw / 0.48), 5rem);
-    column-gap: 3rem;
-    align-items: center;
-    > :global(svg) {
-      position: absolute;
-      opacity: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, calc(2vw / 0.48), 2rem);
+    height: auto;
+    overflow-x: clip;
+    padding: clamp(3rem, calc(5vw / 0.48), 5rem) 0 clamp(2.5rem, calc(4vw / 0.48), 4rem);
+
+    &.has-inquiry-pending {
+      .main :global(form)::before {
+        $bone: #e2dad1;
+        $bone-light: #ece6df;
+
+        $card-border: #ede6de;
+
+        content: '';
+        display: block;
+        width: 100%;
+        height: 6.875rem;
+        margin-bottom: 1.5rem;
+        border: 0.0625rem solid $card-border;
+        border-radius: 0.875rem;
+        background:
+          /* ── 1. Shimmer sweep ── */
+          linear-gradient(
+              90deg,
+              rgba(250, 247, 247, 0) 0%,
+              rgba(255, 255, 255, 0.65) 50%,
+              rgba(250, 247, 247, 0) 100%
+            )
+            0 0 / 40% 100% no-repeat,
+
+          /* ── 2-4. Header row ── */
+          linear-gradient($bone 0 0) 0.875rem 0.875rem / 5.5rem 1rem no-repeat,
+          linear-gradient($bone-light 0 0) calc(100% - 9.5rem) 0.875rem / 4.25rem 1.125rem no-repeat,
+          linear-gradient($bone-light 0 0) calc(100% - 4.875rem) 0.875rem / 4rem 1.125rem no-repeat,
+
+          /* ── 5-9. Card ── */
+          linear-gradient($bone 0 0) 1.3125rem 3.125rem / 2.25rem 2.25rem no-repeat,
+          linear-gradient($bone-light 0 0) 4.0625rem 3.25rem / 5rem 0.5625rem no-repeat,
+          linear-gradient($bone-light 0 0) 4.0625rem 4.0625rem / 3rem 0.5rem no-repeat,
+          linear-gradient(#fff 0 0) 0.9375rem 2.8125rem / calc(100% - 1.875rem) 2.875rem no-repeat,
+          linear-gradient($card-border 0 0) 0.875rem 2.75rem / calc(100% - 1.75rem) 3rem no-repeat,
+
+          /* ── 15. Base ── */
+          var(--neutral-100, #faf7f7);
+
+        animation: inquirySkeletonSweep 1.4s ease-in-out infinite;
+      }
     }
+
     .header {
-      max-width: 27.0625rem;
-      justify-self: start;
-      .wrapper {
-        max-width: 21.25rem;
+      width: min(100%, 42rem);
+      margin-right: auto;
+      margin-left: auto;
+      margin-bottom: clamp(0.5rem, calc(1vw / 0.48), 1rem);
+      padding: 0;
+      text-align: center;
+
+      /* Desktop: background image hidden */
+      .header-bg {
+        display: none;
+      }
+
+      .header-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .title-row {
+        
+        margin: 0 auto;
+
         .profile {
           position: relative;
           display: inline-block;
@@ -190,11 +443,11 @@ const clientFormStates = {
           transform: translateY(-0.1875rem);
           border: 0.0625rem solid var(--neutral-200, #f5f1ec);
           border-radius: 50%;
+
           &::before {
             position: absolute;
             right: 0.0625rem;
             bottom: 0.125rem;
-            display: block;
             width: 0.375rem;
             height: 0.375rem;
             background-color: #61bc72;
@@ -202,90 +455,230 @@ const clientFormStates = {
             border-radius: 50%;
             content: '';
           }
-          img {
+
+          :global(img) {
             width: 100%;
             height: 100%;
             border-radius: 50%;
+            object-fit: cover;
           }
         }
+
         .heading {
           display: inline;
-          max-width: 19.375rem;
         }
       }
+
       .paragraph {
-        margin-top: clamp(0.75rem, calc(1.25vw / 0.48), 1.25rem);
+        margin-top: 0.75rem;
       }
-    }
-    :global(form) {
-      position: relative;
-      display: flex;
-      width: 100%;
-      min-height: 32.5rem;
-      padding: 2.25rem;
-      overflow: hidden;
-      background: var(--neutral-200, #f5f1ec);
-      border-radius: 12px;
-      flex-direction: column;
-      align-items: stretch;
-      :global(button[type='submit']) {
-        width: 100%;
-        max-width: 100%;
+
+      .metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
         margin-top: 1rem;
-        :global(span) {
-          margin: 0 auto;
-          padding-right: 1.75rem;
-        }
+        padding: 0;
+        list-style: none;
+        justify-content: center;
       }
-      :global(label) {
-        margin-bottom: 1.25rem;
-        &:nth-of-type(2) {
-          z-index: 10;
+
+      .metric {
+        display: inline-flex;
+        gap: 0.375rem;
+        align-items: center;
+        padding: 0.375rem 0.75rem;
+        color: var(--primary-400, #74535e);
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+        font-weight: 500;
+        font-size: var(--typography-body-s, 0.75rem);
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+        background: var(--neutral-200, #f5f1ec);
+        border: 0.0625rem solid var(--neutral-300, #ede6de);
+        border-radius: var(--corner-radius-l, 999px);
+
+        &::before {
+          width: 0.375rem;
+          height: 0.375rem;
+          border-radius: 50%;
+          background: var(--primary-500, #db664e);
+          opacity: 0.55;
+          content: '';
         }
-        &:nth-of-type(3) {
-          margin-bottom: 0.75rem;
+
+        transform: none;
+      }
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: minmax(18rem, 0.9fr) minmax(0, 1.35fr);
+      gap: clamp(1rem, calc(2vw / 0.48), 2rem);
+      align-items: stretch;
+      width: 100%;
+      isolation: isolate;
+
+      :global(form) {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        width: 100%;
+        min-height: 28rem;
+        padding: clamp(1.25rem, calc(2vw / 0.48), 2.25rem);
+        overflow: visible;
+        background: var(--neutral-200, #f5f1ec);
+        border: 0.0625rem solid #e8dfd6;
+        border-radius: 1rem;
+   
+        flex-direction: column;
+        align-items: stretch;
+
+        > * {
+          position: relative;
+          z-index: 1;
         }
-        &:nth-of-type(4) {
-          margin-bottom: 0;
+
+        :global(button[type='submit']) {
+          width: 100%;
+          max-width: 26rem;
+          margin-top: 0.75rem;
+
+          :global(span) {
+            margin: 0 auto;
+            padding-right: 1.75rem;
+          }
+        }
+
+        > :global(label) {
+          margin-bottom: 0.875rem;
+
+        
         }
       }
     }
-    .response {
-      display: flex;
-      gap: 0.375rem;
-      margin-top: 0.5rem;
+
+    :global(.response-badge) {
+      position: absolute;
+      top: -0.875rem;
+      right: 0.625rem;
+      z-index: 60;
+      display: inline-flex;
+      gap: 0.25rem;
       align-items: center;
-      justify-content: center;
-      font-size: var(--typography-body-m, 0.875rem);
-      line-height: 1.7;
-      letter-spacing: -0.01em;
+      padding: 0.25rem 0.5rem;
+      color: var(--neutral-400, #ffe4ca);
+      font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+      font-size: var(--typography-body-s, 0.75rem);
+      line-height: 1;
+      letter-spacing: -0.055em;
+      text-transform: uppercase;
+      background: var(--primary-800, #45051c);
+      border: 0.0625rem solid var(--primary-700, #600d2a);
+      border-radius: 999px;
+      box-shadow: 0 0.5rem 1.25rem #45051c30;
+      transform: rotate(-4deg);
+      transform-origin: right center;
+      pointer-events: none;
+
+      :global(svg) {
+        color: var(--neutral-400, #ffe4ca);
+        width: 18px;
+        height: 18px;
+        margin-bottom: 2px;
+      }
     }
-    .contact {
+
+    .sidebar {
+      display: block;
+      min-width: 0;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .visual {
+      position: relative;
+      width: 106%;
+      height: 100%;
+      min-height: clamp(28rem, calc(34vw / 0.48), 34rem);
+      overflow: hidden;
+      border: 0.0625rem solid #e8dfd6;
+      border-radius: 1.25rem;
+      box-shadow: 0 0.75rem 2.5rem #45051c14;
+      transform: translateX(4%) rotate(-1.5deg);
+      transform-origin: 50% 8%;
+
+      :global(img) {
+        position: absolute;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scale(1.04) rotate(1.5deg);
+        transform-origin: 50% 50%;
+      }
+
+      &::before {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: linear-gradient(270deg,hsla(33,31%,74%,.278),hsla(33,31%,74%,0.122) 32%,hsla(33,31%,74%,.1) 56%,hsla(33,31%,74%,0) 100%);
+        content: '';
+        pointer-events: none;
+      }
+
+      &::after {
+        position: absolute;
+        inset: 0.5rem;
+        z-index: 2;
+        border: 0.125rem dashed var(--primary-500, #db2a50);
+        border-radius: 1rem;
+        content: '';
+        pointer-events: none;
+      }
+    }
+
+    .visual-fallback {
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      background: var(--neutral-300, #ede6de);
+    }
+
+    .contact,
+    .mobile-contact {
       .phone,
       .email {
         display: grid;
         grid-template-columns: auto 1fr;
-        gap: 0.75rem;
+        gap: 0.625rem;
         align-items: start;
       }
-      .phone {
-        margin-bottom: 1rem;
-      }
+
       .icon {
         display: grid;
-        width: 2.25rem;
-        height: 2.25rem;
+        width: 2.125rem;
+        height: 2.125rem;
         place-items: center;
-        background: var(--neutral-200, #f5f1ec);
+        background: #fff;
+        border: 0.0625rem solid #eadfd5;
         border-radius: 50%;
-        transition: transform 350ms var(--easing);
+        transition: transform 320ms var(--easing);
+
+        :global(svg) {
+          width: 1.125rem;
+          height: 1.125rem;
+        }
       }
+
       .text {
         display: grid;
         color: var(--primary-400, #74535e);
         font-size: var(--typography-body-m, 0.875rem);
-        line-height: 1.7;
+        line-height: 1.65;
         letter-spacing: -0.01em;
+
         a {
           position: relative;
           justify-self: start;
@@ -293,125 +686,586 @@ const clientFormStates = {
           font-weight: 700;
           font-variant-numeric: lining-nums proportional-nums;
           letter-spacing: -0.02em;
+
           &::before {
             position: absolute;
             bottom: 0;
             left: 0;
-            display: block;
             width: 100%;
             height: 4%;
             background: var(--primary-400, #74535e);
             transform: scaleX(0);
             transform-origin: left;
-            transition: transform 350ms var(--easing);
+            transition: transform 320ms var(--easing);
             content: '';
           }
-          &:hover {
+
+          &:hover::before {
+            transform: scaleX(1);
+          }
+        }
+      }
+
+      .phone:has(.text a:hover) > .icon {
+        transform: scale(1.05);
+
+        :global(svg) {
+          animation: ring-low 700ms var(--easing) infinite alternate;
+        }
+      }
+
+      .email:has(.text a:hover) > .icon {
+        transform: scale(1.05);
+
+        :global(svg) {
+          animation: email-notification 1800ms var(--easing) infinite;
+        }
+      }
+    }
+
+    .contact {
+      position: absolute;
+      bottom: 0.875rem;
+      left: 0.875rem;
+      width: min(84%, 18.5rem);
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+      padding: 1rem;
+      background: #fffdf7;
+      border: 0.0625rem solid #f4eadf;
+      border-radius: 0.875rem;
+      box-shadow: 0 0.5rem 1.5rem #45051c0d;
+    }
+
+    /* Contact info below form — hidden on desktop, visible on tablet/mobile */
+    .mobile-contact {
+      display: none;
+    }
+
+    .logo-marquee {
+      position: relative;
+      width: min(100%, 66rem);
+      margin-top: clamp(0.75rem, calc(1.25vw / 0.48), 1.25rem);
+      margin-right: auto;
+      margin-left: auto;
+      overflow: hidden;
+      isolation: isolate;
+      mask-image: linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%);
+      
+    }
+
+    .logo-marquee-track {
+      width: max-content;
+      animation: contactLogosMarquee 42s linear infinite;
+      will-change: transform;
+      
+    }
+
+    .logo-marquee-content {
+      display: flex;
+      gap: clamp(0.5rem, calc(0.85vw / 0.48), 0.875rem);
+      transition: transform 1200ms var(--easing);
+    }
+
+    .logo-marquee:hover .logo-marquee-track {
+      animation-play-state: paused;
+      
+      .logo-marquee-content {
+        transform: translateX(-0.35rem);
+      }
+    }
+
+    .logo-item {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: clamp(8.5rem, calc(10vw / 0.48), 10.5rem);
+      height: clamp(4rem, calc(5.5vw / 0.48), 5rem);
+      padding: 0.5rem 0.75rem;
+      background: transparent;
+      border-bottom: 0.125rem solid transparent;
+      transition: border-color 280ms var(--easing), transform 280ms var(--easing);
+
+      :global(img) {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: clamp(1.75rem, calc(2.4vw / 0.48), 2.25rem);
+        object-fit: contain;
+        opacity: 0.72;
+        transition: opacity 280ms var(--easing);
+      }
+    }
+
+    .logo-item:hover {
+      border-bottom-color: var(--primary-500, #db2a50);
+      transform: translateY(-0.125rem);
+
+      :global(img) {
+        opacity: 1;
+      }
+    }
+
+    @keyframes contactLogosMarquee {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(calc(-50% - clamp(0.25rem, calc(0.425vw / 0.48), 0.4375rem)));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .logo-marquee-track {
+        animation: none;
+      }
+
+      .logo-marquee-content {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 66.8125rem) {
+      gap: 0;
+
+      /* Header becomes a hero banner with image background */
+      .header {
+        position: relative;
+        z-index: 0;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 0;
+        padding: 0;
+        overflow: hidden;
+        border-radius: 1.25rem 1.25rem 0 0;
+        isolation: isolate;
+
+        /* Reveal the background image */
+        .header-bg {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          display: block;
+
+          :global(img) {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          /* Dark overlay for text readability */
+          &::after {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background:
+              linear-gradient(180deg, #45051ce0 0%, #45051caa 40%, #45051cb8 70%, #45051cf2 100%);
+            content: '';
+          }
+        }
+
+        .header-content {
+          position: relative;
+          z-index: 2;
+          padding: clamp(3rem, calc(5vw / 0.48), 5rem) clamp(1.5rem, calc(3vw / 0.48), 2.5rem) clamp(1.5rem, calc(2vw / 0.48), 2rem);
+          color: var(--neutral-100, #faf7f7);
+
+          .title-row {
+            max-width: 100%;
+          }
+
+          .profile {
+            border-color: rgba(255 255 255 / 0.3);
+
             &::before {
-              transform: scaleX(1);
-              transition: transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.27);
+              border-color: rgba(69 5 28 / 0.6);
             }
           }
-        }
-      }
-      .phone {
-        &:has(.text a:hover) > .icon {
-          transform: scale(1.05);
-          svg {
-            animation: ring-low 700ms var(--easing) infinite alternate;
-          }
-        }
-        &:has(.text a:focus:not(:focus-visible)) > .icon {
-          transform: scale(1.1);
-          svg {
-            animation: ring-high 600ms var(--easing) infinite alternate;
-          }
-        }
-      }
-      .email {
-        &:has(.text a:hover) > .icon {
-          transform: scale(1.05);
-          svg {
-            animation: email-notification 1800ms var(--easing) infinite;
-          }
-        }
-        &:has(.text a:focus:not(:focus-visible)) > .icon {
-          transform: scale(1.1);
-          svg {
-            animation: email-notification-high 1400ms var(--easing) infinite;
-          }
-        }
-      }
-    }
-    @media (max-width: 66.8125rem) {
-      grid-template-columns: 1fr;
-      max-width: 50rem;
-      .header {
-        max-width: 38rem;
-        margin-bottom: clamp(1.25rem, calc(2.25vw / 0.48), 2.25rem);
-        .wrapper {
-          max-width: 38rem;
-        }
-      }
-      :global(form) {
-        padding: clamp(0.75rem, calc(4vw / 0.48), 4rem) clamp(0.5rem, calc(5vw / 0.48), 5rem);
-        margin-bottom: clamp(1rem, calc(1vw / 0.48), 1rem);
-        > :global(label),
-        :global(button[type='submit']) {
-          width: 100%;
-          max-width: 28rem;
-          margin-right: auto;
-          margin-left: auto;
-        }
-      }
-      .contact {
-        display: grid;
-        grid-template-columns: repeat(2, auto);
-        padding: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
-        background: var(--neutral-200, #f5f1ec);
-        border-radius: clamp(0.5rem, calc(12vw / 7.68), 0.75rem);
-        column-gap: 1rem;
 
-        .icon {
-          background: var(--neutral-100, #faf7f7);
+          :global(.heading) {
+            color: #fff;
+          }
+
+          .paragraph {
+            color: rgba(255 255 255 / 0.78);
+          }
         }
-        .phone,
-        .email {
-          width: 100%;
-          max-width: 16.75rem;
-          margin-bottom: 0;
+
+        /* Metrics become light-on-dark pills */
+        .metric {
+          color: rgba(255 255 255 / 0.82);
+          background: rgba(255 255 255 / 0.1);
+          border-color: rgba(255 255 255 / 0.14);
+          backdrop-filter: blur(6px);
+
+          &::before {
+            background: #f67258;
+            opacity: 0.9;
+          }
         }
-        .phone {
-          justify-self: end;
-        }
+
       }
-    }
-    @media (max-width: 34.3125rem) {
-      .contact {
+
+      /* Show contact below form */
+      .mobile-contact {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.875rem 1.25rem;
+margin: 0 auto;
+        padding: 2rem 0.5rem;
+        width: 100%;
+    
+  
+      }
+
+      /* Hide the sidebar completely — image already in header */
+      .sidebar {
+        display: none;
+      }
+
+      /* Main: single column with form */
+      .main {
         grid-template-columns: 1fr;
-        gap: 0.625rem;
-        .icon {
-          background: var(--neutral-200, #f5f1ec);
-        }
-        .phone {
-          justify-self: start;
-        }
+        gap: 0;
+      }
+
+      .main :global(form) {
+        border-radius: 0 0 1.25rem 1.25rem;
+        border-top: none;
+      }
+
+      .logo-marquee {
+        width: 100%;
+        margin-top: 1rem;
+        mask-image: none;
+      }
+
+      :global(.response-badge) {
+        top: -0.625rem;
+        right: 0.5rem;
+        transform: rotate(-3deg);
       }
     }
+
+    @media (max-width: 46.25rem) {
+
+
+      .logo-marquee-track {
+        animation-duration: 22s;
+      }
+    }
+
     @media (max-width: 28.6875rem) {
-      :global(form) {
-        min-height: 27.5rem;
-        padding: clamp(0.75rem, calc(1.25vw / 0.48), 1.25rem) clamp(0.5rem, calc(1.25vw / 0.48), 1.25rem);
-        > :global(label),
-        :global(button[type='submit']) {
-          max-width: 100%;
+
+  
+      width: 100%;
+      padding-top: 0rem;
+
+      .header{
+        border-radius: 0;
+        min-height: 24rem;
+        display: flex;
+        align-items: center;
+
+        .header-content {
+        padding: clamp(2rem, calc(3vw / 0.48), 3rem) 1rem clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+        height: 100%;
+      }
+      }
+
+
+      .main :global(form) {
+        min-height: 24rem;
+        padding: 1rem;
+      }
+
+      :global(.response-badge) {
+        position: static;
+        margin: 1rem auto 0;
+        background: none;
+        border: none;
+        box-shadow: none;
+        color: var(--primary-400, #74535e);
+        transform: none;
+        pointer-events: auto;
+        z-index: 1;
+      }
+
+      .logo-marquee {
+        width: 100%;
+        mask-image: none;
+      }
+
+
+    }
+    /* ─── Desktop entrance animations ─── */
+    @media (min-width: 66.875rem) {
+      &:not(.no-animate) {
+      /* Initial hidden states */
+      .header .title-row,
+      .header .paragraph,
+      .header .metrics {
+        opacity: 0;
+        transform: translateY(1.5rem);
+      }
+
+      .sidebar {
+        opacity: 0;
+        transform: translateX(-2rem) rotate(-4deg) scale(0.92);
+      }
+
+      .main :global(form) {
+        opacity: 0;
+        transform: translateX(1.5rem) scale(0.97);
+      }
+
+      :global(.response-badge) {
+        opacity: 0;
+        transform: rotate(-4deg) scale(0);
+      }
+
+      .contact {
+        opacity: 0;
+        transform: translateY(1.25rem) scale(0.95);
+      }
+
+      .logo-marquee {
+        opacity: 0;
+        transform: translateY(1rem);
+      }
+
+      .visual::after {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+
+      /* Animated states */
+      &.is-visible {
+        .header .title-row {
+          animation: cfFadeUp 700ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        .header .paragraph {
+          animation: cfFadeUp 700ms cubic-bezier(0.19, 1, 0.22, 1) 120ms forwards;
+        }
+
+        .header .metrics {
+          animation: cfFadeUp 600ms cubic-bezier(0.19, 1, 0.22, 1) 240ms forwards;
+        }
+
+        .sidebar {
+          animation: cfSlideInLeft 775ms cubic-bezier(0.18, 0.89, 0.32, 1.15) 325ms forwards;
+        }
+
+        .main :global(form) {
+          animation: cfSlideInRight 675ms cubic-bezier(0.18, 0.89, 0.32, 1.12) 475ms forwards;
+        }
+
+        :global(.response-badge) {
+          animation: cfBadgePop 500ms cubic-bezier(0.18, 0.89, 0.32, 1.27) 875ms forwards;
+        }
+
+        .contact {
+          animation: cfFloatUp 600ms cubic-bezier(0.18, 0.89, 0.32, 1.2) 725ms forwards;
+        }
+
+        .logo-marquee {
+          animation: cfFadeUp 600ms cubic-bezier(0.19, 1, 0.22, 1) 1000ms forwards;
+        }
+
+        .visual::after {
+          animation: cfDashedIn 500ms cubic-bezier(0.18, 0.89, 0.32, 1.27) 650ms forwards;
         }
       }
-      .contact {
-        padding: 0;
-        background: none;
-        border-radius: 0;
+      }
+    }
+
+    @keyframes cfFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(1.5rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes cfSlideInLeft {
+      0% {
+        opacity: 0;
+        transform: translateX(-2rem) rotate(-3deg) scale(0.92);
+      }
+      70% {
+        opacity: 1;
+        transform: translateX(0.3rem) rotate(0.5deg) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes cfSlideInRight {
+      0% {
+        opacity: 0;
+        transform: translateX(1.5rem) scale(0.97);
+      }
+      70% {
+        opacity: 1;
+        transform: translateX(-0.15rem) scale(1.005);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes cfBadgePop {
+      0% {
+        opacity: 0;
+        transform: rotate(-3deg) scale(0.92);
+      }
+      60% {
+        opacity: 1;
+        transform: rotate(-4deg) scale(1.04);
+      }
+      80% {
+        transform: rotate(-3deg) scale(0.99);
+      }
+      100% {
+        opacity: 1;
+        transform: rotate(-4deg) scale(1);
+      }
+    }
+
+    @keyframes cfFloatUp {
+      0% {
+        opacity: 0;
+        transform: translateY(1.25rem) scale(0.95);
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(-0.15rem) scale(1.01);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes cfDashedIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+      60% {
+        opacity: 0.7;
+        transform: scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes inquirySkeletonSweep {
+      from {
+        background-position:
+          -50% 0,
+          0.875rem 0.875rem,
+          calc(100% - 9.5rem) 0.875rem,
+          calc(100% - 4.875rem) 0.875rem,
+          1.3125rem 3.125rem,
+          4.0625rem 3.25rem,
+          4.0625rem 4.0625rem,
+          0.9375rem 2.8125rem,
+          0.875rem 2.75rem,
+          0 0;
+      }
+      to {
+        background-position:
+          150% 0,
+          0.875rem 0.875rem,
+          calc(100% - 9.5rem) 0.875rem,
+          calc(100% - 4.875rem) 0.875rem,
+          1.3125rem 3.125rem,
+          4.0625rem 3.25rem,
+          4.0625rem 4.0625rem,
+          0.9375rem 2.8125rem,
+          0.875rem 2.75rem,
+          0 0;
       }
     }
   }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('.ContactForm:not(.no-animate)')
+    if (!sections.length) return
+
+    const desktopMedia = window.matchMedia('(min-width: 66.875rem)')
+    const reducedMotionMedia = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    let observer: IntersectionObserver | null = null
+
+    const stopObserver = () => {
+      if (!observer) return
+      observer.disconnect()
+      observer = null
+    }
+
+    const revealSections = () => {
+      sections.forEach((section) => section.classList.add('is-visible'))
+    }
+
+    const resetSections = () => {
+      sections.forEach((section) => section.classList.remove('is-visible'))
+    }
+
+    const initDesktopObserver = () => {
+      stopObserver()
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible')
+              observer?.unobserve(entry.target)
+            }
+          })
+        },
+        { threshold: 0.15 }
+      )
+
+      sections.forEach((section) => observer?.observe(section))
+    }
+
+    const syncAnimationMode = () => {
+      if (reducedMotionMedia.matches) {
+        stopObserver()
+        revealSections()
+        return
+      }
+
+      if (!desktopMedia.matches) {
+        stopObserver()
+        resetSections()
+        return
+      }
+
+      initDesktopObserver()
+    }
+
+    syncAnimationMode()
+    desktopMedia.addEventListener('change', syncAnimationMode)
+    reducedMotionMedia.addEventListener('change', syncAnimationMode)
+  })
+</script>

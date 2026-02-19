@@ -21,6 +21,13 @@ export default defineField({
       description: 'Jeśli dodane, zdjęcie pojawi się po lewej stronie nagłówka, wymiary zdjęcia to 28x28 px',
     }),
     defineField({
+      name: 'formVisualImage',
+      type: 'image',
+      title: 'Zdjęcie sekcji formularza',
+      description:
+        'Oddzielne zdjęcie do lewej kolumny przy formularzu (hero kontaktowy). Jeśli puste, użyte zostanie zdjęcie domyślne z ustawień globalnych.',
+    }),
+    defineField({
       name: 'heading',
       type: 'Heading',
       title: 'Nagłówek',
@@ -33,8 +40,33 @@ export default defineField({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'showInquiries',
+      type: 'boolean',
+      title: 'Pokaż zapisane zapytania',
+      description: 'Gdy włączone, formularz wyświetli zapisane integracje/hotele z localStorage użytkownika',
+      initialValue: true,
+    }),
+    defineField({
+      name: 'overrideFormState',
+      type: 'boolean',
+      title: 'Nadpisz komunikaty formularza',
+      description:
+        'Gdy wyłączone, formularz użyje globalnych komunikatów sukcesu/błędu z ustawień globalnych. Włącz, aby ustawić niestandardowe komunikaty dla tego formularza.',
+      initialValue: false,
+    }),
+    defineField({
       name: 'state',
       type: 'formState',
+      title: 'Komunikaty formularza',
+      description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+      hidden: ({ parent }) => !(parent as any)?.overrideFormState,
+    }),
+    defineField({
+      name: 'animate',
+      type: 'boolean',
+      title: 'Animacja wejścia',
+      description: 'Gdy włączone, formularz animuje się przy wejściu w pole widzenia. Wyłącz dla formularzy osadzonych na listingach.',
+      initialValue: true,
     }),
     ...sectionId,
   ],

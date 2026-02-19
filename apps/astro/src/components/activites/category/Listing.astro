@@ -14,6 +14,19 @@ import PriceRangeFilter from './PriceRangeFilter.astro'
 import { buildFilterUrl } from '@/utils/filters'
 import listingFiltersScript from '@/src/scripts/init-listing-filters.ts?url'
 
+export type ParticipantFilterGroup = {
+  label: string
+  min: number
+  max?: number
+}
+
+export const DEFAULT_PARTICIPANT_GROUPS: ParticipantFilterGroup[] = [
+  { label: '1-30', min: 1, max: 30 },
+  { label: '31-80', min: 31, max: 80 },
+  { label: '81-150', min: 81, max: 150 },
+  { label: '150+', min: 150 },
+]
+
 type Props = {
   heading?: PortableTextValue
   description?: string
@@ -22,12 +35,10 @@ type Props = {
   currentPage: number
   currentCategory: string | null
   selectedCategory?: string | null
-  participantRangeCounts: {
-    range1_30: number
-    range31_80: number
-    range81_150: number
-    range150plus: number
-  }
+  escapeHintText?: string
+  escapeHintCta?: string
+  participantRangeCounts: Record<string, number>
+  participantGroups: ParticipantFilterGroup[]
   activityTypes: {
     name: string
     slug: string
@@ -132,7 +143,7 @@ const getHourForm = (hours: number, lang: Language) => {
   return t.hour.plural
 }
 
-export const Listing_Query = (orderClause: string) => {
+export const Listing_Query = (orderClause: string, participantGroups: ParticipantFilterGroup[] = DEFAULT_PARTICIPANT_GROUPS) => {
   const participantsFilter = `
     (!defined($minParticipants) || (
       participantsCount.max >= $minParticipants && 
@@ -184,33 +195,27 @@ export const Listing_Query = (orderClause: string) => {
     && ${embeddingsFilter}
   `
 
+  const safeParticipantGroups =
+    participantGroups.length >= 2
+      ? participantGroups.slice(0, 6)
+      : DEFAULT_PARTICIPANT_GROUPS
+
+  const participantRangeCountsQuery = safeParticipantGroups
+    .map((group, index) => {
+      const maxCondition = typeof group.max === 'number' ? `&& participantsCount.min <= ${group.max}` : ''
+      return `"group${index}": count(*[_type == 'Activities_Collection' ${createBaseFilter({
+        participants: false,
+        price: true,
+        activityType: true,
+        duration: true,
+      })} && participantsCount.max >= ${group.min} ${maxCondition}])`
+    })
+    .join(',\n')
+
   return `
     "totalActivitiesByCategory": count(*[_type == 'Activities_Collection' ${createBaseFilter()}]),
     "participantRangeCounts": {
-      "range1_30": count(*[_type == 'Activities_Collection' ${createBaseFilter({
-        participants: false,
-        price: true,
-        activityType: true,
-        duration: true,
-      })} && participantsCount.max >= 30 && participantsCount.min <= 30]),
-      "range31_80": count(*[_type == 'Activities_Collection' ${createBaseFilter({
-        participants: false,
-        price: true,
-        activityType: true,
-        duration: true,
-      })} && participantsCount.min < 30 && participantsCount.max <= 80]),
-      "range81_150": count(*[_type == 'Activities_Collection' ${createBaseFilter({
-        participants: false,
-        price: true,
-        activityType: true,
-        duration: true,
-      })} && participantsCount.min < 81 && participantsCount.max >= 150]),
-      "range150plus": count(*[_type == 'Activities_Collection' ${createBaseFilter({
-        participants: false,
-        price: true,
-        activityType: true,
-        duration: true,
-      })} && participantsCount.min <= 151 && participantsCount.max >= 151])
+      ${participantRangeCountsQuery}
     },
     "activityTypes": *[_type == 'ActivitiesType_Collection' && language == $language] {
       name,
@@ -273,82 +278,60 @@ const {
   description,
   totalActivitiesByCategory,
   participantRangeCounts,
+  participantGroups,
   activityTypes,
   durationCounts,
   priceRange,
   noResults,
   selectedCategory,
+  escapeHintText,
+  escapeHintCta,
 } = Astro.props
 
 const params = Astro.url.searchParams
 const currentMinPrice = params.get('minPrice') ? parseInt(params.get('minPrice')!) : undefined
 const currentMaxPrice = params.get('maxPrice') ? parseInt(params.get('maxPrice')!) : undefined
 
+const participantGroupsWithCounts = participantGroups.map((group, index) => {
+  const minValue = String(group.min)
+  const maxValue = typeof group.max === 'number' ? String(group.max) : null
+  const currentMin = params.get('minParticipants')
+  const currentMax = params.get('maxParticipants')
+  const isSelected =
+    maxValue !== null
+      ? currentMax === maxValue && (currentMin === minValue || (group.min === 1 && !currentMin))
+      : currentMin === minValue && !currentMax
+
+  return {
+    name: group.label,
+    count: participantRangeCounts[`group${index}`] || 0,
+    isSelected,
+    href:
+      maxValue !== null
+        ? buildFilterUrl({
+            minParticipants: group.min > 1 ? group.min : undefined,
+            maxParticipants: group.max,
+            searchParams: params,
+            currentPath: Astro.url.pathname,
+          })
+        : buildFilterUrl({
+            minParticipants: group.min,
+            searchParams: params,
+            currentPath: Astro.url.pathname,
+          }),
+    value: maxValue !== null ? `${group.min}-${group.max}` : `${group.min}-`,
+  }
+})
+
 // Create filter items for participants dropdown
-const dropdownItems = [
-  {
-    name: '1–30',
-    count: participantRangeCounts.range1_30,
-    isSelected: params.get('maxParticipants') === '30',
-    href: buildFilterUrl({ maxParticipants: 30, searchParams: params, currentPath: Astro.url.pathname }),
-  },
-  {
-    name: '31–80',
-    count: participantRangeCounts.range31_80,
-    isSelected: params.get('minParticipants') === '31' && params.get('maxParticipants') === '80',
-    href: buildFilterUrl({
-      minParticipants: 31,
-      maxParticipants: 80,
-      searchParams: params,
-      currentPath: Astro.url.pathname,
-    }),
-  },
-  {
-    name: '81–150',
-    count: participantRangeCounts.range81_150,
-    isSelected: params.get('minParticipants') === '81' && params.get('maxParticipants') === '150',
-    href: buildFilterUrl({
-      minParticipants: 81,
-      maxParticipants: 150,
-      searchParams: params,
-      currentPath: Astro.url.pathname,
-    }),
-  },
-  {
-    name: '150+',
-    count: participantRangeCounts.range150plus,
-    isSelected: params.get('minParticipants') === '150',
-    href: buildFilterUrl({ minParticipants: 150, searchParams: params, currentPath: Astro.url.pathname }),
-  },
-].filter((item) => item.isSelected || item.count > 0)
+const dropdownItems = participantGroupsWithCounts
+  .map(({ name, count, isSelected, href }) => ({ name, count, isSelected, href }))
+  .filter((item) => item.isSelected || item.count > 0)
 
 // Create filter items for sidebar
-const sidebarParticipantItems = [
-  {
-    name: '1–30',
-    count: participantRangeCounts.range1_30,
-    isSelected: params.get('maxParticipants') === '30',
-    value: '1-30',
-  },
-  {
-    name: '31–80',
-    count: participantRangeCounts.range31_80,
-    isSelected: params.get('minParticipants') === '31' && params.get('maxParticipants') === '80',
-    value: '31-80',
-  },
-  {
-    name: '81–150',
-    count: participantRangeCounts.range81_150,
-    isSelected: params.get('minParticipants') === '81' && params.get('maxParticipants') === '150',
-    value: '81-150',
-  },
-  {
-    name: '150+',
-    count: participantRangeCounts.range150plus,
-    isSelected: params.get('minParticipants') === '150',
-    value: '150-',
-  },
-].filter((item) => item.isSelected || item.count > 0)
+const sidebarParticipantItems = participantGroupsWithCounts
+  .map(({ name, count, isSelected, value }) => ({ name, count, isSelected, value }))
+  .filter((item) => item.isSelected || item.count > 0)
 
 // Create items for activity type dropdown
 const activityTypeItems = activityTypes
@@ -473,6 +456,12 @@ const getActivitiesCount = () => {
       <header class="header">
         {heading && <PortableText value={heading} class="heading" heading="h1" />}
         {description && <p class="description">{description}</p>}
+        {escapeHintText && escapeHintCta && (
+          <p class="escape-hint">
+            {escapeHintText}{' '}
+            <a class="link" data-shade="light" href={lang === 'pl' ? '#kontakt' : '#contact'}>{escapeHintCta}</a>
+          </p>
+        )}
       </header>
     )
   }
@@ -579,7 +568,7 @@ const getActivitiesCount = () => {
 
 <style lang="scss">
   .Listing {
-    padding: clamp(3.5rem, calc(5vw / 0.48), 6rem) 0 clamp(4rem, calc(6vw / 0.48), 8rem);
+    padding: clamp(3.5rem, calc(5vw / 0.48), 6rem) 0 3rem;
     position: relative;
 
     &[data-no-results='true'] {
@@ -599,6 +588,32 @@ const getActivitiesCount = () => {
         font-size: var(--typography-body-xl, 1.125rem);
         line-height: 1.5;
         max-width: 35.6875rem;
+      }
+
+      .escape-hint {
+        margin-top: 0.75rem;
+        padding-left: 0.75rem;
+        position: relative;
+        font-size: var(--typography-body-m, 0.875rem);
+        color: var(--primary-400, #94a3b8);
+        max-width: 35.6875rem;
+        line-height: 1.5;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0.125rem;
+          bottom: 0.125rem;
+          width: 1px;
+          background-color: var(--primary-500, #db664e);
+          opacity: 0.7;
+        }
+
+        :global(.link),
+        :global(.link:visited) {
+          color: inherit;
+        }
       }
     }
 

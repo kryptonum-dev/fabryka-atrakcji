@@ -88,6 +88,48 @@ export default defineType({
       description: 'Komponenty dodatkowe dla tej kategorii. Ich zachowanie zależy od ustawienia powyżej.',
     }),
     defineField({
+      name: 'formOverrides',
+      type: 'object',
+      title: 'Nadpisania formularza kontaktowego',
+      description:
+        'Opcjonalne nadpisania formularza kontaktowego dla tej kategorii (nagłówek, paragraf, obraz, komunikaty).',
+      options: { collapsible: false, collapsed: false },
+      fields: [
+        defineField({
+          name: 'heading',
+          type: 'Heading',
+          title: 'Nagłówek formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślny nagłówek formularza kontaktowego.',
+        }),
+        defineField({
+          name: 'paragraph',
+          type: 'PortableText',
+          title: 'Paragraf formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślny paragraf formularza kontaktowego.',
+        }),
+        defineField({
+          name: 'formVisualImage',
+          type: 'image',
+          title: 'Zdjęcie sekcji formularza',
+          description: 'Jeśli uzupełnione, zastąpi domyślne zdjęcie sekcji formularza.',
+        }),
+        defineField({
+          name: 'overrideFormState',
+          type: 'boolean',
+          title: 'Nadpisz komunikaty formularza',
+          description: 'Włącz, aby użyć niestandardowych komunikatów sukcesu/błędu dla tej kategorii.',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'formState',
+          type: 'formState',
+          title: 'Komunikaty formularza',
+          description: 'Niestandardowe komunikaty sukcesu i błędu (wypełnij tylko gdy nadpisywanie jest włączone)',
+          hidden: ({ parent }) => !(parent as { overrideFormState?: boolean })?.overrideFormState,
+        }),
+      ],
+    }),
+    defineField({
       name: 'seo',
       type: 'seo',
       title: 'SEO',
