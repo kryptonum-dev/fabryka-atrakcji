@@ -485,7 +485,7 @@ export default defineType({
           validation: (Rule) =>
             Rule.custom((value) => {
               if (!value) {
-                return 'Cena za dodatkową osobę jest wymagana dla tego typu cennika'
+              return 'Cena za dodatkową osobę jest wymagana dla tego typu cennika'
               }
               if (value < 1) {
                 return 'Cena za każdą dodatkową osobę musi być większa niż 0'

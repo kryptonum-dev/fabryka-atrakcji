@@ -13,21 +13,10 @@ export const client = createClient({
   projectId: PROJECT_ID,
   dataset: DATASET,
   apiVersion: API_VERSION,
-  useCdn: false, // Default CDN disabled
+  useCdn: !isPreviewDeployment,
   perspective: isPreviewDeployment ? 'drafts' : 'published',
-  token: SANITY_API_TOKEN,
+  token: isPreviewDeployment ? SANITY_API_TOKEN : undefined,
 })
-
-// Function to create client with conditional CDN
-const createClientWithCdn = (useCdn: boolean) =>
-  createClient({
-    projectId: PROJECT_ID,
-    dataset: DATASET,
-    apiVersion: API_VERSION,
-    useCdn,
-    perspective: isPreviewDeployment ? 'drafts' : 'published',
-    token: SANITY_API_TOKEN,
-  })
 
 export default async function sanityFetch<QueryResponse>({
   query,
@@ -39,16 +28,14 @@ export default async function sanityFetch<QueryResponse>({
   return await client.fetch<QueryResponse>(query, params)
 }
 
-// New function with CDN control
+// Kept for backwards compatibility — now delegates to the shared client which already uses CDN in production
 export async function sanityFetchWithCdn<QueryResponse>({
   query,
   params = {},
-  useCdn = true,
 }: {
   query: string
   params?: QueryParams
   useCdn?: boolean
 }): Promise<QueryResponse> {
-  const clientInstance = createClientWithCdn(useCdn)
-  return await clientInstance.fetch<QueryResponse>(query, params)
+  return await client.fetch<QueryResponse>(query, params)
 }

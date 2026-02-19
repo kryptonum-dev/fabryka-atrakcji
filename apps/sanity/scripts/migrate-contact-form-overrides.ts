@@ -10,7 +10,8 @@ type ContactFormComponent = {
   paragraph?: PortableTextValue
 }
 
-type MigratedDocument = {
+// Collection types store overrides in a nested `formOverrides` object
+type CollectionDocument = {
   _id: string
   _type: 'ActivitiesCategory_Collection' | 'Activities_Collection' | 'Hotels_Collection'
   name?: string
@@ -20,8 +21,32 @@ type MigratedDocument = {
     heading?: PortableTextValue
     paragraph?: PortableTextValue
   }
+  formHeading?: never
+  formParagraph?: never
   contactForms?: ContactFormComponent[]
 }
+
+// Singleton page types store overrides as top-level `formHeading`/`formParagraph` fields
+type SingletonDocument = {
+  _id: string
+  _type: 'Activities_Page' | 'Hotels_Page'
+  name?: string
+  language?: string
+  slug?: string
+  formOverrides?: never
+  formHeading?: PortableTextValue
+  formParagraph?: PortableTextValue
+  contactForms?: ContactFormComponent[]
+}
+
+type MigratedDocument = CollectionDocument | SingletonDocument
+
+const COLLECTION_TYPES = ['ActivitiesCategory_Collection', 'Activities_Collection', 'Hotels_Collection'] as const
+const SINGLETON_TYPES = ['Activities_Page', 'Hotels_Page'] as const
+const ALL_TYPES = [...COLLECTION_TYPES, ...SINGLETON_TYPES]
+
+const isCollectionDoc = (doc: MigratedDocument): doc is CollectionDocument =>
+  (COLLECTION_TYPES as readonly string[]).includes(doc._type)
 
 const args = new Set(process.argv.slice(2))
 const isApply = args.has('--apply')
@@ -48,7 +73,7 @@ const client = createClient({
 
 const query = `
   *[
-    _type in ["ActivitiesCategory_Collection", "Activities_Collection", "Hotels_Collection"]
+    _type in ${JSON.stringify(ALL_TYPES)}
     && (${includeDrafts ? 'true' : '!(_id in path("drafts.**"))'})
   ]{
     _id,
@@ -57,6 +82,8 @@ const query = `
     language,
     "slug": slug.current,
     formOverrides,
+    formHeading,
+    formParagraph,
     "contactForms": components[_type == "ContactForm"]{
       _key,
       _type,
@@ -74,6 +101,22 @@ const formatDoc = (doc: MigratedDocument) => {
   return `${doc._type}:${doc._id}${lang}${slug}`
 }
 
+// Returns the current heading/paragraph already set on the destination fields (for skip-if-present logic)
+const getExistingOverrides = (doc: MigratedDocument) => {
+  if (isCollectionDoc(doc)) {
+    return { heading: doc.formOverrides?.heading, paragraph: doc.formOverrides?.paragraph }
+  }
+  return { heading: doc.formHeading, paragraph: doc.formParagraph }
+}
+
+// Returns the dot-notation field paths used in the Sanity patch set payload
+const getDestinationPaths = (doc: MigratedDocument) => {
+  if (isCollectionDoc(doc)) {
+    return { heading: 'formOverrides.heading', paragraph: 'formOverrides.paragraph' }
+  }
+  return { heading: 'formHeading', paragraph: 'formParagraph' }
+}
+
 const run = async () => {
   const documents = await client.fetch<MigratedDocument[]>(query)
 
@@ -89,6 +132,7 @@ const run = async () => {
     `[migrate-contact-form-overrides] mode=${isDryRun ? 'dry-run' : 'apply'} force=${force} removeContactForm=${removeContactForm} includeDrafts=${includeDrafts}`
   )
   console.log(`[migrate-contact-form-overrides] project=${projectId} dataset=${dataset}`)
+  console.log(`[migrate-contact-form-overrides] types=${ALL_TYPES.join(', ')}`)
 
   for (const doc of documents) {
     scanned += 1
@@ -103,19 +147,18 @@ const run = async () => {
 
     withContactForm += 1
 
-    const shouldSetHeading =
-      hasPortableTextContent(sourceContactForm.heading) && (force || !hasPortableTextContent(doc.formOverrides?.heading))
-    const shouldSetParagraph =
-      hasPortableTextContent(sourceContactForm.paragraph) &&
-      (force || !hasPortableTextContent(doc.formOverrides?.paragraph))
+    const existing = getExistingOverrides(doc)
+    const destinationPaths = getDestinationPaths(doc)
 
-    if (
-      !force &&
-      (hasPortableTextContent(doc.formOverrides?.heading) || hasPortableTextContent(doc.formOverrides?.paragraph))
-    ) {
-      const blockedHeading = hasPortableTextContent(doc.formOverrides?.heading) && hasPortableTextContent(sourceContactForm.heading)
+    const shouldSetHeading =
+      hasPortableTextContent(sourceContactForm.heading) && (force || !hasPortableTextContent(existing.heading))
+    const shouldSetParagraph =
+      hasPortableTextContent(sourceContactForm.paragraph) && (force || !hasPortableTextContent(existing.paragraph))
+
+    if (!force && (hasPortableTextContent(existing.heading) || hasPortableTextContent(existing.paragraph))) {
+      const blockedHeading = hasPortableTextContent(existing.heading) && hasPortableTextContent(sourceContactForm.heading)
       const blockedParagraph =
-        hasPortableTextContent(doc.formOverrides?.paragraph) && hasPortableTextContent(sourceContactForm.paragraph)
+        hasPortableTextContent(existing.paragraph) && hasPortableTextContent(sourceContactForm.paragraph)
       if (blockedHeading || blockedParagraph) {
         skippedBecauseOverridesPresent += 1
       }
@@ -123,11 +166,11 @@ const run = async () => {
 
     const setPayload: Record<string, PortableTextValue> = {}
     if (shouldSetHeading && sourceContactForm.heading) {
-      setPayload['formOverrides.heading'] = sourceContactForm.heading
+      setPayload[destinationPaths.heading] = sourceContactForm.heading
       updatedHeading += 1
     }
     if (shouldSetParagraph && sourceContactForm.paragraph) {
-      setPayload['formOverrides.paragraph'] = sourceContactForm.paragraph
+      setPayload[destinationPaths.paragraph] = sourceContactForm.paragraph
       updatedParagraph += 1
     }
 

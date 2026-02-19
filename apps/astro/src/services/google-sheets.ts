@@ -17,6 +17,7 @@ export interface BaseLeadData {
   formType: 'faq_form' | 'inquiry_form';
   email: string;
   phone?: string;
+  sourceUrl?: string;
   utm?: string; // All UTM params as formatted text (one per line)
 }
 
@@ -30,7 +31,12 @@ export interface InquiryLeadData extends BaseLeadData {
   name?: string;
   teamSize?: string;
   timeline?: string;
+  region?: string;
+  needsIntegration?: boolean;
   additionalInfo?: string;
+  contextItemName?: string;
+  contextItemType?: string;
+  selectedItems?: Array<{ name: string; type: string }>;
 }
 
 export type LeadData = FaqLeadData | InquiryLeadData;
@@ -38,7 +44,7 @@ export type LeadData = FaqLeadData | InquiryLeadData;
 // --- Helper Functions ---
 
 /**
- * Format date to DD/MM/YYYY HH:mm:ss (Google Sheets datetime format)
+ * Format date to DD/MM/YYYY HH:mm:ss (Warsaw timezone)
  */
 const formatDate = (date: Date): string => {
   const d = new Date(date.toLocaleString('en-US', { timeZone: 'Europe/Warsaw' }));
@@ -46,12 +52,6 @@ const formatDate = (date: Date): string => {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-/**
- * Build a row array matching the Google Sheet column order:
- * 0: STATUS, 1: KOMENTARZ, 2: Data, 3: Typ Formularza, 4: Email, 5: Telefon,
- * 6: Wiadomość, 7: Liczba Osób, 8: Data Eventu, 9: Wartość (PLN),
- * 10: Szczegóły Oferty, 11: UTM
- */
 const teamSizeLabels: Record<string, string> = {
   'do-30': 'do 30 osób',
   '31-80': '31-80 osób',
@@ -59,48 +59,83 @@ const teamSizeLabels: Record<string, string> = {
   '150+': '150+ osób',
 };
 
+const regionLabels: Record<string, string> = {
+  gory: 'Góry',
+  morze: 'Morze',
+  mazury: 'Mazury',
+  centralna: 'Centralna Polska',
+  brak: 'Brak preferencji',
+  none: 'Brak preferencji',
+};
+
+/**
+ * Build a row array matching the Google Sheet column order:
+ *  A: STATUS
+ *  B: KOMENTARZ
+ *  C: Data
+ *  D: Formularz
+ *  E: Imię / Firma
+ *  F: Email
+ *  G: Telefon
+ *  H: Liczba Osób
+ *  I: Termin
+ *  J: Region
+ *  K: Integracja?
+ *  L: Pozycje (contextItem or selectedItems — same format: "Hotel X (hotel), Warsztaty (integracja)")
+ *  M: Dodatkowe Info / Wiadomość
+ *  N: Źródło URL
+ *  O: UTM
+ */
 const buildRow = (data: LeadData): string[] => {
   const isInquiry = data.formType === 'inquiry_form';
-  const inquiryData = isInquiry ? (data as InquiryLeadData) : null;
+  const d = isInquiry ? (data as InquiryLeadData) : null;
+  const faq = !isInquiry ? (data as FaqLeadData) : null;
 
-  // Get message field based on form type
-  let message = '';
-  if (inquiryData) {
-    const parts: string[] = [];
-    if (inquiryData.name) parts.push(`Imię/Firma: ${inquiryData.name}`);
-    if (inquiryData.additionalInfo) parts.push(inquiryData.additionalInfo);
-    message = parts.join('\n');
-  } else if ('message' in data && data.message) {
-    message = data.message;
-  } else if ('additionalInfo' in data && data.additionalInfo) {
-    message = data.additionalInfo;
+  // E: Imię / Firma
+  const name = d?.name || '';
+
+  // H: Liczba Osób
+  const teamSize = d?.teamSize ? (teamSizeLabels[d.teamSize] || d.teamSize) : '';
+
+  // I: Termin
+  const timeline = d?.timeline || '';
+
+  // J: Region
+  const region = d?.region ? (regionLabels[d.region] || d.region) : '';
+
+  // K: Integracja?
+  const needsIntegration = d?.needsIntegration ? 'Tak' : '';
+
+  // L: Pozycje — selectedItems takes priority; contextItem is the fallback for detail pages
+  let pozycje = '';
+  if (d?.selectedItems && d.selectedItems.length > 0) {
+    pozycje = d.selectedItems.map((i) => `${i.name} (${i.type})`).join(', ');
+  } else if (d?.contextItemName) {
+    pozycje = `${d.contextItemName}${d.contextItemType ? ` (${d.contextItemType})` : ''}`;
   }
 
-  // Team size / participants
-  let teamSize = '';
-  if (inquiryData?.teamSize) {
-    teamSize = teamSizeLabels[inquiryData.teamSize] || inquiryData.teamSize;
-  }
+  // M: Dodatkowe Info / Wiadomość
+  const message = d?.additionalInfo || faq?.message || '';
 
-  // Event dates / timeline
-  let eventDates = '';
-  if (inquiryData?.timeline) {
-    eventDates = inquiryData.timeline;
-  }
+  // N: Źródło URL
+  const sourceUrl = data.sourceUrl || '';
 
   return [
-    'NOWY', // 0: STATUS
-    '', // 1: KOMENTARZ (empty for manual input)
-    formatDate(new Date()), // 2: Data
-    data.formType, // 3: Typ Formularza
-    data.email, // 4: Email
-    data.phone ? `'${data.phone}` : '', // 5: Telefon (prefixed with ' to prevent number formatting)
-    message, // 6: Wiadomość
-    teamSize, // 7: Liczba Osób
-    eventDates, // 8: Data Eventu
-    '', // 9: Wartość (PLN)
-    '', // 10: Szczegóły Oferty
-    data.utm || '', // 11: UTM (all params, one per line)
+    'NOWY',                               // A: STATUS
+    '',                                   // B: KOMENTARZ
+    formatDate(new Date()),               // C: Data
+    data.formType,                        // D: Formularz
+    name,                                 // E: Imię / Firma
+    data.email,                           // F: Email
+    data.phone ? `'${data.phone}` : '',   // G: Telefon (prefixed ' to prevent number formatting)
+    teamSize,                             // H: Liczba Osób
+    timeline,                             // I: Termin
+    region,                               // J: Region
+    needsIntegration,                     // K: Integracja?
+    pozycje,                              // L: Pozycje
+    message,                              // M: Dodatkowe Info / Wiadomość
+    sourceUrl,                            // N: Źródło URL
+    data.utm || '',                       // O: UTM
   ];
 };
 

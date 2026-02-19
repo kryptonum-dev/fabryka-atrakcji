@@ -1058,8 +1058,8 @@ The system has three forms that are already architecturally separated. They shar
 - [x] **3.3** Updated validation — `name` required only for inquiry form, `message` required only for FAQ form, `email` + `legal` always required. Both payloads pass cleanly.
 - [x] **3.4** Activated backend submission in `InquiryForm.tsx` — `fetch('/api/contact', ...)` live with full payload (contextItem, selectedItems, sourceUrl, utm). Debug logging added for troubleshooting (to be removed before production).
 - [x] **3.5** Activated analytics tracking in `InquiryForm.tsx` — `trackEvent()` fires GA4 `lead` + Meta `Lead` with `form_name: 'inquiry_form'`.
-- [x] **3.6** Google Sheets logging — code implemented and column mapping updated, but `navigator.sendBeacon('/api/s3d')` is **temporarily commented out** due to `ERR_OSSL_UNSUPPORTED` with `GOOGLE_PRIVATE_KEY` in the local `.env`. The Sheets service (`google-sheets.ts`) correctly handles `formType: 'inquiry_form'` with all new fields. **Needs:** Fix private key format in `.env`, then un-comment the sendBeacon call.
-- [x] **3.7** Updated `src/services/google-sheets.ts` — `LeadData` union includes `InquiryLeadData`. `buildRow()` maps: name+additionalInfo → Wiadomosc, teamSize → Liczba Osob (with labels), timeline → Data Eventu.
+- [x] **3.6** Google Sheets logging — fully active. `navigator.sendBeacon('/api/s3d')` fires on both `InquiryForm` and `FaqForm` submission. Blocked in local dev via missing env variables (intentional). Sheet restructured to 15 columns; active tab renamed to **"Leady"**, archive tab renamed to **"Leady (Archiwum)"**. `GOOGLE_SHEET_NAME=Leady` must be set in `.env` and Vercel environment variables.
+- [x] **3.7** Updated `src/services/google-sheets.ts` — full redesign of `LeadData` types and `buildRow()`. 15-column structure (A–O). All previously lost fields now captured: `region`, `needsIntegration`, `contextItem` (merged with `selectedItems` into single **Pozycje** column), `sourceUrl`. `name` is now its own column (no longer mashed with `additionalInfo`).
 - [x] **3.8** Partial end-to-end testing — (a) email arrives with branded template ✅, (b) Sheets deferred pending .env fix, (c-d) analytics skipped in dev via localhost guards ✅, (e) FAQ Form unchanged ✅, (f) Newsletter unchanged ✅.
 
 **Design evolutions from original plan:**
@@ -1083,7 +1083,7 @@ The system has three forms that are already architecturally separated. They shar
 - BotID dev guards in `BotIdInit.astro` and `contact.ts` — remove `if (!import.meta.env.DEV)` wrappers
 - Debug `console.log('[InquiryForm]')` statements in `InquiryForm.tsx` — remove
 - `/api/email-preview.ts` route — delete
-- Google Sheets `sendBeacon` in `InquiryForm.tsx` — un-comment after fixing `.env` GOOGLE_PRIVATE_KEY
+- Set `GOOGLE_SHEET_NAME=Leady` in `.env` and Vercel env vars (sheet was renamed from default "Sheet1")
 
 ---
 
@@ -1450,31 +1450,48 @@ The analytics system is production-tested and well-engineered. The core infrastr
 
 | Phase        | Analytics Work                                                                                                                                                                             |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Phase 3**  | Un-comment `trackEvent()` and `sendBeacon('/api/s3d')` in `InquiryForm.tsx`. Update `/api/s3d` Sheets column mapping. No infrastructure changes.                                           |
+| **Phase 3**  | Activated `trackEvent()` and `sendBeacon('/api/s3d')` in `InquiryForm.tsx` and `FaqForm`. Redesigned Sheets column mapping to 15-column structure. Sheet tab renamed to "Leady".           |
 | **Phase 7**  | Add `add_to_inquiry` event in `inquiry-store.ts` when item is added. Add `inquiry_widget_opened` event in `InquiryWidget.tsx`.                                                             |
 | **Phase 11** | Delete cart page scripts (removes `view_cart`, `begin_checkout`). Delete `cart/quoteForm/` (removes `configurator_form`). Delete `ContactForm/Form.tsx` (removes `contact_form`).          |
 | **Phase 12** | Verify all events fire correctly in production. Set up GA4 conversion events for `lead` (InquiryForm + FAQ) and `generate_lead` (Newsletter). Configure Meta custom conversions if needed. |
 
 ### Google Sheets Logging
 
-Forms log to Google Sheets via `navigator.sendBeacon('/api/s3d')` (fire-and-forget). The `/api/s3d` route uses `googleapis` to append rows.
+Forms log to Google Sheets via `navigator.sendBeacon('/api/s3d')` (fire-and-forget). The `/api/s3d` route uses `googleapis` (`google.sheets` v4) to append rows via service account auth.
 
-**Current Sheets columns:**
+**Sheet structure:**
 
-| Column           | `inquiry_form`              | `faq_form`     | `configurator_form` (removed in Phase 11) |
-| ---------------- | --------------------------- | -------------- | ----------------------------------------- |
-| STATUS           | (empty)                     | (empty)        | (empty)                                   |
-| KOMENTARZ        | (empty)                     | (empty)        | (empty)                                   |
-| Data             | auto-timestamp              | auto-timestamp | auto-timestamp                            |
-| Typ Formularza   | `inquiry_form`              | `faq_form`     | `configurator_form`                       |
-| Email            | email                       | email          | email                                     |
-| Telefon          | phone                       | phone          | phone                                     |
-| Wiadomosc        | additionalInfo              | message        | message                                   |
-| Liczba Osob      | teamSize                    | —              | participants count                        |
-| Data Eventu      | timeline                    | —              | date range                                |
-| Wartosc (PLN)    | —                           | —              | calculated price                          |
-| Szczegoly Oferty | selectedItems + contextItem | —              | cart items detail                         |
-| UTM              | utm params                  | utm params     | utm params                                |
+- Active tab: **"Leady"** (`GOOGLE_SHEET_NAME=Leady`)
+- Archive tab: **"Leady (Archiwum)"** — old submissions with legacy 12-column structure, preserved for backward compatibility, never written to by the system
+
+**Column mapping (15 columns, A–O):**
+
+| Col | Header         | Type                      | `inquiry_form`                                            | `faq_form`       |
+| --- | -------------- | ------------------------- | --------------------------------------------------------- | ---------------- |
+| A   | STATUS         | Dropdown (manual)         | `NOWY` (auto)                                             | `NOWY` (auto)    |
+| B   | KOMENTARZ      | Plain text (manual)       | —                                                         | —                |
+| C   | Data           | Plain text                | `DD/MM/YYYY HH:mm:ss` (Warsaw)                            | same             |
+| D   | Typ Formularza | Plain text                | `inquiry_form`                                            | `faq_form`       |
+| E   | Imię / Firma   | Plain text                | `name`                                                    | —                |
+| F   | Email          | Plain text                | `email`                                                   | `email`          |
+| G   | Telefon        | Plain text (`'` prefix)   | `phone`                                                   | `phone`          |
+| H   | Liczba Osób    | Plain text                | `teamSize` label from Sanity CMS (dynamic, not a dropdown)| —                |
+| I   | Termin         | Plain text                | `timeline` (free text)                                    | —                |
+| J   | Region         | Plain text                | `region` label from Sanity CMS (dynamic, not a dropdown)  | —                |
+| K   | Integracja?    | Plain text                | `"Tak"` or empty                                          | —                |
+| L   | Pozycje        | Plain text                | `selectedItems` if present, else `contextItem` (merged)   | —                |
+| M   | Dodatkowe Info | Plain text (wrap text)    | `additionalInfo`                                          | `message`        |
+| N   | Źródło URL     | Plain text                | `sourceUrl` (page URL at submit time)                     | `sourceUrl`      |
+| O   | UTM            | Plain text (multiline)    | `getUtmForSheet()` — one param per line                   | same             |
+
+**STATUS dropdown values** (configured in Google Sheets data validation):
+`NOWY` / `W KONTAKCIE` / `OFERTA` / `UMOWA` / `ODRZUCONY (B2C)` / `ODRZUCONY (BUDŻET)`
+
+**Notes:**
+- H (Liczba Osób) and J (Region) are **plain text, not dropdowns** — their values come from `activityParticipantGroups[].label` and `Locations_Collection` in Sanity CMS respectively. Static dropdowns would break whenever the CMS content changes.
+- L (Pozycje) merges two previously separate concepts: `contextItem` (detail page context — one item) and `selectedItems` (inquiry widget shortlist — multiple items). `selectedItems` takes priority when both exist. Format: `"Hotel Merkury (hotel)"` or `"Hotel X (hotel), Warsztaty (integracja)"`.
+- G (Telefon) is prefixed with `'` to prevent Google Sheets from stripping the `+48` country code.
+- The two manual columns **Wartość (PLN brutto)** and **Szczegóły Oferty** are appended after O by the sales team — never auto-filled, used as the lead progresses to OFERTA/UMOWA.
 
 **Newsletter does NOT log to Sheets** — it only goes to MailerLite via `/api/newsletter`.
 

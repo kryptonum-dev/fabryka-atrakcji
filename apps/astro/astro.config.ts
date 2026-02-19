@@ -37,7 +37,7 @@ export default defineConfig({
     ...(!isPreviewDeployment
       ? {
           isr: {
-            bypassToken: process.env.VERCEL_DEPLOYMENT_ID,
+            bypassToken: process.env.ISR_BYPASS_TOKEN,
             exclude: [
               /^\/api\/.+/,
               /.*\/filtr.*/, // Exclude any URL containing "/filtr"

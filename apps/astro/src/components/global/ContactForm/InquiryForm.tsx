@@ -132,7 +132,15 @@ export default function InquiryForm({
         name: data.name,
         teamSize: data.teamSize,
         timeline: data.timeline,
+        region: data.region || undefined,
+        needsIntegration: data.needsIntegration || undefined,
         additionalInfo: data.additionalInfo,
+        contextItemName: contextItem?.name,
+        contextItemType: contextItem?.type,
+        selectedItems: inquiryItems.length > 0
+          ? inquiryItems.map((i) => ({ name: i.name, type: i.type }))
+          : undefined,
+        sourceUrl: window.location.href,
         utm: getUtmForSheet(),
       })
     )
