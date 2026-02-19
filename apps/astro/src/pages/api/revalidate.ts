@@ -105,6 +105,13 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const urls = await resolveAffectedUrls(doc)
 
+    // Wait for Sanity CDN to propagate the mutation before purging ISR cache.
+    // Without this delay the re-render triggered by the next visitor may still
+    // fetch stale data from the CDN and re-cache the old page.
+    const CDN_PROPAGATION_DELAY_MS = 5_000
+    console.log(`[revalidate] Waiting ${CDN_PROPAGATION_DELAY_MS}ms for Sanity CDN propagation...`)
+    await new Promise((resolve) => setTimeout(resolve, CDN_PROPAGATION_DELAY_MS))
+
     await revalidateUrls(urls)
 
     return new Response(JSON.stringify({ revalidating: urls.length, urls }), {
