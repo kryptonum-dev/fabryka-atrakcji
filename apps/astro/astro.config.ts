@@ -5,9 +5,6 @@ import redirects from './redirects'
 import { DOMAIN } from './src/global/constants'
 import { isPreviewDeployment } from './src/utils/is-preview-deployment'
 
-console.log(`[build] ISR_BYPASS_TOKEN set: ${!!process.env.ISR_BYPASS_TOKEN} (${process.env.ISR_BYPASS_TOKEN?.slice(0, 6) ?? 'undefined'}...)`)
-console.log(`[build] isPreviewDeployment: ${isPreviewDeployment}`)
-
 export default defineConfig({
   site: DOMAIN,
   integrations: [preact({ compat: true })],
