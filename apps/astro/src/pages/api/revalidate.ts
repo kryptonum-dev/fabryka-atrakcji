@@ -4,8 +4,8 @@ import { getDirectUrls, type SanityDocRef } from '../../utils/revalidation-map'
 
 export const prerender = false
 
-const REVALIDATION_SECRET = import.meta.env.REVALIDATION_SECRET || ''
-const ISR_BYPASS_TOKEN = import.meta.env.ISR_BYPASS_TOKEN || ''
+const REVALIDATION_SECRET = import.meta.env.REVALIDATION_SECRET || process.env.REVALIDATION_SECRET || ''
+const ISR_BYPASS_TOKEN = import.meta.env.ISR_BYPASS_TOKEN || process.env.ISR_BYPASS_TOKEN || ''
 
 // Singletons that affect the entire site — skip the reverse-reference lookup.
 // Their direct URL list already covers all key pages.
