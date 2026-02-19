@@ -36,14 +36,14 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
     updateStatus({ sending: true, success: undefined })
 
     // Fire and forget - log to Google Sheet (sendBeacon guarantees delivery)
-    navigator.sendBeacon('/api/s3d', JSON.stringify({
+    navigator.sendBeacon('/api/s3d', new Blob([JSON.stringify({
       formType: 'faq_form',
       email: data.email,
       phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
       message: data.message,
       sourceUrl: window.location.href,
       utm: getUtmForSheet(),
-    }))
+    })], { type: 'application/json' }))
 
     try {
       const utmString = getUtmString()

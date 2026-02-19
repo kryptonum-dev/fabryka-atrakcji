@@ -125,7 +125,7 @@ export default function InquiryForm({
 
     navigator.sendBeacon(
       '/api/s3d',
-      JSON.stringify({
+      new Blob([JSON.stringify({
         formType: 'inquiry_form',
         email: data.email,
         phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
@@ -142,7 +142,7 @@ export default function InquiryForm({
           : undefined,
         sourceUrl: window.location.href,
         utm: getUtmForSheet(),
-      })
+      })], { type: 'application/json' })
     )
 
       console.log('[InquiryForm] Submitting payload:', JSON.stringify(payload, null, 2))

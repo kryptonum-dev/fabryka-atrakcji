@@ -5,11 +5,8 @@ import type { APIRoute } from 'astro'
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // sendBeacon sends as text/plain, so parse manually
-    const text = await request.text()
-    const data = JSON.parse(text) as LeadData
-    
-    // Basic validation
+    const data = (await request.json()) as LeadData
+
     if (!data.email || !data.formType) {
       return new Response(null, { status: 400 })
     }
