@@ -28,8 +28,10 @@ async function resolveAffectedUrls(doc: SanityDocRef): Promise<string[]> {
     return directUrls
   }
 
-  // Query published documents that reference this _id
-  const referencingDocs = await client.fetch<SanityDocRef[]>(
+  // Query published documents that reference this _id.
+  // Must use useCdn: false — the CDN caches reference-graph query results and may
+  // not reflect the latest document relationships immediately after a mutation.
+  const referencingDocs = await client.withConfig({ useCdn: false }).fetch<SanityDocRef[]>(
     `*[references($id) && !(_id in path("drafts.**"))]{_type, _id, slug, language}`,
     { id: doc._id }
   )

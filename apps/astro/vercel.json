@@ -9,6 +9,10 @@
       "destination": "https://api.vercel.com/bot-protection/v1/proxy/:path*"
     },
     {
+      "source": "/api/:path*",
+      "destination": "/_render"
+    },
+    {
       "source": "/pl/hotele/filtr/",
       "destination": "/_render"
     },
