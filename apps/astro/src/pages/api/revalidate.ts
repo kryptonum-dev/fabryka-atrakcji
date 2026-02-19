@@ -115,13 +115,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     await revalidateUrls(urls)
 
-    // The HEAD requests above trigger a REVALIDATED re-render. Wait briefly,
-    // then send GET requests to force a second re-render as a safety net — in
-    // case the first re-render still caught stale CDN data.
-    await new Promise((resolve) => setTimeout(resolve, 2_000))
-    console.log(`[revalidate] Sending follow-up GET requests to warm cache...`)
-    await Promise.allSettled(urls.map((url) => fetch(url, { method: 'GET' })))
-
     return new Response(JSON.stringify({ revalidating: urls.length, urls }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
