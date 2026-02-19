@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro'
+import { waitUntil } from '@vercel/functions'
 import { client } from '../../utils/sanity.fetch'
 import { getDirectUrls, type SanityDocRef } from '../../utils/revalidation-map'
 
@@ -7,20 +8,12 @@ export const prerender = false
 const REVALIDATION_SECRET = import.meta.env.REVALIDATION_SECRET || process.env.REVALIDATION_SECRET || ''
 const ISR_BYPASS_TOKEN = import.meta.env.ISR_BYPASS_TOKEN || process.env.ISR_BYPASS_TOKEN || ''
 
-// Singletons that affect the entire site — skip the reverse-reference lookup.
-// Their direct URL list already covers all key pages.
+const CDN_PROPAGATION_DELAY_MS = 10_000
+const BATCH_SIZE = 5
+const BATCH_GAP_MS = 200
+
 const SKIP_REFERENCE_LOOKUP = new Set(['global', 'Index_Page', 'Activities_Page', 'Hotels_Page', 'Blog_Page', 'CaseStudy_Page'])
 
-/**
- * Resolves the full set of frontend URLs that must be revalidated when the
- * given Sanity document changes.
- *
- * 1. Maps the changed document to its own URLs.
- * 2. Queries the Sanity CDN for all published documents that reference this
- *    document (GROQ reverse-reference lookup).
- * 3. Maps each referencing document to its own URLs.
- * 4. Returns the deduplicated union.
- */
 async function resolveAffectedUrls(doc: SanityDocRef): Promise<string[]> {
   const directUrls = getDirectUrls(doc)
   console.log(`[revalidate] Document: ${doc._type} ${doc._id} (slug: ${doc.slug?.current ?? 'none'}, lang: ${doc.language ?? '?'})`)
@@ -31,8 +24,6 @@ async function resolveAffectedUrls(doc: SanityDocRef): Promise<string[]> {
     return directUrls
   }
 
-  // Must use useCdn: false — the CDN caches reference-graph query results and may
-  // not reflect the latest document relationships immediately after a mutation.
   const referencingDocs = await client.withConfig({ useCdn: false }).fetch<SanityDocRef[]>(
     `*[references($id) && !(_id in path("drafts.**"))]{_type, _id, slug, language}`,
     { id: doc._id }
@@ -47,23 +38,54 @@ async function resolveAffectedUrls(doc: SanityDocRef): Promise<string[]> {
   return allUrls
 }
 
-async function revalidateUrls(urls: string[]): Promise<void> {
+async function revalidateBatch(urls: string[]): Promise<void> {
   const results = await Promise.allSettled(
     urls.map((url) =>
       fetch(url, {
         method: 'HEAD',
         headers: { 'x-prerender-revalidate': ISR_BYPASS_TOKEN },
-      }).then((res) => ({ url, status: res.status }))
+      }).then((res) => ({
+        url,
+        status: res.status,
+        cache: res.headers.get('x-vercel-cache') ?? 'unknown',
+      }))
     )
   )
 
   for (const r of results) {
     if (r.status === 'fulfilled') {
-      console.log(`[revalidate] HEAD ${r.value.status} ${r.value.url}`)
+      console.log(`[revalidate] HEAD ${r.value.status} [${r.value.cache}] ${r.value.url}`)
     } else {
       console.error(`[revalidate] FAILED ${r.reason}`)
     }
   }
+}
+
+/**
+ * Processes all revalidation work in the background (via waitUntil).
+ * 1. Waits for Sanity CDN to propagate the mutation.
+ * 2. Sends HEAD requests in small batches to avoid overwhelming Vercel.
+ */
+async function processRevalidation(urls: string[]): Promise<void> {
+  console.log(`[revalidate:bg] Waiting ${CDN_PROPAGATION_DELAY_MS}ms for Sanity CDN propagation...`)
+  await new Promise((resolve) => setTimeout(resolve, CDN_PROPAGATION_DELAY_MS))
+
+  console.log(`[revalidate:bg] Starting batched revalidation — ${urls.length} URLs in batches of ${BATCH_SIZE}`)
+
+  for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+    const batch = urls.slice(i, i + BATCH_SIZE)
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1
+    const totalBatches = Math.ceil(urls.length / BATCH_SIZE)
+    console.log(`[revalidate:bg] Batch ${batchNum}/${totalBatches} (${batch.length} URLs)`)
+
+    await revalidateBatch(batch)
+
+    if (i + BATCH_SIZE < urls.length) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_GAP_MS))
+    }
+  }
+
+  console.log(`[revalidate:bg] Done — all ${urls.length} URLs processed`)
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -105,15 +127,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const urls = await resolveAffectedUrls(doc)
 
-    // Wait for Sanity CDN to propagate the mutation. The HEAD request with the
-    // bypass token triggers an immediate re-render (REVALIDATED). If the CDN
-    // still serves stale data at that moment, the page gets re-cached with old
-    // content. 10 seconds covers Sanity's CDN propagation window reliably.
-    const CDN_PROPAGATION_DELAY_MS = 10_000
-    console.log(`[revalidate] Waiting ${CDN_PROPAGATION_DELAY_MS}ms for Sanity CDN propagation...`)
-    await new Promise((resolve) => setTimeout(resolve, CDN_PROPAGATION_DELAY_MS))
-
-    await revalidateUrls(urls)
+    waitUntil(processRevalidation(urls))
 
     return new Response(JSON.stringify({ revalidating: urls.length, urls }), {
       status: 200,
