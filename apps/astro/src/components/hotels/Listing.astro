@@ -243,33 +243,18 @@ export const Listing_Query = (orderClause: string) => {
 
   return `
     "totalItems": count(*[_type == 'Hotels_Collection' ${createBaseFilter()}]),
-    "locations": select(
-      defined(*[_type == "global" && language == $language][0].listingFilters.hotelLocationOptions[0]) =>
-        *[_type == "global" && language == $language][0].listingFilters.hotelLocationOptions[]->{
-          _id,
-          name,
-          "slug": slug.current,
-          "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-            location: false,
-            amenities: true,
-            stars: true,
-            rooms: true,
-            price: true,
-          })} && references(^._id)])
-        },
-      *[_type == 'Locations_Collection' && language == $language] {
-        _id,
-        name,
-        "slug": slug.current,
-        "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-          location: false,
-          amenities: true,
-          stars: true,
-          rooms: true,
-          price: true,
-        })} && references(^._id)])
-      }
-    ),
+    "locations": *[_type == 'Locations_Collection' && language == $language] {
+      _id,
+      name,
+      "slug": slug.current,
+      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
+        location: false,
+        amenities: true,
+        stars: true,
+        rooms: true,
+        price: true,
+      })} && references(^._id)])
+    },
     "amenities": *[_type == 'Amenities_Collection' && language == $language] {
       _id,
       name,
@@ -477,79 +462,82 @@ const shouldDisableFilters = totalItems === 0
 ---
 
 <section
-  class="Listing"
+  class='Listing'
   data-price-min={priceRange.minAbs}
   data-price-max={priceRange.maxAbs}
-  data-mobile-open="false"
+  data-mobile-open='false'
   data-filter-path={t.filterPath}
-  data-page-path={t.pagePath}
->
-  <header class="header">
-    <PortableText value={heading} heading="h1" class="heading" />
-    <PortableText value={paragraph} class="paragraph" />
-    <ul class="checklist">
+  data-page-path={t.pagePath}>
+  <header class='header'>
+    <PortableText value={heading} heading='h1' class='heading' />
+    <PortableText value={paragraph} class='paragraph' />
+    <ul class='checklist'>
       {
         checklist.map((item) => (
-          <li class="checklist-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="21" fill="none">
+          <li class='checklist-item'>
+            <svg xmlns='http://www.w3.org/2000/svg' width='20' height='21' fill='none'>
               <path
-                fill="#F67258"
-                fill-rule="evenodd"
-                d="M7.993 3.167c-.203.173-.304.26-.413.332a2.26 2.26 0 0 1-.82.34c-.129.025-.261.036-.527.057-.668.053-1.002.08-1.28.178a2.26 2.26 0 0 0-1.38 1.38c-.098.278-.124.612-.178 1.28a4.772 4.772 0 0 1-.057.526 2.26 2.26 0 0 1-.34.82c-.072.11-.159.21-.332.414-.434.51-.652.765-.779 1.031a2.26 2.26 0 0 0 0 1.95c.127.267.345.521.78 1.031.172.203.259.305.331.413.167.249.282.527.34.82.026.129.036.262.057.528.054.667.08 1.001.179 1.28a2.26 2.26 0 0 0 1.378 1.379c.279.098.613.125 1.28.178.267.021.4.032.527.057.294.058.573.174.821.34.109.073.21.16.413.332.51.435.765.652 1.031.78a2.26 2.26 0 0 0 1.95 0c.267-.128.522-.345 1.032-.78.203-.173.304-.26.412-.332a2.26 2.26 0 0 1 .821-.34c.128-.025.261-.036.527-.057.668-.053 1.002-.08 1.28-.178a2.26 2.26 0 0 0 1.379-1.38c.098-.278.125-.612.178-1.28.021-.265.032-.398.057-.526a2.26 2.26 0 0 1 .34-.82c.073-.11.16-.21.332-.414.435-.51.652-.764.78-1.031a2.26 2.26 0 0 0 0-1.95c-.128-.266-.345-.521-.78-1.031-.172-.203-.259-.305-.332-.413a2.26 2.26 0 0 1-.34-.82 4.761 4.761 0 0 1-.057-.528c-.053-.667-.08-1.001-.178-1.28a2.26 2.26 0 0 0-1.379-1.379c-.278-.098-.612-.125-1.28-.178-.266-.021-.399-.032-.527-.057a2.26 2.26 0 0 1-.82-.34 4.762 4.762 0 0 1-.413-.332c-.51-.435-.765-.652-1.032-.78a2.26 2.26 0 0 0-1.95 0c-.266.128-.521.345-1.031.78Zm5.65 5.552a.678.678 0 1 0-.958-.959l-4.042 4.042-1.33-1.329a.678.678 0 0 0-.958.96l1.808 1.808a.678.678 0 0 0 .96 0l4.52-4.522Z"
-                clip-rule="evenodd"
+                fill='#F67258'
+                fill-rule='evenodd'
+                d='M7.993 3.167c-.203.173-.304.26-.413.332a2.26 2.26 0 0 1-.82.34c-.129.025-.261.036-.527.057-.668.053-1.002.08-1.28.178a2.26 2.26 0 0 0-1.38 1.38c-.098.278-.124.612-.178 1.28a4.772 4.772 0 0 1-.057.526 2.26 2.26 0 0 1-.34.82c-.072.11-.159.21-.332.414-.434.51-.652.765-.779 1.031a2.26 2.26 0 0 0 0 1.95c.127.267.345.521.78 1.031.172.203.259.305.331.413.167.249.282.527.34.82.026.129.036.262.057.528.054.667.08 1.001.179 1.28a2.26 2.26 0 0 0 1.378 1.379c.279.098.613.125 1.28.178.267.021.4.032.527.057.294.058.573.174.821.34.109.073.21.16.413.332.51.435.765.652 1.031.78a2.26 2.26 0 0 0 1.95 0c.267-.128.522-.345 1.032-.78.203-.173.304-.26.412-.332a2.26 2.26 0 0 1 .821-.34c.128-.025.261-.036.527-.057.668-.053 1.002-.08 1.28-.178a2.26 2.26 0 0 0 1.379-1.38c.098-.278.125-.612.178-1.28.021-.265.032-.398.057-.526a2.26 2.26 0 0 1 .34-.82c.073-.11.16-.21.332-.414.435-.51.652-.764.78-1.031a2.26 2.26 0 0 0 0-1.95c-.128-.266-.345-.521-.78-1.031-.172-.203-.259-.305-.332-.413a2.26 2.26 0 0 1-.34-.82 4.761 4.761 0 0 1-.057-.528c-.053-.667-.08-1.001-.178-1.28a2.26 2.26 0 0 0-1.379-1.379c-.278-.098-.612-.125-1.28-.178-.266-.021-.399-.032-.527-.057a2.26 2.26 0 0 1-.82-.34 4.762 4.762 0 0 1-.413-.332c-.51-.435-.765-.652-1.032-.78a2.26 2.26 0 0 0-1.95 0c-.266.128-.521.345-1.031.78Zm5.65 5.552a.678.678 0 1 0-.958-.959l-4.042 4.042-1.33-1.329a.678.678 0 0 0-.958.96l1.808 1.808a.678.678 0 0 0 .96 0l4.52-4.522Z'
+                clip-rule='evenodd'
               />
             </svg>
-            <span class="checklist-item-text">{item}</span>
+            <span class='checklist-item-text'>{item}</span>
           </li>
         ))
       }
     </ul>
-    {escapeHintText && escapeHintCta && (
-      <p class="escape-hint">
-        {escapeHintText}{' '}
-        <a class="link"  data-shade="light" href={lang === 'pl' ? '#kontakt' : '#contact'}>{escapeHintCta}</a>
-      </p>
-    )}
+    {
+      escapeHintText && escapeHintCta && (
+        <p class='escape-hint'>
+          {escapeHintText}{' '}
+          <a class='link' data-shade='light' href={lang === 'pl' ? '#kontakt' : '#contact'}>
+            {escapeHintCta}
+          </a>
+        </p>
+      )
+    }
   </header>
-  <div class="wrapper max-width">
-    <div class="filters">
-      <div class="sidebar-header">
+  <div class='wrapper max-width'>
+    <div class='filters'>
+      <div class='sidebar-header'>
         <span>{t.filtersHeading}</span>
-        <button class="close-sidebar" aria-label="Close filters">
-          <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <circle cx={12} cy={12} r={10} stroke="#F67258" stroke-width={1.5}></circle>
+        <button class='close-sidebar' aria-label='Close filters'>
+          <svg xmlns='http://www.w3.org/2000/svg' width={24} height={24} viewBox='0 0 24 24' fill='none'>
+            <circle cx={12} cy={12} r={10} stroke='#F67258' stroke-width={1.5}></circle>
             <path
-              d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"
-              stroke="#F67258"
+              d='M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5'
+              stroke='#F67258'
               stroke-width={1.5}
-              stroke-linecap="round"></path>
+              stroke-linecap='round'></path>
           </svg>
         </button>
       </div>
-      <div class="filters-content">
+      <div class='filters-content'>
         <SelectFilter
           heading={t.filters.location}
           items={locationItems}
-          paramName="location"
+          paramName='location'
           forceDisabled={shouldDisableFilters}
         />
         <SelectFilter
           heading={t.filters.stars}
           items={starsItems}
-          paramName="stars"
+          paramName='stars'
           allowHtmlName
           forceDisabled={shouldDisableFilters}
         />
         <SelectFilter
           heading={t.filters.rooms}
           items={roomsRangeItems}
-          paramName="rooms"
+          paramName='rooms'
           forceDisabled={shouldDisableFilters}
         />
         <SelectFilter
           heading={t.filters.amenities}
           items={amenitiesItems}
-          paramName="amenities"
+          paramName='amenities'
           isMulti
           forceDisabled={shouldDisableFilters}
         />
@@ -564,30 +552,30 @@ const shouldDisableFilters = totalItems === 0
         />
       </div>
 
-      <div class="filters-actions">
-        <Button className="apply-filters" type="button" theme="primary" shade="dark" disabled>{t.apply}</Button>
+      <div class='filters-actions'>
+        <Button className='apply-filters' type='button' theme='primary' shade='dark' disabled>{t.apply}</Button>
         {
           hasActiveFilters && (
-            <Button className="clear-filters" type="button" theme="secondary">
+            <Button className='clear-filters' type='button' theme='secondary'>
               {t.clear}
             </Button>
           )
         }
       </div>
     </div>
-    <div class="box">
+    <div class='box'>
       <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
-      <button class="mobile-filter-button">
+      <button class='mobile-filter-button'>
         <span>{t.filterButton}</span>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'>
           <path
-            fill="#F67258"
-            d="M6.168 9.583a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM9.501 2.916a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM5.835 4.388a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1 0-1h4.667ZM9.835 11.055a.5.5 0 0 0 0 1H14.5a.5.5 0 1 0 0-1H9.835ZM.668 11.555a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1-.5-.5ZM14.501 4.388a.5.5 0 0 1 0 1h-1.333a.5.5 0 1 1 0-1h1.333Z"
+            fill='#F67258'
+            d='M6.168 9.583a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM9.501 2.916a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM5.835 4.388a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1 0-1h4.667ZM9.835 11.055a.5.5 0 0 0 0 1H14.5a.5.5 0 1 0 0-1H9.835ZM.668 11.555a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.168a.5.5 0 0 1-.5-.5ZM14.501 4.388a.5.5 0 0 1 0 1h-1.333a.5.5 0 1 1 0-1h1.333Z'
           ></path>
         </svg>
       </button>
       <Dropdown isSortingDropdown />
-      <p class="count">
+      <p class='count'>
         {t.foundPrefix}
         <strong>
           {totalItems}
@@ -597,7 +585,7 @@ const shouldDisableFilters = totalItems === 0
       {
         totalItems > 0 ? (
           <>
-            <div class="listing">
+            <div class='listing'>
               {listing.map((item, index) => (
                 <HotelCard
                   {...item}
@@ -619,16 +607,16 @@ const shouldDisableFilters = totalItems === 0
             />
           </>
         ) : (
-          <div class="no-results">
+          <div class='no-results'>
             <p>
               <Fragment set:html={t.noResults.heading} />
             </p>
-            <ul class="list">
+            <ul class='list'>
               {t.noResults.list.map((item) => (
                 <li>{item}</li>
               ))}
             </ul>
-            <Button theme="secondary" href={t.pathPrefix}>
+            <Button theme='secondary' href={t.pathPrefix}>
               {t.noResults.button}
             </Button>
           </div>
@@ -636,9 +624,9 @@ const shouldDisableFilters = totalItems === 0
       }
     </div>
   </div>
-  <div class="overlay" aria-hidden="true"></div>
+  <div class='overlay' aria-hidden='true'></div>
 
-  <style lang="scss">
+  <style lang='scss'>
     .Listing {
       background-color: var(--neutral-200, #f5f1ec);
 
@@ -702,10 +690,6 @@ const shouldDisableFilters = totalItems === 0
             background-color: var(--primary-500, #db664e);
             opacity: 0.7;
           }
-
-    
-
-    
         }
       }
 

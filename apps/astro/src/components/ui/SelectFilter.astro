@@ -40,53 +40,51 @@ const t = translations[lang]
 ---
 
 <details
-  class="filter-group select-filter-group"
+  class='filter-group select-filter-group'
   data-disabled={isDisabled}
   data-param-name={paramName}
   data-multi={isMulti}
   data-star-label={t.starLabel}
   data-amenities-special-case={isAmenitiesSpecialCase}
   open={!isDisabled}
-  data-expanded={!isDisabled ? 'true' : 'false'}
->
+  data-expanded={!isDisabled ? 'true' : 'false'}>
   <summary>
     <span>{heading}</span>
-    <button class="selected-value" type="button" style="display: none;">
+    <button class='selected-value' type='button' style='display: none;'>
       <span></span>
-      <div class="clear-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <circle cx="9.9974" cy="10.0003" r="8.33333" stroke="#74535e"></circle>
+      <div class='clear-icon'>
+        <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'>
+          <circle cx='9.9974' cy='10.0003' r='8.33333' stroke='#74535e'></circle>
           <path
-            d="M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836"
-            stroke="#74535e"
-            stroke-linecap="round"></path>
+            d='M12.0807 7.91701L7.91406 12.0837M7.91404 7.91699L12.0807 12.0836'
+            stroke='#74535e'
+            stroke-linecap='round'></path>
         </svg>
       </div>
     </button>
-    <div class="icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
-        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
+    <div class='icon'>
+      <svg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'>
+        <path stroke='#600D2A' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.25' d='m4 6.25 4 4 4-4'
         ></path>
       </svg>
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
-        <path stroke="#600D2A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="m4 6.25 4 4 4-4"
+      <svg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'>
+        <path stroke='#600D2A' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.25' d='m4 6.25 4 4 4-4'
         ></path>
       </svg>
     </div>
   </summary>
 
-  <div class="filter-content">
-    <div class="filter-options">
+  <div class='filter-content'>
+    <div class='filter-options'>
       {
         // Show only selected items in special case, otherwise show all available items
         (isAmenitiesSpecialCase ? selectedItems : availableItems).map((item) => (
           <label
-            class="filter-option"
+            class='filter-option'
             data-selected={item.isSelected}
             data-active={item.isSelected}
             data-count={item.count}
-            data-value={item.value}
-          >
+            data-value={item.value}>
             <input
               type={isMulti ? 'checkbox' : 'radio'}
               name={paramName}
@@ -94,26 +92,25 @@ const t = translations[lang]
               checked={item.isSelected}
               data-count={item.count}
             />
-            <span class="checkbox-custom">
+            <span class='checkbox-custom'>
               <svg
-                class="checkmark"
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="17"
-                viewBox="0 0 16 17"
-                fill="none"
-              >
+                class='checkmark'
+                xmlns='http://www.w3.org/2000/svg'
+                width='16'
+                height='17'
+                viewBox='0 0 16 17'
+                fill='none'>
                 <path
-                  d="M4.66602 9.1L6.76125 11.5L11.9993 5.5"
-                  stroke="#FAF7F7"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  d='M4.66602 9.1L6.76125 11.5L11.9993 5.5'
+                  stroke='#FAF7F7'
+                  stroke-width='1.5'
+                  stroke-linecap='round'
+                  stroke-linejoin='round'
                 />
               </svg>
             </span>
-            <span class="value">{allowHtmlName ? <Fragment set:html={item.name} /> : item.name}</span>
-            <span class="count">{isAmenitiesSpecialCase ? '' : item.count}</span>
+            <span class='value'>{allowHtmlName ? <Fragment set:html={item.name} /> : item.name}</span>
+            <span class='count'>{isAmenitiesSpecialCase ? '' : item.count}</span>
           </label>
         ))
       }
@@ -121,7 +118,7 @@ const t = translations[lang]
   </div>
 </details>
 
-<style lang="scss">
+<style lang='scss'>
   .select-filter-group {
     overflow: hidden;
     color: var(--primary-800);
