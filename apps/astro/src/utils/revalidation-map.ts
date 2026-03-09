@@ -15,8 +15,6 @@ const COLLECTION_LISTING_URLS: Record<string, string[]> = {
   ActivitiesCategory_Collection: ['/pl/integracje/', '/en/activities/'],
   BlogCategory_Collection: ['/pl/blog/', '/en/blog/'],
   CaseStudyCategory_Collection: ['/pl/realizacje/', '/en/case-studies/'],
-  Locations_Collection: ['/pl/hotele/', '/en/hotels/'],
-  Amenities_Collection: ['/pl/hotele/', '/en/hotels/'],
 }
 
 /**
@@ -96,6 +94,13 @@ export function getDirectUrls(doc: SanityDocRef): string[] {
     case 'NotFound_Page':
       urls.push(`${base}/pl/404/`)
       urls.push(`${base}/en/404/`)
+      break
+
+    // Filter-only collections: they have no detail pages, only affect the hotel listing
+    case 'Locations_Collection':
+    case 'Amenities_Collection':
+      urls.push(`${base}/pl/hotele/`)
+      urls.push(`${base}/en/hotels/`)
       break
 
     case 'global':
