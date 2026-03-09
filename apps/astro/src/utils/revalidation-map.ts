@@ -15,6 +15,8 @@ const COLLECTION_LISTING_URLS: Record<string, string[]> = {
   ActivitiesCategory_Collection: ['/pl/integracje/', '/en/activities/'],
   BlogCategory_Collection: ['/pl/blog/', '/en/blog/'],
   CaseStudyCategory_Collection: ['/pl/realizacje/', '/en/case-studies/'],
+  Locations_Collection: ['/pl/hotele/', '/en/hotels/'],
+  Amenities_Collection: ['/pl/hotele/', '/en/hotels/'],
 }
 
 /**
