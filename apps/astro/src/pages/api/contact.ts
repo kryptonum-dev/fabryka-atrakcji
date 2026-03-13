@@ -103,33 +103,20 @@ const buildTeamData = (data: Props, isInquiry: boolean): TeamNotificationData =>
 export const POST: APIRoute = async ({ request }) => {
   try {
     if (!import.meta.env.DEV) {
-      const RC = Symbol.for('@vercel/request-context')
-      const existingCtx = (globalThis as Record<symbol, unknown>)[RC] as { get?: () => Record<string, unknown> } | undefined
-      const existingData = existingCtx?.get?.() ?? {}
-
-      const headers: Record<string, string> = {}
-      request.headers.forEach((value, key) => { headers[key] = value })
-
-      ;(globalThis as Record<symbol, unknown>)[RC] = {
-        get: () => ({
-          ...existingData,
-          headers,
-          url: request.url,
-          mutateResponseHeadersBeforeFlush: existingData.mutateResponseHeadersBeforeFlush
-            ?? ((fn: (h: Headers) => void) => fn(new Headers())),
-        }),
-      }
+      console.info('[BotID] x-is-human:', request.headers.has('x-is-human') ? 'present' : 'MISSING')
 
       const verification = await checkBotId()
+      console.info('[BotID] Result:', JSON.stringify({
+        isBot: verification?.isBot,
+        isHuman: verification?.isHuman,
+        bypassed: verification?.bypassed,
+      }))
+
       if (verification?.isBot) {
-        console.warn('BotID blocked request:', {
-          isBot: verification.isBot,
-          isHuman: verification.isHuman,
-          isVerifiedBot: verification.isVerifiedBot,
-          bypassed: verification.bypassed,
-          xIsHuman: headers['x-is-human'] ? 'present' : 'missing',
-        })
-        return new Response(JSON.stringify({ message: 'Access denied', success: false }), { status: 403 })
+        return new Response(
+          JSON.stringify({ message: 'Access denied', success: false }),
+          { status: 403, headers: { 'content-type': 'application/json' } }
+        )
       }
     }
 
