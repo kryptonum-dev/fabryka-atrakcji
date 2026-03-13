@@ -102,8 +102,18 @@ const buildTeamData = (data: Props, isInquiry: boolean): TeamNotificationData =>
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // TODO: Remove DEV guard after testing
     if (!import.meta.env.DEV) {
+      const RC = Symbol.for('@vercel/request-context')
+      const ctx = (globalThis as Record<symbol, unknown>)[RC] as { get?: () => Record<string, unknown> } | undefined
+      if (!ctx?.get?.()?.headers) {
+        const headers: Record<string, string> = {}
+        request.headers.forEach((value, key) => { headers[key] = value })
+        const responseHeaders = new Headers()
+        ;(globalThis as Record<symbol, unknown>)[RC] = {
+          get: () => ({ headers, url: request.url, mutateResponseHeadersBeforeFlush: (fn: (h: Headers) => void) => fn(responseHeaders) }),
+        }
+      }
+
       const verification = await checkBotId()
       if (verification?.isBot) {
         console.warn('BotID blocked request:', {
