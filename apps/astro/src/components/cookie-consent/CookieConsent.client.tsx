@@ -761,6 +761,9 @@ export default function CookieConsentClient({
         </div>
 
         <div className="actions">
+          <button type="button" className="deny" onClick={handleDenyAll}>
+            {copy.buttons.deny}
+          </button>
           <button
             type="button"
             className="setPreferences"
@@ -768,9 +771,6 @@ export default function CookieConsentClient({
             aria-expanded={isPreferencesOpen}
           >
             {copy.buttons.setPreferences}
-          </button>
-          <button type="button" className="deny" onClick={handleDenyAll}>
-            {copy.buttons.deny}
           </button>
           <Button type="button" className="agree" theme="primary" onClick={handleAcceptAll} data-initial-focus>
             {copy.buttons.agreeAll}

@@ -85,13 +85,13 @@ $padding: clamp(1.5rem, calc(2.5vw / 0.48), 2.5rem);
       font-weight: 700;
       line-height: 1.25;
       letter-spacing: -0.04em;
-      font-size: var(--typography-body-2xl, 1.5rem);
+      font-size: var(--typography-body-xl, 1.125rem);
       font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
       text-transform: none;
     }
 
     .description {
-      font-size: var(--typography-body-xl, 1.125rem);
+      font-size: var(--typography-body-l, 1rem);
       line-height: 1.5;
     }
 

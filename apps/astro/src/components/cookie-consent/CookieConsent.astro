@@ -23,12 +23,12 @@ const { metaPixelId, ga4Id, googleAdsId, privacyPolicySlug } = await sanityFetch
 
 const COPY_BY_LANG: Record<string, CookieConsentCopy> = {
   pl: {
-    heading: 'Korzystając ze strony zgadzasz się na użycie ciasteczek',
+    heading: 'Szanujemy Twoją prywatność',
     description:
       'Korzystamy z cookie i podobnych technologii, by analizować ruch na stronie, dopasować ją do Ciebie i wyświetlać trafniejsze reklamy.',
     learnMore: 'Dowiedz się więcej',
     settingsHeading: 'Ustawienia cookies',
-    settingsDescription: 'Korzystając ze strony zgadzasz się na użycie tych ciasteczek.',
+    settingsDescription: 'Wybierz, które pliki cookie chcesz włączyć.',
     necessary: {
       name: 'Niezbędne',
       description:
@@ -62,7 +62,7 @@ const COPY_BY_LANG: Record<string, CookieConsentCopy> = {
       },
     },
     buttons: {
-      deny: 'Odmowa',
+      deny: 'Tylko niezbędne',
       setPreferences: 'Ustaw preferencje',
       agreeAll: 'Zgoda na wszystkie',
     },
@@ -107,7 +107,7 @@ const COPY_BY_LANG: Record<string, CookieConsentCopy> = {
       },
     },
     buttons: {
-      deny: 'Deny',
+      deny: 'Necessary only',
       setPreferences: 'Set preferences',
       agreeAll: 'Accept all',
     },
