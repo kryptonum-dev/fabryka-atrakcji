@@ -105,7 +105,9 @@ export const POST: APIRoute = async ({ request }) => {
     if (!import.meta.env.DEV) {
       console.info('[BotID] x-is-human:', request.headers.has('x-is-human') ? 'present' : 'MISSING')
 
-      const verification = await checkBotId()
+      const verification = await checkBotId({
+        advancedOptions: { checkLevel: 'basic' },
+      })
       console.info('[BotID] Result:', JSON.stringify({
         isBot: verification?.isBot,
         isHuman: verification?.isHuman,
