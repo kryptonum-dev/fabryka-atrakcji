@@ -1,0 +1,193 @@
+---
+import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
+import { getLangFromPath, type Language } from '@/global/languages'
+import SearchBar from '../ui/SearchBar.astro'
+import Pagination from '../ui/Pagination.astro'
+import EventSpaceCard from '../ui/EventSpaceCard.astro'
+import Button from '../ui/Button'
+import { ITEMS_PER_PAGE } from '@/src/templates/event-spaces/EventSpacesPage.astro'
+import type { EventSpaceCardProps } from '../ui/EventSpaceCard.astro'
+
+type Props = {
+  heading: PortableTextValue
+  paragraph: PortableTextValue
+  totalItems: number
+  listing: EventSpaceCardProps[]
+  currentPage: number
+  checklist?: string[]
+}
+
+export type ListingProps = Props
+
+const lang = getLangFromPath(Astro.url.pathname) as Language
+const { heading, paragraph, totalItems, listing, currentPage, checklist = [] } = Astro.props as Props
+
+const translations = {
+  pl: {
+    pathPrefix: '/pl/przestrzenie-eventowe',
+    placeholder: 'Wyszukaj przestrzeń eventową',
+    foundPrefix: 'Znaleziono',
+    single: 'przestrzeń',
+    few: 'przestrzenie',
+    many: 'przestrzeni',
+    noResultsHeading: 'Nie znaleziono przestrzeni dla podanej nazwy',
+    noResultsText: 'Spróbuj zmienić nazwę lub wróć do pełnej listy przestrzeni eventowych.',
+    backToAll: 'Wróć do wszystkich przestrzeni',
+  },
+  en: {
+    pathPrefix: '/en/event-spaces',
+    placeholder: 'Search event spaces',
+    foundPrefix: 'Found',
+    single: 'event space',
+    few: 'event spaces',
+    many: 'event spaces',
+    noResultsHeading: 'No event spaces found for the provided name',
+    noResultsText: 'Try a different name or return to the full list of event spaces.',
+    backToAll: 'Back to all event spaces',
+  },
+} as const
+
+const t = translations[lang]
+
+const getCountLabel = () => {
+  if (lang === 'en') return totalItems === 1 ? t.single : t.many
+  if (totalItems === 1) return t.single
+  if (totalItems % 10 >= 2 && totalItems % 10 <= 4 && (totalItems % 100 < 10 || totalItems % 100 >= 20)) {
+    return t.few
+  }
+  return t.many
+}
+---
+
+<section class="EventSpacesListing max-width">
+  <div class="intro">
+    <PortableText value={heading} heading="h1" class="heading" />
+    <PortableText value={paragraph} class="paragraph" />
+    {
+      checklist.length > 0 && (
+        <ul class="checklist">
+          {checklist.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+
+  <div class="toolbar">
+    <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
+    <p class="count">
+      {t.foundPrefix} <strong>{totalItems} {getCountLabel()}</strong>
+    </p>
+  </div>
+
+  {
+    totalItems > 0 ? (
+      <>
+        <div class="listing">
+          {listing.map((item, index) => (
+            <EventSpaceCard
+              {...item}
+              imgConfig={{
+                sizes:
+                  '(max-width: 30.5625rem) 100vw, (max-width: 56.1875rem) 92vw, (max-width: 80rem) 40vw, 320px',
+                loading: index <= 3 ? 'eager' : 'lazy',
+                fetchpriority: index === 0 ? 'high' : 'auto',
+              }}
+            />
+          ))}
+        </div>
+        <Pagination
+          slugBase={t.pathPrefix}
+          totalItems={totalItems}
+          itemsPerPage={ITEMS_PER_PAGE}
+          currentPage={currentPage}
+          searchParams={Astro.url.searchParams}
+        />
+      </>
+    ) : (
+      <div class="empty-state">
+        <h2>{t.noResultsHeading}</h2>
+        <p>{t.noResultsText}</p>
+        <Button href={`${t.pathPrefix}/`} theme="secondary">{t.backToAll}</Button>
+      </div>
+    )
+  }
+</section>
+
+<style lang="scss">
+  .EventSpacesListing {
+    padding: clamp(2rem, calc(3vw / 0.48), 3.5rem) 0 clamp(4rem, calc(5vw / 0.48), 5rem);
+  }
+
+  .intro {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    :global(.heading) {
+      max-width: 52rem;
+    }
+
+    :global(.paragraph) {
+      max-width: 48rem;
+    }
+  }
+
+  .checklist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    li {
+      position: relative;
+      padding-left: 1rem;
+      color: var(--primary-800, #45051c);
+      font-weight: 600;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.55rem;
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: 999px;
+        background: #f67258;
+      }
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .count {
+    color: var(--primary-700, #600d2a);
+    font-size: var(--typography-body-m, 0.875rem);
+    line-height: 1.6;
+  }
+
+  .listing {
+    display: grid;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .empty-state {
+    display: grid;
+    gap: 0.75rem;
+    padding: 2rem;
+    background: var(--neutral-200, #f5f1ec);
+    border-radius: 1rem;
+    max-width: 40rem;
+  }
+</style>

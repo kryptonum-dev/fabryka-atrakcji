@@ -1,0 +1,14 @@
+---
+export const prerender = false
+
+import EventSpacesListing, { fetchData, staticPaths } from '@/src/templates/event-spaces/EventSpacesPage.astro'
+
+const page = parseInt(Astro.params.page || '1')
+const data = await fetchData('en', page, Astro.url.origin)
+
+if (!data) return Astro.rewrite('/en/404')
+
+export const getStaticPaths = () => staticPaths('en')
+---
+
+<EventSpacesListing {...data} currentPage={page} />

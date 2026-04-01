@@ -1,0 +1,12 @@
+---
+export const prerender = false
+
+import EventSpacesListing, { fetchData } from '@/src/templates/event-spaces/EventSpacesPage.astro'
+
+const data = await fetchData('pl', 1, Astro.url.origin, Astro.url.searchParams)
+const canonicalUrl = Astro.url.origin + '/pl/przestrzenie-eventowe/'
+
+if (!data) return Astro.rewrite('/pl/404')
+---
+
+<EventSpacesListing {...data} currentPage={1} canonicalUrl={canonicalUrl} doNotIndex={true} />

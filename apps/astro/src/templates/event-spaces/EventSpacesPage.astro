@@ -1,0 +1,205 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import { sanityFetchWithCdn } from '@/utils/sanity.fetch'
+import metadataFetch from '@/utils/metadata.fetch'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Listing, { type ListingProps } from '@/src/components/event-spaces/Listing.astro'
+import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import type { FormStateTypes } from '@/src/global/types'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import { EventSpaceCardQuery } from '@/src/components/ui/EventSpaceCard.astro'
+
+export const ITEMS_PER_PAGE = 16
+
+type FormProps = {
+  formHeading?: PortableTextValue
+  formParagraph?: PortableTextValue
+  formVisualImage?: ImageDataProps
+  overrideFormState?: boolean
+  formState?: FormStateTypes
+}
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
+  currentPage: number
+  canonicalUrl?: string
+  doNotIndex?: boolean
+}
+
+const buildSearchPattern = (value?: string | null) => {
+  const trimmed = value?.trim()
+  return trimmed ? `*${trimmed}*` : null
+}
+
+export async function fetchData(lang: Language, pageNumber: number, _url: string, searchParams?: URLSearchParams) {
+  const searchQuery = searchParams?.get('search')
+  const searchPattern = buildSearchPattern(searchQuery)
+  const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
+  const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
+
+  const page = await sanityFetchWithCdn<
+    {
+      name: string
+      slug: string
+      globalFormDefaults?: {
+        heading?: PortableTextValue
+        paragraph?: PortableTextValue
+      }
+      heading: PortableTextValue
+      paragraph: PortableTextValue
+      checklist?: string[]
+      components: ComponentsProps
+      noResults: {
+        components: ComponentsProps
+      }
+    } & ListingProps &
+      FormProps
+  >({
+    query: `
+      *[_type == "EventSpaces_Page" && language == $language][0] {
+        name,
+        "slug": slug.current,
+        "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+        ${PortableTextQuery('formHeading')}
+        ${PortableTextQuery('formParagraph')}
+        ${ImageDataQuery('formVisualImage')}
+        overrideFormState,
+        formState {
+          success {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
+        checklist[],
+        noResults {
+          ${Components_Query}
+        },
+        "totalItems": count(*[
+          _type == "EventSpaces_Collection"
+          && language == $language
+          && (!defined($searchPattern) || name match $searchPattern)
+        ]),
+        "listing": *[
+          _type == "EventSpaces_Collection"
+          && language == $language
+          && (!defined($searchPattern) || name match $searchPattern)
+        ] | order(popularityIndex desc)[$PAGINATION_BEFORE...$PAGINATION_AFTER] {
+          ${EventSpaceCardQuery}
+        },
+        ${Components_Query}
+      }
+    `,
+    params: {
+      language: lang,
+      PAGINATION_BEFORE,
+      PAGINATION_AFTER,
+      searchPattern,
+    },
+  })
+
+  if (!page || (pageNumber > 1 && !page.listing.length)) return null
+  const metadata = await metadataFetch(page.slug)
+  return metadata ? { page, metadata } : null
+}
+
+export async function staticPaths(lang: Language) {
+  const totalEventSpaces = await sanityFetchWithCdn<number>({
+    query: `count(*[_type == "EventSpaces_Collection" && language == $language])`,
+    params: { language: lang },
+  })
+
+  const totalPages = Math.ceil(totalEventSpaces / ITEMS_PER_PAGE)
+
+  return Array.from({ length: totalPages - 1 }, (_, i) => ({
+    params: { page: (i + 2).toString() },
+  }))
+}
+
+const { page, metadata: _metadata, currentPage, canonicalUrl, doNotIndex } = Astro.props as Props
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translation = {
+  pl: {
+    pageUpper: 'Strona',
+    pageLower: 'strona',
+    prefix: '/pl/przestrzenie-eventowe',
+  },
+  en: {
+    pageUpper: 'Page',
+    pageLower: 'page',
+    prefix: '/en/event-spaces',
+  },
+} as const
+
+const t = translation[lang]
+const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
+
+const metadata = {
+  ..._metadata,
+  title: currentPage > 1 ? `${_metadata.title} | ${t.pageUpper} ${currentPage}` : _metadata.title,
+  description: _metadata.description,
+  openGraphImage: _metadata.openGraphImage,
+  path: Astro.url.pathname,
+  ...(canonicalUrl && { canonicalUrl }),
+  ...(doNotIndex && { doNotIndex }),
+}
+
+const getPaginationUrl = (page: number) => `${t.prefix}/${t.pageLower}/${page}`
+
+const breadcrumbs = [
+  { name: page.name, path: page.slug },
+  ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
+]
+
+const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
+const resolvedFormHeading = page.formHeading || page.globalFormDefaults?.heading
+const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.paragraph
+---
+
+<Layout {...metadata}>
+  <Fragment slot="Head">
+    {currentPage > 1 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
+    {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
+  </Fragment>
+
+  <Breadcrumbs data={breadcrumbs} />
+  <Listing
+    heading={page.heading}
+    paragraph={page.paragraph}
+    totalItems={page.totalItems}
+    listing={page.listing}
+    currentPage={currentPage}
+    checklist={page.checklist}
+  />
+  {resolvedFormHeading && (
+    <ContactForm
+      index={10}
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
+      heading={resolvedFormHeading}
+      paragraph={resolvedFormParagraph || []}
+      formVisualImage={page.formVisualImage}
+      overrideFormState={page.overrideFormState}
+      state={page.formState}
+      variant="general"
+      showInquiries={false}
+      animate={false}
+    />
+  )}
+  <Components data={page.listing.length > 0 ? filteredComponents : page?.noResults?.components} hasPreviousSections />
+</Layout>
