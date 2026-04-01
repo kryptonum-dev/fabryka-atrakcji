@@ -1,5 +1,5 @@
 export type InquiryItem = {
-  type: 'integracja' | 'hotel'
+  type: 'integracja' | 'hotel' | 'eventSpace'
   id: string
   name: string
   image: string

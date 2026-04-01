@@ -41,6 +41,17 @@ export const structure: StructureResolver = (S, context) =>
             ])
         ),
       S.listItem()
+        .title('Przestrzenie eventowe')
+        .icon(House)
+        .child(
+          S.list()
+            .title('Przestrzenie eventowe')
+            .items([
+              createSingleton({ S, name: 'EventSpaces_Page' }),
+              createCollection(S, context, 'EventSpaces_Collection'),
+            ])
+        ),
+      S.listItem()
         .title('Realizacje')
         .icon(FileArchive)
         .child(

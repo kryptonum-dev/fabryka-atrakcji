@@ -1,4 +1,4 @@
-import { Hotel } from 'lucide-react'
+import { House } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import {
@@ -18,16 +18,14 @@ import RowsWithIcons from '../ui/PortableText/content/offer/RowsWithIcons'
 import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
-import StarRating from '../ui/StarRating'
 import Amenities from '../ui/PortableText/content/hotel/Amenities'
-import StayingRules from '../ui/PortableText/content/hotel/StayingRules'
 import Location from '../ui/PortableText/content/hotel/Location'
 
-const title = 'Hotele'
-const icon = Hotel
+const title = 'Przestrzenie Eventowe'
+const icon = House
 
 export default defineType({
-  name: 'Hotels_Collection',
+  name: 'EventSpaces_Collection',
   type: 'document',
   title,
   options: {
@@ -72,31 +70,31 @@ export default defineType({
     defineField({
       name: 'name',
       type: 'string',
-      title: 'Nazwa hotelu',
-      description: 'Nazwa hotelu wyświetlana przy wyszukiwaniu oraz udostępnianiu w mediach społecznościowych',
-      validation: (Rule) => Rule.required().error('Nazwa hotelu jest wymagana'),
+      title: 'Nazwa przestrzeni eventowej',
+      description: 'Nazwa przestrzeni wyświetlana przy wyszukiwaniu oraz udostępnianiu w mediach społecznościowych',
+      validation: (Rule) => Rule.required().error('Nazwa przestrzeni eventowej jest wymagana'),
       group: 'general',
     }),
     ...defineSlugForDocument({
       source: 'name',
       prefixes: {
-        pl: '/pl/hotele/',
-        en: '/en/hotels/',
+        pl: '/pl/przestrzenie-eventowe/',
+        en: '/en/event-spaces/',
       },
     }),
     defineField({
       name: 'title',
       type: 'Heading',
       title: 'Nagłówek',
-      description: 'Pełna nazwa hotelu wyświetlana na stronie hotelu',
+      description: 'Pełna nazwa przestrzeni eventowej wyświetlana na stronie szczegółowej',
       validation: (Rule) => Rule.required().error('Nagłówek jest wymagany'),
       group: 'general',
     }),
     defineField({
       name: 'description',
       type: 'text',
-      title: 'Opis hotelu',
-      description: 'Krótki opis hotelu wyświetlany na stronie hotelu oraz przy jego refererowaniu',
+      title: 'Opis przestrzeni eventowej',
+      description: 'Krótki opis przestrzeni eventowej wyświetlany na stronie szczegółowej oraz przy jej refererowaniu',
       validation: (Rule) => Rule.required().min(75).error('Opis musi zawierać co najmniej 75 znaków'),
       group: 'general',
     }),
@@ -105,10 +103,10 @@ export default defineType({
       type: 'array',
       title: 'Lista zdjęć i filmów',
       description:
-        'Lista zdjęć i filmów wyświetlanych w sekcji hero konkretnej integracji oraz przy jej refererowaniu. Zdjęcie jest wymagane zawsze - służy jako miniaturka dla filmów. Opcjonalne - jeśli nie wypełnione, używane będzie pole "Lista zdjęć".',
+        'Lista zdjęć i filmów wyświetlanych w sekcji hero konkretnej przestrzeni eventowej. Zdjęcie jest wymagane zawsze - służy jako miniaturka dla filmów. Opcjonalne - jeśli nie wypełnione, używane będzie pole "Lista zdjęć".',
       validation: (Rule) =>
         Rule.custom((value) => {
-          if (!value || value.length === 0) return true // Optional field
+          if (!value || value.length === 0) return true
           if (value.length < 2) return 'Jeśli wypełnione, lista musi zawierać co najmniej 2 media'
           return true
         }),
@@ -156,12 +154,9 @@ export default defineType({
         'Tradycyjna lista zdjęć (bez obsługi filmów). Używane gdy pole "Lista zdjęć i filmów" nie jest wypełnione. Wymagane co najmniej 2 zdjęcia.',
       validation: (Rule) =>
         Rule.custom((value, { document }) => {
-          const mediaList = (document as any)?.mediaList
-          // If mediaList has content, imageList is not required
+          const mediaList = (document as { mediaList?: unknown[] })?.mediaList
           if (mediaList && mediaList.length > 0) return true
-          // If mediaList is empty, imageList is required with min 2 items
-          if (!value || value.length === 0)
-            return 'Lista zdjęć jest wymagana gdy "Lista zdjęć i filmów" nie jest wypełniona'
+          if (!value || value.length === 0) return 'Lista zdjęć jest wymagana gdy "Lista zdjęć i filmów" nie jest wypełniona'
           if (value.length < 2) return 'Lista musi zawierać co najmniej 2 zdjęcia'
           return true
         }),
@@ -173,32 +168,6 @@ export default defineType({
       group: 'general',
     }),
     defineField({
-      name: 'amenities',
-      type: 'array',
-      title: 'Udogodnienia',
-      description: 'Lista udogodnień dostępnych w hotelu',
-      validation: (Rule) => Rule.required().min(1).error('Przynajmniej jedno udogodnienie jest wymagane'),
-      of: [
-        {
-          type: 'reference',
-          to: { type: 'Amenities_Collection' },
-          options: {
-            disableNew: true,
-            filter: ({ parent, document }) => {
-              const language = (document as { language?: string })?.language
-              const selectedIds =
-                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
-              return {
-                filter: '!(_id in path("drafts.**")) && language == $lang',
-                params: { selectedIds, lang: language },
-              }
-            },
-          },
-        },
-      ],
-      group: 'details',
-    }),
-    defineField({
       name: 'location',
       type: 'reference',
       to: [{ type: 'Locations_Collection' }],
@@ -207,75 +176,34 @@ export default defineType({
       group: 'details',
     }),
     defineField({
-      name: 'stars',
+      name: 'areaM2',
       type: 'number',
-      title: 'Liczba gwiazdek',
-      initialValue: 3,
-      components: {
-        input: StarRating,
-      },
-      validation: (Rule) => Rule.required().min(1).max(5).error('Liczba gwiazdek musi być między 1 a 5'),
-      group: 'details',
-    }),
-    defineField({
-      name: 'numberOfRooms',
-      type: 'number',
-      title: 'Liczba pokoi',
+      title: 'Powierzchnia (m2)',
       validation: (Rule) =>
         Rule.custom((value) => {
-          if (!value) return 'Liczba pokoi jest wymagana'
-          if (value <= 0) return 'Liczba pokoi musi być większa niż 0'
+          if (!value) return 'Powierzchnia jest wymagana'
+          if (value <= 0) return 'Powierzchnia musi być większa niż 0'
           return true
         }),
       group: 'details',
     }),
     defineField({
       name: 'maxPeople',
-      type: 'object',
+      type: 'number',
       title: 'Maksymalna liczba osób',
+      description: 'Główna maksymalna liczba osób dla tej przestrzeni eventowej',
+      validation: (Rule) =>
+        Rule.custom((value) => {
+          if (!value) return 'Maksymalna liczba osób jest wymagana'
+          if (value <= 0) return 'Maksymalna liczba osób musi być większa niż 0'
+          return true
+        }),
       group: 'details',
-      validation: (Rule) => Rule.required().error('Maksymalna liczba osób jest wymagana'),
-      fields: [
-        defineField({
-          name: 'overnight',
-          type: 'number',
-          title: 'Nocleg',
-          description: 'Maksymalna liczba osób na nocleg',
-          validation: (Rule) =>
-            Rule.custom((value) => {
-              if (!value) return 'Maksymalna liczba osób na nocleg jest wymagana'
-              if (value <= 0) return 'Maksymalna liczba osób musi być większa niż 0'
-              return true
-            }),
-        }),
-        defineField({
-          name: 'conference',
-          type: 'number',
-          title: 'Konferencja',
-          description: 'Wypełnij tylko jeśli hotel oferuje sale konferencyjne',
-          validation: (Rule) =>
-            Rule.custom((value) => {
-              if (value && value <= 0) return 'Maksymalna liczba osób musi być większa niż 0'
-              return true
-            }),
-        }),
-        defineField({
-          name: 'banquet',
-          type: 'number',
-          title: 'Bankiet',
-          description: 'Wypełnij tylko jeśli hotel oferuje sale bankietowe',
-          validation: (Rule) =>
-            Rule.custom((value) => {
-              if (value && value <= 0) return 'Maksymalna liczba osób musi być większa niż 0'
-              return true
-            }),
-        }),
-      ],
     }),
     defineField({
       name: 'address',
       type: 'object',
-      title: 'Adres hotelu',
+      title: 'Adres przestrzeni eventowej',
       group: 'details',
       options: {
         columns: 2,
@@ -360,12 +288,11 @@ export default defineType({
         }),
       ],
     }),
-
     defineField({
       name: 'popularityIndex',
       type: 'number',
       title: 'Indeks popularności',
-      description: 'Indeks popularności hotelu (0-100). Wyższy indeks oznacza lepszą pozycję na liście.',
+      description: 'Indeks popularności przestrzeni eventowej (0-100). Wyższy indeks oznacza lepszą pozycję na liście.',
       validation: (Rule) => Rule.min(0).max(100).error('Indeks popularności musi być między 0 a 100'),
       initialValue: 20,
       group: 'details',
@@ -375,72 +302,60 @@ export default defineType({
       type: 'object',
       title: 'Cennik',
       group: 'pricing',
-      description: 'Ustaw cenę netto za osobę oraz opcjonalnie cenę netto za grupę (ceny bez VAT)',
+      description: 'Ustaw widoczność orientacyjnej ceny lub pozostaw informację o wycenie indywidualnej',
       fields: [
         defineField({
           name: 'pricingVisible',
           type: 'boolean',
-          title: 'Cennik widoczny publicznie',
-          description:
-            'Czy ceny hotelu mają być widoczne na stronie? Jeśli wyłączone, użytkownicy będą informowani o konieczności kontaktu w celu uzyskania wyceny.',
-          initialValue: true,
-        }),
-        defineField({
-          name: 'hasFixedGroupPrice',
-          type: 'boolean',
-          title: 'Dodaj cenę za grupę',
+          title: 'Pokaż orientacyjną cenę',
+          description: 'Czy orientacyjna cena "Cena od" ma być widoczna publicznie na stronie? Gdy wyłączone, pokażemy informację o wycenie indywidualnej.',
           initialValue: false,
-          hidden: ({ parent }) => !parent?.pricingVisible,
         }),
         defineField({
-          name: 'groupPrice',
+          name: 'displayMode',
+          type: 'string',
+          title: 'Tryb prezentacji ceny',
+          options: {
+            list: [
+              { title: 'Cena dostępna w wycenie', value: 'quoteOnly' },
+              { title: 'Cena od', value: 'fromPrice' },
+            ],
+          },
+          deprecated: {
+            reason: 'To pole nie jest już używane. Gdy cena jest widoczna publicznie, zawsze pokazujemy wariant "Cena od".',
+          },
+          readOnly: true,
+          hidden: true,
+          initialValue: undefined,
+        }),
+        defineField({
+          name: 'fromPrice',
           type: 'number',
-          title: 'Cena netto za grupę (PLN)',
-          description: 'Cena bez VAT',
-          hidden: ({ parent }) => !parent?.hasFixedGroupPrice || !parent?.pricingVisible,
+          title: 'Cena od (kwota)',
+          description: 'Podaj samą kwotę, np. 9000. Na stronie automatycznie pokażemy walutę.',
+          hidden: ({ parent }) => !(parent as { pricingVisible?: boolean })?.pricingVisible,
           validation: (Rule) =>
             Rule.custom((value, context) => {
-              const parent = context.parent as { hasFixedGroupPrice?: boolean; pricingVisible?: boolean }
-              if (!parent?.pricingVisible || !parent?.hasFixedGroupPrice) return true
-              if (!value) return 'Cena za grupę jest wymagana'
+              const parent = context.parent as { pricingVisible?: boolean }
+              if (!parent?.pricingVisible) return true
+              if (!value) return 'Cena od jest wymagana'
               if (value < 1) return 'Cena musi być większa niż 0'
               return true
             }),
         }),
         defineField({
-          name: 'groupPeopleCount',
-          type: 'number',
-          title: 'Liczba osób w cenie grupowej',
-          hidden: ({ parent }) => !parent?.hasFixedGroupPrice || !parent?.pricingVisible,
-          validation: (Rule) =>
-            Rule.custom((value, context) => {
-              const parent = context.parent as { hasFixedGroupPrice?: boolean; pricingVisible?: boolean }
-              if (!parent?.pricingVisible || !parent?.hasFixedGroupPrice) return true
-              if (!value) return 'Liczba osób jest wymagana'
-              if (value < 2) return 'Liczba osób musi być większa niż 1'
-              return true
-            }),
-        }),
-        defineField({
-          name: 'pricePerPerson',
-          type: 'number',
-          title: 'Cena netto za osobę (PLN)',
-          description: 'Cena bez VAT',
-          hidden: ({ parent }) => !parent?.pricingVisible,
-          validation: (Rule) =>
-            Rule.custom((value, context) => {
-              const parent = context.parent as { pricingVisible?: boolean }
-              if (!parent?.pricingVisible) return true
-              if (!value) return 'Cena za osobę jest wymagana'
-              if (value < 1) return 'Cena za osobę musi być większa niż 0'
-              return true
-            }),
+          name: 'priceLabel',
+          type: 'string',
+          title: 'Sufiks po "/" (opcjonalny)',
+          description: 'Np. "event", "dzień", "wynajem". Nie wpisuj waluty ani ukośnika.',
+          hidden: ({ parent }) => !(parent as { pricingVisible?: boolean })?.pricingVisible,
         }),
       ],
     }),
     createPortableText({
       title: 'Treść',
       additionalComponents: [
+        Amenities,
         Image,
         ImageWithHeadingAndText,
         Checklist,
@@ -450,9 +365,7 @@ export default defineType({
         BlocksWithImage,
         RowsWithIcons,
         NextSteps,
-        Amenities,
         Location,
-        StayingRules,
       ],
     }),
     defineField({
@@ -465,7 +378,7 @@ export default defineType({
       name: 'formOverrides',
       type: 'object',
       title: 'Nadpisania formularza kontaktowego',
-      description: 'Opcjonalne nadpisania formularza kontaktowego dla tego hotelu (nagłówek, paragraf, obraz, komunikaty).',
+      description: 'Opcjonalne nadpisania formularza kontaktowego dla tej przestrzeni eventowej.',
       options: { collapsible: true, collapsed: false },
       group: 'content',
       fields: [
@@ -491,7 +404,7 @@ export default defineType({
           name: 'overrideFormState',
           type: 'boolean',
           title: 'Nadpisz komunikaty formularza',
-          description: 'Włącz, aby użyć niestandardowych komunikatów sukcesu/błędu dla tego hotelu.',
+          description: 'Włącz, aby użyć niestandardowych komunikatów sukcesu/błędu dla tej przestrzeni eventowej.',
           initialValue: false,
         }),
         defineField({
@@ -518,7 +431,7 @@ export default defineType({
       imageList: 'imageList',
     },
     prepare: ({ title, subtitle, mediaList, imageList }) => ({
-      title: title,
+      title,
       subtitle: subtitle || 'Brak opisu',
       media: mediaList?.[0]?.image || imageList?.[0] || null,
       icon,

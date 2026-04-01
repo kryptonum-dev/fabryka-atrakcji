@@ -1,0 +1,408 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import type { Language } from '@/global/languages'
+import { getLangFromPath } from '@/src/global/languages'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import sanityFetch from '@/src/utils/sanity.fetch'
+import metadataFetch from '@/src/utils/metadata.fetch'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import Hero from '@/src/components/offer/Hero.astro'
+import ContentPT, { type Props as ContentPTProps, ContentPT_Query } from '@/src/components/ui/content-pt/index.astro'
+import Faq, { Faq_Query } from '@/src/components/ui/content-pt/offer/Faq.astro'
+import Testimonials, { Testimonials_Query } from '@/src/components/ui/content-pt/offer/Testimonials.astro'
+import Amenities, { Amenities_Query } from '@/src/components/ui/content-pt/hotel/Amenities.astro'
+import Location, { Location_Query } from '@/src/components/ui/content-pt/hotel/Location.astro'
+import Checklist, { Checklist_Query } from '@/src/components/ui/content-pt/shared/Checklist.astro'
+import BlocksWithImage, { BlocksWithImage_Query } from '@/src/components/ui/content-pt/offer/BlocksWithImage.astro'
+import ImageWithHeadingAndText, {
+  ImageWithHeadingAndText_Query,
+} from '@/src/components/ui/content-pt/offer/ImageWithHeadingAndText.astro'
+import RowsWithIcons, { RowsWithIcons_Query } from '@/src/components/ui/content-pt/offer/RowsWithIcons.astro'
+import Timeline, { Timeline_Query } from '@/src/components/ui/content-pt/offer/Timeline.astro'
+import NextSteps, { NextSteps_Query } from '@/src/components/ui/content-pt/offer/NextSteps.astro'
+import Image, { Image_Query } from '@/src/components/ui/content-pt/shared/Image.astro'
+import SubmitSidebar from '@/src/components/offer/SubmitSidebar.astro'
+import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import type { FormStateTypes } from '@/src/global/types'
+
+export type SingleEventSpaceProps = {
+  _id: string
+  _type: 'EventSpaces_Collection'
+  name: string
+  slug: string
+  title: PortableTextValue
+  description: string
+  mediaList?: Array<{
+    image: ImageDataProps
+    youtubeId?: string
+  }>
+  imageList?: ImageDataProps[]
+  location: {
+    _id: string
+    name: string
+  }
+  areaM2: number
+  maxPeople: number
+  address: {
+    street: string
+    postalCode: string
+    city: string
+    voivodeship: string
+  }
+  googleMaps: {
+    googleMapsLink: string
+  }
+  popularityIndex: number
+  pricing?: {
+    pricingVisible?: boolean
+    fromPrice?: number
+    priceLabel?: string
+  }
+  globalFormDefaults?: {
+    heading?: PortableTextValue
+    paragraph?: PortableTextValue
+  }
+  eventSpacesPage: {
+    name: string
+    slug: string
+    detailFormDefaults?: {
+      heading?: PortableTextValue
+      paragraph?: PortableTextValue
+      formVisualImage?: ImageDataProps
+      overrideFormState?: boolean
+      formState?: FormStateTypes
+    }
+  }
+  formOverrides?: {
+    heading?: PortableTextValue
+    paragraph?: PortableTextValue
+    formVisualImage?: ImageDataProps
+    overrideFormState?: boolean
+    formState?: FormStateTypes
+  }
+  components: ComponentsProps
+  content: ContentPTProps['value']
+}
+
+export async function fetchData(slug: string, lang: Language) {
+  const prefixes = {
+    pl: '/pl/przestrzenie-eventowe/',
+    en: '/en/event-spaces/',
+  }
+
+  const page = await sanityFetch<SingleEventSpaceProps>({
+    query: `
+      *[_type == 'EventSpaces_Collection' && language == $language && slug.current == $slug][0] {
+        _id,
+        "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+        "eventSpacesPage": *[_type == "EventSpaces_Page" && language == $language][0] {
+          name,
+          "slug": slug.current,
+          detailFormDefaults {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            ${ImageDataQuery('formVisualImage')}
+            overrideFormState,
+            formState {
+              success {
+                ${PortableTextQuery('heading')}
+                ${PortableTextQuery('paragraph')}
+                highlightedSocialMedia[] -> {
+                  name,
+                  link,
+                  iconString,
+                },
+              },
+              error {
+                ${PortableTextQuery('heading')}
+                ${PortableTextQuery('paragraph')}
+              },
+            },
+          },
+        },
+        _type,
+        name,
+        "slug": slug.current,
+        ${PortableTextQuery('title')}
+        description,
+        mediaList[]{
+          ${ImageDataQuery('image')}
+          youtubeId
+        },
+        ${ImageDataQuery('imageList[]')}
+        location->{
+          _id,
+          name
+        },
+        areaM2,
+        maxPeople,
+        address,
+        googleMaps{
+          googleMapsLink,
+        },
+        popularityIndex,
+        pricing,
+        ${ContentPT_Query([Faq_Query, Testimonials_Query, Amenities_Query, Location_Query, Checklist_Query, BlocksWithImage_Query, ImageWithHeadingAndText_Query, RowsWithIcons_Query, Timeline_Query, NextSteps_Query, Image_Query])}
+        formOverrides {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+          ${ImageDataQuery('formVisualImage')}
+          overrideFormState,
+          formState {
+            success {
+              ${PortableTextQuery('heading')}
+              ${PortableTextQuery('paragraph')}
+              highlightedSocialMedia[] -> {
+                name,
+                link,
+                iconString,
+              },
+            },
+            error {
+              ${PortableTextQuery('heading')}
+              ${PortableTextQuery('paragraph')}
+            },
+          },
+        },
+        ${Components_Query}
+      }
+    `,
+    params: { language: lang, slug: `${prefixes[lang]}${slug}/` },
+  })
+
+  if (!page) return null
+  const metadata = await metadataFetch(page.slug)
+  return metadata ? { page, metadata } : null
+}
+
+export async function staticPaths(lang: Language) {
+  const pages = await sanityFetch<{ slug: string }[]>({
+    query: `
+      *[_type == 'EventSpaces_Collection' && language == $language][] {
+        "slug": slug.current,
+      }
+    `,
+    params: { language: lang },
+  })
+
+  return pages?.map(({ slug }) => ({
+    params: { slug: slug.split('/').slice(-2).join('/') },
+  }))
+}
+
+const { page, metadata } = Astro.props as NonNullable<Awaited<ReturnType<typeof fetchData>>>
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+
+const formHeading = page.formOverrides?.heading || page.eventSpacesPage.detailFormDefaults?.heading || page.globalFormDefaults?.heading
+const formParagraph =
+  page.formOverrides?.paragraph || page.eventSpacesPage.detailFormDefaults?.paragraph || page.globalFormDefaults?.paragraph
+const formVisualImage = page.formOverrides?.formVisualImage || page.eventSpacesPage.detailFormDefaults?.formVisualImage
+const resolvedOverrideFormState =
+  page.formOverrides?.overrideFormState ?? page.eventSpacesPage.detailFormDefaults?.overrideFormState
+const resolvedFormState = page.formOverrides?.overrideFormState
+  ? page.formOverrides?.formState
+  : page.eventSpacesPage.detailFormDefaults?.formState
+const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
+const sidebarFromPrice = page.pricing?.pricingVisible ? page.pricing.fromPrice : undefined
+---
+
+<Layout {...metadata}>
+  <Breadcrumbs
+    data={[
+      { name: page.eventSpacesPage.name, path: page.eventSpacesPage.slug },
+      { name: page.name, path: page.slug },
+    ]}
+    firstItemType="OfferHero"
+  />
+  <Hero {...page} _type="EventSpaces_Collection" />
+
+  <article class="wrapper max-width" id="content">
+    <div class="content">
+      <ContentPT
+        value={page.content}
+        additionalComponents={{
+          Faq,
+          Testimonials,
+          Amenities,
+          Location,
+          Checklist,
+          BlocksWithImage,
+          ImageWithHeadingAndText,
+          RowsWithIcons,
+          Timeline,
+          NextSteps,
+          Image,
+        }}
+      />
+    </div>
+    <SubmitSidebar
+      id={page._id}
+      type="eventSpaces"
+      perPersonPrice={0}
+      fromPrice={sidebarFromPrice}
+      priceLabel={page.pricing?.priceLabel}
+      name={page.name}
+      pricingVisible={page.pricing?.pricingVisible}
+    />
+  </article>
+
+  {formHeading && (
+    <ContactForm
+      index={10}
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
+      heading={formHeading}
+      paragraph={formParagraph || []}
+      formVisualImage={formVisualImage}
+      overrideFormState={resolvedOverrideFormState}
+      state={resolvedFormState}
+      variant="general"
+      showInquiries={false}
+      animate={false}
+      contextItem={{ type: 'eventSpace', id: page._id, name: page.name }}
+    />
+  )}
+  <Components data={filteredComponents} hasPreviousSections />
+</Layout>
+
+<style lang="scss">
+  .wrapper {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: clamp(3rem, calc(3.5vw / 0.48), 3.5rem) 0;
+
+    .content {
+      max-width: clamp(20rem, calc(25vw / 0.48), 40.9375rem);
+      justify-self: start;
+
+      :global(> :first-child) {
+        margin-top: 0;
+
+        :global(> :first-child) {
+          margin-top: 0 !important;
+        }
+      }
+
+      :global(> :last-child) {
+        margin-bottom: 0;
+      }
+
+      :global(strong:not(h1 strong, h2 strong)) {
+        font-weight: 700;
+        color: var(--primary-800, #45051c);
+      }
+
+      :global(> p),
+      :global(> ul),
+      :global(> ol),
+      :global(> ul li),
+      :global(> ol li),
+      :global(> ul p),
+      :global(> ol p) {
+        font-size: var(--typography-body-xl, 1.125rem);
+        line-height: 1.5;
+        margin-bottom: clamp(0.625rem, calc(0.75vw / 0.48), 0.75rem);
+      }
+
+      :global(> h2) {
+        margin: clamp(3rem, calc(3.25vw / 0.48), 3.25rem) 0 1.5rem;
+        font-size: var(--typography-heading-l);
+      }
+
+      :global(> h3) {
+        color: var(--primary-700, #600d2a);
+        font-size: var(--typography-body-2xl, 1.5rem);
+        line-height: 1.25;
+        margin: 1.5rem 0 1rem;
+        letter-spacing: -0.04em;
+        font-variant-numeric: lining-nums proportional-nums;
+        font-weight: 700;
+        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+      }
+
+      :global(li:last-child) {
+        margin-bottom: 0;
+      }
+    }
+
+    .pricing {
+      background: var(--neutral-200, #f5f1ec);
+      border-radius: 0.75rem;
+      max-width: 27.0625rem;
+      width: 100%;
+      padding: 1.5rem;
+      height: 15.625rem;
+      justify-self: end;
+      position: sticky;
+      top: 89px;
+      max-height: calc(100vh - 89px);
+    }
+
+    @media (max-width: 68.0625rem) {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      max-width: 48rem;
+      padding-top: 0;
+      gap: 0;
+
+      .pricing {
+        grid-row: 1 / 2;
+        position: static;
+        max-width: 100%;
+      }
+
+      .content {
+        grid-row: 2 / 3;
+        max-width: 100%;
+        padding-top: clamp(3rem, calc(3.5vw / 0.48), 3.5rem);
+      }
+    }
+  }
+</style>
+
+<script>
+  import { trackEvent } from '@/utils/track-event'
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const containerEl = document.querySelector('.Hero') as HTMLElement | null
+    if (!containerEl) return
+
+    const itemId = containerEl.dataset.id || ''
+    const itemName = containerEl.dataset.name || ''
+    const price = containerEl.getAttribute('data-price') || ''
+    const priceValue = Number(price) || undefined
+
+    trackEvent({
+      ga4: {
+        eventName: 'view_item',
+        params: {
+          currency: 'PLN',
+          value: priceValue,
+          items: [
+            {
+              item_id: itemId,
+              item_name: itemName,
+              price: priceValue,
+            },
+          ],
+        },
+      },
+      meta: {
+        eventName: 'ViewContent',
+        contentName: itemName || document.title,
+        params: {
+          content_ids: itemId ? [itemId] : undefined,
+          content_type: 'event_space',
+          value: priceValue,
+          currency: priceValue ? 'PLN' : undefined,
+        },
+      },
+    })
+  })
+</script>

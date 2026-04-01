@@ -47,6 +47,7 @@ try {
     staticPathsCategory: activitiesStaticPathsCategory,
   } = await import('@/src/templates/activities/ActivitiesPage.astro')
   const { staticPaths: hotelsStaticPaths } = await import('@/src/templates/hotels/HotelsPage.astro')
+  const { staticPaths: eventSpacesStaticPaths } = await import('@/src/templates/event-spaces/EventSpacesPage.astro')
 
   // Blog pages (PL)
   const blogPages = await blogStaticPathsPage('pl')
@@ -188,6 +189,22 @@ try {
   const hotelsPagesEn = await hotelsStaticPaths('en')
   slugs.push(
     ...hotelsPagesEn.filter(({ params }) => params.page !== '1').map(({ params }) => `/en/hotels/page/${params.page}`)
+  )
+
+  // Event spaces pages (PL)
+  const eventSpacesPages = await eventSpacesStaticPaths('pl')
+  slugs.push(
+    ...eventSpacesPages
+      .filter(({ params }) => params.page !== '1')
+      .map(({ params }) => `/pl/przestrzenie-eventowe/strona/${params.page}`)
+  )
+
+  // Event spaces pages (EN)
+  const eventSpacesPagesEn = await eventSpacesStaticPaths('en')
+  slugs.push(
+    ...eventSpacesPagesEn
+      .filter(({ params }) => params.page !== '1')
+      .map(({ params }) => `/en/event-spaces/page/${params.page}`)
   )
 } catch (error) {
   console.warn('Error loading static paths for sitemap:', error)

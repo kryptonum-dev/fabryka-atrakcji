@@ -12,7 +12,15 @@ const CDN_PROPAGATION_DELAY_MS = 10_000
 const BATCH_SIZE = 5
 const BATCH_GAP_MS = 200
 
-const SKIP_REFERENCE_LOOKUP = new Set(['global', 'Index_Page', 'Activities_Page', 'Hotels_Page', 'Blog_Page', 'CaseStudy_Page'])
+const SKIP_REFERENCE_LOOKUP = new Set([
+  'global',
+  'Index_Page',
+  'Activities_Page',
+  'Hotels_Page',
+  'EventSpaces_Page',
+  'Blog_Page',
+  'CaseStudy_Page',
+])
 
 async function resolveAffectedUrls(doc: SanityDocRef): Promise<string[]> {
   const directUrls = getDirectUrls(doc)

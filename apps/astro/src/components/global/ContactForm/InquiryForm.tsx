@@ -27,6 +27,7 @@ export type InquiryVariant =
   | 'general'
   | 'activity_listing'
   | 'hotel_listing'
+  | 'event_space_listing'
   | 'activity_detail'
   | 'hotel_detail'
 
@@ -64,6 +65,7 @@ export default function InquiryForm({
   const t = translations[lang]
   const activityCount = inquiryItems.filter((item) => item.type === 'integracja').length
   const hotelCount = inquiryItems.filter((item) => item.type === 'hotel').length
+  const eventSpaceCount = inquiryItems.filter((item) => item.type === 'eventSpace').length
   const countLetters = (value: string) => (value.match(/\p{L}/gu) || []).length
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function InquiryForm({
     formState: { errors },
   } = useForm({ mode: 'onTouched' })
 
-  const showRegionRadio = variant === 'hotel_listing'
+  const showRegionRadio = variant === 'hotel_listing' || variant === 'event_space_listing'
   const showIntegrationCheckbox = variant === 'hotel_listing' || variant === 'hotel_detail'
 
   const onSubmit = async (data: FieldValues) => {
@@ -221,6 +223,9 @@ export default function InquiryForm({
               <span className={`${styles.inquiryStat} ${styles.hotelStat}`}>
                 {lang === 'pl' ? 'Hotele' : 'Hotels'}: {hotelCount}
               </span>
+              <span className={`${styles.inquiryStat} ${styles.eventSpaceStat}`}>
+                {lang === 'pl' ? 'Przestrzenie' : 'Event spaces'}: {eventSpaceCount}
+              </span>
             </div>
           </div>
           <ul className={styles.inquiryList}>
@@ -241,10 +246,26 @@ export default function InquiryForm({
                     <span className={styles.inquiryName}>{item.name}</span>
                     <span
                       className={`${styles.inquiryType} ${
-                        item.type === 'hotel' ? styles.hotelType : styles.activityType
+                        item.type === 'hotel'
+                          ? styles.hotelType
+                          : item.type === 'eventSpace'
+                            ? styles.eventSpaceType
+                            : styles.activityType
                       }`}
                     >
-                      <span>{item.type === 'hotel' ? (lang === 'pl' ? 'Hotel' : 'Hotel') : (lang === 'pl' ? 'Integracja' : 'Activity')}</span>
+                      <span>
+                        {item.type === 'hotel'
+                          ? lang === 'pl'
+                            ? 'Hotel'
+                            : 'Hotel'
+                          : item.type === 'eventSpace'
+                            ? lang === 'pl'
+                              ? 'Przestrzeń'
+                              : 'Event space'
+                            : lang === 'pl'
+                              ? 'Integracja'
+                              : 'Activity'}
+                      </span>
                     </span>
                   </div>
                 </a>
@@ -339,7 +360,7 @@ export default function InquiryForm({
         </div>
       </fieldset>
 
-      {/* Region Radio (hotel_listing) */}
+      {/* Region Radio (hotel_listing, event_space_listing) */}
       {showRegionRadio && (
         <fieldset className={styles.radioGroup} aria-hidden={isFilled}>
           <legend className={styles.radioLegend}>{t.form.inquiry.region.label}</legend>

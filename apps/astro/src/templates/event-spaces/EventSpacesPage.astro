@@ -1,0 +1,287 @@
+---
+import Layout from '@/src/layouts/Layout.astro'
+import { sanityFetchWithCdn } from '@/utils/sanity.fetch'
+import metadataFetch from '@/utils/metadata.fetch'
+import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
+import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
+import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
+import { getLangFromPath, type Language } from '@/global/languages'
+import Listing, { Listing_Query, type ListingProps } from '@/src/components/event-spaces/Listing.astro'
+import ContactForm from '@/src/components/global/ContactForm/index.astro'
+import type { FormStateTypes } from '@/src/global/types'
+import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
+import { getOrderClause } from '@/src/utils/filters'
+
+export const ITEMS_PER_PAGE = 16
+
+type FormProps = {
+  formHeading?: PortableTextValue
+  formParagraph?: PortableTextValue
+  formVisualImage?: ImageDataProps
+  overrideFormState?: boolean
+  formState?: FormStateTypes
+}
+
+type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
+  currentPage: number
+  canonicalUrl?: string
+  doNotIndex?: boolean
+}
+
+export async function fetchData(lang: Language, pageNumber: number, _url: string, searchParams?: URLSearchParams) {
+  const searchQuery = searchParams?.get('search')
+  const trimmedSearchQuery = searchQuery?.trim()
+  const searchPattern = trimmedSearchQuery ? `*${trimmedSearchQuery}*` : null
+  const location = searchParams?.get('location') || null
+  const minArea = searchParams?.get('minArea') ? parseInt(searchParams.get('minArea')!) : null
+  const maxArea = searchParams?.get('maxArea') ? parseInt(searchParams.get('maxArea')!) : null
+  const minCapacity = searchParams?.get('minCapacity') ? parseInt(searchParams.get('minCapacity')!) : null
+  const maxCapacity = searchParams?.get('maxCapacity') ? parseInt(searchParams.get('maxCapacity')!) : null
+  const order = (searchParams?.get('order') || 'popularity') as
+    | 'popularity'
+    | 'newest'
+    | 'priceDesc'
+    | 'priceAsc'
+    | 'searchMatching'
+  const orderClause = getOrderClause(order, !!searchPattern, 'eventSpaces')
+  const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
+  const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
+
+  const page = await sanityFetchWithCdn<
+    {
+      name: string
+      slug: string
+      globalFormDefaults?: {
+        heading?: PortableTextValue
+        paragraph?: PortableTextValue
+      }
+      heading: PortableTextValue
+      paragraph: PortableTextValue
+      checklist?: string[]
+      escapeHatchHeading?: string
+      escapeHatchText?: string
+      capacityFilterOptions?: {
+        min: number
+        max?: number
+      }[]
+      areaFilterOptions?: {
+        min: number
+        max?: number
+      }[]
+      capacityFilterSource?: {
+        maxPeople: number
+      }[]
+      components: ComponentsProps
+      noResults: {
+        components: ComponentsProps
+      }
+    } & ListingProps &
+      FormProps
+  >({
+    query: `
+      *[_type == "EventSpaces_Page" && language == $language][0] {
+        name,
+        "slug": slug.current,
+        "globalFormDefaults": *[_type == "global" && language == $language][0].inquiryFormDefaults {
+          ${PortableTextQuery('heading')}
+          ${PortableTextQuery('paragraph')}
+        },
+        ${PortableTextQuery('heading')}
+        ${PortableTextQuery('paragraph')}
+        ${PortableTextQuery('formHeading')}
+        ${PortableTextQuery('formParagraph')}
+        ${ImageDataQuery('formVisualImage')}
+        overrideFormState,
+        formState {
+          success {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+            highlightedSocialMedia[] -> {
+              name,
+              link,
+              iconString,
+            },
+          },
+          error {
+            ${PortableTextQuery('heading')}
+            ${PortableTextQuery('paragraph')}
+          },
+        },
+        checklist[],
+        escapeHatchHeading,
+        escapeHatchText,
+        capacityFilterOptions[]{
+          min,
+          max
+        },
+        areaFilterOptions[]{
+          min,
+          max
+        },
+        capacityFilterSource[]{
+          maxPeople
+        },
+        noResults {
+          ${Components_Query}
+        },
+        ${Listing_Query(orderClause)}
+        ${Components_Query}
+      }
+    `,
+    params: {
+      language: lang,
+      PAGINATION_BEFORE,
+      PAGINATION_AFTER,
+      searchPattern,
+      location,
+      minArea,
+      maxArea,
+      minCapacity,
+      maxCapacity,
+    },
+  })
+
+  if (!page || (pageNumber > 1 && !page.listing.length)) return null
+  const metadata = await metadataFetch(page.slug)
+  return metadata ? { page, metadata } : null
+}
+
+export async function staticPaths(lang: Language) {
+  const totalEventSpaces = await sanityFetchWithCdn<number>({
+    query: `count(*[_type == "EventSpaces_Collection" && language == $language])`,
+    params: { language: lang },
+  })
+
+  const totalPages = Math.ceil(totalEventSpaces / ITEMS_PER_PAGE)
+
+  return Array.from({ length: totalPages - 1 }, (_, i) => ({
+    params: { page: (i + 2).toString() },
+  }))
+}
+
+const { page, metadata: _metadata, currentPage, canonicalUrl, doNotIndex } = Astro.props as Props
+const lang = getLangFromPath(Astro.url.pathname) as Language
+
+const translation = {
+  pl: {
+    pageUpper: 'Strona',
+    pageLower: 'strona',
+    prefix: '/pl/przestrzenie-eventowe',
+  },
+  en: {
+    pageUpper: 'Page',
+    pageLower: 'page',
+    prefix: '/en/event-spaces',
+  },
+} as const
+
+const t = translation[lang]
+const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
+
+const metadata = {
+  ..._metadata,
+  title: currentPage > 1 ? `${_metadata.title} | ${t.pageUpper} ${currentPage}` : _metadata.title,
+  description: _metadata.description,
+  openGraphImage: _metadata.openGraphImage,
+  path: Astro.url.pathname,
+  ...(canonicalUrl && { canonicalUrl }),
+  ...(doNotIndex && { doNotIndex }),
+}
+
+const getPaginationUrl = (page: number) => `${t.prefix}/${t.pageLower}/${page}`
+
+const breadcrumbs = [
+  { name: page.name, path: page.slug },
+  ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
+]
+
+const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
+const resolvedFormHeading = page.formHeading || page.globalFormDefaults?.heading
+const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.paragraph
+---
+
+<Layout {...metadata}>
+  <Fragment slot="Head">
+    {currentPage > 1 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
+    {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
+  </Fragment>
+
+  <Breadcrumbs data={breadcrumbs} firstItemType="HotelsListing" />
+  <Listing
+    heading={page.heading}
+    paragraph={page.paragraph}
+    totalItems={page.totalItems}
+    listing={page.listing}
+    currentPage={currentPage}
+    checklist={page.checklist}
+    locations={page.locations}
+    areaFilterOptions={page.areaFilterOptions}
+    areaFilterSource={page.areaFilterSource}
+    capacityFilterSource={page.capacityFilterSource}
+    capacityFilterOptions={page.capacityFilterOptions}
+    escapeHintText={page.escapeHatchHeading}
+    escapeHintCta={page.escapeHatchText}
+  />
+  {resolvedFormHeading && (
+    <ContactForm
+      index={10}
+      sectionId={lang === 'pl' ? 'kontakt' : 'contact'}
+      heading={resolvedFormHeading}
+      paragraph={resolvedFormParagraph || []}
+      formVisualImage={page.formVisualImage}
+      overrideFormState={page.overrideFormState}
+      state={page.formState}
+      variant="event_space_listing"
+      showInquiries={false}
+      animate={false}
+    />
+  )}
+  <Components data={page.listing.length > 0 ? filteredComponents : page?.noResults?.components} hasPreviousSections />
+</Layout>
+
+<script>
+  import { trackEvent } from '@/utils/track-event'
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const items = document.querySelectorAll('.EventSpaceCard') as NodeListOf<HTMLElement>
+    if (!items.length) return
+
+    const trackedItems = Array.from(items)
+      .slice(0, 10)
+      .map((item, index) => {
+        const itemName = item.querySelector('.title')?.textContent?.trim() || ''
+        const itemId = item.dataset.id || ''
+        const rawPrice = Number(item.dataset.pricing || '')
+
+        return {
+          item_name: itemName,
+          item_id: itemId,
+          item_price: Number.isFinite(rawPrice) ? rawPrice : undefined,
+          price: Number.isFinite(rawPrice) ? rawPrice : undefined,
+          index,
+        }
+      })
+
+    if (!trackedItems.length) return
+
+    const contentIds = trackedItems.map((item) => item.item_id).filter(Boolean) as string[]
+
+    trackEvent({
+      ga4: {
+        eventName: 'view_item_list',
+        params: {
+          items: trackedItems,
+          item_list_name: 'Event Spaces Listing',
+        },
+      },
+      meta: {
+        eventName: 'ViewCategory',
+        contentName: 'Event Spaces Listing',
+        params: {
+          category_name: 'Event Spaces Listing',
+          content_ids: contentIds.length ? contentIds : undefined,
+        },
+      },
+    })
+  })
+</script>

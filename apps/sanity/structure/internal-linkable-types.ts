@@ -20,4 +20,6 @@ export const InternalLinkableTypes: { type: string }[] = [
   { type: 'BlogCategory_Collection' },
   { type: 'Hotels_Page' },
   { type: 'Hotels_Collection' },
+  { type: 'EventSpaces_Page' },
+  { type: 'EventSpaces_Collection' },
 ]

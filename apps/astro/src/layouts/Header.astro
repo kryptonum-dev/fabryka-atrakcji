@@ -20,6 +20,8 @@ const translations = {
     activitiesUrl: '/pl/integracje/',
     showActivitiesLg: 'Sprawdź wszystkie integracje',
     showActivitiesSm: 'Wszystkie integracje',
+    eventSpaces: 'Przestrzenie eventowe',
+    eventSpacesUrl: '/pl/przestrzenie-eventowe/',
     hotels: 'Hotele dla firm',
     hotelsUrl: '/pl/hotele/',
     caseStudies: 'Realizacje',
@@ -41,6 +43,8 @@ const translations = {
     activitiesUrl: '/en/activities',
     showActivitiesLg: 'See all activities',
     showActivitiesSm: 'All activities',
+    eventSpaces: 'Event spaces',
+    eventSpacesUrl: '/en/event-spaces/',
     hotels: 'Company hotels',
     hotelsUrl: '/en/hotels/',
     caseStudies: 'Case studies',
@@ -266,7 +270,7 @@ const { minify = false, alternates } = Astro.props as Props
                       {...activity}
                       imageConfig={{
                         sizes:
-                          '(max-width: 49.9375rem) 76px, (max-width: 56.1875rem) 124px, (max-width: 79.3215rem) 23vw, 212px',
+                          '(max-width: 58.0625rem) 76px, (max-width: 79.3215rem) 23vw, 212px',
                         loading: 'lazy',
                         fetchPriority: 'auto',
                       }}
@@ -277,6 +281,9 @@ const { minify = false, alternates } = Astro.props as Props
               </div>
             </div>
           </div>
+          <a class="nav-link nav-link-event-spaces" href={t.eventSpacesUrl}>
+            {t.eventSpaces}
+          </a>
           <a class="nav-link" href={t.hotelsUrl}>
             {t.hotels}
           </a>
@@ -345,7 +352,7 @@ const { minify = false, alternates } = Astro.props as Props
                         src: secondaryImage,
                         loading: 'lazy',
                       }}
-                      imageSizes="(max-width: 49.9375rem) 88px, (max-width: 56.1875rem) 45vw, (max-width: 79.3215rem) 23vw, 204px"
+                      imageSizes="(max-width: 58.0625rem) 88px, (max-width: 79.3215rem) 23vw, 204px"
                       slug={slug}
                     />
                   ))}
@@ -641,7 +648,7 @@ const { minify = false, alternates } = Astro.props as Props
               border-radius: 0.25rem;
             }
 
-            @media (max-width: 49.9375rem) {
+            @media (max-width: 58.0625rem) {
               width: 100%;
               justify-content: space-between;
               padding-left: 0.25rem;
@@ -900,7 +907,7 @@ const { minify = false, alternates } = Astro.props as Props
                   }
                 }
               }
-              @media (max-width: 56.1875rem) {
+              @media (max-width: 58.0625rem) {
                 .list {
                   :global(.CategoryBlock) {
                     display: grid;
@@ -929,7 +936,7 @@ const { minify = false, alternates } = Astro.props as Props
                   }
                 }
               }
-              @media (max-width: 49.9375rem) {
+              @media (max-width: 58.0625rem) {
                 .list {
                   width: 100%;
                   :global(.CategoryBlock) {
@@ -1011,7 +1018,7 @@ const { minify = false, alternates } = Astro.props as Props
               }
             }
 
-            @media (max-width: 49.9375rem) {
+            @media (max-width: 58.0625rem) {
               position: static;
               max-height: 0;
               padding: 0;
@@ -1070,7 +1077,7 @@ const { minify = false, alternates } = Astro.props as Props
                 }
               }
 
-              @media (max-width: 49.9375rem) {
+              @media (max-width: 58.0625rem) {
                 &::before {
                   transform: translateY(calc(-50% + 0.0625rem)) scale(43);
                 }
@@ -1089,7 +1096,7 @@ const { minify = false, alternates } = Astro.props as Props
               opacity: 1;
               visibility: visible;
 
-              @media (max-width: 49.9375rem) {
+              @media (max-width: 58.0625rem) {
                 display: block;
                 max-height: 100%;
                 padding: 0.5rem 0.25rem 0;
@@ -1111,7 +1118,7 @@ const { minify = false, alternates } = Astro.props as Props
               gap: 1rem;
             }
 
-            @media (max-width: 56.1875rem) {
+            @media (max-width: 58.0625rem) {
               .item-expand > div > .list {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
@@ -1119,7 +1126,7 @@ const { minify = false, alternates } = Astro.props as Props
               }
             }
 
-            @media (max-width: 49.9375rem) {
+            @media (max-width: 58.0625rem) {
               .item-expand > div > .list {
                 grid-template-columns: 1fr;
                 gap: 0.375rem;
@@ -1155,13 +1162,13 @@ const { minify = false, alternates } = Astro.props as Props
               }
             }
 
-            @media (max-width: 56.1875rem) {
+            @media (max-width: 58.0625rem) {
               .item-expand > div > .list {
                 grid-template-columns: repeat(2, 1fr);
               }
             }
 
-            @media (max-width: 49.9375rem) {
+            @media (max-width: 58.0625rem) {
               .item-expand > div > .list {
                 grid-template-columns: 1fr;
                 gap: 0.5rem;
@@ -1242,6 +1249,12 @@ const { minify = false, alternates } = Astro.props as Props
             background-color: #b7eeca;
           }
         }
+
+        &.nav-link-event-spaces {
+          &::before {
+            background-color: #f2e3c4;
+          }
+        }
       }
     }
 
@@ -1271,7 +1284,7 @@ const { minify = false, alternates } = Astro.props as Props
       }
     }
 
-    @media (max-width: 49.9375rem) {
+    @media (max-width: 58.0625rem) {
       padding-left: clamp(0.4375rem, calc(0.75vw / 0.48), 0.75rem);
       padding-right: clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
 

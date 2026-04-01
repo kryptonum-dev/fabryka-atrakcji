@@ -89,20 +89,6 @@ export type BaseHotelProps = {
     groupPeopleCount?: number
     pricePerPerson: number
   }
-  alerts?: Alert[]
-}
-
-export type Alert = {
-  heading: any
-  paragraph?: any
-  cta: {
-    text: string
-    internalReference: {
-      _id: string
-      name: string
-      slug: string
-    }
-  }
 }
 
 export type BaseActivityProps = {
@@ -142,5 +128,43 @@ export type BaseActivityProps = {
     maxParticipants: number
     additionalPersonPrice: number
   }
-  alerts?: Alert[]
+}
+
+export type BaseEventSpaceProps = {
+  _id: string
+  name: string
+  slug: string
+  title: PortableTextValue
+  description: string
+  imageList?: ImageDataProps[]
+  mediaList?: {
+    image: ImageDataProps
+    youtubeId?: string
+  }[]
+  amenities: Array<{
+    _id: string
+    name: string
+    icon?: any
+  }>
+  location: {
+    _id: string
+    name: string
+  }
+  areaM2: number
+  maxPeople: number
+  address: {
+    street: string
+    postalCode: string
+    city: string
+    voivodeship: string
+  }
+  googleMaps: {
+    googleMapsLink: string
+  }
+  popularityIndex: number
+  pricing?: {
+    pricingVisible?: boolean
+    fromPrice?: number
+    priceLabel?: string
+  }
 }

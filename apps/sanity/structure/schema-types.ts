@@ -11,6 +11,7 @@ import redirects from '../schema/singleTypes/redirects'
 import TermsAndConditions_Page from '../schema/singleTypes/legal/TermsAndConditions_Page'
 import PrivacyPolicy_Page from '../schema/singleTypes/legal/PrivacyPolicy_Page'
 import Hotels_Page from '../schema/singleTypes/Hotels_Page'
+import EventSpaces_Page from '../schema/singleTypes/EventSpaces_Page'
 const singleTypes = [
   global,
   redirects,
@@ -24,6 +25,7 @@ const singleTypes = [
   TermsAndConditions_Page,
   PrivacyPolicy_Page,
   Hotels_Page,
+  EventSpaces_Page,
 ]
 
 // Collections Types
@@ -42,6 +44,7 @@ import Testimonial_Collection from '../schema/collectionTypes/Testimonial_Collec
 import Author_Collection from '../schema/collectionTypes/Author_Collection'
 import ActivitiesType_Collection from '../schema/collectionTypes/ActivitiesType_Collection'
 import Hotels_Collection from '../schema/collectionTypes/Hotels_Collection'
+import EventSpaces_Collection from '../schema/collectionTypes/EventSpaces_Collection'
 import Locations_Collection from '../schema/collectionTypes/Locations_Collection'
 
 const collectionTypes = [
@@ -59,6 +62,7 @@ const collectionTypes = [
   Author_Collection,
   ActivitiesType_Collection,
   Hotels_Collection,
+  EventSpaces_Collection,
   Locations_Collection,
   Amenities_Collection,
 ]

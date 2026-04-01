@@ -7,12 +7,14 @@ import Loader from '@/components/ui/Loader'
 
 export type Props = {
   id: string
-  type: 'hotels' | 'activities'
+  type: 'hotels' | 'activities' | 'eventSpaces'
   basePrice?: {
     amount: number
     maxPeople: number
   }
-  perPersonPrice: number
+  perPersonPrice?: number
+  fromPrice?: number
+  priceLabel?: string
   addons?: {
     hasAddons: boolean
     heading?: PortableTextValue
@@ -60,6 +62,7 @@ const translations = {
     },
     currency: 'zł',
     pricingPrefix: 'Szacowany koszt: ',
+    fromPricePrefix: 'Cena od',
     pricingNotAvailable: 'Cena ustalana indywidualnie — zależy od terminu, liczby osób i zakresu.',
     contactLink: 'Zapytaj o wycenę',
     pricingNotAvailableSuffix: '',
@@ -77,6 +80,7 @@ const translations = {
     },
     currency: 'PLN',
     pricingPrefix: 'Estimated cost: ',
+    fromPricePrefix: 'Price from',
     pricingNotAvailable: 'Price set individually — depends on dates, group size and scope.',
     contactLink: 'Ask for a quote',
     pricingNotAvailableSuffix: '',
@@ -89,6 +93,15 @@ const translations = {
 
 const t = translations[lang]
 
+function getEventPriceSuffix(value?: string) {
+  const normalizedValue = value?.trim()
+  if (!normalizedValue) return ''
+  if (normalizedValue.includes('/')) {
+    return normalizedValue.split('/').slice(-1).join('/').trim()
+  }
+  return normalizedValue
+}
+
 function getPeopleText(participants: number, lang: Language) {
   if (lang === 'pl') {
     if (participants === 1) return t.people.single
@@ -100,7 +113,8 @@ function getPeopleText(participants: number, lang: Language) {
   return participants === 1 ? t.people.single : t.people.multiple
 }
 
-const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true } = Astro.props
+const { id, basePrice, perPersonPrice = 0, fromPrice, priceLabel, type, name, pricingVisible = true } = Astro.props
+const eventPriceSuffix = getEventPriceSuffix(priceLabel)
 ---
 
 <div
@@ -140,6 +154,22 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
             </p>
           )}
         </div>
+      ) : type === 'eventSpaces' ? (
+        pricingVisible && fromPrice ? (
+          <div class="from-price">
+            <p class="prefix">{t.fromPricePrefix}</p>
+            <p class="fixed">
+              <strong>{fromPrice} {t.currency}</strong>
+              {eventPriceSuffix && <> / {eventPriceSuffix}</>}
+            </p>
+          </div>
+        ) : (
+          <div class="price-not-available">
+            <p>
+              <span>{t.pricingNotAvailable}</span>
+            </p>
+          </div>
+        )
       ) : pricingVisible ? (
         <div class="price-per-person">
           <p class="prefix">{t.pricingPrefix}</p>
@@ -301,6 +331,35 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
         }
       }
 
+      .from-price {
+        margin-bottom: 1.5rem;
+
+        .prefix {
+          color: var(--primary-400, #45051c);
+          font-size: var(--typography-body-m);
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+          margin-bottom: 0.125rem;
+        }
+
+        .fixed {
+          margin-bottom: 0.125rem;
+          color: var(--primary-400, #74535e);
+          font-size: var(--typography-body-l, 1rem);
+          line-height: 1.7;
+          letter-spacing: -0.01em;
+
+          strong {
+            color: var(--primary-800, #45051c);
+            font-size: var(--typography-body-2xl, 1.5rem);
+            line-height: 1.25;
+            letter-spacing: -0.035em;
+            font-weight: 400;
+            margin-right: 0.125rem;
+          }
+        }
+      }
+
       .price-not-available {
         margin-bottom: 1rem;
 
@@ -379,7 +438,8 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
         }
 
         .group-price,
-        .price-per-person {
+        .price-per-person,
+        .from-price {
           margin-bottom: 1rem;
           width: 100%;
         }
@@ -390,7 +450,8 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
           gap: 0;
 
           .group-price,
-          .price-per-person {
+          .price-per-person,
+          .from-price {
             margin-bottom: 1rem;
           }
 
@@ -401,7 +462,8 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
 
         @media (max-width: 40.5625rem) {
           .group-price,
-          .price-per-person {
+          .price-per-person,
+          .from-price {
             margin-bottom: 0.75rem;
           }
         }
@@ -490,7 +552,8 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
         }
 
         .group-price,
-        .price-per-person {
+        .price-per-person,
+        .from-price {
           grid-column: 1 / 2;
           grid-row: 1 / 2;
           margin-bottom: 0;
@@ -547,7 +610,8 @@ const { id, basePrice, perPersonPrice, type, addons, name, pricingVisible = true
           margin-bottom: 1.5rem;
         }
 
-        .price-per-person {
+        .price-per-person,
+        .from-price {
           margin-bottom: 1rem;
         }
 

@@ -16,6 +16,10 @@ export interface FilterParams {
   stars: number | null
   minRooms: number | null
   maxRooms: number | null
+  minArea: number | null
+  maxArea: number | null
+  minCapacity: number | null
+  maxCapacity: number | null
 }
 
 export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
@@ -94,6 +98,34 @@ export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
     minRooms = null
   }
 
+  let minArea: number | null = null
+  let maxArea: number | null = null
+  const rawMinArea = searchParams.get('minArea') ? parseInt(searchParams.get('minArea')!) : null
+  const rawMaxArea = searchParams.get('maxArea') ? parseInt(searchParams.get('maxArea')!) : null
+  if (rawMinArea && rawMinArea >= 1) {
+    minArea = rawMinArea
+  }
+  if (rawMaxArea && rawMaxArea >= 1 && (!minArea || rawMaxArea >= minArea)) {
+    maxArea = rawMaxArea
+  }
+  if (!maxArea) {
+    minArea = null
+  }
+
+  let minCapacity: number | null = null
+  let maxCapacity: number | null = null
+  const rawMinCapacity = searchParams.get('minCapacity') ? parseInt(searchParams.get('minCapacity')!) : null
+  const rawMaxCapacity = searchParams.get('maxCapacity') ? parseInt(searchParams.get('maxCapacity')!) : null
+  if (rawMinCapacity && rawMinCapacity >= 1) {
+    minCapacity = rawMinCapacity
+  }
+  if (rawMaxCapacity && rawMaxCapacity >= 1 && (!minCapacity || rawMaxCapacity >= minCapacity)) {
+    maxCapacity = rawMaxCapacity
+  }
+  if (!maxCapacity) {
+    minCapacity = null
+  }
+
   return {
     minParticipants: minParticipants || null,
     maxParticipants: maxParticipants || null,
@@ -110,13 +142,17 @@ export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
     stars,
     minRooms,
     maxRooms,
+    minArea,
+    maxArea,
+    minCapacity,
+    maxCapacity,
   }
 }
 
 export const getOrderClause = (
   order: OrderType | null,
   isSearchMode = false,
-  type: 'activities' | 'hotels' = 'activities'
+  type: 'activities' | 'hotels' | 'eventSpaces' = 'activities'
 ): string => {
   switch (order) {
     case 'newest':
@@ -126,20 +162,26 @@ export const getOrderClause = (
         // Push non-public pricing hotels to the end, then sort by price descending
         return 'pricing.pricingVisible desc, pricing.pricePerPerson desc'
       }
+      if (type === 'eventSpaces') {
+        return 'pricing.pricingVisible desc, pricing.fromPrice desc'
+      }
       return 'pricing.basePrice desc'
     case 'priceAsc':
       if (type === 'hotels') {
         // Push non-public pricing hotels to the end, then sort by price ascending
         return 'pricing.pricingVisible desc, pricing.pricePerPerson asc'
       }
+      if (type === 'eventSpaces') {
+        return 'pricing.pricingVisible desc, pricing.fromPrice asc'
+      }
       return 'pricing.basePrice asc'
     case 'popularity':
       return 'popularityIndex desc'
     case 'searchMatching':
-      return isSearchMode ? '_score desc' : 'popularityIndex desc'
+      return isSearchMode && type !== 'eventSpaces' ? '_score desc' : 'popularityIndex desc'
     default:
       // If no order specified, use score for search mode, popularity otherwise
-      return isSearchMode ? '_score desc' : 'popularityIndex desc'
+      return isSearchMode && type !== 'eventSpaces' ? '_score desc' : 'popularityIndex desc'
   }
 }
 
@@ -267,7 +309,11 @@ export const buildFilterUrl = (params: {
     newParams.has('amenities') ||
     newParams.has('stars') ||
     newParams.has('minRooms') ||
-    newParams.has('maxRooms')
+    newParams.has('maxRooms') ||
+    newParams.has('minArea') ||
+    newParams.has('maxArea') ||
+    newParams.has('minCapacity') ||
+    newParams.has('maxCapacity')
 
   // If we're on a filter page but have no filters, redirect to static page
   if (params.currentPath.includes(`/${filterPath}`) && !hasAnyFilters) {
@@ -332,7 +378,12 @@ export const buildFilterUrl = (params: {
         // For category pages: /pl/integracje/kategoria/dla-grup/ or /en/activities/category/team-building/
         // Keep segments up to category name (index 4)
         targetSegments = pathSegments.slice(0, 5)
-      } else if (params.currentPath.includes('/hotele/') || params.currentPath.includes('/hotels/')) {
+      } else if (
+        params.currentPath.includes('/hotele/') ||
+        params.currentPath.includes('/hotels/') ||
+        params.currentPath.includes('/przestrzenie-eventowe/') ||
+        params.currentPath.includes('/event-spaces/')
+      ) {
         // For hotel pages: /pl/hotele/ or /en/hotels/
         targetSegments = pathSegments.slice(0, 3)
       } else {
