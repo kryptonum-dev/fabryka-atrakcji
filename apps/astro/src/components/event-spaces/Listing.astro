@@ -269,11 +269,14 @@ const getSpacesCount = () => {
   return t.foundMany
 }
 
+const searchParam = params.get('search')?.trim() || undefined
+
 const currentFilters = {
   location: params.get('location'),
   area: params.get('minArea') || params.get('maxArea'),
   minCapacity: params.has('minCapacity') ? parseInt(params.get('minCapacity') || '') : undefined,
   maxCapacity: params.has('maxCapacity') ? parseInt(params.get('maxCapacity') || '') : undefined,
+  search: searchParam,
 }
 
 const hasActiveFilters = Object.values(currentFilters).some(

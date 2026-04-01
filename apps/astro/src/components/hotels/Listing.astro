@@ -442,6 +442,8 @@ const getHotelsCount = () => {
 }
 
 // Get current filters from URL
+const searchParam = Astro.url.searchParams.get('search')?.trim() || undefined
+
 const currentFilters = {
   location: Astro.url.searchParams.get('location'),
   stars: Astro.url.searchParams.get('stars'),
@@ -450,6 +452,7 @@ const currentFilters = {
   amenities: Astro.url.searchParams.getAll('amenities'),
   minPrice: Astro.url.searchParams.has('minPrice') ? parseInt(Astro.url.searchParams.get('minPrice') || '') : undefined,
   maxPrice: Astro.url.searchParams.has('maxPrice') ? parseInt(Astro.url.searchParams.get('maxPrice') || '') : undefined,
+  search: searchParam,
 }
 
 // Check if we have any active filters
