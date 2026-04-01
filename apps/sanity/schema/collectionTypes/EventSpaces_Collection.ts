@@ -18,8 +18,8 @@ import RowsWithIcons from '../ui/PortableText/content/offer/RowsWithIcons'
 import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
+import Amenities from '../ui/PortableText/content/hotel/Amenities'
 import Location from '../ui/PortableText/content/hotel/Location'
-import { createAlertsObject } from '../shared/alerts'
 
 const title = 'Przestrzenie Eventowe'
 const icon = House
@@ -47,11 +47,6 @@ export default defineType({
       name: 'pricing',
       title: 'Cennik',
       icon: CreditCardIcon,
-    },
-    {
-      name: 'alerts',
-      title: 'Alerty',
-      icon: InfoOutlineIcon,
     },
     {
       name: 'content',
@@ -313,34 +308,36 @@ export default defineType({
           name: 'pricingVisible',
           type: 'boolean',
           title: 'Pokaż orientacyjną cenę',
-          description: 'Czy orientacyjna cena ma być widoczna publicznie na stronie?',
+          description: 'Czy orientacyjna cena "Cena od" ma być widoczna publicznie na stronie? Gdy wyłączone, pokażemy informację o wycenie indywidualnej.',
           initialValue: false,
         }),
         defineField({
           name: 'displayMode',
           type: 'string',
           title: 'Tryb prezentacji ceny',
-          initialValue: 'quoteOnly',
           options: {
             list: [
               { title: 'Cena dostępna w wycenie', value: 'quoteOnly' },
               { title: 'Cena od', value: 'fromPrice' },
             ],
           },
-          hidden: ({ parent }) => !(parent as { pricingVisible?: boolean })?.pricingVisible,
+          deprecated: {
+            reason: 'To pole nie jest już używane. Gdy cena jest widoczna publicznie, zawsze pokazujemy wariant "Cena od".',
+          },
+          readOnly: true,
+          hidden: true,
+          initialValue: undefined,
         }),
         defineField({
           name: 'fromPrice',
           type: 'number',
-          title: 'Cena od (PLN netto)',
-          description: 'Orientacyjna cena początkowa',
-          hidden: ({ parent }) =>
-            !(parent as { pricingVisible?: boolean; displayMode?: string })?.pricingVisible ||
-            (parent as { displayMode?: string })?.displayMode !== 'fromPrice',
+          title: 'Cena od (kwota)',
+          description: 'Podaj samą kwotę, np. 9000. Na stronie automatycznie pokażemy walutę.',
+          hidden: ({ parent }) => !(parent as { pricingVisible?: boolean })?.pricingVisible,
           validation: (Rule) =>
             Rule.custom((value, context) => {
-              const parent = context.parent as { pricingVisible?: boolean; displayMode?: string }
-              if (!parent?.pricingVisible || parent?.displayMode !== 'fromPrice') return true
+              const parent = context.parent as { pricingVisible?: boolean }
+              if (!parent?.pricingVisible) return true
               if (!value) return 'Cena od jest wymagana'
               if (value < 1) return 'Cena musi być większa niż 0'
               return true
@@ -349,18 +346,16 @@ export default defineType({
         defineField({
           name: 'priceLabel',
           type: 'string',
-          title: 'Etykieta ceny (opcjonalna)',
-          description: 'Np. "za dzień", "za event", "za wynajem"',
+          title: 'Sufiks po "/" (opcjonalny)',
+          description: 'Np. "event", "dzień", "wynajem". Nie wpisuj waluty ani ukośnika.',
           hidden: ({ parent }) => !(parent as { pricingVisible?: boolean })?.pricingVisible,
         }),
       ],
     }),
-    createAlertsObject({
-      paragraph: 'Alerty wyświetlane przy formularzu zapytania dla tej przestrzeni eventowej.',
-    }),
     createPortableText({
       title: 'Treść',
       additionalComponents: [
+        Amenities,
         Image,
         ImageWithHeadingAndText,
         Checklist,

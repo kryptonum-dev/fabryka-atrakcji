@@ -89,20 +89,6 @@ export type BaseHotelProps = {
     groupPeopleCount?: number
     pricePerPerson: number
   }
-  alerts?: Alert[]
-}
-
-export type Alert = {
-  heading: any
-  paragraph?: any
-  cta: {
-    text: string
-    internalReference: {
-      _id: string
-      name: string
-      slug: string
-    }
-  }
 }
 
 export type BaseActivityProps = {
@@ -142,7 +128,6 @@ export type BaseActivityProps = {
     maxParticipants: number
     additionalPersonPrice: number
   }
-  alerts?: Alert[]
 }
 
 export type BaseEventSpaceProps = {
@@ -179,9 +164,7 @@ export type BaseEventSpaceProps = {
   popularityIndex: number
   pricing?: {
     pricingVisible?: boolean
-    displayMode?: 'quoteOnly' | 'fromPrice'
     fromPrice?: number
     priceLabel?: string
   }
-  alerts?: Alert[]
 }

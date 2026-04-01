@@ -51,6 +51,67 @@ const getCanonicalSourceUrl = (url?: string): string | null => {
   }
 }
 
+const parsePathname = (sourceUrl?: string): string => {
+  if (!sourceUrl?.trim()) return ''
+  try {
+    const raw = sourceUrl.trim()
+    if (/^https?:\/\//i.test(raw)) return new URL(raw).pathname
+    return new URL(raw, SITE).pathname
+  } catch {
+    return ''
+  }
+}
+
+/** Team-facing Polish labels for inquiry item types (not raw store keys). */
+export const inquiryItemTypeLabelPl = (type: string): string => {
+  switch (type) {
+    case 'eventSpace':
+      return 'Przestrzeń eventowa'
+    case 'hotel':
+      return 'Hotel'
+    case 'integracja':
+      return 'Integracja'
+    default:
+      return type
+  }
+}
+
+const isEventSpacesListingPath = (path: string): boolean => {
+  if (!path.includes('przestrzenie-eventowe') && !path.includes('event-spaces')) return false
+  if (path.includes('/filtr') || path.includes('/filter')) return true
+  if (path.includes('/strona/') || path.includes('/page/')) return true
+  if (/\/przestrzenie-eventowe\/?$/.test(path) || /\/event-spaces\/?$/.test(path)) return true
+  return false
+}
+
+const isHotelsListingPath = (path: string): boolean => {
+  if (!path.includes('/hotele') && !path.includes('/hotels')) return false
+  if (path.includes('/filtr') || path.includes('/filter')) return true
+  if (path.includes('/strona/') || path.includes('/page/')) return true
+  if (/\/pl\/hotele\/?$/.test(path) || /\/en\/hotels\/?$/.test(path)) return true
+  return false
+}
+
+const isActivitiesListingPath = (path: string): boolean => {
+  if (!path.includes('/integracje') && !path.includes('/activities')) return false
+  if (path.includes('/filtr') || path.includes('/filter')) return true
+  if (path.includes('/strona/') || path.includes('/page/')) return true
+  if (path.includes('/kategoria/') || path.includes('/category/')) return true
+  if (/\/pl\/integracje\/?$/.test(path) || /\/en\/activities\/?$/.test(path)) return true
+  return false
+}
+
+/** When the user submits from a vertical listing (no detail contextItem), clarify which catalog. */
+const getListingFormOriginLabel = (sourceUrl?: string): string | null => {
+  const path = parsePathname(sourceUrl)
+  if (!path) return null
+  if (isEventSpacesListingPath(path)) return 'Lista — Przestrzenie eventowe'
+  if (isHotelsListingPath(path)) return 'Lista — Hotele'
+  if (isActivitiesListingPath(path)) return 'Lista — Integracje firmowe'
+  if (path.includes('/kontakt') || path.includes('/contact')) return 'Strona kontaktowa'
+  return null
+}
+
 // ─── shared pieces ───────────────────────────────────────────────
 
 const fontStack = "'Helvetica Neue', Helvetica, Arial, sans-serif"
@@ -198,6 +259,11 @@ export const teamNotification = (d: TeamNotificationData) => {
   // Build rows — only show filled fields
   const rows: string[] = []
 
+  const originLabel = isInquiry ? getListingFormOriginLabel(d.sourceUrl) : null
+  if (originLabel && !d.contextItem) {
+    rows.push(row('Formularz', `<strong>${originLabel}</strong>`))
+  }
+
   if (d.name) rows.push(row('Kontakt', `<strong>${d.name}</strong>`))
   rows.push(row('Email', `<a href="mailto:${d.email}" target="_blank" style="color:#45051c;text-decoration:underline;text-decoration-color:#db664e;text-underline-offset:2px;">${d.email}</a>`))
   if (hasPhone(d.phone)) rows.push(row('Telefon', `<a href="tel:${d.phone}" target="_blank" style="color:#45051c;text-decoration:none;">${d.phone}</a>`))
@@ -206,31 +272,52 @@ export const teamNotification = (d: TeamNotificationData) => {
   if (d.region) rows.push(row('Region', `<strong>${regionLabels[d.region] || d.region}</strong>`))
   if (d.needsIntegration) rows.push(row('Integracja', '<span style="color:#db664e;font-weight:600;">Tak — szuka scenariusza</span>'))
 
-  // Context item
+  // Context item (single offer page)
   if (d.contextItem) {
     const contextUrl = getCanonicalSourceUrl(d.sourceUrl)
+    const typePl = inquiryItemTypeLabelPl(d.contextItem.type)
     const contextLabel = contextUrl
       ? `<a href="${contextUrl}" target="_blank" style="color:#45051c;text-decoration:underline;text-decoration-color:#db664e;text-underline-offset:2px;"><strong>${d.contextItem.name}</strong></a>`
       : `<strong>${d.contextItem.name}</strong>`
-    rows.push(row('Dotyczy', `${contextLabel} <span style="color:#74535e;font-size:12px;">${d.contextItem.type}</span>`))
+    rows.push(row('Dotyczy', `${contextLabel} <span style="color:#74535e;font-size:12px;">${typePl}</span>`))
   }
 
-  // Selected items
+  // Selected items (grouped: hotele / przestrzenie / integracje)
   let itemsBlock = ''
   if (d.selectedItems && d.selectedItems.length > 0) {
-    const list = d.selectedItems
-      .map((item) => {
-        const itemUrl = getAbsoluteItemUrl(item.url)
-        const label = itemUrl
-          ? `<a href="${itemUrl}" target="_blank" style="color:#45051c;text-decoration:underline;text-decoration-color:#db664e;text-underline-offset:2px;">${item.name}</a>`
-          : `<strong>${item.name}</strong>`
-        return `<li style="padding:4px 0;font-size:14px;color:#45051c;">${label} <span style="color:#74535e;font-size:11px;text-transform:uppercase;letter-spacing:0.03em;">${item.type}</span></li>`
-      })
-      .join('')
+    const byType = (t: string) => d.selectedItems!.filter((i) => i.type === t)
+    const hotels = byType('hotel')
+    const eventSpaces = byType('eventSpace')
+    const activities = byType('integracja')
+    const known = new Set(['hotel', 'eventSpace', 'integracja'])
+    const other = d.selectedItems.filter((i) => !known.has(i.type))
+
+    const itemLine = (item: SelectedItem) => {
+      const itemUrl = getAbsoluteItemUrl(item.url)
+      const name = itemUrl
+        ? `<a href="${itemUrl}" target="_blank" style="color:#45051c;text-decoration:underline;text-decoration-color:#db664e;text-underline-offset:2px;">${item.name}</a>`
+        : `<strong>${item.name}</strong>`
+      const typePl = inquiryItemTypeLabelPl(item.type)
+      return `<li style="padding:4px 0;font-size:14px;color:#45051c;">${name} <span style="color:#74535e;font-size:11px;letter-spacing:0.02em;">${typePl}</span></li>`
+    }
+
+    const section = (title: string, items: SelectedItem[]) => {
+      if (items.length === 0) return ''
+      const lis = items.map(itemLine).join('')
+      return `
+        <div style="margin-top:14px;">
+          <p style="margin:0 0 6px;font-size:12px;color:#74535e;font-weight:700;letter-spacing:0.04em;">${title}</p>
+          <ul style="margin:0;padding-left:18px;">${lis}</ul>
+        </div>`
+    }
+
     itemsBlock = `
       <div style="margin-top:24px;">
         <p style="margin:0 0 8px;font-size:12px;color:#74535e;text-transform:uppercase;letter-spacing:0.05em;">Wybrane pozycje (${d.selectedItems.length})</p>
-        <ul style="margin:0;padding-left:18px;">${list}</ul>
+        ${section('Hotele', hotels)}
+        ${section('Przestrzenie eventowe', eventSpaces)}
+        ${section('Integracje', activities)}
+        ${other.length > 0 ? section('Inne', other) : ''}
       </div>`
   }
 

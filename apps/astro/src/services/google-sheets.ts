@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { inquiryItemTypeLabelPl } from '@/src/emails/contact-emails';
 
 // --- Environment Variables ---
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID || import.meta.env.GOOGLE_SHEET_ID;
@@ -109,9 +110,9 @@ const buildRow = (data: LeadData): string[] => {
   // L: Pozycje — selectedItems takes priority; contextItem is the fallback for detail pages
   let pozycje = '';
   if (d?.selectedItems && d.selectedItems.length > 0) {
-    pozycje = d.selectedItems.map((i) => `${i.name} (${i.type})`).join(', ');
+    pozycje = d.selectedItems.map((i) => `${i.name} (${inquiryItemTypeLabelPl(i.type)})`).join(', ');
   } else if (d?.contextItemName) {
-    pozycje = `${d.contextItemName}${d.contextItemType ? ` (${d.contextItemType})` : ''}`;
+    pozycje = `${d.contextItemName}${d.contextItemType ? ` (${inquiryItemTypeLabelPl(d.contextItemType)})` : ''}`;
   }
 
   // M: Dodatkowe Info / Wiadomość

@@ -40,7 +40,6 @@ export type EventSpaceCardProps = {
   maxPeople: number
   pricing?: {
     pricingVisible?: boolean
-    displayMode?: 'quoteOnly' | 'fromPrice'
     fromPrice?: number
     priceLabel?: string
   }
@@ -56,7 +55,7 @@ const translations = {
   pl: {
     pricing: {
       from: 'od',
-      price: 'PLN netto / event',
+      price: 'zł',
       notAvailable: 'Cena dostępna w wycenie',
     },
     capacity: 'Maks.',
@@ -68,7 +67,7 @@ const translations = {
   en: {
     pricing: {
       from: 'from',
-      price: 'PLN net / event',
+      price: 'PLN',
       notAvailable: 'Price available on request',
     },
     capacity: 'Max.',
@@ -83,6 +82,17 @@ const t = translations[(getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
 const { name, slug, previewImage, address, areaM2, maxPeople, pricing, imgConfig, _id, variant = 'default' } =
   Astro.props as EventSpaceCardProps
+
+const getEventPriceSuffix = (value?: string) => {
+  const normalizedValue = value?.trim()
+  if (!normalizedValue) return ''
+  if (normalizedValue.includes('/')) {
+    return normalizedValue.split('/').slice(-1).join('/').trim()
+  }
+  return normalizedValue
+}
+
+const priceSuffix = getEventPriceSuffix(pricing?.priceLabel)
 
 const getVoivodeship = (voivodeship: string) => {
   switch (voivodeship) {
@@ -124,8 +134,8 @@ const getVoivodeship = (voivodeship: string) => {
 }
 
 const pricingText =
-  pricing?.pricingVisible && pricing?.displayMode === 'fromPrice' && pricing?.fromPrice
-    ? `${t.pricing.from} ${pricing.fromPrice} ${pricing.priceLabel || t.pricing.price}`
+  pricing?.pricingVisible && pricing?.fromPrice
+    ? `${t.pricing.from} ${pricing.fromPrice} ${t.pricing.price}${priceSuffix ? ` / ${priceSuffix}` : ''}`
     : t.pricing.notAvailable
 ---
 

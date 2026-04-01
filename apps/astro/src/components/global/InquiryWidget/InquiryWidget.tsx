@@ -128,7 +128,15 @@ export default function InquiryWidget({ lang = 'pl' }: Props) {
                   <div className={styles.itemInfo}>
                     <span className={styles.name}>{item.name}</span>
                     <span className={styles.itemType}>
-                      {item.type === 'hotel' ? 'Hotel' : (lang === 'pl' ? 'Integracja' : 'Activity')}
+                      {item.type === 'hotel'
+                        ? 'Hotel'
+                        : item.type === 'eventSpace'
+                          ? lang === 'pl'
+                            ? 'Przestrzeń'
+                            : 'Event space'
+                          : lang === 'pl'
+                            ? 'Integracja'
+                            : 'Activity'}
                     </span>
                   </div>
                 </a>

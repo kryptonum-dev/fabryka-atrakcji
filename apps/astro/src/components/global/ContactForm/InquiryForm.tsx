@@ -27,6 +27,7 @@ export type InquiryVariant =
   | 'general'
   | 'activity_listing'
   | 'hotel_listing'
+  | 'event_space_listing'
   | 'activity_detail'
   | 'hotel_detail'
 
@@ -100,7 +101,7 @@ export default function InquiryForm({
     formState: { errors },
   } = useForm({ mode: 'onTouched' })
 
-  const showRegionRadio = variant === 'hotel_listing'
+  const showRegionRadio = variant === 'hotel_listing' || variant === 'event_space_listing'
   const showIntegrationCheckbox = variant === 'hotel_listing' || variant === 'hotel_detail'
 
   const onSubmit = async (data: FieldValues) => {
@@ -359,7 +360,7 @@ export default function InquiryForm({
         </div>
       </fieldset>
 
-      {/* Region Radio (hotel_listing) */}
+      {/* Region Radio (hotel_listing, event_space_listing) */}
       {showRegionRadio && (
         <fieldset className={styles.radioGroup} aria-hidden={isFilled}>
           <legend className={styles.radioLegend}>{t.form.inquiry.region.label}</legend>

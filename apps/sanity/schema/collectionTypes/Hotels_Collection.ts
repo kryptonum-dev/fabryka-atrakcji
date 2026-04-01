@@ -22,7 +22,6 @@ import StarRating from '../ui/StarRating'
 import Amenities from '../ui/PortableText/content/hotel/Amenities'
 import StayingRules from '../ui/PortableText/content/hotel/StayingRules'
 import Location from '../ui/PortableText/content/hotel/Location'
-import { createAlertsObject } from '../shared/alerts'
 
 const title = 'Hotele'
 const icon = Hotel
@@ -50,11 +49,6 @@ export default defineType({
       name: 'pricing',
       title: 'Cennik',
       icon: CreditCardIcon,
-    },
-    {
-      name: 'alerts',
-      title: 'Alerty',
-      icon: InfoOutlineIcon,
     },
     {
       name: 'content',
@@ -443,9 +437,6 @@ export default defineType({
             }),
         }),
       ],
-    }),
-    createAlertsObject({
-      paragraph: 'Alerty wyświetlane w koszyku dla tego hotelu.',
     }),
     createPortableText({
       title: 'Treść',

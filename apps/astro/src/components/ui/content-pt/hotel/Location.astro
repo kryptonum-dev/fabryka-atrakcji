@@ -10,10 +10,23 @@ const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
 
 const slug = Astro.params.slug
 
-const slugPrefix = {
-  pl: '/pl/hotele/',
-  en: '/en/hotels/',
-}
+const isEventSpaceRoute = Astro.url.pathname.includes('/przestrzenie-eventowe/') || Astro.url.pathname.includes('/event-spaces/')
+
+const pageConfig = isEventSpaceRoute
+  ? {
+      collectionType: 'EventSpaces_Collection',
+      slugPrefix: {
+        pl: '/pl/przestrzenie-eventowe/',
+        en: '/en/event-spaces/',
+      },
+    }
+  : {
+      collectionType: 'Hotels_Collection',
+      slugPrefix: {
+        pl: '/pl/hotele/',
+        en: '/en/hotels/',
+      },
+    }
 
 const data = await sanityFetch<{
   address: { city: string; street: string; postalCode: string; voivodeship: string }
@@ -21,15 +34,19 @@ const data = await sanityFetch<{
     googleMapsLink: string
     googleMapsEmbed?: string
   }
-}>({
-  query: `*[_type == "Hotels_Collection" && language == $lang && slug.current == $slug][0]{
+} | null>({
+  query: `*[_type == $collectionType && language == $lang && slug.current == $slug][0]{
     address,
     googleMaps{
       googleMapsLink,
       googleMapsEmbed,
     },
   }`,
-  params: { slug: slugPrefix[lang] + slug + '/' || null, lang: lang || null },
+  params: {
+    collectionType: pageConfig.collectionType,
+    slug: pageConfig.slugPrefix[lang] + slug + '/',
+    lang,
+  },
 })
 
 export const Location_Query = `
@@ -123,6 +140,30 @@ const translations = {
 
 const t = translations[lang]
 
+const destinationAddress = data
+  ? `${data.address.street}, ${data.address.postalCode} ${data.address.city}, ${data.address.voivodeship}`
+  : ''
+
+const googleMapsQuery = (() => {
+  if (!data?.googleMaps?.googleMapsLink) return destinationAddress
+
+  try {
+    const url = new URL(data.googleMaps.googleMapsLink)
+    return (
+      url.searchParams.get('query') ||
+      url.searchParams.get('q') ||
+      url.searchParams.get('destination') ||
+      destinationAddress
+    )
+  } catch {
+    return destinationAddress
+  }
+})()
+
+const googleMapsEmbedUrl =
+  data?.googleMaps?.googleMapsEmbed ||
+  (googleMapsQuery ? `https://www.google.com/maps?q=${encodeURIComponent(googleMapsQuery)}&output=embed` : '')
+
 const transformToKm = (meters: number) => {
   if (meters < 1000) {
     return `${meters} m`
@@ -138,9 +179,9 @@ const transformToKm = (meters: number) => {
   <div class="map">
     <div class="wrapper">
       {
-        data.googleMaps.googleMapsEmbed && (
+        googleMapsEmbedUrl && (
           <iframe
-            src={data.googleMaps.googleMapsEmbed}
+            src={googleMapsEmbedUrl}
             width="100%"
             height="100%"
             style="border:0;"
@@ -152,28 +193,30 @@ const transformToKm = (meters: number) => {
         )
       }
     </div>
-    <p class="address">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-        ><path
-          fill="#F67258"
-          d="M8 14.666c3.682 0 6.667-1.343 6.667-3 0-.844-.775-1.607-2.023-2.152-.761 1.397-1.922 2.601-3.397 3.232-.793.338-1.7.338-2.493 0-1.474-.63-2.636-1.835-3.397-3.232-1.248.545-2.023 1.308-2.023 2.152 0 1.657 2.985 3 6.667 3Z"
-        ></path><path
-          fill="#F67258"
-          fill-rule="evenodd"
-          d="M3.334 5.677c0-2.399 2.09-4.343 4.667-4.343s4.666 1.944 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z"
-          clip-rule="evenodd"></path></svg
-      >
-      <span
-        >{data.address.street}{', '}{data.address.postalCode}{' '}{data.address.city}{', '}{
-          data.address.voivodeship
-        }</span
-      >
-    </p>
-    <Button
-      theme="secondary"
-      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${data.address.street}, ${data.address.postalCode} ${data.address.city}, ${data.address.voivodeship}`)}`}
-      >{t.getGoogleMapsRoute}</Button
-    >
+    {
+      data && (
+        <>
+          <p class="address">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+              ><path
+                fill="#F67258"
+                d="M8 14.666c3.682 0 6.667-1.343 6.667-3 0-.844-.775-1.607-2.023-2.152-.761 1.397-1.922 2.601-3.397 3.232-.793.338-1.7.338-2.493 0-1.474-.63-2.636-1.835-3.397-3.232-1.248.545-2.023 1.308-2.023 2.152 0 1.657 2.985 3 6.667 3Z"
+              ></path><path
+                fill="#F67258"
+                fill-rule="evenodd"
+                d="M3.334 5.677c0-2.399 2.09-4.343 4.667-4.343s4.666 1.944 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.184 2.184 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z"
+                clip-rule="evenodd"></path></svg
+            >
+            <span>{destinationAddress}</span>
+          </p>
+          <Button
+            theme="secondary"
+            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destinationAddress)}`}
+            >{t.getGoogleMapsRoute}</Button
+          >
+        </>
+      )
+    }
   </div>
   <PortableText value={node.howToGetThere.subheading} heading="h3" class="subheading" />
   <ul class="transport-list">

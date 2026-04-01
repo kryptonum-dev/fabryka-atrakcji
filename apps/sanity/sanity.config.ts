@@ -49,9 +49,7 @@ export default defineConfig({
   document: {
     actions: (input, context) => {
       // For singleton types
-      if (singletonTypes.has(context.schemaType)) {
-        return input.filter(({ action }) => action && singletonActions.has(action))
-      }
+  
 
       // For all other types
       return input

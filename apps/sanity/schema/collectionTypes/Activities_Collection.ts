@@ -13,7 +13,6 @@ import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
 import FileView from '../ui/PortableText/content/offer/FileView'
-import { createAlertsObject } from '../shared/alerts'
 
 const title = 'Integracje'
 const icon = Handshake
@@ -41,11 +40,6 @@ export default defineType({
       name: 'pricing',
       title: 'Cennik',
       icon: CreditCardIcon,
-    },
-    {
-      name: 'alerts',
-      title: 'Alerty',
-      icon: InfoOutlineIcon,
     },
     {
       name: 'content',
@@ -494,9 +488,6 @@ export default defineType({
             }),
         }),
       ],
-    }),
-    createAlertsObject({
-      paragraph: 'Alerty wyświetlane w koszyku dla tego hotelu.',
     }),
     createPortableText({
       title: 'Treść integracji',
