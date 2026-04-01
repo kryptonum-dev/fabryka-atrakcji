@@ -18,7 +18,6 @@ import RowsWithIcons from '../ui/PortableText/content/offer/RowsWithIcons'
 import Timeline from '../ui/PortableText/content/offer/Timeline'
 import NextSteps from '../ui/PortableText/content/offer/NextSteps'
 import ImageWithHeadingAndText from '../ui/PortableText/content/offer/ImageWithHeadingAndText'
-import Amenities from '../ui/PortableText/content/hotel/Amenities'
 import Location from '../ui/PortableText/content/hotel/Location'
 import { createAlertsObject } from '../shared/alerts'
 
@@ -172,32 +171,6 @@ export default defineType({
         },
       ],
       group: 'general',
-    }),
-    defineField({
-      name: 'amenities',
-      type: 'array',
-      title: 'Udogodnienia',
-      description: 'Lista udogodnień dostępnych w przestrzeni eventowej',
-      validation: (Rule) => Rule.required().min(1).error('Przynajmniej jedno udogodnienie jest wymagane'),
-      of: [
-        {
-          type: 'reference',
-          to: { type: 'Amenities_Collection' },
-          options: {
-            disableNew: true,
-            filter: ({ parent, document }) => {
-              const language = (document as { language?: string })?.language
-              const selectedIds =
-                (parent as { _ref?: string }[])?.filter((item) => item._ref).map((item) => item._ref) || []
-              return {
-                filter: '!(_id in path("drafts.**")) && language == $lang',
-                params: { selectedIds, lang: language },
-              }
-            },
-          },
-        },
-      ],
-      group: 'details',
     }),
     defineField({
       name: 'location',
@@ -397,7 +370,6 @@ export default defineType({
         BlocksWithImage,
         RowsWithIcons,
         NextSteps,
-        Amenities,
         Location,
       ],
     }),

@@ -64,6 +64,7 @@ export default function InquiryForm({
   const t = translations[lang]
   const activityCount = inquiryItems.filter((item) => item.type === 'integracja').length
   const hotelCount = inquiryItems.filter((item) => item.type === 'hotel').length
+  const eventSpaceCount = inquiryItems.filter((item) => item.type === 'eventSpace').length
   const countLetters = (value: string) => (value.match(/\p{L}/gu) || []).length
 
   useEffect(() => {
@@ -221,6 +222,9 @@ export default function InquiryForm({
               <span className={`${styles.inquiryStat} ${styles.hotelStat}`}>
                 {lang === 'pl' ? 'Hotele' : 'Hotels'}: {hotelCount}
               </span>
+              <span className={`${styles.inquiryStat} ${styles.eventSpaceStat}`}>
+                {lang === 'pl' ? 'Przestrzenie' : 'Event spaces'}: {eventSpaceCount}
+              </span>
             </div>
           </div>
           <ul className={styles.inquiryList}>
@@ -241,10 +245,26 @@ export default function InquiryForm({
                     <span className={styles.inquiryName}>{item.name}</span>
                     <span
                       className={`${styles.inquiryType} ${
-                        item.type === 'hotel' ? styles.hotelType : styles.activityType
+                        item.type === 'hotel'
+                          ? styles.hotelType
+                          : item.type === 'eventSpace'
+                            ? styles.eventSpaceType
+                            : styles.activityType
                       }`}
                     >
-                      <span>{item.type === 'hotel' ? (lang === 'pl' ? 'Hotel' : 'Hotel') : (lang === 'pl' ? 'Integracja' : 'Activity')}</span>
+                      <span>
+                        {item.type === 'hotel'
+                          ? lang === 'pl'
+                            ? 'Hotel'
+                            : 'Hotel'
+                          : item.type === 'eventSpace'
+                            ? lang === 'pl'
+                              ? 'Przestrzeń'
+                              : 'Event space'
+                            : lang === 'pl'
+                              ? 'Integracja'
+                              : 'Activity'}
+                      </span>
                     </span>
                   </div>
                 </a>

@@ -11,6 +11,10 @@ export const EventSpaceCardQuery = `
     ${ImageDataQuery('mediaList[0].image')}
     ${ImageDataQuery('imageList[0]')}
   ),
+  location->{
+    name,
+    "slug": slug.current,
+  },
   address,
   areaM2,
   maxPeople,
@@ -22,6 +26,10 @@ export type EventSpaceCardProps = {
   name: string
   slug: string
   previewImage?: ImageDataProps
+  location: {
+    name: string
+    slug: string
+  }
   address: {
     city: string
     street: string
@@ -41,12 +49,14 @@ export type EventSpaceCardProps = {
     loading: 'lazy' | 'eager'
     fetchpriority: 'auto' | 'high'
   }
+  variant?: 'default'
 }
 
 const translations = {
   pl: {
     pricing: {
       from: 'od',
+      price: 'PLN netto / event',
       notAvailable: 'Cena dostępna w wycenie',
     },
     capacity: 'Maks.',
@@ -58,6 +68,7 @@ const translations = {
   en: {
     pricing: {
       from: 'from',
+      price: 'PLN net / event',
       notAvailable: 'Price available on request',
     },
     capacity: 'Max.',
@@ -70,7 +81,7 @@ const translations = {
 
 const t = translations[(getLangFromPath(Astro.url.pathname) as Language) || 'pl']
 
-const { name, slug, previewImage, address, areaM2, maxPeople, pricing, imgConfig, _id } =
+const { name, slug, previewImage, address, areaM2, maxPeople, pricing, imgConfig, _id, variant = 'default' } =
   Astro.props as EventSpaceCardProps
 
 const getVoivodeship = (voivodeship: string) => {
@@ -114,123 +125,311 @@ const getVoivodeship = (voivodeship: string) => {
 
 const pricingText =
   pricing?.pricingVisible && pricing?.displayMode === 'fromPrice' && pricing?.fromPrice
-    ? `${t.pricing.from} ${pricing.fromPrice} ${pricing.priceLabel || 'PLN'}`
+    ? `${t.pricing.from} ${pricing.fromPrice} ${pricing.priceLabel || t.pricing.price}`
     : t.pricing.notAvailable
 ---
 
-<article class="EventSpaceCard" data-id={_id}>
+<article class="EventSpaceCard" data-variant={variant} data-id={_id} data-pricing={pricing?.fromPrice || ''}>
   <div class="wrapper">
-    <a href={slug} class="background" aria-label={t.buttonFull}></a>
-    <div class="img-box">
-      {previewImage && <Image {...previewImage} {...imgConfig} />}
-    </div>
     <div class="content">
-      <span class="title">{name}</span>
+      <div class="upper-row">
+        <span class="title">{name}</span>
+      </div>
       <div class="details">
-        <span class="address">{address.city}, {getVoivodeship(address.voivodeship)}</span>
-        <span class="meta">{areaM2} {t.area}</span>
-        <span class="meta">{t.capacity} {maxPeople} {t.people}</span>
-        <span class="price">{pricingText}</span>
+        <span class="address"
+          ><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+            ><path
+              fill="#F67258"
+              d="M8.003 14.667c3.681 0 6.666-1.343 6.666-3 0-.844-.775-1.607-2.023-2.152-.761 1.397-1.922 2.601-3.397 3.231-.793.34-1.7.34-2.493 0-1.475-.63-2.636-1.834-3.397-3.231-1.248.545-2.023 1.308-2.023 2.152 0 1.657 2.985 3 6.667 3Z"
+            ></path><path
+              fill="#F67258"
+              fill-rule="evenodd"
+              d="M3.336 5.676c0-2.399 2.09-4.343 4.667-4.343s4.666 1.944 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.183 2.183 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z"
+              clip-rule="evenodd"></path></svg
+          >{address.city}{', '}{getVoivodeship(address.voivodeship)}</span
+        >
+        <span class="price"
+          ><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+            ><path
+              fill="#F67258"
+              fill-rule="evenodd"
+              d="M8.003 14.666a6.667 6.667 0 1 0 0-13.333 6.667 6.667 0 0 0 0 13.333ZM8.503 4a.5.5 0 1 0-1 0v.21c-1.087.195-2 1.012-2 2.123 0 1.278 1.208 2.167 2.5 2.167.917 0 1.5.603 1.5 1.166s-.583 1.167-1.5 1.167c-.918 0-1.5-.604-1.5-1.167a.5.5 0 1 0-1 0c0 1.111.913 1.928 2 2.123v.21a.5.5 0 0 0 1 0v-.21c1.087-.195 2-1.012 2-2.123 0-1.278-1.209-2.166-2.5-2.166-.918 0-1.5-.604-1.5-1.167 0-.563.582-1.167 1.5-1.167.917 0 1.5.604 1.5 1.167a.5.5 0 0 0 1 0c0-1.11-.913-1.928-2-2.122V4Z"
+              clip-rule="evenodd"></path></svg
+          >{pricingText}</span
+        >
+        <span class="max-people">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+            ><path
+              fill="#F67258"
+              d="M4.664 8.666V8A2 2 0 0 0 2.67 6c.005-.219.018-.378.046-.52A2.667 2.667 0 0 1 4.81 3.383c.258-.051.568-.051 1.187-.051h1.5v5.333H4.664ZM8.497 8.666h2.834V8a2 2 0 0 1 1.995-2 3.065 3.065 0 0 0-.046-.52 2.667 2.667 0 0 0-2.096-2.096c-.257-.051-.567-.051-1.187-.051h-1.5v5.333Z"
+            ></path><path
+              fill="#F67258"
+              d="M12.299 12H3.706c-.184 0-.364-.02-.537-.06v.727a.5.5 0 0 1-1 0v-1.232a2.365 2.365 0 0 1-.833-1.805V8a1.333 1.333 0 1 1 2.667 0v.8c0 .295.238.534.533.534h6.933a.533.533 0 0 0 .534-.534V8a1.333 1.333 0 0 1 2.666 0v1.63c0 .723-.323 1.37-.833 1.804v1.233a.5.5 0 1 1-1 0v-.728c-.173.04-.352.061-.537.061Z"
+            ></path></svg
+          >
+          {areaM2} {t.area} • {t.capacity} {maxPeople} {t.people}
+        </span>
       </div>
       <Button href={slug} tabIndex={-1} theme="primary">{t.button}</Button>
     </div>
+    <div class="img-box">
+      {previewImage && <Image {...previewImage} {...imgConfig} />}
+    </div>
+    <a href={slug} class="background" aria-label={t.buttonFull}></a>
   </div>
 </article>
 
 <style lang="scss">
   .EventSpaceCard {
+    @mixin vertical-layout {
+      .wrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        padding: 0;
+        gap: 0;
+        align-items: start;
+
+        &::before {
+          display: none;
+        }
+
+        .img-box {
+          position: relative;
+          grid-column: 1/2;
+          grid-row: 1/2;
+          margin: 1px 1px 0;
+          overflow: hidden;
+          border-radius: 0.62rem 0.62rem 0 0;
+
+          img {
+            width: 100%;
+            height: auto;
+            transition: transform 400ms var(--easing);
+          }
+        }
+
+        .content {
+          padding: 1rem;
+          grid-column: 1/2;
+          grid-row: 2/3;
+          height: 100%;
+
+          .upper-row {
+            margin-bottom: 1rem;
+          }
+
+          .details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+          }
+
+          :global(a) {
+            max-width: 100%;
+            margin-top: auto;
+            width: 100%;
+
+            :global(span) {
+              margin: 0 auto;
+              padding-right: 1.75rem;
+            }
+          }
+        }
+      }
+
+      &:has(.wrapper .background:hover),
+      &:has(.wrapper .content > a:hover) {
+        & .wrapper::before {
+          opacity: 1;
+          transform: scaleY(1);
+          transition: transform 400ms var(--easing);
+        }
+
+        .img-box img {
+          transform: scale(1.15) rotate(3deg);
+        }
+      }
+    }
+
     border-radius: 0.75rem;
     overflow: hidden;
     padding: 1px;
+    isolation: isolate;
     position: relative;
-    background: conic-gradient(
-      from 135deg at 50% 50%,
-      #798ddc 0deg,
-      #e7c78f 90deg,
-      #fa7468 266.4deg,
-      #798ddc 360deg
-    );
+
+    &::before,
+    &::after {
+      inset: 0px;
+      position: absolute;
+      content: '';
+      opacity: 0;
+      transition: opacity 150ms;
+    }
+
+    &::before {
+      z-index: -3;
+      background-color: var(--primary-800);
+    }
+
+    &::after {
+      z-index: -2;
+      background: conic-gradient(
+        from 135deg at 50% 50%,
+        #798ddc 0deg,
+        #e7c78f 90deg,
+        #fa7468 266.40000343322754deg,
+        #798ddc 360deg
+      );
+      transition: opacity 150ms;
+    }
 
     .wrapper {
-      position: relative;
       display: grid;
-      grid-template-columns: minmax(16rem, 20rem) 1fr;
-      gap: 1rem 1.5rem;
-      height: 100%;
-      background: var(--neutral-100);
-      border-radius: 0.7rem;
-      padding: 0.375rem 1rem 0.375rem 0.375rem;
-      align-items: center;
-    }
-
-    .background {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-
-    .img-box {
-      position: relative;
-      z-index: 1;
-      min-height: 100%;
+      grid-template-columns: auto 1fr;
+      isolation: isolate;
       overflow: hidden;
-      border-radius: 0.5rem;
-
-      img {
-        width: 100%;
-        height: 100%;
-        min-height: 14rem;
-        object-fit: cover;
-      }
-    }
-
-    .content {
+      gap: 0.75rem 2rem;
+      padding: 0.375rem 1.25rem 0.375rem 0.375rem;
+      border-radius: 0.75rem;
       position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 1rem 0;
-    }
+      height: 100%;
+      align-items: center;
 
-    .title {
-      color: var(--primary-800, #45051c);
-      font-size: var(--typography-body-2xl, 1.5rem);
-      font-weight: 700;
-      line-height: 1.25;
-      letter-spacing: -0.04em;
-      margin-bottom: 1rem;
-    }
+      &::after {
+        position: absolute;
+        content: '';
+        background-color: var(--neutral-100);
+        inset: 1px;
+        border-radius: 0.62rem;
+        z-index: -2;
+      }
 
-    .details {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem 1rem;
-      margin-bottom: 1rem;
-    }
+      &::before {
+        position: absolute;
+        content: '';
+        transform: translate(-2.4rem, -0.7rem) rotate(-2deg);
+        background-color: var(--neutral-300);
+        opacity: 0;
+        inset: 1px;
+        transition:
+          opacity 150ms,
+          transform 250ms var(--easing);
+        border-radius: 0.62rem;
+        z-index: -1;
+      }
 
-    .address,
-    .meta,
-    .price {
-      color: var(--primary-700, #600d2a);
-      font-size: var(--typography-body-m, 0.875rem);
-      line-height: 1.6;
-    }
+      .background {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
 
-    .address {
-      width: 100%;
-      color: var(--primary-800, #45051c);
-      font-weight: 600;
-    }
+      .img-box {
+        grid-column: 1/2;
+        position: relative;
+        height: 100%;
+        grid-row: 1/2;
+        z-index: -1;
+        cursor: pointer;
 
-    @media (max-width: 56.1875rem) {
-      .wrapper {
-        grid-template-columns: 1fr;
-        padding: 0.375rem;
+        img {
+          width: clamp(200px, calc(200vw / 7.68), 325px);
+          aspect-ratio: 20.3125/13.5626;
+          height: 100%;
+        }
       }
 
       .content {
-        padding: 0.75rem;
+        grid-column: 2/3;
+        grid-row: 1/2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 1rem 0;
+
+        .upper-row {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1.25rem;
+          flex-wrap: wrap;
+
+          .title {
+            color: var(--primary-800, #45051c);
+            font-size: var(--typography-body-2xl, 1.5rem);
+            font-weight: 700;
+            line-height: 1.25;
+            letter-spacing: -0.04em;
+          }
+        }
+
+        .details {
+          display: grid;
+          gap: 0.25rem 1rem;
+          grid-template-columns: repeat(2, auto);
+          grid-template-rows: auto 1fr;
+          margin-bottom: 1.25rem;
+
+          span {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+
+            svg {
+              margin-top: 4px;
+              flex-shrink: 0;
+            }
+
+            &:first-child {
+              grid-column: 1/3;
+              grid-row: 1/2;
+            }
+
+            &:nth-child(2) {
+              grid-column: 1/2;
+              grid-row: 2/3;
+            }
+
+            &:nth-child(3) {
+              grid-column: 2/3;
+              grid-row: 2/3;
+            }
+          }
+        }
+
+        :global(a) {
+          z-index: 5;
+        }
+      }
+    }
+
+    &:has(.wrapper .background:hover),
+    &:has(.wrapper .content > a:hover) {
+      & .wrapper::before {
+        opacity: 1;
+        transform: translate(0) rotate(0deg);
+      }
+    }
+
+    &:has(.wrapper .background:focus:not(:focus-visible)),
+    &:has(.wrapper .content > a:focus:not(:focus-visible)) {
+      &::after {
+        opacity: 1;
+      }
+    }
+
+    &:has(.wrapper .background:focus-visible),
+    &:has(.wrapper .content > a:focus-visible) {
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    &[data-variant='default'] {
+      @media (max-width: 69.3125rem) {
+        @include vertical-layout;
       }
     }
   }

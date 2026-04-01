@@ -73,6 +73,96 @@ export default defineType({
       group: 'content',
     }),
     defineField({
+      name: 'capacityFilterOptions',
+      type: 'array',
+      title: 'Opcje filtra liczby osób',
+      description: 'Zarządzaj dostępnymi przedziałami liczby osób wyświetlanymi w filtrze.',
+      group: 'content',
+      of: [
+        defineField({
+          name: 'option',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'min',
+              type: 'number',
+              title: 'Minimum',
+              validation: (Rule) => Rule.required().min(1),
+            }),
+            defineField({
+              name: 'max',
+              type: 'number',
+              title: 'Maksimum (opcjonalne)',
+              validation: (Rule) =>
+                Rule.custom((value, context) => {
+                  const min = (context.parent as { min?: number })?.min
+                  if (!value) return true
+                  if (value < 1) return 'Maksimum musi być większe niż 0'
+                  if (min && value <= min) return 'Maksimum musi być większe niż minimum'
+                  return true
+                }),
+            }),
+          ],
+          preview: {
+            select: {
+              min: 'min',
+              max: 'max',
+            },
+            prepare: ({ min, max }) => ({
+              title: max ? `${min}–${max} osób` : `od ${min} osób`,
+              subtitle: max ? `${min}–${max} osób` : `od ${min} osób`,
+            }),
+          },
+        }),
+      ],
+      validation: (Rule) => Rule.required().min(1),
+    }),
+    defineField({
+      name: 'areaFilterOptions',
+      type: 'array',
+      title: 'Opcje filtra powierzchni (m2)',
+      description: 'Zarządzaj dostępnymi przedziałami powierzchni wyświetlanymi w filtrze.',
+      group: 'content',
+      of: [
+        defineField({
+          name: 'option',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'min',
+              type: 'number',
+              title: 'Minimum (m2)',
+              validation: (Rule) => Rule.required().min(1),
+            }),
+            defineField({
+              name: 'max',
+              type: 'number',
+              title: 'Maksimum (m2, opcjonalne)',
+              validation: (Rule) =>
+                Rule.custom((value, context) => {
+                  const min = (context.parent as { min?: number })?.min
+                  if (!value) return true
+                  if (value < 1) return 'Maksimum musi być większe niż 0'
+                  if (min && value <= min) return 'Maksimum musi być większe niż minimum'
+                  return true
+                }),
+            }),
+          ],
+          preview: {
+            select: {
+              min: 'min',
+              max: 'max',
+            },
+            prepare: ({ min, max }) => ({
+              title: max ? `${min}–${max} m2` : `${min}+ m2`,
+              subtitle: max ? `${min}–${max} m2` : `${min}+ m2`,
+            }),
+          },
+        }),
+      ],
+      validation: (Rule) => Rule.required().min(1),
+    }),
+    defineField({
       name: 'formHeading',
       type: 'Heading',
       title: 'Nagłówek formularza',

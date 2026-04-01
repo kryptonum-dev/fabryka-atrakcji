@@ -10,9 +10,9 @@ import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/p
 import PortableText from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import ContentPT, { type Props as ContentPTProps, ContentPT_Query } from '@/src/components/ui/content-pt/index.astro'
+import Button from '@/src/components/ui/Button'
 import Faq, { Faq_Query } from '@/src/components/ui/content-pt/offer/Faq.astro'
 import Testimonials, { Testimonials_Query } from '@/src/components/ui/content-pt/offer/Testimonials.astro'
-import Amenities, { Amenities_Query } from '@/src/components/ui/content-pt/hotel/Amenities.astro'
 import Location, { Location_Query } from '@/src/components/ui/content-pt/hotel/Location.astro'
 import Checklist, { Checklist_Query } from '@/src/components/ui/content-pt/shared/Checklist.astro'
 import BlocksWithImage, { BlocksWithImage_Query } from '@/src/components/ui/content-pt/offer/BlocksWithImage.astro'
@@ -37,10 +37,6 @@ type SingleEventSpaceProps = {
     youtubeId?: string
   }>
   imageList?: ImageDataProps[]
-  amenities: Array<{
-    _id: string
-    name: string
-  }>
   location: {
     _id: string
     name: string
@@ -138,10 +134,6 @@ export async function fetchData(slug: string, lang: Language) {
           youtubeId
         },
         ${ImageDataQuery('imageList[]')}
-        amenities[]->{
-          _id,
-          name,
-        },
         location->{
           _id,
           name
@@ -154,7 +146,7 @@ export async function fetchData(slug: string, lang: Language) {
         },
         popularityIndex,
         pricing,
-        ${ContentPT_Query([Faq_Query, Testimonials_Query, Amenities_Query, Location_Query, Checklist_Query, BlocksWithImage_Query, ImageWithHeadingAndText_Query, RowsWithIcons_Query, Timeline_Query, NextSteps_Query])}
+        ${ContentPT_Query([Faq_Query, Testimonials_Query, Location_Query, Checklist_Query, BlocksWithImage_Query, ImageWithHeadingAndText_Query, RowsWithIcons_Query, Timeline_Query, NextSteps_Query])}
         formOverrides {
           ${PortableTextQuery('heading')}
           ${PortableTextQuery('paragraph')}
@@ -212,6 +204,11 @@ const translations = {
     showOnMap: 'Pokaż na mapie',
     pricingFrom: 'Cena od',
     pricingQuoteOnly: 'Cena dostępna w wycenie',
+    askForQuote: 'Zapytaj o wycenę',
+    addToInquiry: 'Dodaj do zapytania',
+    removeFromInquiry: 'Usuń z zapytania',
+    addedAlert: 'Dodano do zapytania',
+    removedAlert: 'Usunięto z zapytania',
   },
   en: {
     area: 'Area',
@@ -219,6 +216,11 @@ const translations = {
     showOnMap: 'Show on map',
     pricingFrom: 'Price from',
     pricingQuoteOnly: 'Price available on request',
+    askForQuote: 'Ask for a quote',
+    addToInquiry: 'Add to inquiry',
+    removeFromInquiry: 'Remove from inquiry',
+    addedAlert: 'Added to inquiry',
+    removedAlert: 'Removed from inquiry',
   },
 } as const
 
@@ -252,7 +254,14 @@ const pricingText =
     ]}
   />
 
-  <section class="EventSpaceHero max-width">
+  <section
+    class="EventSpaceHero max-width"
+    data-id={page._id}
+    data-name={page.name}
+    data-slug={page.slug}
+    data-image={mediaItems[0]?.asset?.url || ''}
+    data-price={page.pricing?.fromPrice || ''}
+  >
     <div class="copy">
       <PortableText value={page.title} heading="h1" class="heading" />
       <p class="description">{page.description}</p>
@@ -264,6 +273,21 @@ const pricingText =
       <a href={page.googleMaps.googleMapsLink} target="_blank" rel="noopener noreferrer" class="map-link">
         {t.showOnMap}
       </a>
+      <div class="actions">
+        <Button theme="primary" shade="dark" href={lang === 'pl' ? '#kontakt' : '#contact'}>
+          {t.askForQuote}
+        </Button>
+        <button
+          type="button"
+          class="inquiry-btn"
+          data-label-add={t.addToInquiry}
+          data-label-remove={t.removeFromInquiry}
+          data-alert-add={t.addedAlert}
+          data-alert-remove={t.removedAlert}
+        >
+          {t.addToInquiry}
+        </button>
+      </div>
     </div>
     {
       mediaItems.length > 0 && (
@@ -288,7 +312,6 @@ const pricingText =
         additionalComponents={{
           Faq,
           Testimonials,
-          Amenities,
           Location,
           Checklist,
           BlocksWithImage,
@@ -354,6 +377,34 @@ const pricingText =
     text-underline-offset: 0.2rem;
   }
 
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .inquiry-btn {
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    border-radius: 999px;
+    border: 0.0625rem solid var(--primary-300, #d48d7d);
+    background: var(--neutral-100, #faf7f7);
+    color: var(--primary-800, #45051c);
+    font-weight: 700;
+    line-height: 1;
+    transition:
+      background-color 180ms var(--easing),
+      border-color 180ms var(--easing),
+      transform 180ms var(--easing);
+
+    &:hover {
+      background: var(--neutral-200, #f5f1ec);
+      border-color: var(--primary-500, #f67258);
+      transform: translateY(-1px);
+    }
+  }
+
   .gallery {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -386,3 +437,104 @@ const pricingText =
     }
   }
 </style>
+
+<script>
+  import { addToInquiry, isInInquiry, removeFromInquiry } from '@/src/utils/inquiry-store'
+  import { dispatchToast } from '@/src/utils/events'
+  import { trackEvent } from '@/utils/track-event'
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const section = document.querySelector('.EventSpaceHero') as HTMLElement | null
+    const inquiryButton = document.querySelector('.inquiry-btn') as HTMLButtonElement | null
+    if (!section || !inquiryButton) return
+
+    const itemId = section.dataset.id || ''
+    const itemName = section.dataset.name || ''
+    const itemImage = section.dataset.image || ''
+    const itemSlug = section.dataset.slug || ''
+    const itemUrl = itemSlug ? new URL(itemSlug, window.location.origin).toString() : window.location.href
+    const priceValue = Number(section.dataset.price || '') || undefined
+    const labelAdd = inquiryButton.dataset.labelAdd || ''
+    const labelRemove = inquiryButton.dataset.labelRemove || ''
+    const alertAdd = inquiryButton.dataset.alertAdd || labelAdd
+    const alertRemove = inquiryButton.dataset.alertRemove || labelRemove
+
+    trackEvent({
+      ga4: {
+        eventName: 'view_item',
+        params: {
+          currency: 'PLN',
+          value: priceValue,
+          items: [
+            {
+              item_id: itemId,
+              item_name: itemName,
+              price: priceValue,
+            },
+          ],
+        },
+      },
+      meta: {
+        eventName: 'ViewContent',
+        contentName: itemName || document.title,
+        params: {
+          content_ids: itemId ? [itemId] : undefined,
+          content_type: 'event_space',
+          value: priceValue,
+          currency: priceValue ? 'PLN' : undefined,
+        },
+      },
+    })
+
+    const updateButton = () => {
+      const inInquiry = itemId ? isInInquiry(itemId) : false
+      inquiryButton.textContent = inInquiry ? labelRemove : labelAdd
+      inquiryButton.dataset.inInquiry = inInquiry ? 'true' : 'false'
+    }
+
+    updateButton()
+
+    inquiryButton.addEventListener('click', () => {
+      if (!itemId) return
+
+      if (isInInquiry(itemId)) {
+        removeFromInquiry(itemId)
+        dispatchToast(alertRemove, 'success')
+        updateButton()
+        return
+      }
+
+      const added = addToInquiry({
+        type: 'eventSpace',
+        id: itemId,
+        name: itemName,
+        image: itemImage,
+        url: itemUrl,
+      })
+
+      if (added) {
+        dispatchToast(alertAdd, 'success')
+        updateButton()
+
+        trackEvent({
+          ga4: {
+            eventName: 'add_to_inquiry',
+            params: {
+              item_id: itemId,
+              item_name: itemName,
+              item_type: 'eventSpace',
+            },
+          },
+          meta: {
+            eventName: 'AddToWishlist',
+            contentName: itemName,
+            params: {
+              content_ids: [itemId],
+              content_type: 'event_space',
+            },
+          },
+        })
+      }
+    })
+  })
+</script>

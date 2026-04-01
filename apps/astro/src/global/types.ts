@@ -144,3 +144,44 @@ export type BaseActivityProps = {
   }
   alerts?: Alert[]
 }
+
+export type BaseEventSpaceProps = {
+  _id: string
+  name: string
+  slug: string
+  title: PortableTextValue
+  description: string
+  imageList?: ImageDataProps[]
+  mediaList?: {
+    image: ImageDataProps
+    youtubeId?: string
+  }[]
+  amenities: Array<{
+    _id: string
+    name: string
+    icon?: any
+  }>
+  location: {
+    _id: string
+    name: string
+  }
+  areaM2: number
+  maxPeople: number
+  address: {
+    street: string
+    postalCode: string
+    city: string
+    voivodeship: string
+  }
+  googleMaps: {
+    googleMapsLink: string
+  }
+  popularityIndex: number
+  pricing?: {
+    pricingVisible?: boolean
+    displayMode?: 'quoteOnly' | 'fromPrice'
+    fromPrice?: number
+    priceLabel?: string
+  }
+  alerts?: Alert[]
+}

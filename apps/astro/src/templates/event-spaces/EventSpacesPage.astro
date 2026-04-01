@@ -6,11 +6,11 @@ import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
-import Listing, { type ListingProps } from '@/src/components/event-spaces/Listing.astro'
+import Listing, { Listing_Query, type ListingProps } from '@/src/components/event-spaces/Listing.astro'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
 import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
-import { EventSpaceCardQuery } from '@/src/components/ui/EventSpaceCard.astro'
+import { getOrderClause } from '@/src/utils/filters'
 
 export const ITEMS_PER_PAGE = 16
 
@@ -28,14 +28,22 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   doNotIndex?: boolean
 }
 
-const buildSearchPattern = (value?: string | null) => {
-  const trimmed = value?.trim()
-  return trimmed ? `*${trimmed}*` : null
-}
-
 export async function fetchData(lang: Language, pageNumber: number, _url: string, searchParams?: URLSearchParams) {
   const searchQuery = searchParams?.get('search')
-  const searchPattern = buildSearchPattern(searchQuery)
+  const trimmedSearchQuery = searchQuery?.trim()
+  const searchPattern = trimmedSearchQuery ? `*${trimmedSearchQuery}*` : null
+  const location = searchParams?.get('location') || null
+  const minArea = searchParams?.get('minArea') ? parseInt(searchParams.get('minArea')!) : null
+  const maxArea = searchParams?.get('maxArea') ? parseInt(searchParams.get('maxArea')!) : null
+  const minCapacity = searchParams?.get('minCapacity') ? parseInt(searchParams.get('minCapacity')!) : null
+  const maxCapacity = searchParams?.get('maxCapacity') ? parseInt(searchParams.get('maxCapacity')!) : null
+  const order = (searchParams?.get('order') || 'popularity') as
+    | 'popularity'
+    | 'newest'
+    | 'priceDesc'
+    | 'priceAsc'
+    | 'searchMatching'
+  const orderClause = getOrderClause(order, !!searchPattern, 'eventSpaces')
   const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
   const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
 
@@ -50,6 +58,19 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       heading: PortableTextValue
       paragraph: PortableTextValue
       checklist?: string[]
+      escapeHatchHeading?: string
+      escapeHatchText?: string
+      capacityFilterOptions?: {
+        min: number
+        max?: number
+      }[]
+      areaFilterOptions?: {
+        min: number
+        max?: number
+      }[]
+      capacityFilterSource?: {
+        maxPeople: number
+      }[]
       components: ComponentsProps
       noResults: {
         components: ComponentsProps
@@ -87,21 +108,23 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
           },
         },
         checklist[],
+        escapeHatchHeading,
+        escapeHatchText,
+        capacityFilterOptions[]{
+          min,
+          max
+        },
+        areaFilterOptions[]{
+          min,
+          max
+        },
+        capacityFilterSource[]{
+          maxPeople
+        },
         noResults {
           ${Components_Query}
         },
-        "totalItems": count(*[
-          _type == "EventSpaces_Collection"
-          && language == $language
-          && (!defined($searchPattern) || name match $searchPattern)
-        ]),
-        "listing": *[
-          _type == "EventSpaces_Collection"
-          && language == $language
-          && (!defined($searchPattern) || name match $searchPattern)
-        ] | order(popularityIndex desc)[$PAGINATION_BEFORE...$PAGINATION_AFTER] {
-          ${EventSpaceCardQuery}
-        },
+        ${Listing_Query(orderClause)}
         ${Components_Query}
       }
     `,
@@ -110,6 +133,11 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       PAGINATION_BEFORE,
       PAGINATION_AFTER,
       searchPattern,
+      location,
+      minArea,
+      maxArea,
+      minCapacity,
+      maxCapacity,
     },
   })
 
@@ -178,7 +206,7 @@ const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.par
     {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
   </Fragment>
 
-  <Breadcrumbs data={breadcrumbs} />
+  <Breadcrumbs data={breadcrumbs} firstItemType="HotelsListing" />
   <Listing
     heading={page.heading}
     paragraph={page.paragraph}
@@ -186,6 +214,13 @@ const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.par
     listing={page.listing}
     currentPage={currentPage}
     checklist={page.checklist}
+    locations={page.locations}
+    areaFilterOptions={page.areaFilterOptions}
+    areaFilterSource={page.areaFilterSource}
+    capacityFilterSource={page.capacityFilterSource}
+    capacityFilterOptions={page.capacityFilterOptions}
+    escapeHintText={page.escapeHatchHeading}
+    escapeHintCta={page.escapeHatchText}
   />
   {resolvedFormHeading && (
     <ContactForm
@@ -203,3 +238,50 @@ const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.par
   )}
   <Components data={page.listing.length > 0 ? filteredComponents : page?.noResults?.components} hasPreviousSections />
 </Layout>
+
+<script>
+  import { trackEvent } from '@/utils/track-event'
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const items = document.querySelectorAll('.EventSpaceCard') as NodeListOf<HTMLElement>
+    if (!items.length) return
+
+    const trackedItems = Array.from(items)
+      .slice(0, 10)
+      .map((item, index) => {
+        const itemName = item.querySelector('.title')?.textContent?.trim() || ''
+        const itemId = item.dataset.id || ''
+        const rawPrice = Number(item.dataset.pricing || '')
+
+        return {
+          item_name: itemName,
+          item_id: itemId,
+          item_price: Number.isFinite(rawPrice) ? rawPrice : undefined,
+          price: Number.isFinite(rawPrice) ? rawPrice : undefined,
+          index,
+        }
+      })
+
+    if (!trackedItems.length) return
+
+    const contentIds = trackedItems.map((item) => item.item_id).filter(Boolean) as string[]
+
+    trackEvent({
+      ga4: {
+        eventName: 'view_item_list',
+        params: {
+          items: trackedItems,
+          item_list_name: 'Event Spaces Listing',
+        },
+      },
+      meta: {
+        eventName: 'ViewCategory',
+        contentName: 'Event Spaces Listing',
+        params: {
+          category_name: 'Event Spaces Listing',
+          content_ids: contentIds.length ? contentIds : undefined,
+        },
+      },
+    })
+  })
+</script>

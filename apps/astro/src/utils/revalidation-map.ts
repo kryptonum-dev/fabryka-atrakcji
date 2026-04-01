@@ -10,6 +10,7 @@ export type SanityDocRef = {
 const COLLECTION_LISTING_URLS: Record<string, string[]> = {
   Activities_Collection: ['/pl/integracje/', '/en/activities/'],
   Hotels_Collection: ['/pl/hotele/', '/en/hotels/'],
+  EventSpaces_Collection: ['/pl/przestrzenie-eventowe/', '/en/event-spaces/'],
   BlogPost_Collection: ['/pl/blog/', '/en/blog/'],
   CaseStudy_Collection: ['/pl/realizacje/', '/en/case-studies/'],
   ActivitiesCategory_Collection: ['/pl/integracje/', '/en/activities/'],
@@ -71,6 +72,11 @@ export function getDirectUrls(doc: SanityDocRef): string[] {
       urls.push(`${base}/en/hotels/`)
       break
 
+    case 'EventSpaces_Page':
+      urls.push(`${base}/pl/przestrzenie-eventowe/`)
+      urls.push(`${base}/en/event-spaces/`)
+      break
+
     case 'Blog_Page':
       urls.push(`${base}/pl/blog/`)
       urls.push(`${base}/en/blog/`)
@@ -101,6 +107,8 @@ export function getDirectUrls(doc: SanityDocRef): string[] {
     case 'Amenities_Collection':
       urls.push(`${base}/pl/hotele/`)
       urls.push(`${base}/en/hotels/`)
+      urls.push(`${base}/pl/przestrzenie-eventowe/`)
+      urls.push(`${base}/en/event-spaces/`)
       break
 
     case 'global':
@@ -110,6 +118,8 @@ export function getDirectUrls(doc: SanityDocRef): string[] {
       urls.push(`${base}/en/activities/`)
       urls.push(`${base}/pl/hotele/`)
       urls.push(`${base}/en/hotels/`)
+      urls.push(`${base}/pl/przestrzenie-eventowe/`)
+      urls.push(`${base}/en/event-spaces/`)
       urls.push(`${base}/pl/blog/`)
       urls.push(`${base}/en/blog/`)
       urls.push(`${base}/pl/realizacje/`)
