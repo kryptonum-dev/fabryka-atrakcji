@@ -7,8 +7,6 @@ const page = Number(Astro.params.page) || 1
 const category = Astro.params.category as string
 const data = await fetchData('pl', category, page, Astro.url.searchParams)
 
-console.log('Rendering filtered category pagination page:', category, 'page:', page, new Date().toISOString())
-
 // Calculate canonical URL (remove /filtr from current path)
 const canonicalUrl = Astro.url.origin + `/pl/integracje/kategoria/${category}/strona/${page}/`
 
