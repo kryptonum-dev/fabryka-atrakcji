@@ -481,17 +481,6 @@ export default function CookieConsentClient({
       }
       setConsentSelections({ ...DEFAULT_SELECTIONS })
       setIsPreferencesOpen(false)
-
-      // Initialize tracking with defaults (denied) to allow cookieless pings
-      const runDefaults = async () => {
-        setAnalyticsReady(false)
-        try {
-          await initializeTracking({ ...DEFAULT_SELECTIONS })
-        } finally {
-          setAnalyticsReady(true)
-        }
-      }
-      void runDefaults()
       return
     }
 
@@ -555,7 +544,6 @@ export default function CookieConsentClient({
       } finally {
         setAnalyticsReady(true)
       }
-      // Dispatch consent update AFTER analytics ready to ensure queue has the ready flag
       document.dispatchEvent(new CustomEvent('cookie_consent_updated', { detail: consentMode }))
     },
     [initializeTracking, metaPixelId]

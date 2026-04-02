@@ -388,9 +388,7 @@ function enqueue(
       'cookie_consent_updated',
       () => {
         waitingForConsent = false
-        if (!waitingForReadiness) {
-          flushQueue()
-        }
+        flushQueue()
       },
       { once: true }
     )
@@ -402,9 +400,7 @@ function enqueue(
       'analytics_ready',
       () => {
         waitingForReadiness = false
-        if (!waitingForConsent) {
-          flushQueue()
-        }
+        flushQueue()
       },
       { once: true }
     )
@@ -602,7 +598,6 @@ export function trackEvent<
       : Math.random().toString(36).slice(2))
   }
 
-  // Skip all analytics on localhost / dev
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     console.debug('[Analytics] Skipped — dev environment')
     return params.eventId || crypto.randomUUID()
