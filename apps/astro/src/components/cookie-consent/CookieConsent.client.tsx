@@ -187,65 +187,26 @@ async function ensureMetaPixel(pixelId: string | null | undefined, selection: Co
   }
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return
 
-  // CRITICAL: Only load script if marketing consent is granted
-  // Meta Pixel has no cookieless mode (unlike GA4)
-  if (!selection.marketing) {
-    return
-  }
-
   bootstrapMetaPixel()
+  const scriptPromise = loadMetaPixelScript()
+  const advancedMatching = buildAdvancedMatching(selection)
 
   window.__metaPixelId = pixelId
   window.__metaPixelAdvancedMatching = Boolean(selection.advanced_matching)
 
-  // Ensure script is fully loaded
-  await loadMetaPixelScript()
-
-  // CRITICAL: Wait for callMethod to be available (indicates pixel is ready to accept commands)
-  // Without this, fbq('init') gets queued instead of executed immediately
-  let waitAttempts = 0
-  while (typeof (window.fbq as any)?.callMethod !== 'function' && waitAttempts < 50) {
-    await new Promise(resolve => setTimeout(resolve, 50))
-    waitAttempts++
-  }
-
-  if (typeof (window.fbq as any)?.callMethod !== 'function') {
-    console.error('[Meta Pixel] Failed to initialize: callMethod not available')
-    return
-  }
-
-  const isFirstInit = !loadedMetaPixels.has(pixelId)
-
-  if (isFirstInit) {
+  if (!loadedMetaPixels.has(pixelId)) {
     loadedMetaPixels.add(pixelId)
-
-    const fbqFn = window.fbq as any
-    
-    // CRITICAL: Use callMethod.apply() to bypass queue and execute immediately
-    // Set consent before init (per Meta docs)
-    fbqFn.callMethod.apply(fbqFn, ['consent', 'grant'])
-    fbqFn.callMethod.apply(fbqFn, ['set', 'autoConfig', false, pixelId])
-
-    const advancedMatching = buildAdvancedMatching(selection)
-    
-    // Call init via callMethod to execute immediately (not queue)
+    window.fbq?.('set', 'autoConfig', false, pixelId)
     if (advancedMatching) {
-      fbqFn.callMethod.apply(fbqFn, ['init', pixelId, advancedMatching])
+      window.fbq?.('init', pixelId, advancedMatching)
     } else {
-      fbqFn.callMethod.apply(fbqFn, ['init', pixelId])
+      window.fbq?.('init', pixelId)
     }
-
-    // Brief wait for internal pixel initialization
-    await new Promise(resolve => setTimeout(resolve, 100))
-  } else {
-    // Update advanced matching if needed
-    if (selection.advanced_matching) {
-      const advancedMatching = buildAdvancedMatching(selection)
-      if (advancedMatching) {
-        window.fbq?.('init', pixelId, advancedMatching)
-      }
-    }
+  } else if (advancedMatching) {
+    window.fbq?.('init', pixelId, advancedMatching)
   }
+
+  await scriptPromise
 }
 
 function ensureGtagScript(primaryId?: string | null) {
@@ -463,12 +424,15 @@ export default function CookieConsentClient({
 
   const initializeTracking = useCallback(
     async (selection: ConsentSelections) => {
-      // Always initialize Meta Pixel (consent is set inside ensureMetaPixel BEFORE init)
       if (metaPixelId) {
-        await ensureMetaPixel(metaPixelId, selection)
+        if (selection.marketing) {
+          await ensureMetaPixel(metaPixelId, selection)
+          window.fbq?.('consent', 'grant')
+        } else {
+          window.fbq?.('consent', 'revoke')
+        }
       }
 
-      // Always initialize gtag scripts (if IDs exist), consent handled via gtag('consent', ...)
       const primaryGtagId = ga4Id ?? googleAdsId ?? null
       const requiresGtag = Boolean(primaryGtagId)
 
