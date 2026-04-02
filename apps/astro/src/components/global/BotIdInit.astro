@@ -1,8 +1,0 @@
-<script>
-  import { initBotId } from 'botid/client/core'
-  // TODO: Remove DEV guard after testing
-  if (!import.meta.env.DEV) {
-    initBotId({ protect: [{ path: '/api/contact', method: 'POST' }] })
-  }
-</script>
-

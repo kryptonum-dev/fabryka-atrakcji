@@ -1,6 +1,5 @@
 export const prerender = false
 
-import { checkBotId } from 'botid/server'
 import { REGEX } from '@/global/constants'
 import { htmlToString } from '@/utils/html-to-string'
 import sanityFetch from '@/utils/sanity.fetch'
@@ -102,26 +101,6 @@ const buildTeamData = (data: Props, isInquiry: boolean): TeamNotificationData =>
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    if (!import.meta.env.DEV) {
-      console.info('[BotID] x-is-human:', request.headers.has('x-is-human') ? 'present' : 'MISSING')
-
-      const verification = await checkBotId({
-        advancedOptions: { checkLevel: 'basic' },
-      })
-      console.info('[BotID] Result:', JSON.stringify({
-        isBot: verification?.isBot,
-        isHuman: verification?.isHuman,
-        bypassed: verification?.bypassed,
-      }))
-
-      if (verification?.isBot) {
-        return new Response(
-          JSON.stringify({ message: 'Access denied', success: false }),
-          { status: 403, headers: { 'content-type': 'application/json' } }
-        )
-      }
-    }
-
     const data = (await request.json()) as Props
     const { email, legal, phone, lang, utm } = data
 

@@ -8,7 +8,6 @@ import Header from './Header.astro'
 import CookieConsent from '@/components/cookie-consent/CookieConsent.astro'
 import Head, { type HeadProps } from './Head.astro'
 import Toast from '../components/ui/Toast.astro'
-import BotIdInit from '@/components/global/BotIdInit.astro'
 import InquiryWidget from '@/components/global/InquiryWidget/InquiryWidget'
 
 type Props = HeadProps & {
@@ -25,7 +24,6 @@ const lang = getLangFromPath(Astro.url.pathname)
   <head>
     <Head {...props} />
     <OrganizationSchema />
-    <BotIdInit />
     <slot name="head" />
   </head>
   <body>
