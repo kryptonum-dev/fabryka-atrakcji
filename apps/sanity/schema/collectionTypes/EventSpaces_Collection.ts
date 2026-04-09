@@ -201,6 +201,47 @@ export default defineType({
       group: 'details',
     }),
     defineField({
+      name: 'features',
+      type: 'array',
+      title: 'Cechy przestrzeni',
+      description:
+        'Lista cech i tagow opisujacych przestrzen eventowa, np. loftowa, plenerowa, na piknik firmowy.',
+      of: [
+        {
+          type: 'reference',
+          to: { type: 'EventSpaceFeatures_Collection' },
+          options: {
+            disableNew: true,
+            filter: ({ document }) => {
+              const language = (document as { language?: string })?.language
+              return {
+                filter: 'language == $lang',
+                params: { lang: language },
+              }
+            },
+          },
+        },
+      ],
+      group: 'details',
+    }),
+    defineField({
+      name: 'isIndoor',
+      type: 'string',
+      title: 'Indoor/Outdoor',
+      description: 'Wybierz czy przestrzeń jest wewnątrz czy w plenerze',
+      options: {
+        list: [
+          { title: 'Indoor (w pomieszczeniu)', value: 'indoor' },
+          { title: 'Outdoor (na zewnątrz)', value: 'outdoor' },
+        ],
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+      initialValue: 'indoor',
+      validation: (Rule) => Rule.required().error('Wybierz typ przestrzeni'),
+      group: 'details',
+    }),
+    defineField({
       name: 'address',
       type: 'object',
       title: 'Adres przestrzeni eventowej',

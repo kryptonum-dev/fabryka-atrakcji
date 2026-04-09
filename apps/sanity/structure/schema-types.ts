@@ -36,6 +36,7 @@ import BlogCategory_Collection from '../schema/collectionTypes/BlogCategory_Coll
 import BlogPost_Collection from '../schema/collectionTypes/BlogPost_Collection'
 import CaseStudy_Collection from '../schema/collectionTypes/CaseStudy_Collection'
 import CaseStudyCategory_Collection from '../schema/collectionTypes/CaseStudyCategory_Collection'
+import EventSpaceFeatures_Collection from '../schema/collectionTypes/EventSpaceFeatures_Collection'
 import Faq_Collection from '../schema/collectionTypes/Faq_Collection'
 import Pages_Collection from '../schema/collectionTypes/Pages_Collection'
 import LandingPage_Collection from '../schema/collectionTypes/LandingPage_Collection'
@@ -63,6 +64,7 @@ const collectionTypes = [
   ActivitiesType_Collection,
   Hotels_Collection,
   EventSpaces_Collection,
+  EventSpaceFeatures_Collection,
   Locations_Collection,
   Amenities_Collection,
 ]

@@ -14,12 +14,21 @@ type Props = {
   paramName: string
   isMulti?: boolean
   allowHtmlName?: boolean
+  allowZeroCount?: boolean
   forceDisabled?: boolean
 }
 
-const { heading, items, paramName, isMulti = false, allowHtmlName = false, forceDisabled = false } = Astro.props
+const {
+  heading,
+  items,
+  paramName,
+  isMulti = false,
+  allowHtmlName = false,
+  allowZeroCount = false,
+  forceDisabled = false,
+} = Astro.props
 
-const availableItems = items.filter((item) => item.count > 0 || item.isSelected)
+const availableItems = allowZeroCount ? items : items.filter((item) => item.count > 0 || item.isSelected)
 const selectedItems = items.filter((item) => item.isSelected)
 // Special case: if this is a multi-select filter with multiple selected items and forceDisabled is true
 const isAmenitiesSpecialCase = isMulti && forceDisabled && paramName === 'amenities' && selectedItems.length > 1

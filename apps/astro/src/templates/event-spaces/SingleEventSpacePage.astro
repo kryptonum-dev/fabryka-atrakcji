@@ -45,6 +45,7 @@ export type SingleEventSpaceProps = {
   }
   areaM2: number
   maxPeople: number
+  isIndoor: 'indoor' | 'outdoor'
   address: {
     street: string
     postalCode: string
@@ -141,6 +142,7 @@ export async function fetchData(slug: string, lang: Language) {
         },
         areaM2,
         maxPeople,
+        "isIndoor": coalesce(isIndoor, "indoor"),
         address,
         googleMaps{
           googleMapsLink,

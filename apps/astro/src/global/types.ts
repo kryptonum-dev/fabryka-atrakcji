@@ -152,6 +152,7 @@ export type BaseEventSpaceProps = {
   }
   areaM2: number
   maxPeople: number
+  isIndoor: 'indoor' | 'outdoor'
   address: {
     street: string
     postalCode: string

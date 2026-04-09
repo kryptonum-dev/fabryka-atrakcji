@@ -53,6 +53,8 @@ const translations = {
     eventSpaces: {
       showOnMap: 'Pokaż na mapie',
       maxPrefix: 'Maks.',
+      outdoor: 'Na zewnątrz',
+      indoor: 'Wewnątrz',
     },
     scrollToForm: 'Zapytaj o wycenę',
     addToInquiry: 'Dodaj do zapytania',
@@ -99,6 +101,8 @@ const translations = {
     eventSpaces: {
       showOnMap: 'Show on map',
       maxPrefix: 'Max.',
+      outdoor: 'Outdoor',
+      indoor: 'Indoor',
     },
     scrollToForm: 'Ask for a quote',
     addToInquiry: 'Add to inquiry',
@@ -455,6 +459,34 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
     {
       props._type === 'EventSpaces_Collection' && (
         <>
+          <li class="space-environment-pill">
+            {props.isIndoor === 'indoor' ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" fill="none">
+                  <path
+                    fill="#F67258"
+                    fill-rule="evenodd"
+                    d="M7.738 14.167H6.263c-2.297 0-3.446 0-4.23-.675-.783-.674-.946-1.804-1.27-4.062L.577 8.14C.324 6.38.197 5.502.557 4.749.918 4 1.686 3.543 3.22 2.629l.923-.55C5.535 1.248 6.232.833 7 .833c.77 0 1.466.415 2.858 1.245l.924.55c1.534.914 2.3 1.37 2.66 2.122.361.752.235 1.63-.018 3.389l-.186 1.291c-.325 2.258-.488 3.388-1.271 4.062-.783.675-1.932.675-4.23.675ZM4.599 9.869a.5.5 0 0 1 .7-.104c.485.36 1.071.568 1.702.568.63 0 1.216-.208 1.702-.568a.5.5 0 1 1 .595.803 3.844 3.844 0 0 1-2.297.765c-.857 0-1.65-.284-2.298-.765a.5.5 0 0 1-.104-.7Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>{t.eventSpaces.indoor}</span>
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
+                  <path fill="#F67258" d="M11.334 8.5a3.333 3.333 0 1 1-6.667 0 3.333 3.333 0 0 1 6.667 0Z" />
+                  <path
+                    fill="#F67258"
+                    fill-rule="evenodd"
+                    d="M8 1.333a.5.5 0 0 1 .5.5v1.334a.5.5 0 0 1-1 0V1.833a.5.5 0 0 1 .5-.5ZM2.447 2.977a.5.5 0 0 1 .707-.031L4.634 4.3a.5.5 0 1 1-.675.738L2.478 3.684a.5.5 0 0 1-.032-.707Zm11.109 0a.5.5 0 0 1-.032.707l-1.481 1.354a.5.5 0 0 1-.675-.738l1.481-1.354a.5.5 0 0 1 .707.031ZM.834 8.5a.5.5 0 0 1 .5-.5h1.333a.5.5 0 0 1 0 1H1.334a.5.5 0 0 1-.5-.5Zm12 0a.5.5 0 0 1 .5-.5h1.333a.5.5 0 1 1 0 1h-1.333a.5.5 0 0 1-.5-.5Zm-1.483 3.35a.5.5 0 0 1 .707 0l1.481 1.482a.5.5 0 1 1-.707.707l-1.481-1.482a.5.5 0 0 1 0-.707Zm-6.7 0a.5.5 0 0 1 0 .707L3.168 14.04a.5.5 0 1 1-.707-.707l1.481-1.482a.5.5 0 0 1 .707 0ZM8 13.333a.5.5 0 0 1 .5.5v1.334a.5.5 0 1 1-1 0v-1.334a.5.5 0 0 1 .5-.5Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>{t.eventSpaces.outdoor}</span>
+              </>
+            )}
+          </li>
           <li>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
               <path
@@ -1294,6 +1326,15 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
             margin-bottom: 1px;
           }
         }
+
+        .space-environment-pill {
+          width: max-content;
+          max-width: 100%;
+          min-height: 2.5rem;
+          padding: 0 0.75rem 0 0.625rem;
+          border-radius: 999rem;
+          background-color: var(--neutral-200, #f5f1ec);
+        }
       }
 
       .gallery {
@@ -1485,6 +1526,12 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
             svg {
               margin-bottom: 0;
             }
+          }
+
+          .space-environment-pill {
+            flex: 0 0 auto;
+            padding: 0 0.75rem 0 0.625rem;
+            border-radius: 999rem;
           }
         }
 
@@ -1709,6 +1756,22 @@ const hotelStar = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 
             svg {
               order: 2;
+            }
+          }
+
+          .space-environment-pill {
+            width: auto;
+            padding: 0 0.75rem 0 0.625rem;
+            border-bottom: 0;
+            background: var(--neutral-200, #f5f1ec);
+            justify-content: flex-start;
+
+            span {
+              order: 0;
+            }
+
+            svg {
+              order: 0;
             }
           }
         }

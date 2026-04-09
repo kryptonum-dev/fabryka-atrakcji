@@ -16,6 +16,13 @@ type LocationOption = {
   slug: string
 }
 
+type FeatureOption = {
+  _id: string
+  name: string
+  count: number
+  slug: string
+}
+
 type EventSpaceItem = {
   _id: string
   name: string
@@ -46,6 +53,7 @@ type Props = {
   totalItems: number
   listing: EventSpaceItem[]
   currentPage: number
+  features: FeatureOption[]
   locations: LocationOption[]
   areaFilterOptions: {
     min: number
@@ -70,6 +78,12 @@ export type ListingProps = Props
 
 export const Listing_Query = (orderClause: string) => {
   const locationFilter = `(!defined($location) || location->slug.current == $location)`
+  const featuresFilter = `
+    (!defined($features) || count(select(
+      defined(features) => features[]->slug.current,
+      []
+    )[@ in $features]) == count($features))
+  `
   const areaFilter = `
     (!defined($minArea) || areaM2 >= $minArea)
     && (!defined($maxArea) || areaM2 <= $maxArea)
@@ -83,10 +97,12 @@ export const Listing_Query = (orderClause: string) => {
   const createBaseFilter = (
     includeFilters: {
       location?: boolean
+      features?: boolean
       area?: boolean
       capacity?: boolean
     } = {
       location: true,
+      features: true,
       area: true,
       capacity: true,
     }
@@ -94,6 +110,7 @@ export const Listing_Query = (orderClause: string) => {
     && language == $language
     && ${searchFilter}
     ${includeFilters.location ? `&& ${locationFilter}` : ''}
+    ${includeFilters.features ? `&& ${featuresFilter}` : ''}
     ${includeFilters.area ? `&& ${areaFilter}` : ''}
     ${includeFilters.capacity ? `&& ${capacityFilter}` : ''}
   `
@@ -106,12 +123,25 @@ export const Listing_Query = (orderClause: string) => {
       "slug": slug.current,
       "count": count(*[_type == 'EventSpaces_Collection' ${createBaseFilter({
         location: false,
+        features: true,
+        area: true,
+        capacity: true,
+      })} && references(^._id)])
+    },
+    "features": *[_type == 'EventSpaceFeatures_Collection' && language == $language] {
+      _id,
+      name,
+      "slug": slug.current,
+      "count": count(*[_type == 'EventSpaces_Collection' ${createBaseFilter({
+        location: true,
+        features: true,
         area: true,
         capacity: true,
       })} && references(^._id)])
     },
     "areaFilterSource": *[_type == 'EventSpaces_Collection' ${createBaseFilter({
       location: true,
+      features: true,
       area: false,
       capacity: true,
     })}] {
@@ -119,6 +149,7 @@ export const Listing_Query = (orderClause: string) => {
     },
     "capacityFilterSource": *[_type == 'EventSpaces_Collection' ${createBaseFilter({
       location: true,
+      features: true,
       area: true,
       capacity: false,
     })}] {
@@ -137,6 +168,7 @@ const {
   totalItems,
   listing,
   currentPage,
+  features,
   locations,
   areaFilterOptions,
   areaFilterSource,
@@ -158,6 +190,7 @@ const translations = {
     placeholder: 'Wyszukaj przestrzeń eventową',
     filters: {
       location: 'Lokalizacja',
+      features: 'Cechy przestrzeni',
       capacity: 'Maks. liczba osób',
       area: 'Powierzchnia',
     },
@@ -186,6 +219,7 @@ const translations = {
     placeholder: 'Search event spaces',
     filters: {
       location: 'Location',
+      features: 'Space features',
       capacity: 'Max people',
       area: 'Area',
     },
@@ -262,6 +296,22 @@ const locationItems = locations
     value: location.slug,
   }))
 
+const featuresParam = params.get('features')
+const featureValues = featuresParam ? featuresParam.split(',').map((value) => value.trim()) : params.getAll('features')
+
+const featureItems = features
+  .map((feature) => ({
+    name: feature.name,
+    count: feature.count,
+    isSelected: featureValues.includes(feature.slug),
+    value: feature.slug,
+  }))
+  .sort((a, b) => {
+    if (a.isSelected && !b.isSelected) return -1
+    if (!a.isSelected && b.isSelected) return 1
+    return b.count - a.count
+  })
+
 const getSpacesCount = () => {
   if (lang === 'en') return totalItems === 1 ? t.foundSingle : t.foundMany
   if (totalItems % 10 >= 2 && totalItems % 10 <= 4 && (totalItems % 100 < 12 || totalItems % 100 > 14)) return t.foundFew
@@ -273,6 +323,7 @@ const searchParam = params.get('search')?.trim() || undefined
 
 const currentFilters = {
   location: params.get('location'),
+  features: featureValues,
   area: params.get('minArea') || params.get('maxArea'),
   minCapacity: params.has('minCapacity') ? parseInt(params.get('minCapacity') || '') : undefined,
   maxCapacity: params.has('maxCapacity') ? parseInt(params.get('maxCapacity') || '') : undefined,
@@ -334,6 +385,13 @@ const shouldDisableFilters = totalItems === 0
       </div>
       <div class='filters-content'>
         <SelectFilter heading={t.filters.location} items={locationItems} paramName='location' forceDisabled={shouldDisableFilters} />
+        <SelectFilter
+          heading={t.filters.features}
+          items={featureItems}
+          paramName='features'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
         <SelectFilter heading={t.filters.area} items={areaRangeItems} paramName='area' forceDisabled={shouldDisableFilters} />
         <SelectFilter heading={t.filters.capacity} items={capacityRangeItems} paramName='capacity' forceDisabled={shouldDisableFilters} />
       </div>
@@ -1005,12 +1063,14 @@ const shouldDisableFilters = totalItems === 0
   </style>
 
   <script>
-    type FilterValue = string | number | null
+    type FilterValue = string | string[] | number | null
+
     const params = new URLSearchParams(window.location.search)
     const initialFilters: Record<string, FilterValue> = {
       location: params.get('location'),
+      features: [...(params.get('features')?.split(',') || [])],
       area: null,
-    capacity: null,
+      capacity: null,
     }
 
     const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')
@@ -1019,6 +1079,7 @@ const shouldDisableFilters = totalItems === 0
 
     const initialUrlState = {
       location: params.get('location'),
+      features: [...(params.get('features')?.split(',') || [])],
       area: (() => {
         const min = params.get('minArea')
         const max = params.get('maxArea')
@@ -1026,13 +1087,13 @@ const shouldDisableFilters = totalItems === 0
         if (min && !max) return `${min}-`
         return null
       })(),
-    capacity: (() => {
-      const min = params.get('minCapacity')
-      const max = params.get('maxCapacity')
-      if (min && max) return `${min}-${max}`
-      if (min && !max) return `${min}-`
-      return null
-    })(),
+      capacity: (() => {
+        const min = params.get('minCapacity')
+        const max = params.get('maxCapacity')
+        if (min && max) return `${min}-${max}`
+        if (min && !max) return `${min}-`
+        return null
+      })(),
     }
 
     function updateFiltersActionsVisibility() {
@@ -1043,42 +1104,79 @@ const shouldDisableFilters = totalItems === 0
       container.style.display = applyVisible || clearVisible ? 'flex' : 'none'
     }
 
+    function hasDifferentArrayValues(current: string[] = [], initial: string[] = []) {
+      if (current.length !== initial.length) return true
+      return current.some((value) => !initial.includes(value))
+    }
+
     function checkFiltersChanged() {
       let changed = false
+
       document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
         const paramName = filterGroup.dataset.paramName
         if (!paramName) return
 
-      changed ||= initialFilters[paramName] !== initialUrlState[paramName as keyof typeof initialUrlState]
+        const isMulti = filterGroup.dataset.multi === 'true'
+        if (isMulti) {
+          changed ||= hasDifferentArrayValues(
+            (initialFilters[paramName] as string[]) || [],
+            (initialUrlState[paramName as keyof typeof initialUrlState] as string[]) || []
+          )
+          return
+        }
+
+        changed ||= initialFilters[paramName] !== initialUrlState[paramName as keyof typeof initialUrlState]
       })
 
       if (applyButton) {
         applyButton.style.display = changed ? 'flex' : 'none'
         applyButton.disabled = !changed
       }
+
       updateFiltersActionsVisibility()
     }
 
     window.addEventListener('filterChange', ((e: CustomEvent) => {
-      const { paramName, value, minValue, maxValue } = e.detail || {}
-      initialFilters[paramName] = value || (typeof minValue === 'number' && typeof maxValue === 'number' ? `${minValue}-${maxValue}` : null)
+      const { paramName, value, checked, minValue, maxValue } = e.detail || {}
+
+      if (paramName === 'features') {
+        if (!Array.isArray(initialFilters[paramName])) initialFilters[paramName] = []
+
+        if (checked === false) {
+          initialFilters[paramName] = (initialFilters[paramName] as string[]).filter((item) => item !== value)
+        } else if (value && !(initialFilters[paramName] as string[]).includes(value)) {
+          ;(initialFilters[paramName] as string[]).push(value)
+        }
+      } else {
+        initialFilters[paramName] =
+          value || (typeof minValue === 'number' && typeof maxValue === 'number' ? `${minValue}-${maxValue}` : null)
+      }
+
       checkFiltersChanged()
     }) as EventListener)
 
     window.addEventListener('filterClear', ((e: CustomEvent) => {
       const { paramName } = e.detail || {}
-      initialFilters[paramName] = null
+      initialFilters[paramName] = paramName === 'features' ? [] : null
       checkFiltersChanged()
     }) as EventListener)
 
     function applyFilters() {
       const currentPath = window.location.pathname
       const params = new URLSearchParams(window.location.search)
-      ;['location', 'minArea', 'maxArea', 'minCapacity', 'maxCapacity'].forEach((param) => params.delete(param))
+      ;['location', 'features', 'minArea', 'maxArea', 'minCapacity', 'maxCapacity'].forEach((param) => params.delete(param))
 
       document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
         const paramName = filterGroup.dataset.paramName
         if (!paramName) return
+
+        const isMulti = filterGroup.dataset.multi === 'true'
+
+        if (isMulti) {
+          const selectedValues = (initialFilters[paramName] as string[]) || []
+          if (selectedValues.length > 0) params.set(paramName, selectedValues.join(','))
+          return
+        }
 
         if (paramName === 'area') {
           const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
@@ -1088,7 +1186,10 @@ const shouldDisableFilters = totalItems === 0
             if (min) params.set('minArea', min)
             if (max) params.set('maxArea', max)
           }
-        } else if (paramName === 'capacity') {
+          return
+        }
+
+        if (paramName === 'capacity') {
           const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
           const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
           if (selectedInput && wasSelected) {
@@ -1096,19 +1197,28 @@ const shouldDisableFilters = totalItems === 0
             if (min) params.set('minCapacity', min)
             if (max) params.set('maxCapacity', max)
           }
-        } else {
-          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-          if (selectedInput && wasSelected) params.set(paramName, selectedInput.value)
+          return
         }
+
+        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
+        const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
+        if (selectedInput && wasSelected) params.set(paramName, selectedInput.value)
       })
 
       const filterPathSegment = listingSection.getAttribute('data-filter-path') || 'filtr'
       const pagePathSegment = listingSection.getAttribute('data-page-path') || 'strona'
       let basePath = currentPath
-      if (basePath.includes(`/${filterPathSegment}`)) basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
-      if (basePath.includes(`/${pagePathSegment}/`)) basePath = basePath.replace(new RegExp(`\\/${pagePathSegment}\\/\\d+\\/?`), '/')
+
+      if (basePath.includes(`/${filterPathSegment}`)) {
+        basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
+      }
+
+      if (basePath.includes(`/${pagePathSegment}/`)) {
+        basePath = basePath.replace(new RegExp(`\\/${pagePathSegment}\\/\\d+\\/?`), '/')
+      }
+
       if (!basePath.endsWith('/')) basePath += '/'
+
       const finalUrl = `${basePath}${filterPathSegment}/${params.toString() ? `?${params.toString()}` : ''}`
       window.location.href = finalUrl
     }
@@ -1125,7 +1235,23 @@ const shouldDisableFilters = totalItems === 0
       document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
         const paramName = filterGroup.dataset.paramName
         if (!paramName) return
+
+        const isMulti = filterGroup.dataset.multi === 'true'
         const value = initialUrlState[paramName as keyof typeof initialUrlState]
+
+        if (isMulti) {
+          const values = (value as string[]) || []
+          initialFilters[paramName] = [...values]
+          if (values.length > 0) {
+            filterGroup.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
+              const isMatch = values.includes(input.value)
+              input.checked = isMatch
+              input.parentElement?.setAttribute('data-selected', String(isMatch))
+            })
+          }
+          return
+        }
+
         initialFilters[paramName] = value as FilterValue
         if (value) {
           filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
@@ -1135,6 +1261,7 @@ const shouldDisableFilters = totalItems === 0
           })
         }
       })
+
       updateFiltersActionsVisibility()
     })
 

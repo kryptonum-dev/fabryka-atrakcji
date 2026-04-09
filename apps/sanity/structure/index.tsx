@@ -49,6 +49,8 @@ export const structure: StructureResolver = (S, context) =>
             .items([
               createSingleton({ S, name: 'EventSpaces_Page' }),
               createCollection(S, context, 'EventSpaces_Collection'),
+              S.divider(),
+              createCollection(S, context, 'EventSpaceFeatures_Collection'),
             ])
         ),
       S.listItem()

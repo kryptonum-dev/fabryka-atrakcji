@@ -102,11 +102,16 @@ export function getDirectUrls(doc: SanityDocRef): string[] {
       urls.push(`${base}/en/404/`)
       break
 
-    // Filter-only collections: they have no detail pages, only affect the hotel listing
+    // Filter-only collections: they have no detail pages, only affect listing pages
     case 'Locations_Collection':
     case 'Amenities_Collection':
       urls.push(`${base}/pl/hotele/`)
       urls.push(`${base}/en/hotels/`)
+      urls.push(`${base}/pl/przestrzenie-eventowe/`)
+      urls.push(`${base}/en/event-spaces/`)
+      break
+
+    case 'EventSpaceFeatures_Collection':
       urls.push(`${base}/pl/przestrzenie-eventowe/`)
       urls.push(`${base}/en/event-spaces/`)
       break

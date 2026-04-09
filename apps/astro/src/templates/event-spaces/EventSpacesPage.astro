@@ -32,6 +32,13 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
   const searchQuery = searchParams?.get('search')
   const trimmedSearchQuery = searchQuery?.trim()
   const searchPattern = trimmedSearchQuery ? `*${trimmedSearchQuery}*` : null
+  const featuresParam = searchParams?.get('features')
+  const features = featuresParam
+    ? featuresParam
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+    : null
   const location = searchParams?.get('location') || null
   const minArea = searchParams?.get('minArea') ? parseInt(searchParams.get('minArea')!) : null
   const maxArea = searchParams?.get('maxArea') ? parseInt(searchParams.get('maxArea')!) : null
@@ -60,6 +67,12 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       checklist?: string[]
       escapeHatchHeading?: string
       escapeHatchText?: string
+      features: {
+        _id: string
+        name: string
+        count: number
+        slug: string
+      }[]
       capacityFilterOptions?: {
         min: number
         max?: number
@@ -133,6 +146,7 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       PAGINATION_BEFORE,
       PAGINATION_AFTER,
       searchPattern,
+      features,
       location,
       minArea,
       maxArea,
@@ -214,6 +228,7 @@ const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.par
     listing={page.listing}
     currentPage={currentPage}
     checklist={page.checklist}
+    features={page.features}
     locations={page.locations}
     areaFilterOptions={page.areaFilterOptions}
     areaFilterSource={page.areaFilterSource}
