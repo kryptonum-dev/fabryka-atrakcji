@@ -475,16 +475,18 @@ export default function CookieConsentClient({
     const currentPathname = window.location.pathname
     const isPrivacyPolicyRoute = Boolean(currentPathname && privacyPolicyUrl && currentPathname.startsWith(privacyPolicyUrl))
 
-    if (!storedConsent) {
-      if (!isPrivacyPolicyRoute) {
-        setIsVisible(true)
-      }
-      setConsentSelections({ ...DEFAULT_SELECTIONS })
-      setIsPreferencesOpen(false)
-      return
+    const selection = storedConsent
+      ? selectionFromConsent(storedConsent)
+      : {
+          ...DEFAULT_SELECTIONS,
+          marketing: true,
+          conversion_api: true,
+        }
+
+    if (!storedConsent && !isPrivacyPolicyRoute) {
+      setIsVisible(true)
     }
 
-    const selection = selectionFromConsent(storedConsent)
     setConsentSelections(selection)
 
     const run = async () => {
@@ -566,7 +568,7 @@ export default function CookieConsentClient({
       marketing: false,
       analytics: false,
       preferences: false,
-      conversion_api: false,
+      conversion_api: true,
       advanced_matching: false,
     })
   }, [handleConsentApply])

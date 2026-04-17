@@ -193,20 +193,20 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const consentRaw = getCookieFromHeaders(request.headers, 'cookie-consent')
-  let conversion_api = 'denied'
+  let conversion_api: string | undefined
   let advanced_matching = 'denied'
 
   if (consentRaw) {
     try {
       const parsed = JSON.parse(consentRaw) as { conversion_api?: string; advanced_matching?: string }
-      conversion_api = parsed.conversion_api ?? 'denied'
+      conversion_api = parsed.conversion_api
       advanced_matching = parsed.advanced_matching ?? 'denied'
     } catch (error) {
       console.warn('[Meta CAPI] Unable to parse consent cookie', error)
     }
   }
 
-  if (conversion_api !== 'granted') {
+  if (conversion_api === 'denied') {
     return new Response(
       JSON.stringify({ success: false, message: 'Conversion API not permitted by user' }),
       { status: 403, headers: { 'content-type': 'application/json' } }

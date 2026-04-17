@@ -377,6 +377,18 @@ function hasConsentDecision() {
   return Boolean(getCookie(COOKIE_NAME))
 }
 
+function resolveMetaPermissions(): { pixel: boolean; capi: boolean } {
+  const raw = getCookie(COOKIE_NAME)
+  if (!raw) {
+    return { pixel: true, capi: true }
+  }
+  const consent = parseConsent()
+  return {
+    pixel: consent.ad_storage === 'granted' || consent.ad_user_data === 'granted',
+    capi: consent.conversion_api !== 'denied',
+  }
+}
+
 function enqueue(
   event: PendingEvent,
   options: { waitForConsent?: boolean; waitForReadiness?: boolean } = {}
@@ -449,12 +461,9 @@ function sendEvent(event: PendingEvent) {
   const resolvedUser = mergeUserData(processedEvent.user, { persist: true })
   processedEvent.user = resolvedUser
 
-  const consent = parseConsent()
-  const marketingGranted = consent.ad_storage === 'granted' || consent.ad_user_data === 'granted'
-  const conversionApiGranted = consent.conversion_api === 'granted'
-
-  const canSendMetaPixel = Boolean(meta && marketingGranted)
-  const canSendMetaCapi = Boolean(meta && conversionApiGranted)
+  const perms = resolveMetaPermissions()
+  const canSendMetaPixel = Boolean(meta) && perms.pixel
+  const canSendMetaCapi = Boolean(meta) && perms.capi
 
   const utmPayload = resolveUtmPayload(processedEvent.utm)
 
@@ -627,26 +636,7 @@ export function trackEvent<
     return eventId
   }
 
-  const needsConsent = !hasConsentDecision()
   const needsReadiness = !isAnalyticsReady()
-
-  if (needsConsent) {
-    if (params.meta) {
-      enqueue(
-        { ...event, ga4: undefined },
-        { waitForConsent: true, waitForReadiness: needsReadiness }
-      )
-    }
-    if (params.ga4) {
-      const ga4Event = { ...event, meta: undefined }
-      if (needsReadiness) {
-        enqueue(ga4Event, { waitForConsent: false, waitForReadiness: true })
-      } else {
-        sendEvent(ga4Event)
-      }
-    }
-    return eventId
-  }
 
   if (needsReadiness) {
     enqueue(event, { waitForConsent: false, waitForReadiness: true })
