@@ -407,6 +407,6 @@ After deploying all phases:
 
 #### Manual
 
-- [x] 4.1 SVG inspected and size determined
-- [x] 4.2 Asset replaced/optimized in Sanity Studio
-- [x] 4.3 Activity category pages render correctly with new asset
+- [x] 4.1 SVG inspected and size determined — cfaf129
+- [x] 4.2 Asset replaced/optimized in Sanity Studio — cfaf129
+- [x] 4.3 Activity category pages render correctly with new asset — cfaf129

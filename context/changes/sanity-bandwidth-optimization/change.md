@@ -1,7 +1,7 @@
 ---
 id: sanity-bandwidth-optimization
 title: Sanity Bandwidth Optimization — Eliminate Node-Side Image Proxying
-status: implementing
+status: implemented
 created: 2026-05-27
 updated: 2026-05-27
 
