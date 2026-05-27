@@ -1,8 +1,8 @@
 ---
 id: per-category-activity-management
-status: implementing
+status: implemented
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 ---
 
 # Per-Category Activity Management

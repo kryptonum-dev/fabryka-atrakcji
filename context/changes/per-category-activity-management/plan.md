@@ -392,17 +392,17 @@ No code changes. This phase is verification-only.
 
 #### Automated
 
-- [x] 4.1 Full build succeeds: `npm run build`
-- [x] 4.2 Lint passes: `npm run lint`
+- [x] 4.1 Full build succeeds: `npm run build` — ce3da45
+- [x] 4.2 Lint passes: `npm run lint` — ce3da45
 
 #### Manual
 
-- [x] 4.3 PL category page works
-- [x] 4.4 EN category page works
-- [x] 4.5 Filter routes work for both languages
-- [x] 4.6 Main listing works for both languages
-- [x] 4.7 Empty category exclusion works
-- [x] 4.8 Different overrides show on different category pages (SEO verification)
-- [x] 4.9 Activity detail pages unaffected
-- [x] 4.10 Full editor workflow: add, reorder, override, publish, verify on site
+- [x] 4.3 PL category page works — ce3da45
+- [x] 4.4 EN category page works — ce3da45
+- [x] 4.5 Filter routes work for both languages — ce3da45
+- [x] 4.6 Main listing works for both languages — ce3da45
+- [x] 4.7 Empty category exclusion works — ce3da45
+- [x] 4.8 Different overrides show on different category pages (SEO verification) — ce3da45
+- [x] 4.9 Activity detail pages unaffected — ce3da45
+- [x] 4.10 Full editor workflow: add, reorder, override, publish, verify on site — ce3da45
 
