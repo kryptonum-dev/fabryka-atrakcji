@@ -86,13 +86,13 @@ interface Props {
         callout: string
       }
     }
-    attractions: {
-      subheading: PortableTextValue
-      highlightedAttractions: {
+    attractions?: {
+      subheading?: PortableTextValue
+      highlightedAttractions?: {
         name: string
         distance: number
       }[]
-      list: {
+      list?: {
         heading: string
         items: {
           name: string
@@ -163,6 +163,14 @@ const googleMapsQuery = (() => {
 const googleMapsEmbedUrl =
   data?.googleMaps?.googleMapsEmbed ||
   (googleMapsQuery ? `https://www.google.com/maps?q=${encodeURIComponent(googleMapsQuery)}&output=embed` : '')
+
+const highlightedAttractions = node.attractions?.highlightedAttractions || []
+const attractionGroups = (node.attractions?.list || []).filter((group) => group.items?.length)
+const totalAttractions = attractionGroups.reduce((acc, group) => acc + group.items.length, 0)
+const hasAttractionsSubheading = Array.isArray(node.attractions?.subheading)
+  ? node.attractions.subheading.length > 0
+  : Boolean(node.attractions?.subheading)
+const hasAttractionsSection = hasAttractionsSubheading && (highlightedAttractions.length > 0 || totalAttractions > 0)
 
 const transformToKm = (meters: number) => {
   if (meters < 1000) {
@@ -296,43 +304,53 @@ const transformToKm = (meters: number) => {
       </div>
     )
   }
-  <PortableText value={node.attractions.subheading} heading="h3" class="subheading" />
-  <ul class="highlighted-list">
-    {
-      node.attractions.highlightedAttractions.map((attraction) => (
-        <li class="attraction-item">
-          <span>{attraction.name}</span>
-          <span>{transformToKm(attraction.distance)}</span>
-        </li>
-      ))
-    }
-  </ul>
-  <PopupWindow>
-    <Button slot="open" theme="secondary">
-      {t.attractions.showAll} ({node.attractions.list.reduce((acc, group) => acc + group.items.length, 0)})
-    </Button>
-    <div slot="content" class="attractions-popup">
-      <Fragment set:html={t.attractions.popupHeading} />
-      <CloseButton />
-      <ul class="content">
-        {
-          node.attractions.list.map((group) => (
-            <li class="group">
-              <h3 class="heading">{group.heading}</h3>
-              <ul class="attraction-list">
-                {group.items.map((item) => (
-                  <li class="attraction-item">
-                    <span>{item.name}</span>
-                    <span>{transformToKm(item.distance)}</span>
-                  </li>
-                ))}
+  {
+    hasAttractionsSection && (
+      <>
+        <PortableText value={node.attractions?.subheading || []} heading="h3" class="subheading" />
+        {highlightedAttractions.length > 0 && (
+          <ul class="highlighted-list">
+            {
+              highlightedAttractions.map((attraction) => (
+                <li class="attraction-item">
+                  <span>{attraction.name}</span>
+                  <span>{transformToKm(attraction.distance)}</span>
+                </li>
+              ))
+            }
+          </ul>
+        )}
+        {totalAttractions > 0 && (
+          <PopupWindow>
+            <Button slot="open" theme="secondary">
+              {t.attractions.showAll} ({totalAttractions})
+            </Button>
+            <div slot="content" class="attractions-popup">
+              <Fragment set:html={t.attractions.popupHeading} />
+              <CloseButton />
+              <ul class="content">
+                {
+                  attractionGroups.map((group) => (
+                    <li class="group">
+                      <h3 class="heading">{group.heading}</h3>
+                      <ul class="attraction-list">
+                        {group.items.map((item) => (
+                          <li class="attraction-item">
+                            <span>{item.name}</span>
+                            <span>{transformToKm(item.distance)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))
+                }
               </ul>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-  </PopupWindow>
+            </div>
+          </PopupWindow>
+        )}
+      </>
+    )
+  }
 </section>
 
 <style lang="scss">

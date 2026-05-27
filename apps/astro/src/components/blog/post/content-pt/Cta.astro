@@ -68,12 +68,12 @@ const highlightLenght =
       : node.caseStudies?.length
 ---
 
-<div class="Cta" data-highlight-length={highlightLenght} data-highlight-type={node.highlightType}>
-  <header class="header">
-    <PortableText value={node.heading} heading="h2" class="heading" />
-    <PortableText value={node.paragraph} class="paragraph" />
+<div class='Cta' data-highlight-length={highlightLenght} data-highlight-type={node.highlightType}>
+  <header class='header'>
+    <PortableText value={node.heading} heading='h2' class='heading' />
+    <PortableText value={node.paragraph} class='paragraph' />
   </header>
-  <div class="list">
+  <div class='list'>
     {
       node.highlightType === 'caseStudies' &&
         node.caseStudies?.map((item) => (
@@ -93,7 +93,7 @@ const highlightLenght =
     {
       node.highlightType === 'activities' &&
         node.activities?.map((item) => (
-          <ActivityCard {...item} description="">
+          <ActivityCard {...item} description=''>
             <Image
               {...item.previewImage}
               sizes={
@@ -108,13 +108,12 @@ const highlightLenght =
     {node.highlightType === 'hotels' && node.hotels?.map((item) => <HotelCard {...item} />)}
   </div>
   <Button
-    theme="secondary"
+    theme='secondary'
     href={node.highlightType === 'caseStudies'
       ? t.caseStudiesUrl
       : node.highlightType === 'activities'
         ? t.activitiesUrl
-        : t.hotelsUrl}
-  >
+        : t.hotelsUrl}>
     {
       t[
         node.highlightType === 'caseStudies'
@@ -127,78 +126,77 @@ const highlightLenght =
   </Button>
   {
     node.highlightType === 'activities' && highlightLenght === 1 && (
-      <svg xmlns="http://www.w3.org/2000/svg" width="655" height="480" fill="none">
-        <g filter="url(#filter0_f_7346_124033)">
+      <svg xmlns='http://www.w3.org/2000/svg' width='655' height='480' fill='none'>
+        <g filter='url(#filter0_f_7346_124033)'>
           <ellipse
-            cx="17.669"
-            cy="607.907"
-            fill="#F7D8FF"
-            rx="271.995"
-            ry="208.606"
-            transform="rotate(-180 17.669 607.907)"
+            cx='17.669'
+            cy='607.907'
+            fill='#F7D8FF'
+            rx='271.995'
+            ry='208.606'
+            transform='rotate(-180 17.669 607.907)'
           />
           <ellipse
-            cx="637.005"
-            cy="559.592"
-            fill="#EAE8FF"
-            rx="271.995"
-            ry="208.606"
-            transform="rotate(-180 637.005 559.592)"
+            cx='637.005'
+            cy='559.592'
+            fill='#EAE8FF'
+            rx='271.995'
+            ry='208.606'
+            transform='rotate(-180 637.005 559.592)'
           />
           <ellipse
-            cx="691.632"
-            cy="540.261"
-            fill="#FFF1F2"
-            rx="211.719"
-            ry="162.281"
-            transform="rotate(-180 691.632 540.261)"
+            cx='691.632'
+            cy='540.261'
+            fill='#FFF1F2'
+            rx='211.719'
+            ry='162.281'
+            transform='rotate(-180 691.632 540.261)'
           />
           <ellipse
-            cx="354.468"
-            cy="561.582"
-            fill="#FAF7F7"
-            rx="211.719"
-            ry="162.281"
-            transform="rotate(-180 354.468 561.582)"
+            cx='354.468'
+            cy='561.582'
+            fill='#FAF7F7'
+            rx='211.719'
+            ry='162.281'
+            transform='rotate(-180 354.468 561.582)'
           />
           <ellipse
-            cx="566.18"
-            cy="399.299"
-            fill="#FBECFF"
-            rx="192.883"
-            ry="147.787"
-            transform="rotate(-180 566.18 399.299)"
+            cx='566.18'
+            cy='399.299'
+            fill='#FBECFF'
+            rx='192.883'
+            ry='147.787'
+            transform='rotate(-180 566.18 399.299)'
           />
           <ellipse
-            cx="437.336"
-            cy="460.121"
-            fill="#FBECFF"
-            rx="192.883"
-            ry="147.787"
-            transform="rotate(-180 437.336 460.121)"
+            cx='437.336'
+            cy='460.121'
+            fill='#FBECFF'
+            rx='192.883'
+            ry='147.787'
+            transform='rotate(-180 437.336 460.121)'
           />
           <ellipse
-            cx="39.527"
-            cy="520.557"
-            fill="#FFEAEA"
-            rx="234.699"
-            ry="179.902"
-            transform="rotate(-180 39.527 520.557)"
+            cx='39.527'
+            cy='520.557'
+            fill='#FFEAEA'
+            rx='234.699'
+            ry='179.902'
+            transform='rotate(-180 39.527 520.557)'
           />
         </g>
         <defs>
           <filter
-            id="filter0_f_7346_124033"
-            width="1730.51"
-            height="1132.18"
-            x="-537.919"
-            y="-32.078"
-            color-interpolation-filters="sRGB"
-            filterUnits="userSpaceOnUse"
-          >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
-            <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-            <feGaussianBlur result="effect1_foregroundBlur_7346_124033" stdDeviation="141.795" />
+            id='filter0_f_7346_124033'
+            width='1730.51'
+            height='1132.18'
+            x='-537.919'
+            y='-32.078'
+            color-interpolation-filters='sRGB'
+            filterUnits='userSpaceOnUse'>
+            <feFlood flood-opacity='0' result='BackgroundImageFix' />
+            <feBlend in='SourceGraphic' in2='BackgroundImageFix' result='shape' />
+            <feGaussianBlur result='effect1_foregroundBlur_7346_124033' stdDeviation='141.795' />
           </filter>
         </defs>
       </svg>
@@ -207,94 +205,93 @@ const highlightLenght =
 
   {
     highlightLenght === 2 && (
-      <svg xmlns="http://www.w3.org/2000/svg" width="655" height="782" fill="none">
-        <g filter="url(#filter0_f_7346_77707)">
+      <svg xmlns='http://www.w3.org/2000/svg' width='655' height='782' fill='none'>
+        <g filter='url(#filter0_f_7346_77707)'>
           <ellipse
-            cx="17.669"
-            cy="600.643"
-            fill="#F7D8FF"
-            rx="271.995"
-            ry="208.606"
-            transform="rotate(-180 17.669 600.643)"
+            cx='17.669'
+            cy='600.643'
+            fill='#F7D8FF'
+            rx='271.995'
+            ry='208.606'
+            transform='rotate(-180 17.669 600.643)'
           />
           <ellipse
-            cx="637.005"
-            cy="552.328"
-            fill="#EAE8FF"
-            rx="271.995"
-            ry="208.606"
-            transform="rotate(-180 637.005 552.328)"
+            cx='637.005'
+            cy='552.328'
+            fill='#EAE8FF'
+            rx='271.995'
+            ry='208.606'
+            transform='rotate(-180 637.005 552.328)'
           />
           <ellipse
-            cx="691.632"
-            cy="532.997"
-            fill="#FFF1F2"
-            rx="211.719"
-            ry="162.281"
-            transform="rotate(-180 691.632 532.997)"
+            cx='691.632'
+            cy='532.997'
+            fill='#FFF1F2'
+            rx='211.719'
+            ry='162.281'
+            transform='rotate(-180 691.632 532.997)'
           />
           <ellipse
-            cx="354.468"
-            cy="554.318"
-            fill="#FAF7F7"
-            rx="211.719"
-            ry="162.281"
-            transform="rotate(-180 354.468 554.318)"
+            cx='354.468'
+            cy='554.318'
+            fill='#FAF7F7'
+            rx='211.719'
+            ry='162.281'
+            transform='rotate(-180 354.468 554.318)'
           />
           <ellipse
-            cx="566.18"
-            cy="392.035"
-            fill="#FBECFF"
-            rx="192.883"
-            ry="147.787"
-            transform="rotate(-180 566.18 392.035)"
+            cx='566.18'
+            cy='392.035'
+            fill='#FBECFF'
+            rx='192.883'
+            ry='147.787'
+            transform='rotate(-180 566.18 392.035)'
           />
           <ellipse
-            cx="437.336"
-            cy="452.857"
-            fill="#FBECFF"
-            rx="192.883"
-            ry="147.787"
-            transform="rotate(-180 437.336 452.857)"
+            cx='437.336'
+            cy='452.857'
+            fill='#FBECFF'
+            rx='192.883'
+            ry='147.787'
+            transform='rotate(-180 437.336 452.857)'
           />
           <ellipse
-            cx="39.527"
-            cy="513.293"
-            fill="#FFEAEA"
-            rx="234.699"
-            ry="179.902"
-            transform="rotate(-180 39.527 513.293)"
+            cx='39.527'
+            cy='513.293'
+            fill='#FFEAEA'
+            rx='234.699'
+            ry='179.902'
+            transform='rotate(-180 39.527 513.293)'
           />
           <ellipse
-            cx="647.554"
-            cy="529.876"
-            fill="#FFDA58"
-            rx="70.071"
-            ry="36.094"
-            transform="rotate(-180 647.554 529.876)"
+            cx='647.554'
+            cy='529.876'
+            fill='#FFDA58'
+            rx='70.071'
+            ry='36.094'
+            transform='rotate(-180 647.554 529.876)'
           />
           <ellipse
-            cx="647.554"
-            cy="543.518"
-            fill="#FFF1C0"
-            rx="70.071"
-            ry="36.094"
-            transform="rotate(-180 647.554 543.518)"
+            cx='647.554'
+            cy='543.518'
+            fill='#FFF1C0'
+            rx='70.071'
+            ry='36.094'
+            transform='rotate(-180 647.554 543.518)'
           />
         </g>
         <defs>
           <filter
-            id="filter0_f_7346_77707"
-            width="1730.51"
-            height="1132.18"
-            x="-537.919"
-            y="-39.343"
-            color-interpolation-filters="sRGB"
-            filterUnits="userSpaceOnUse"
-          >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
-            <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-            <feGaussianBlur result="effect1_foregroundBlur_7346_77707" stdDeviation="141.795" />
+            id='filter0_f_7346_77707'
+            width='1730.51'
+            height='1132.18'
+            x='-537.919'
+            y='-39.343'
+            color-interpolation-filters='sRGB'
+            filterUnits='userSpaceOnUse'>
+            <feFlood flood-opacity='0' result='BackgroundImageFix' />
+            <feBlend in='SourceGraphic' in2='BackgroundImageFix' result='shape' />
+            <feGaussianBlur result='effect1_foregroundBlur_7346_77707' stdDeviation='141.795' />
           </filter>
         </defs>
       </svg>
@@ -302,7 +299,7 @@ const highlightLenght =
   }
 </div>
 
-<style lang="scss">
+<style lang='scss'>
   .Cta {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

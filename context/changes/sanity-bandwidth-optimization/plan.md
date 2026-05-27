@@ -365,14 +365,14 @@ After deploying all phases:
 
 #### Automated
 
-- [x] 1.1 TypeScript compiles: `npm run build` in `apps/astro`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 No runtime errors on dev server
+- [x] 1.1 TypeScript compiles: `npm run build` in `apps/astro` — 76a0c28
+- [x] 1.2 Linting passes: `npm run lint` — 76a0c28
+- [x] 1.3 No runtime errors on dev server — 76a0c28
 
 #### Manual
 
-- [ ] 1.4 og:image meta tags point to `cdn.sanity.io` URLs
-- [ ] 1.5 Social preview renders correctly (Facebook Sharing Debugger / Twitter Card Validator)
+- [x] 1.4 og:image meta tags point to `cdn.sanity.io` URLs — 76a0c28
+- [x] 1.5 Social preview renders correctly (Facebook Sharing Debugger / Twitter Card Validator) — 76a0c28
 
 ### Phase 2: Rewrite Image Component to Sanity CDN Native
 

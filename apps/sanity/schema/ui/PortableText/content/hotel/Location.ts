@@ -119,12 +119,12 @@ export default defineField({
       name: 'attractions',
       type: 'object',
       title: 'Atrakcje w okolicy',
+      description: 'Ta sekcja jest opcjonalna. Jeśli jej nie uzupełnisz, nie będzie widoczna na stronie.',
       fields: [
         defineField({
           name: 'subheading',
           type: 'Heading',
           title: 'Nagłówek dodatkowy',
-          validation: (Rule) => Rule.required(),
           initialValue: [
             {
               _key: '8a0d68722eaf',
@@ -184,7 +184,12 @@ export default defineField({
               },
             },
           ],
-          validation: (Rule) => Rule.required().min(3).max(8).error('Wymagane jest od 3 do 8 wyróżnionych atrakcji'),
+          validation: (Rule) =>
+            Rule.custom((value) => {
+              if (!value || value.length === 0) return true
+              if (value.length < 3 || value.length > 8) return 'Jeśli sekcja jest wypełniona, dodaj od 3 do 8 wyróżnionych atrakcji'
+              return true
+            }),
         }),
         defineField({
           name: 'list',
@@ -255,7 +260,11 @@ export default defineField({
               },
             },
           ],
-          validation: (Rule) => Rule.required().min(1).error('Wymagana jest co najmniej jedna atrakcja'),
+          validation: (Rule) =>
+            Rule.custom((value) => {
+              if (!value || value.length === 0) return true
+              return value.length >= 1 ? true : 'Jeśli sekcja jest wypełniona, wymagana jest co najmniej jedna grupa atrakcji'
+            }),
         }),
       ],
     }),

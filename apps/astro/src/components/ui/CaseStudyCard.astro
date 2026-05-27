@@ -30,20 +30,20 @@ export const CaseStudyCardQuery = `
 const { title, description, primaryImage, secondaryImage, imageSizes, slug }: Props = Astro.props
 ---
 
-<article class="CaseStudyCard">
+<article class='CaseStudyCard'>
   <a href={slug || '/'}>
-    <div class="img-container">
+    <div class='img-container'>
       <Image {...primaryImage.src} sizes={imageSizes} loading={primaryImage.loading} priority={primaryImage.priority} />
       <Image {...secondaryImage.src} sizes={imageSizes} loading={secondaryImage.loading} />
     </div>
-    <div class="text">
+    <div class='text'>
       <span>{title}</span>
-      {description && <PortableText value={description} class="description" />}
+      {description && <PortableText value={description} class='description' />}
     </div>
   </a>
 </article>
 
-<style lang="scss">
+<style lang='scss'>
   .CaseStudyCard {
     a {
       display: flex;
