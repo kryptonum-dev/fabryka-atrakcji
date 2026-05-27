@@ -43,10 +43,9 @@ try {
     staticPathsCategory: caseStudyStaticPathsCategory,
   } = await import('@/src/templates/caseStudies/CaseStudyPage.astro')
   const { staticPaths: activitiesStaticPaths } = await import('@/src/templates/activities/CategoriesPage.astro')
-  const {
-    staticPathsCategoryPage: activitiesStaticPathsCategoryPage,
-    staticPathsCategory: activitiesStaticPathsCategory,
-  } = await import('@/src/templates/activities/ActivitiesPage.astro')
+  const { staticPathsCategory: activitiesStaticPathsCategory } = await import(
+    '@/src/templates/activities/ActivitiesPage.astro'
+  )
   const { staticPaths: hotelsStaticPaths } = await import('@/src/templates/hotels/HotelsPage.astro')
   const { staticPaths: eventSpacesStaticPaths } = await import('@/src/templates/event-spaces/EventSpacesPage.astro')
 
@@ -155,14 +154,6 @@ try {
     slugs.push(`/pl/integracje/kategoria/${category.params.category}`)
   })
 
-  // Activities category pages (PL)
-  const activitiesCategoryPages = await activitiesStaticPathsCategoryPage('pl')
-  activitiesCategoryPages.forEach(({ params }) => {
-    if (params.page !== '1/') {
-      slugs.push(`/pl/integracje/kategoria/${params.category}strona/${params.page}`)
-    }
-  })
-
   // Activities pages (EN)
   const activitiesPagesEn = await activitiesStaticPaths('en')
   slugs.push(...activitiesPagesEn.map(({ params }) => `/en/activities/page/${params.page}/`))
@@ -170,14 +161,6 @@ try {
   const activitiesCategoriesEn = await activitiesStaticPathsCategory('en')
   activitiesCategoriesEn.forEach((category: any) => {
     slugs.push(`/en/activities/category/${category.params.category}`)
-  })
-
-  // Activities category pages (EN)
-  const activitiesCategoryPagesEn = await activitiesStaticPathsCategoryPage('en')
-  activitiesCategoryPagesEn.forEach(({ params }) => {
-    if (params.page !== '1/') {
-      slugs.push(`/en/activities/category/${params.category}page/${params.page}`)
-    }
   })
 
   // Hotels pages (PL)

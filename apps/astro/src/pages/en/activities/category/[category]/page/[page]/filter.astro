@@ -1,19 +1,8 @@
 ---
 export const prerender = false
 
-import ActivitiesListing, { fetchData, staticPathsCategoryPage } from '@/src/templates/activities/ActivitiesPage.astro'
-
-const page = Number(Astro.params.page) || 1
 const category = Astro.params.category as string
-const data = await fetchData('en', category, page, Astro.url.searchParams)
-
-// Calculate canonical URL (remove /filter from current path)
-const canonicalUrl = Astro.url.origin + `/en/activities/category/${category}/page/${page}/`
-
-if (!data) return Astro.rewrite('/en/404')
-
-export const getStaticPaths = () => staticPathsCategoryPage('en')
+const searchParams = Astro.url.searchParams.toString()
+const base = `/en/activities/category/${category}/filter/`
+return Astro.redirect(searchParams ? `${base}?${searchParams}` : base, 301)
 ---
-
-<ActivitiesListing {...data} currentPage={page} currentCategory={category} canonicalUrl={canonicalUrl} doNotIndex={true} />
-

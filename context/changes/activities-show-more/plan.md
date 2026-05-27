@@ -399,32 +399,32 @@ Remove the page-segment stripping logic from `init-listing-filters.ts` since pag
 
 #### Automated
 
-- [x] 2.1 TypeScript compiles: `npm run build`
-- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.1 TypeScript compiles: `npm run build` — 5db4d99
+- [x] 2.2 Linting passes: `npm run lint` — 5db4d99
 
 #### Manual
 
-- [x] 2.3 2 rows visible initially, Show More reveals 4 more rows
-- [x] 2.4 Show Less collapses to 2 rows and smooth-scrolls to listing top
-- [x] 2.5 Resize across all breakpoints — items recalculate correctly
-- [x] 2.6 Button hidden when all items fit in initial rows
-- [x] 2.7 aria-expanded toggles correctly
-- [x] 2.8 Filter page show-more resets on load
+- [x] 2.3 2 rows visible initially, Show More reveals 4 more rows — 5db4d99
+- [x] 2.4 Show Less collapses to 2 rows and smooth-scrolls to listing top — 5db4d99
+- [x] 2.5 Resize across all breakpoints — items recalculate correctly — 5db4d99
+- [x] 2.6 Button hidden when all items fit in initial rows — 5db4d99
+- [x] 2.7 aria-expanded toggles correctly — 5db4d99
+- [x] 2.8 Filter page show-more resets on load — 5db4d99
 
 ### Phase 3: Redirects & Sitemap Cleanup
 
 #### Automated
 
-- [ ] 3.1 TypeScript compiles: `npm run build`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 No references to `staticPathsCategoryPage` remain in codebase
+- [x] 3.1 TypeScript compiles: `npm run build`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 No references to `staticPathsCategoryPage` remain in codebase
 
 #### Manual
 
-- [ ] 3.4 Paginated URLs return 301 redirects to base category
-- [ ] 3.5 Paginated filter URLs redirect with query params preserved
-- [ ] 3.6 Sitemap XML has no paginated category entries
-- [ ] 3.7 Other listing pagination (blog, hotels) unaffected
+- [x] 3.4 Paginated URLs return 301 redirects to base category
+- [x] 3.5 Paginated filter URLs redirect with query params preserved
+- [x] 3.6 Sitemap XML has no paginated category entries
+- [x] 3.7 Other listing pagination (blog, hotels) unaffected
 
 ### Phase 4: Filter Script Cleanup
 
