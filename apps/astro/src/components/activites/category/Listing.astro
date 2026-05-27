@@ -1,7 +1,6 @@
 ---
 import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
 import { getLangFromPath, type Language } from '@/global/languages'
-import Pagination from '../../ui/Pagination.astro'
 import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
 import Image from '@/src/components/ui/image'
 import Dropdown from '@/src/components/ui/Dropdown.astro'
@@ -92,6 +91,8 @@ const translations = {
     filtersTitle: 'Filtry',
     apply: 'Zastosuj',
     closeFilters: 'Zamknij filtry',
+    showMore: 'Pokaż więcej',
+    showLess: 'Pokaż mniej',
   },
   en: {
     pathPrefix: '/en/activities/category',
@@ -125,6 +126,8 @@ const translations = {
     filtersTitle: 'Filters',
     apply: 'Apply',
     closeFilters: 'Close filters',
+    showMore: 'Show more',
+    showLess: 'Show less',
   },
 }
 
@@ -418,7 +421,6 @@ const sidebarDurationItems = [
     : []),
 ].filter((item) => item.isSelected || item.count > 0)
 
-const slugBase = Astro.params.category ? `${t.pathPrefix}/${currentCategory}` : `${t.pathPrefixDefault}`
 
 const getActivitiesCount = () => {
   if (totalActivitiesByCategory === 1) {
@@ -515,13 +517,18 @@ const getActivitiesCount = () => {
             </ActivityCard>
           ))}
         </div>
-        <Pagination
-          slugBase={slugBase}
-          totalItems={totalActivitiesByCategory}
-          itemsPerPage={totalActivitiesByCategory || 1}
-          currentPage={1}
-          searchParams={Astro.url.searchParams}
-        />
+        <div class="show-more-wrapper">
+          <Button
+            theme="secondary"
+            shade="dark"
+            className="show-more-toggle"
+            data-show-more={t.showMore}
+            data-show-less={t.showLess}
+            aria-expanded="false"
+          >
+            {t.showMore}
+          </Button>
+        </div>
       </>
     ) : (
       <NoSearchResults
@@ -710,8 +717,10 @@ const getActivitiesCount = () => {
       }
     }
 
-    :global(.Pagination) {
-      margin-top: 3rem;
+    .show-more-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
     }
 
     .filter-sidebar {
@@ -950,3 +959,122 @@ const getActivitiesCount = () => {
 </style>
 
 <script type="module" defer src={listingFiltersScript}></script>
+
+<script>
+  const INITIAL_ROWS = 2
+  const INITIAL_ROWS_SINGLE_COL = 4
+  const ROWS_PER_EXPANSION = 4
+  const REVEAL_DURATION = 400
+  const STAGGER_DELAY = 60
+
+  const section = document.querySelector('.Listing') as HTMLElement | null
+  if (section) {
+    const listEl = section.querySelector('.list') as HTMLElement | null
+    const cards = listEl ? Array.from(listEl.querySelectorAll<HTMLElement>('article[data-activity-card]')) : []
+    const wrapper = section.querySelector('.show-more-wrapper') as HTMLElement | null
+    const button = wrapper?.querySelector('.show-more-toggle') as HTMLButtonElement | null
+    const buttonSpan = button?.querySelector('span') as HTMLSpanElement | null
+
+    if (listEl && cards.length > 0 && button && buttonSpan && wrapper) {
+      let visibleRows = INITIAL_ROWS
+      let prevVisibleCount = 0
+
+      const getColumns = () => {
+        const cols = getComputedStyle(listEl).gridTemplateColumns.split(' ')
+        return cols.length
+      }
+
+      const getInitialRows = (columns: number) =>
+        columns === 1 ? INITIAL_ROWS_SINGLE_COL : INITIAL_ROWS
+
+      const animateIn = (newCards: HTMLElement[]) => {
+        newCards.forEach((card, i) => {
+          card.style.opacity = '0'
+          card.style.transform = 'translateY(1rem)'
+          card.style.transition = 'none'
+          card.offsetHeight
+          card.style.transition = `opacity ${REVEAL_DURATION}ms cubic-bezier(0.19, 1, 0.22, 1), transform ${REVEAL_DURATION}ms cubic-bezier(0.19, 1, 0.22, 1)`
+          card.style.transitionDelay = `${i * STAGGER_DELAY}ms`
+          card.style.opacity = '1'
+          card.style.transform = 'translateY(0)'
+        })
+        const cleanup = REVEAL_DURATION + newCards.length * STAGGER_DELAY
+        setTimeout(() => {
+          newCards.forEach((card) => {
+            card.style.transition = ''
+            card.style.transitionDelay = ''
+            card.style.opacity = ''
+            card.style.transform = ''
+          })
+        }, cleanup)
+      }
+
+      const updateVisibility = (animate = false) => {
+        const columns = getColumns()
+        const initialRows = getInitialRows(columns)
+        const visibleCount = columns * visibleRows
+        const totalCards = cards.length
+        const allVisible = visibleCount >= totalCards
+
+        const newlyRevealed: HTMLElement[] = []
+        cards.forEach((card, i) => {
+          if (i < visibleCount) {
+            card.style.display = ''
+            if (animate && i >= prevVisibleCount) {
+              newlyRevealed.push(card)
+            }
+          } else {
+            card.style.display = 'none'
+          }
+        })
+
+        prevVisibleCount = Math.min(visibleCount, totalCards)
+
+        if (animate && newlyRevealed.length > 0) {
+          animateIn(newlyRevealed)
+        }
+
+        if (totalCards <= columns * initialRows) {
+          wrapper.style.display = 'none'
+          return
+        }
+        wrapper.style.display = ''
+
+        if (allVisible) {
+          buttonSpan.textContent = button.getAttribute('data-show-less')
+          button.setAttribute('aria-expanded', 'true')
+        } else {
+          buttonSpan.textContent = button.getAttribute('data-show-more')
+          button.setAttribute('aria-expanded', 'false')
+        }
+      }
+
+      button.addEventListener('click', () => {
+        const columns = getColumns()
+        const totalCards = cards.length
+        const maxRows = Math.ceil(totalCards / columns)
+        const allVisible = columns * visibleRows >= totalCards
+
+        if (allVisible) {
+          visibleRows = getInitialRows(columns)
+          updateVisibility()
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else {
+          visibleRows = Math.min(visibleRows + ROWS_PER_EXPANSION, maxRows)
+          updateVisibility(true)
+        }
+      })
+
+      const observer = new ResizeObserver(() => {
+        const columns = getColumns()
+        const initialRows = getInitialRows(columns)
+        if (visibleRows < initialRows) visibleRows = initialRows
+        updateVisibility()
+      })
+      observer.observe(listEl)
+
+      visibleRows = getInitialRows(getColumns())
+      updateVisibility()
+    }
+  }
+</script>

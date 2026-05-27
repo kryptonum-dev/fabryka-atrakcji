@@ -386,30 +386,30 @@ Remove the page-segment stripping logic from `init-listing-filters.ts` since pag
 
 #### Automated
 
-- [x] 1.1 TypeScript compiles: `npm run build` in `apps/astro`
-- [x] 1.2 Linting passes: `npm run lint`
+- [x] 1.1 TypeScript compiles: `npm run build` in `apps/astro` — d5cf224
+- [x] 1.2 Linting passes: `npm run lint` — d5cf224
 
 #### Manual
 
-- [x] 1.3 Category page shows ALL activities (not just 16)
-- [x] 1.4 Filter routes still work with filters applied
-- [x] 1.5 No console.log output from category routes
+- [x] 1.3 Category page shows ALL activities (not just 16) — d5cf224
+- [x] 1.4 Filter routes still work with filters applied — d5cf224
+- [x] 1.5 No console.log output from category routes — d5cf224
 
 ### Phase 2: Show More/Less UI & Logic
 
 #### Automated
 
-- [ ] 2.1 TypeScript compiles: `npm run build`
-- [ ] 2.2 Linting passes: `npm run lint`
+- [x] 2.1 TypeScript compiles: `npm run build`
+- [x] 2.2 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.3 2 rows visible initially, Show More reveals 4 more rows
-- [ ] 2.4 Show Less collapses to 2 rows and smooth-scrolls to listing top
-- [ ] 2.5 Resize across all breakpoints — items recalculate correctly
-- [ ] 2.6 Button hidden when all items fit in initial rows
-- [ ] 2.7 aria-expanded toggles correctly
-- [ ] 2.8 Filter page show-more resets on load
+- [x] 2.3 2 rows visible initially, Show More reveals 4 more rows
+- [x] 2.4 Show Less collapses to 2 rows and smooth-scrolls to listing top
+- [x] 2.5 Resize across all breakpoints — items recalculate correctly
+- [x] 2.6 Button hidden when all items fit in initial rows
+- [x] 2.7 aria-expanded toggles correctly
+- [x] 2.8 Filter page show-more resets on load
 
 ### Phase 3: Redirects & Sitemap Cleanup
 
