@@ -22,6 +22,7 @@ export const GET: APIRoute = async ({ params, redirect }) => {
           }
         }[].pdfs[]
       `,
+      tag: 'page.offer-document-download',
     })
 
     // Find the PDF with matching filename

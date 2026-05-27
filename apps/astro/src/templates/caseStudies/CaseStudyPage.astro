@@ -52,6 +52,7 @@ export async function fetchData(lang: Language, category: string | null, pageNum
       PAGINATION_BEFORE: PAGINATION_BEFORE,
       PAGINATION_AFTER: PAGINATION_AFTER,
     },
+    tag: 'page.case-studies-list',
   })
 
   // Enhanced validation: check if category exists and has case studies
@@ -66,6 +67,7 @@ export async function staticPathsPage(lang: Language) {
   const pages = await sanityFetch<number>({
     query: `count(*[_type == "CaseStudy_Collection" && language == $language])`,
     params: { language: lang },
+    tag: 'page.case-studies-list.count',
   })
 
   const totalPages = Math.ceil(pages / ITEMS_PER_PAGE)
@@ -84,6 +86,7 @@ export async function staticPathsCategory(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.case-studies-list.categories',
   })
 
   return categories.map(({ slug }) => ({
@@ -102,6 +105,7 @@ export async function staticPathsCategoryPage(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.case-studies-list.category-pages',
   })
 
   return categories.map(({ slug, postCount }) => {

@@ -26,6 +26,7 @@ const slugs = [
     query: `
       *[defined(slug.current) && !(_type in ${JSON.stringify(excludedTypes)}) && language in ['pl', 'en']].slug.current
     `,
+    tag: 'page.sitemap',
   })),
 ]
 

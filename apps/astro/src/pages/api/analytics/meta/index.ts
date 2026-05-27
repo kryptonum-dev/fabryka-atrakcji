@@ -58,6 +58,7 @@ const getCookieFromHeaders = (headers: Headers, name: string): string | null =>
 async function getMetaAnalyticsConfig(): Promise<MetaAnalyticsConfig> {
   const data = await sanityFetch<MetaAnalyticsConfig>({
     query: META_ANALYTICS_QUERY,
+    tag: 'api.meta-analytics',
   })
   return {
     metaPixelId: data?.metaPixelId ?? null,

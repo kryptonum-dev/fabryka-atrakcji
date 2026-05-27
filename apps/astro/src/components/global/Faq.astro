@@ -64,6 +64,7 @@ const phone = await sanityFetch<{
   params: {
     language,
   },
+  tag: 'component.faq',
 })
 
 const { index, sectionId, heading, questions, paragraph, subheading, formPopup } = Astro.props

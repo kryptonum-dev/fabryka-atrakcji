@@ -95,6 +95,7 @@ const data = await sanityFetch<{
   }
 `,
   params: { language },
+  tag: 'layout.header',
 })
 
 const { minify = false, alternates } = Astro.props as Props

@@ -18,6 +18,7 @@ const seo = await sanityFetch<{ openGraphImage: string }>({
       "openGraphImage": img.asset -> url + "?w=1200&h=630&fit=crop&auto=format&q=80",
     }
   `,
+  tag: 'layout.head',
 })
 
 export type HeadProps = ({ path: string; url?: never } | { url: string; path?: never }) & {

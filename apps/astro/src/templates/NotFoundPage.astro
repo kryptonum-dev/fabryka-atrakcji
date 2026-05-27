@@ -35,6 +35,7 @@ export async function fetchData(lang: Language = 'pl') {
     }
   `,
     params: { language: lang },
+    tag: 'page.not-found',
   })
 
   const metadata = await metadataFetch(page.slug)

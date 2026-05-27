@@ -64,6 +64,7 @@ export async function fetchData(
       }
     `,
     params: { language: lang },
+    tag: 'page.activities-list.filters',
   })
 
   const participantGroups = (() => {
@@ -193,6 +194,7 @@ export async function fetchData(
       duration: filters.duration,
       embeddingResults: null,
     },
+    tag: 'page.activities-list',
   })
 
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
@@ -210,6 +212,7 @@ export async function staticPathsCategory(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.activities-list.categories',
   })
 
   return categories.map(({ slug }) => ({
@@ -228,6 +231,7 @@ export async function staticPathsCategoryPage(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.activities-list.category-pages',
   })
 
   return categories

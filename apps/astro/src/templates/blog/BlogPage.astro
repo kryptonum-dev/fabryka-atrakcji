@@ -59,6 +59,7 @@ export async function fetchData(lang: Language, category: string | null, pageNum
       PAGINATION_BEFORE: PAGINATION_BEFORE,
       PAGINATION_AFTER: PAGINATION_AFTER,
     },
+    tag: 'page.blog-list',
   })
   if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
   const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
@@ -69,6 +70,7 @@ export async function staticPathsPage(lang: Language) {
   const pages = await sanityFetch<number>({
     query: `count(*[_type == "BlogPost_Collection" && language == $language])`,
     params: { language: lang },
+    tag: 'page.blog-list.count',
   })
 
   const totalPages = Math.ceil(pages / ITEMS_PER_PAGE)
@@ -87,6 +89,7 @@ export async function staticPathsCategory(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.blog-list.categories',
   })
 
   return categories.map(({ slug }) => ({
@@ -105,6 +108,7 @@ export async function staticPathsCategoryPage(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.blog-list.category-pages',
   })
 
   return categories.map(({ slug, postCount }) => {

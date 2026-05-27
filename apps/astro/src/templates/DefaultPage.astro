@@ -34,6 +34,7 @@ export async function fetchData(slug: string, lang: Language) {
   }>({
     query: slug ? collectionTypeQuery : singleTypeQuery,
     params: { slug: `/${lang}/${slug}/`, language: lang },
+    tag: 'page.default',
   })
 
   if (!page) return null

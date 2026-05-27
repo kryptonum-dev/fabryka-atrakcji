@@ -153,6 +153,7 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       minCapacity,
       maxCapacity,
     },
+    tag: 'page.event-spaces-list',
   })
 
   if (!page || (pageNumber > 1 && !page.listing.length)) return null
@@ -164,6 +165,7 @@ export async function staticPaths(lang: Language) {
   const totalEventSpaces = await sanityFetchWithCdn<number>({
     query: `count(*[_type == "EventSpaces_Collection" && language == $language])`,
     params: { language: lang },
+    tag: 'page.event-spaces-list.count',
   })
 
   const totalPages = Math.ceil(totalEventSpaces / ITEMS_PER_PAGE)

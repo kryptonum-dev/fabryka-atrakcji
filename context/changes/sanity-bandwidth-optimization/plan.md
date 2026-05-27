@@ -378,30 +378,30 @@ After deploying all phases:
 
 #### Automated
 
-- [x] 2.1 TypeScript compiles: `npm run build`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Build completes without image processing errors
+- [x] 2.1 TypeScript compiles: `npm run build` — f08c8a5
+- [x] 2.2 Linting passes: `npm run lint` — f08c8a5
+- [x] 2.3 Build completes without image processing errors — f08c8a5
 
 #### Manual
 
-- [x] 2.4 Images render correctly on 5+ page types
-- [x] 2.5 HTML source shows `cdn.sanity.io` srcset URLs
-- [x] 2.6 Responsive srcset variants load correctly (Network tab)
-- [x] 2.7 LQIP placeholders appear on throttled network
-- [x] 2.8 SVG images render correctly
-- [x] 2.9 optimize-images components work (ActivitiesCarousel, HighlightedBlogPosts, TestimonialsPopup)
+- [x] 2.4 Images render correctly on 5+ page types — f08c8a5
+- [x] 2.5 HTML source shows `cdn.sanity.io` srcset URLs — f08c8a5
+- [x] 2.6 Responsive srcset variants load correctly (Network tab) — f08c8a5
+- [x] 2.7 LQIP placeholders appear on throttled network — f08c8a5
+- [x] 2.8 SVG images render correctly — f08c8a5
+- [x] 2.9 optimize-images components work (ActivitiesCarousel, HighlightedBlogPosts, TestimonialsPopup) — f08c8a5
 
 ### Phase 3: Add Request Tags to sanityFetch
 
 #### Automated
 
-- [ ] 3.1 TypeScript compiles: `npm run build`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 No untagged sanityFetch calls remain
+- [x] 3.1 TypeScript compiles: `npm run build`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 No untagged sanityFetch calls remain
 
 #### Manual
 
-- [ ] 3.4 Pages load normally with tags
+- [x] 3.4 Pages load normally with tags
 
 ### Phase 4: Inspect & Optimize Heavy SVG Asset
 

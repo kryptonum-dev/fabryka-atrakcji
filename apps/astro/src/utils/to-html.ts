@@ -29,6 +29,7 @@ const getInternalSlug = async (ref: string) => {
   const data = await sanityFetch<string>({
     query: `*[_type == $type][0].slug.current`,
     params: { type: ref },
+    tag: 'util.to-html',
   })
   return data
 }

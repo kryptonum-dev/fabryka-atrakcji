@@ -152,6 +152,7 @@ export async function fetchData(slug: string, lang: Language) {
     }
   `,
     params: { language: lang, slug: `${prefixes[lang]}${slug}/` },
+    tag: 'page.hotel-detail',
   })
 
   if (!page) return null
@@ -174,6 +175,7 @@ export async function staticPaths(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.hotel-detail.paths',
   })
   return pages?.map(({ slug }) => ({
     params: { slug: slug.split('/').slice(-2).join('/') },

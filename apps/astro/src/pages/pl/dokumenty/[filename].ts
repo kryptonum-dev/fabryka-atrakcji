@@ -20,6 +20,7 @@ export const GET: APIRoute = async ({ params, request, redirect }) => {
             "allowedGroups": newsletterPdfGroups
         }[0]
       `,
+      tag: 'page.document-download',
     })
 
     // 2. If no document found or filename doesn't match the original filename

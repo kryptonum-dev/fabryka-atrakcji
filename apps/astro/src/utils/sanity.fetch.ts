@@ -21,21 +21,25 @@ export const client = createClient({
 export default async function sanityFetch<QueryResponse>({
   query,
   params = {},
+  tag,
 }: {
   query: string
   params?: QueryParams
+  tag?: string
 }): Promise<QueryResponse> {
-  return await client.fetch<QueryResponse>(query, params)
+  return await client.fetch<QueryResponse>(query, params, tag ? { tag } : undefined)
 }
 
 // Kept for backwards compatibility — now delegates to the shared client which already uses CDN in production
 export async function sanityFetchWithCdn<QueryResponse>({
   query,
   params = {},
+  tag,
 }: {
   query: string
   params?: QueryParams
   useCdn?: boolean
+  tag?: string
 }): Promise<QueryResponse> {
-  return await client.fetch<QueryResponse>(query, params)
+  return await client.fetch<QueryResponse>(query, params, tag ? { tag } : undefined)
 }

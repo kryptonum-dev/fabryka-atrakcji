@@ -11,7 +11,7 @@ const RESEND_API_KEY = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_
 const getContactRecipients = async (lang: string): Promise<string[]> => {
   try {
     const query = `*[_type == "global" && language == $lang][0].contactRecipients`
-    const recipients = await sanityFetch<string[]>({ query, params: { lang } })
+    const recipients = await sanityFetch<string[]>({ query, params: { lang }, tag: 'api.contact' })
     return recipients || ['lukasz@fabryka-atrakcji.com']
   } catch (error) {
     console.error('Failed to fetch contact recipients:', error)

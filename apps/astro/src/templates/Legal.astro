@@ -23,6 +23,7 @@ export async function fetchData(type: 'PrivacyPolicy' | 'TermsAndConditions', la
       }
     `,
     params: { language: lang },
+    tag: 'page.legal',
   })
 
   if (!page) return null

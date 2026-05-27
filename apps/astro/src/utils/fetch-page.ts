@@ -61,6 +61,7 @@ export async function fetchPage(slug: string, lang: Language) {
   }>({
     query,
     params: { slug: `/${lang}/${slug}/`, language: lang },
+    tag: 'page.default',
   })
 
   // Determine which page type we found

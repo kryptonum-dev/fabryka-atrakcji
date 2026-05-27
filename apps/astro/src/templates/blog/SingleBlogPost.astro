@@ -61,6 +61,7 @@ export async function fetchData(slug: string, lang: Language) {
       }
     `,
     params: { slug: fullSlug, language: lang },
+    tag: 'page.blog-post',
   })
 
   if (!page) return null
@@ -83,6 +84,7 @@ export async function staticPaths(lang: Language) {
       }
     `,
     params: { language: lang },
+    tag: 'page.blog-post.paths',
   })
   return pages?.map(({ slug }) => ({
     params: { slug: slug.split('/').slice(-2).join('/') },

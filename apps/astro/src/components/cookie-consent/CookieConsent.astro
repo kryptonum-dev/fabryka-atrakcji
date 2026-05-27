@@ -19,6 +19,7 @@ const { metaPixelId, ga4Id, googleAdsId, privacyPolicySlug } = await sanityFetch
     "privacyPolicySlug": *[_type == "PrivacyPolicy_Page" && language == $language][0].slug.current
   }`,
   params: { language: lang },
+  tag: 'component.cookie-consent',
 })
 
 const COPY_BY_LANG: Record<string, CookieConsentCopy> = {
