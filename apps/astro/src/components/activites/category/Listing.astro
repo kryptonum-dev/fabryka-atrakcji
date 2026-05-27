@@ -502,21 +502,23 @@ const getActivitiesCount = () => {
   {
     totalActivitiesByCategory > 0 ? (
       <>
-        <div class="list">
-          {listing.map((item, index) => (
-            <ActivityCard headingLevel="h2" {...item}>
-              {
-                <Image
-                  {...item.previewImage}
-                  sizes="(max-width: 27.4375rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 49.3125rem) 40vw, (max-width: 63.9375rem) 32vw, (max-width: 85.375rem) 24vw, 324px"
-                  loading={index < 8 ? 'eager' : 'lazy'}
-                  fetchpriority={index === 0 ? 'high' : 'auto'}
-                />
-              }
-            </ActivityCard>
-          ))}
+        <div class:list={['list-container', { 'is-peek-initial': listing.length > 8 }]} data-peek={listing.length > 8 ? 'true' : undefined}>
+          <div class="list">
+            {listing.map((item, index) => (
+              <ActivityCard headingLevel="h2" {...item}>
+                {
+                  <Image
+                    {...item.previewImage}
+                    sizes="(max-width: 27.4375rem) 93vw, (max-width: 37.4375rem) 46vw, (max-width: 49.3125rem) 40vw, (max-width: 63.9375rem) 32vw, (max-width: 85.375rem) 24vw, 324px"
+                    loading={index < 8 ? 'eager' : 'lazy'}
+                    fetchpriority={index === 0 ? 'high' : 'auto'}
+                  />
+                }
+              </ActivityCard>
+            ))}
+          </div>
         </div>
-        <div class="show-more-wrapper">
+        <div class="show-more-wrapper" data-peek={listing.length > 8 ? 'true' : undefined}>
           <Button
             theme="secondary"
             shade="dark"
@@ -698,6 +700,42 @@ const getActivitiesCount = () => {
       }
     }
 
+    .list-container {
+      position: relative;
+      overflow: hidden;
+      transition: max-height 600ms var(--easing);
+
+      &.is-peek-initial:not([data-js-ready]) {
+        max-height: 58rem;
+
+        @media (max-width: 49.3125rem) {
+          max-height: 52rem;
+        }
+
+        @media (max-width: 27.4375rem) {
+          max-height: 160rem;
+        }
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 10rem;
+        background: linear-gradient(to bottom, transparent, var(--neutral-100, #faf5f3));
+        pointer-events: all;
+        opacity: 0;
+        transition: opacity 400ms var(--easing);
+        z-index: 1;
+      }
+
+      &[data-peek='true']::after {
+        opacity: 1;
+      }
+    }
+
     .list {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -719,7 +757,13 @@ const getActivitiesCount = () => {
     .show-more-wrapper {
       display: flex;
       justify-content: center;
+      position: relative;
+      z-index: 2;
       margin-top: clamp(1rem, calc(1.5vw / 0.48), 1.5rem);
+
+      &[data-peek='true'] {
+        margin-top: -2rem;
+      }
     }
 
     .filter-sidebar {
@@ -963,20 +1007,19 @@ const getActivitiesCount = () => {
   const INITIAL_ROWS = 2
   const INITIAL_ROWS_SINGLE_COL = 4
   const ROWS_PER_EXPANSION = 4
-  const REVEAL_DURATION = 400
-  const STAGGER_DELAY = 60
+  const PEEK_HEIGHT = 120
 
   const section = document.querySelector('.Listing') as HTMLElement | null
   if (section) {
-    const listEl = section.querySelector('.list') as HTMLElement | null
+    const container = section.querySelector('.list-container') as HTMLElement | null
+    const listEl = container?.querySelector('.list') as HTMLElement | null
     const cards = listEl ? Array.from(listEl.querySelectorAll<HTMLElement>('article[data-activity-card]')) : []
     const wrapper = section.querySelector('.show-more-wrapper') as HTMLElement | null
     const button = wrapper?.querySelector('.show-more-toggle') as HTMLButtonElement | null
     const buttonSpan = button?.querySelector('span') as HTMLSpanElement | null
 
-    if (listEl && cards.length > 0 && button && buttonSpan && wrapper) {
+    if (container && listEl && cards.length > 0 && button && buttonSpan && wrapper) {
       let visibleRows = INITIAL_ROWS
-      let prevVisibleCount = 0
 
       const getColumns = () => {
         const cols = getComputedStyle(listEl).gridTemplateColumns.split(' ')
@@ -986,63 +1029,56 @@ const getActivitiesCount = () => {
       const getInitialRows = (columns: number) =>
         columns === 1 ? INITIAL_ROWS_SINGLE_COL : INITIAL_ROWS
 
-      const animateIn = (newCards: HTMLElement[]) => {
-        newCards.forEach((card, i) => {
-          card.style.opacity = '0'
-          card.style.transform = 'translateY(1rem)'
-          card.style.transition = 'none'
-          card.offsetHeight
-          card.style.transition = `opacity ${REVEAL_DURATION}ms cubic-bezier(0.19, 1, 0.22, 1), transform ${REVEAL_DURATION}ms cubic-bezier(0.19, 1, 0.22, 1)`
-          card.style.transitionDelay = `${i * STAGGER_DELAY}ms`
-          card.style.opacity = '1'
-          card.style.transform = 'translateY(0)'
-        })
-        const cleanup = REVEAL_DURATION + newCards.length * STAGGER_DELAY
-        setTimeout(() => {
-          newCards.forEach((card) => {
-            card.style.transition = ''
-            card.style.transitionDelay = ''
-            card.style.opacity = ''
-            card.style.transform = ''
-          })
-        }, cleanup)
+      const getRowHeight = (rowIndex: number, columns: number) => {
+        const firstInRow = cards[rowIndex * columns]
+        if (!firstInRow) return 0
+        const style = getComputedStyle(listEl)
+        const rowGap = parseFloat(style.rowGap) || 0
+        return firstInRow.offsetHeight + (rowIndex > 0 ? rowGap : 0)
       }
 
-      const updateVisibility = (animate = false) => {
+      const getHeightForRows = (rowCount: number, columns: number) => {
+        let height = 0
+        for (let r = 0; r < rowCount; r++) {
+          height += getRowHeight(r, columns)
+        }
+        return height
+      }
+
+      const updateVisibility = () => {
         const columns = getColumns()
         const initialRows = getInitialRows(columns)
-        const visibleCount = columns * visibleRows
         const totalCards = cards.length
-        const allVisible = visibleCount >= totalCards
+        const totalRows = Math.ceil(totalCards / columns)
+        const clampedRows = Math.min(visibleRows, totalRows)
+        const allVisible = clampedRows >= totalRows
+        const fitsInitial = totalRows <= initialRows
 
-        const newlyRevealed: HTMLElement[] = []
-        cards.forEach((card, i) => {
-          if (i < visibleCount) {
-            card.style.display = ''
-            if (animate && i >= prevVisibleCount) {
-              newlyRevealed.push(card)
-            }
-          } else {
-            card.style.display = 'none'
-          }
-        })
-
-        prevVisibleCount = Math.min(visibleCount, totalCards)
-
-        if (animate && newlyRevealed.length > 0) {
-          animateIn(newlyRevealed)
-        }
-
-        if (totalCards <= columns * initialRows) {
+        if (fitsInitial) {
           wrapper.style.display = 'none'
+          container.style.maxHeight = ''
+          container.style.overflow = ''
+          container.removeAttribute('data-peek')
+          wrapper.removeAttribute('data-peek')
           return
         }
+
         wrapper.style.display = ''
+        const visibleHeight = getHeightForRows(clampedRows, columns)
 
         if (allVisible) {
+          container.style.maxHeight = ''
+          container.style.overflow = ''
+          container.removeAttribute('data-peek')
+          wrapper.removeAttribute('data-peek')
           buttonSpan.textContent = button.getAttribute('data-show-less')
           button.setAttribute('aria-expanded', 'true')
         } else {
+          const peekAmount = Math.min(PEEK_HEIGHT, getRowHeight(clampedRows, columns) * 0.6)
+          container.style.maxHeight = `${visibleHeight + peekAmount}px`
+          container.style.overflow = 'hidden'
+          container.setAttribute('data-peek', 'true')
+          wrapper.setAttribute('data-peek', 'true')
           buttonSpan.textContent = button.getAttribute('data-show-more')
           button.setAttribute('aria-expanded', 'false')
         }
@@ -1051,29 +1087,47 @@ const getActivitiesCount = () => {
       button.addEventListener('click', () => {
         const columns = getColumns()
         const totalCards = cards.length
-        const maxRows = Math.ceil(totalCards / columns)
-        const allVisible = columns * visibleRows >= totalCards
+        const totalRows = Math.ceil(totalCards / columns)
+        const allVisible = Math.min(visibleRows, totalRows) >= totalRows
 
         if (allVisible) {
           visibleRows = getInitialRows(columns)
           updateVisibility()
           section.scrollIntoView({ behavior: 'smooth', block: 'start' })
         } else {
-          visibleRows = Math.min(visibleRows + ROWS_PER_EXPANSION, maxRows)
-          updateVisibility(true)
+          visibleRows = Math.min(visibleRows + ROWS_PER_EXPANSION, totalRows)
+          updateVisibility()
         }
       })
 
+      let resizing = false
       const observer = new ResizeObserver(() => {
         const columns = getColumns()
         const initialRows = getInitialRows(columns)
         if (visibleRows < initialRows) visibleRows = initialRows
+        if (!resizing) {
+          resizing = true
+          container.style.transition = 'none'
+        }
         updateVisibility()
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            container.style.transition = ''
+            resizing = false
+          })
+        })
       })
       observer.observe(listEl)
 
+      container.style.transition = 'none'
       visibleRows = getInitialRows(getColumns())
       updateVisibility()
+      container.setAttribute('data-js-ready', '')
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          container.style.transition = ''
+        })
+      })
     }
   }
 </script>
