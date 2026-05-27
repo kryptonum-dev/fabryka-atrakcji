@@ -430,11 +430,11 @@ Remove the page-segment stripping logic from `init-listing-filters.ts` since pag
 
 #### Automated
 
-- [x] 4.1 TypeScript compiles: `npm run build`
-- [x] 4.2 Linting passes: `npm run lint`
-- [x] 4.3 No references to `data-page-path` or `pagePathSegment` remain
+- [x] 4.1 TypeScript compiles: `npm run build` — 520a866
+- [x] 4.2 Linting passes: `npm run lint` — 520a866
+- [x] 4.3 No references to `data-page-path` or `pagePathSegment` remain — 520a866
 
 #### Manual
 
-- [x] 4.4 Filter apply works correctly from desktop dropdowns
-- [x] 4.5 Filter apply works correctly from mobile sidebar
+- [x] 4.4 Filter apply works correctly from desktop dropdowns — 520a866
+- [x] 4.5 Filter apply works correctly from mobile sidebar — 520a866
