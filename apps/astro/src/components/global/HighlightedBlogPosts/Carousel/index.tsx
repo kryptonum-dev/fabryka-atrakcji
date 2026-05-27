@@ -4,11 +4,11 @@ import ReactBlogCard from '@/src/components/ui/BlogCard/Card'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import styles from './carousel.module.scss'
-import type { GetImageResult } from 'astro'
+import type { SanityImageResult } from '@/src/utils/optimize-images'
 
 type CarouselProps = {
   children: React.ReactNode
-  blogPosts: (BlogCardProps & { image: GetImageResult })[]
+  blogPosts: (BlogCardProps & { image: SanityImageResult })[]
 }
 
 export default function Carousel({ children, blogPosts }: CarouselProps) {

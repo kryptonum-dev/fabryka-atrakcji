@@ -1,6 +1,5 @@
 ---
-import type { ComponentProps } from 'astro/types'
-import { Image as AstroImage } from 'astro:assets'
+import { sanityImageUrl, sanityImageSrcset } from '@/utils/sanity-image'
 
 export type ImageDataProps = {
   asset: {
@@ -20,42 +19,49 @@ export type ImageDataProps = {
 type Props = ImageDataProps & {
   sizes: string
   priority?: boolean
-} & Omit<ComponentProps<typeof AstroImage>, 'src' | 'alt' | 'width' | 'height'>
+} & Omit<astroHTML.JSX.ImgHTMLAttributes, 'src' | 'alt' | 'width' | 'height'>
 
 const { asset, sizes, priority, ...props } = Astro.props
 
 const MAX_WIDTH = 2560
+const WIDTHS = [48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 2560]
+
 const originalWidth = asset.metadata.dimensions.width
 const originalHeight = asset.metadata.dimensions.height
 
-// Cap width at MAX_WIDTH to prevent image proxy timeouts on large uploads
 const width = Math.min(originalWidth, MAX_WIDTH)
-const height = originalWidth > MAX_WIDTH
-  ? Math.round((originalHeight * MAX_WIDTH) / originalWidth)
-  : originalHeight
+const height =
+  originalWidth > MAX_WIDTH ? Math.round((originalHeight * MAX_WIDTH) / originalWidth) : originalHeight
 
-const imageProps = {
-  src: asset.url,
-  alt: asset.altText || '',
-  width,
-  height,
-  sizes,
-  style: {
-    background: `url(${asset.metadata.lqip}) center / cover no-repeat`,
-  },
-  onload: 'this.removeAttribute("style")',
-  ...(priority && {
-    loading: 'eager',
-    fetchpriority: 'high',
-  }),
-  widths: [48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 2560],
-  ...(asset.extension === 'svg' && {
-    format: 'svg' as const,
-    widths: undefined,
-    sizes: undefined,
-  }),
-  ...props,
-}
+const isSvg = asset.extension === 'svg'
 ---
 
-<AstroImage {...imageProps as ComponentProps<typeof AstroImage>} />
+{
+  isSvg ? (
+    <img
+      src={asset.url}
+      alt={asset.altText || ''}
+      width={width}
+      height={height}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+      {...(priority && { fetchpriority: 'high' })}
+      {...props}
+    />
+  ) : (
+    <img
+      src={sanityImageUrl(asset.url, { w: width })}
+      srcset={sanityImageSrcset(asset.url, WIDTHS, originalWidth)}
+      sizes={sizes}
+      alt={asset.altText || ''}
+      width={width}
+      height={height}
+      style={`background:url(${asset.metadata.lqip}) center / cover no-repeat`}
+      onload="this.removeAttribute('style')"
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+      {...(priority && { fetchpriority: 'high' })}
+      {...props}
+    />
+  )
+}

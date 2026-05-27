@@ -8,14 +8,6 @@ import { isPreviewDeployment } from './src/utils/is-preview-deployment'
 export default defineConfig({
   site: DOMAIN,
   integrations: [preact({ compat: true })],
-  image: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.sanity.io',
-      },
-    ],
-  },
   vite: {
     ssr: {
       noExternal: ['react-hook-form', 'react-international-phone', 'embla-carousel-react'],

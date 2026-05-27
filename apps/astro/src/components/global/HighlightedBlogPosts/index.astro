@@ -6,7 +6,7 @@ import Carousel from './Carousel'
 import { getEstimatedReadingTime } from '@/src/utils/get-estimated-reading-time'
 import { getLangFromPath, type Language } from '@/src/global/languages'
 import { BlogCardQuery, type BlogCardProps } from '../../ui/BlogCard'
-import type { GetImageResult } from 'astro'
+import type { SanityImageResult } from '@/src/utils/optimize-images'
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 
@@ -61,7 +61,7 @@ const clientBlogPosts = await Promise.all(
       <PortableText value={subHeading} class="subHeading" />
       <PortableText value={paragraph} class="paragraph" />
     </header>
-    <Carousel client:load blogPosts={clientBlogPosts as unknown as (BlogCardProps & { image: GetImageResult })[]}
+    <Carousel client:load blogPosts={clientBlogPosts as unknown as (BlogCardProps & { image: SanityImageResult })[]}
       ><Button {...cta} /></Carousel
     >
   </div>

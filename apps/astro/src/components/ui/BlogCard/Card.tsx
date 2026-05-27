@@ -1,5 +1,5 @@
 import { getRelativeDate } from '@/src/utils/get-relative-date'
-import type { GetImageResult } from 'astro'
+import type { SanityImageResult } from '@/src/utils/optimize-images'
 import styles from './styles.module.scss'
 import type { BlogCardProps } from './index'
 
@@ -12,7 +12,7 @@ export default function BlogCard({
   _createdAt,
   imageConfig,
   lang = 'pl',
-}: BlogCardProps & { image: GetImageResult }) {
+}: BlogCardProps & { image: SanityImageResult }) {
   return (
     <article className={styles.blogCard}>
       <a href={slug}>

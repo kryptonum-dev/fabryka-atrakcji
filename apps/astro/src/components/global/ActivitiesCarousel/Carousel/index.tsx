@@ -1,4 +1,4 @@
-import type { GetImageResult } from 'astro'
+import type { SanityImageResult } from '@/src/utils/optimize-images'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback } from 'preact/hooks'
 import ArrowButton from '../../../ui/ArrowButton'
@@ -8,7 +8,7 @@ type CarouselProps = {
   children: React.ReactNode
   activities: {
     name: string
-    image: GetImageResult
+    image: SanityImageResult
     description: string
     participantsCount: {
       min: number

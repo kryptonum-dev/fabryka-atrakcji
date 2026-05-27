@@ -1,4 +1,4 @@
-import type { GetImageResult } from 'astro'
+import type { SanityImageResult } from '@/src/utils/optimize-images'
 import { ImageDataQuery, type ImageDataProps } from '../image'
 import styles from './styles.module.scss'
 
@@ -51,7 +51,7 @@ export default function ActivityCard({
   pricing,
 }: ActivityCardProps & {
   children?: React.ReactNode
-  clientImage?: { image: GetImageResult; fetchPriority: 'high' | 'auto'; loading: 'eager' | 'lazy'; sizes: string }
+  clientImage?: { image: SanityImageResult; fetchPriority: 'high' | 'auto'; loading: 'eager' | 'lazy'; sizes: string }
 }) {
   const isRecent = new Date(_createdAt) > new Date(Date.now() - 1000 * 60 * 60 * 24 * 14)
 

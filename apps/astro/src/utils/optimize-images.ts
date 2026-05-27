@@ -1,20 +1,26 @@
-import { getImage } from 'astro:assets'
+import { sanityImageUrl, sanityImageSrcset } from './sanity-image'
+
+export type SanityImageResult = {
+  src: string
+  srcSet: { attribute: string }
+  attributes: { width: number; height: number }
+}
 
 const MAX_WIDTH = 2560
+const WIDTHS = [48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 2560]
 
-export const optimizeImage = async ({ image, width, height }: { image: string; width: number; height: number }) => {
-  // Cap width at MAX_WIDTH to prevent image proxy timeouts on large uploads
+export const optimizeImage = ({ image, width, height }: { image: string; width: number; height: number }): SanityImageResult => {
   const cappedWidth = Math.min(width, MAX_WIDTH)
   const cappedHeight = width > MAX_WIDTH ? Math.round((height * MAX_WIDTH) / width) : height
 
-  const optimizedImage = await getImage({
-    src: image,
-    format: 'webp',
-    width: cappedWidth,
-    height: cappedHeight,
-    widths: [48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 2560],
-    sizes: '324px',
-  })
-
-  return optimizedImage
+  return {
+    src: sanityImageUrl(image, { w: cappedWidth }),
+    srcSet: {
+      attribute: sanityImageSrcset(image, WIDTHS, width),
+    },
+    attributes: {
+      width: cappedWidth,
+      height: cappedHeight,
+    },
+  }
 }

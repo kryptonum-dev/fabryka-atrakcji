@@ -1,4 +1,4 @@
-import type { GetImageResult } from 'astro'
+import type { SanityImageResult } from '@/src/utils/optimize-images'
 import { useRef, useState } from 'preact/hooks'
 import styles from './styles.module.scss'
 
@@ -10,7 +10,7 @@ type Props = {
     review: string
     date: string
     image: {
-      profileImage: GetImageResult | null
+      profileImage: SanityImageResult | null
     }
     logo: string | null
   }[]

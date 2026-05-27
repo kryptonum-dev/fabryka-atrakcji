@@ -378,18 +378,18 @@ After deploying all phases:
 
 #### Automated
 
-- [ ] 2.1 TypeScript compiles: `npm run build`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Build completes without image processing errors
+- [x] 2.1 TypeScript compiles: `npm run build`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Build completes without image processing errors
 
 #### Manual
 
-- [ ] 2.4 Images render correctly on 5+ page types
-- [ ] 2.5 HTML source shows `cdn.sanity.io` srcset URLs
-- [ ] 2.6 Responsive srcset variants load correctly (Network tab)
-- [ ] 2.7 LQIP placeholders appear on throttled network
-- [ ] 2.8 SVG images render correctly
-- [ ] 2.9 optimize-images components work (ActivitiesCarousel, HighlightedBlogPosts, TestimonialsPopup)
+- [x] 2.4 Images render correctly on 5+ page types
+- [x] 2.5 HTML source shows `cdn.sanity.io` srcset URLs
+- [x] 2.6 Responsive srcset variants load correctly (Network tab)
+- [x] 2.7 LQIP placeholders appear on throttled network
+- [x] 2.8 SVG images render correctly
+- [x] 2.9 optimize-images components work (ActivitiesCarousel, HighlightedBlogPosts, TestimonialsPopup)
 
 ### Phase 3: Add Request Tags to sanityFetch
 
