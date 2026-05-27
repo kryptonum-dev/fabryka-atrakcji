@@ -35,7 +35,7 @@ const clientTestimonials = await Promise.all(
     logo: testimonial.logo ? await imageToInlineSvg(testimonial.logo) : null,
     image: {
       profileImage: testimonial.image
-        ? await optimizeImage({ image: testimonial.image.profileImage.asset.url, width: 36, height: 36 })
+        ? optimizeImage({ image: testimonial.image.profileImage.asset.url, width: 36, height: 36 })
         : null,
     },
   }))

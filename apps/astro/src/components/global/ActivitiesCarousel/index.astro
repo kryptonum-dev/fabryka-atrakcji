@@ -58,7 +58,7 @@ fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
 const clientActivities = await Promise.all(
   activities.map(async (activity) => ({
     ...activity,
-    image: await optimizeImage({
+    image: optimizeImage({
       image: activity.previewImage.asset.url,
       width: activity.previewImage.asset.metadata.dimensions.width,
       height: activity.previewImage.asset.metadata.dimensions.height,

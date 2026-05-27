@@ -1,4 +1,5 @@
 export function sanityImageUrl(baseUrl: string, params: { w?: number; h?: number; q?: number; fit?: string }): string {
+  if (!baseUrl) throw new Error('sanityImageUrl: baseUrl is required')
   const url = new URL(baseUrl)
   if (params.w) url.searchParams.set('w', String(params.w))
   if (params.h) url.searchParams.set('h', String(params.h))

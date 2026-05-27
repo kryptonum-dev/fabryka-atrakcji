@@ -38,7 +38,7 @@ const clientBlogPosts = await Promise.all(
   blogPosts.map(async (blogPost) => ({
     ...blogPost,
     image: {
-      ...(await optimizeImage({
+      ...(optimizeImage({
         image: blogPost.image.asset.url,
         width: blogPost.image.asset.metadata.dimensions.width,
         height: blogPost.image.asset.metadata.dimensions.height,
