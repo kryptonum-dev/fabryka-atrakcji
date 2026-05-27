@@ -152,14 +152,14 @@ export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
 export const getOrderClause = (
   order: OrderType | null,
   isSearchMode = false,
-  type: 'activities' | 'hotels' | 'eventSpaces' = 'activities'
+  type: 'activities' | 'hotels' | 'eventSpaces' = 'activities',
+  preserveArrayOrder = false
 ): string => {
   switch (order) {
     case 'newest':
       return 'coalesce(publishedDate, _createdAt) desc'
     case 'priceDesc':
       if (type === 'hotels') {
-        // Push non-public pricing hotels to the end, then sort by price descending
         return 'pricing.pricingVisible desc, pricing.pricePerPerson desc'
       }
       if (type === 'eventSpaces') {
@@ -168,7 +168,6 @@ export const getOrderClause = (
       return 'pricing.basePrice desc'
     case 'priceAsc':
       if (type === 'hotels') {
-        // Push non-public pricing hotels to the end, then sort by price ascending
         return 'pricing.pricingVisible desc, pricing.pricePerPerson asc'
       }
       if (type === 'eventSpaces') {
@@ -176,12 +175,12 @@ export const getOrderClause = (
       }
       return 'pricing.basePrice asc'
     case 'popularity':
-      return 'popularityIndex desc'
+      return preserveArrayOrder ? '' : 'popularityIndex desc'
     case 'searchMatching':
-      return isSearchMode && type !== 'eventSpaces' ? '_score desc' : 'popularityIndex desc'
+      return isSearchMode && type !== 'eventSpaces' ? '_score desc' : preserveArrayOrder ? '' : 'popularityIndex desc'
     default:
-      // If no order specified, use score for search mode, popularity otherwise
-      return isSearchMode && type !== 'eventSpaces' ? '_score desc' : 'popularityIndex desc'
+      if (isSearchMode && type !== 'eventSpaces') return '_score desc'
+      return preserveArrayOrder ? '' : 'popularityIndex desc'
   }
 }
 

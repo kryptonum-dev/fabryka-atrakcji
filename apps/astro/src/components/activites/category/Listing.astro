@@ -212,7 +212,7 @@ export const Listing_Query = (orderClause: string, participantGroups: Participan
     })
     .join(',\n')
 
-  const orderPipe = orderClause === 'popularityIndex desc' ? '' : `| order(${orderClause})`
+  const orderPipe = orderClause ? `| order(${orderClause})` : ''
 
   return `
     "totalActivitiesByCategory": count(activities[${createBaseFilter()}]),

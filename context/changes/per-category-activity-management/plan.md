@@ -59,6 +59,7 @@ Add the `activities[]` field to the category schema, hide the legacy `categories
 **Intent**: Add a new `activities` array field after the `image` field (line 75). Each array entry is an inline object with an activity reference, optional `nameOverride` string, and optional `descriptionOverride` text. Include uniqueness validation to prevent the same activity from appearing twice.
 
 **Contract**: New field `activities` of type `array` containing objects of type `activityEntry`. Each entry has:
+
 - `activity`: reference to `Activities_Collection`, required, language-filtered, `disableNew: true`
 - `nameOverride`: optional string
 - `descriptionOverride`: optional text (3 rows)
@@ -80,6 +81,7 @@ Add the `activities[]` field to the category schema, hide the legacy `categories
 **Intent**: One-time CLI script that reads all existing `Activities_Collection` documents, groups them by their category references, and populates each `ActivitiesCategory_Collection` document's new `activities[]` array with those references ordered by `popularityIndex desc`. Follows the established dry-run/apply pattern from existing migration scripts.
 
 **Contract**: 
+
 - CLI flags: `--apply` to execute (default is dry-run), `--force` to overwrite existing arrays
 - For each category: query `*[_type == "Activities_Collection" && references($categoryId)] | order(popularityIndex desc)`, build `activities[]` entries with `_type: 'activityEntry'`, unique `_key`, and `activity._ref`
 - Skip categories that already have a non-empty `activities[]` (unless `--force`)
@@ -128,6 +130,7 @@ Rewrite all GROQ queries to use the category's `activities[]` array as the sourc
 - `"priceRange"`: min/max `additionalPersonPrice` from this category's activities
 
 Key GROQ pattern for filter counts — every filter condition must dereference through `activity->`:
+
 ```groq
 count(activities[
   defined(activity->._id)
@@ -146,7 +149,7 @@ For the `activityTypes` subquery: query `ActivitiesType_Collection` documents an
 
 **Contract**: The `selectedCategory` subquery (currently line 143-173) expands to include all `Listing_Query` projections. The template then reads listing data from `page.selectedCategory.listing`, `page.selectedCategory.totalActivitiesByCategory`, etc. instead of `page.listing`, `page.totalActivitiesByCategory`. Update all prop references in the template accordingly.
 
-The `fetchData` return type and the component's `Props` type must be updated to reflect the new nesting. The `Listing` component receives props from `page.selectedCategory.*`.
+The `fetchData` return type and the component's `Props` type must be updated to reflect the new nesting. The `Listing` component receives props from `page.selectedCategory.`*.
 
 #### 3. Update CategoryBlock count query
 
@@ -337,68 +340,69 @@ No code changes. This phase is verification-only.
 
 ## Progress
 
-> Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
+> Convention: `- [ ]` pending, `- [x]` done. Append  `— <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
 
 ### Phase 1: Schema Change & Migration
 
 #### Automated
 
-- [x] 1.1 Schema changes compile: `cd apps/sanity && npm run build` — 720cb6c
-- [x] 1.2 TypeScript passes: `npm run lint` from root — 720cb6c
-- [x] 1.3 Migration script runs in dry-run mode without errors — 720cb6c
+- 1.1 Schema changes compile: `cd apps/sanity && npm run build` — 720cb6c
+- 1.2 TypeScript passes: `npm run lint` from root — 720cb6c
+- 1.3 Migration script runs in dry-run mode without errors — 720cb6c
 
 #### Manual
 
-- [x] 1.4 Category document in Studio shows functional `activities[]` field — 720cb6c
-- [x] 1.5 Activity document in Studio hides `categories[]` field — 720cb6c
-- [x] 1.6 Migration populates correct activities in popularityIndex order — 720cb6c
-- [x] 1.7 Spot-check 2-3 categories for correct activity counts — 720cb6c
+- 1.4 Category document in Studio shows functional `activities[]` field — 720cb6c
+- 1.5 Activity document in Studio hides `categories[]` field — 720cb6c
+- 1.6 Migration populates correct activities in popularityIndex order — 720cb6c
+- 1.7 Spot-check 2-3 categories for correct activity counts — 720cb6c
 
 ### Phase 2: GROQ Query Rewrite
 
 #### Automated
 
-- [x] 2.1 TypeScript compilation passes: `npm run lint`
-- [x] 2.2 Astro build succeeds: `cd apps/astro && npm run build`
+- 2.1 TypeScript compilation passes: `npm run lint` — 8ce0423
+- 2.2 Astro build succeeds: `cd apps/astro && npm run build` — 8ce0423
 
 #### Manual
 
-- [ ] 2.3 Category page shows activities in array order
-- [ ] 2.4 All filters produce correct counts and results
-- [ ] 2.5 Filter route works correctly
-- [ ] 2.6 Main listing page shows correct per-category counts
-- [ ] 2.7 Empty categories excluded from main listing
-- [ ] 2.8 Override names/descriptions render correctly
-- [ ] 2.9 Search/embeddings sort still functions
+- 2.3 Category page shows activities in array order — 8ce0423
+- 2.4 All filters produce correct counts and results — 8ce0423
+- 2.5 Filter route works correctly — 8ce0423
+- 2.6 Main listing page shows correct per-category counts — 8ce0423
+- 2.7 Empty categories excluded from main listing — 8ce0423
+- 2.8 Override names/descriptions render correctly — 8ce0423
+- 2.9 Search/embeddings sort still functions — 8ce0423
 
 ### Phase 3: Sort Behavior & Frontend Polish
 
 #### Automated
 
-- [ ] 3.1 TypeScript compilation passes: `npm run lint`
-- [ ] 3.2 Astro build succeeds: `cd apps/astro && npm run build`
+- [x] 3.1 TypeScript compilation passes: `npm run lint`
+- [x] 3.2 Astro build succeeds: `cd apps/astro && npm run build`
 
 #### Manual
 
-- [ ] 3.3 Default sort uses array order, not popularityIndex
-- [ ] 3.4 Sort dropdown shows "Polecane" / "Recommended"
-- [ ] 3.5 All sort options function correctly
-- [ ] 3.6 Activity cards display overridden values
+- [x] 3.3 Default sort uses array order, not popularityIndex
+- [x] 3.4 Sort dropdown shows "Polecane" / "Recommended"
+- [x] 3.5 All sort options function correctly
+- [x] 3.6 Activity cards display overridden values
 
 ### Phase 4: End-to-End Verification
 
 #### Automated
 
-- [ ] 4.1 Full build succeeds: `npm run build`
-- [ ] 4.2 Lint passes: `npm run lint`
+- 4.1 Full build succeeds: `npm run build`
+- 4.2 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 4.3 PL category page works
-- [ ] 4.4 EN category page works
-- [ ] 4.5 Filter routes work for both languages
-- [ ] 4.6 Main listing works for both languages
-- [ ] 4.7 Empty category exclusion works
-- [ ] 4.8 Different overrides show on different category pages (SEO verification)
-- [ ] 4.9 Activity detail pages unaffected
-- [ ] 4.10 Full editor workflow: add, reorder, override, publish, verify on site
+- 4.3 PL category page works
+- 4.4 EN category page works
+- 4.5 Filter routes work for both languages
+- 4.6 Main listing works for both languages
+- 4.7 Empty category exclusion works
+- 4.8 Different overrides show on different category pages (SEO verification)
+- 4.9 Activity detail pages unaffected
+- 4.10 Full editor workflow: add, reorder, override, publish, verify on site
+

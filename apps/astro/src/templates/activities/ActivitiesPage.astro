@@ -40,7 +40,7 @@ export async function fetchData(
   searchParams?: URLSearchParams
 ) {
   const filters = parseFilters(searchParams || new URLSearchParams())
-  const orderClause = getOrderClause(filters.order)
+  const orderClause = getOrderClause(filters.order, false, 'activities', true)
 
   const globalFilters = await sanityFetchWithCdn<{
     listingFilters?: {
