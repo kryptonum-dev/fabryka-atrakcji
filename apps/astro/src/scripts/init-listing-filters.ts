@@ -428,18 +428,12 @@ applyButton.addEventListener('click', () => {
   // Get path segments from Listing section data attributes
   const listingSection = document.querySelector('.Listing')
   const filterPathSegment = listingSection?.getAttribute('data-filter-path') || 'filtr'
-  const pagePathSegment = listingSection?.getAttribute('data-page-path') || 'strona'
 
   let basePath = currentPath
 
   // Remove filter path if already present
   if (basePath.includes(`/${filterPathSegment}`)) {
     basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
-  }
-
-  // Remove page path to always go back to first page when applying filters
-  if (basePath.includes(`/${pagePathSegment}/`)) {
-    basePath = basePath.replace(new RegExp(`\/${pagePathSegment}\/\\d+\/?`), '/')
   }
 
   // Ensure proper trailing slash and add filter path

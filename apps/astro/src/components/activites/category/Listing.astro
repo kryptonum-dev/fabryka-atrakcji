@@ -63,7 +63,7 @@ const translations = {
     pathPrefix: '/pl/integracje/kategoria',
     pathPrefixDefault: '/pl/integracje',
     filterPath: 'filtr',
-    pagePath: 'strona',
+
     categoryPath: 'kategoria',
     found: 'Znaleziono',
     foundActivitiesSingle: 'integrację',
@@ -98,7 +98,7 @@ const translations = {
     pathPrefix: '/en/activities/category',
     pathPrefixDefault: '/en/activities',
     filterPath: 'filter',
-    pagePath: 'page',
+
     categoryPath: 'category',
     found: 'Found',
     foundActivitiesSingle: 'activity',
@@ -449,7 +449,6 @@ const getActivitiesCount = () => {
   data-mobile-open="false"
   data-category-name={selectedCategory || currentCategory}
   data-filter-path={t.filterPath}
-  data-page-path={t.pagePath}
 >
   {
     (heading || description) && (

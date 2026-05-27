@@ -415,26 +415,26 @@ Remove the page-segment stripping logic from `init-listing-filters.ts` since pag
 
 #### Automated
 
-- [x] 3.1 TypeScript compiles: `npm run build`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 No references to `staticPathsCategoryPage` remain in codebase
+- [x] 3.1 TypeScript compiles: `npm run build` — 3275343
+- [x] 3.2 Linting passes: `npm run lint` — 3275343
+- [x] 3.3 No references to `staticPathsCategoryPage` remain in codebase — 3275343
 
 #### Manual
 
-- [x] 3.4 Paginated URLs return 301 redirects to base category
-- [x] 3.5 Paginated filter URLs redirect with query params preserved
-- [x] 3.6 Sitemap XML has no paginated category entries
-- [x] 3.7 Other listing pagination (blog, hotels) unaffected
+- [x] 3.4 Paginated URLs return 301 redirects to base category — 3275343
+- [x] 3.5 Paginated filter URLs redirect with query params preserved — 3275343
+- [x] 3.6 Sitemap XML has no paginated category entries — 3275343
+- [x] 3.7 Other listing pagination (blog, hotels) unaffected — 3275343
 
 ### Phase 4: Filter Script Cleanup
 
 #### Automated
 
-- [ ] 4.1 TypeScript compiles: `npm run build`
-- [ ] 4.2 Linting passes: `npm run lint`
-- [ ] 4.3 No references to `data-page-path` or `pagePathSegment` remain
+- [x] 4.1 TypeScript compiles: `npm run build`
+- [x] 4.2 Linting passes: `npm run lint`
+- [x] 4.3 No references to `data-page-path` or `pagePathSegment` remain
 
 #### Manual
 
-- [ ] 4.4 Filter apply works correctly from desktop dropdowns
-- [ ] 4.5 Filter apply works correctly from mobile sidebar
+- [x] 4.4 Filter apply works correctly from desktop dropdowns
+- [x] 4.5 Filter apply works correctly from mobile sidebar
