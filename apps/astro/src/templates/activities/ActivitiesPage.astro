@@ -18,8 +18,6 @@ import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
 import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
 
-export const ITEMS_PER_PAGE = 16
-
 type FormProps = {
   formHeading?: PortableTextValue
   formParagraph?: PortableTextValue
@@ -38,12 +36,9 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
 export async function fetchData(
   lang: Language,
   category: string | null,
-  pageNumber: number,
+  _pageNumber: number,
   searchParams?: URLSearchParams
 ) {
-  const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
-  const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
-
   const filters = parseFilters(searchParams || new URLSearchParams())
   const orderClause = getOrderClause(filters.order)
 
@@ -184,8 +179,6 @@ export async function fetchData(
       language: lang,
       category,
       categorySlug,
-      PAGINATION_BEFORE,
-      PAGINATION_AFTER,
       minParticipants: filters.minParticipants,
       maxParticipants: filters.maxParticipants,
       minPrice: filters.minPrice,
@@ -197,7 +190,7 @@ export async function fetchData(
     tag: 'page.activities-list',
   })
 
-  if (!page || (pageNumber > 1 && !page.listing.length) || (category && !page.selectedCategory)) return null
+  if (!page || (category && !page.selectedCategory)) return null
 
   const metadata = await metadataFetch(page?.selectedCategory?.slug || page.slug)
   return { page, metadata, participantGroups }
@@ -222,72 +215,29 @@ export async function staticPathsCategory(lang: Language) {
   }))
 }
 
-export async function staticPathsCategoryPage(lang: Language) {
-  const categories = await sanityFetchWithCdn<{ lang: Language; slug: string; postCount: number }[]>({
-    query: `
-      *[_type == 'ActivitiesCategory_Collection' && language == $language][] {
-        "slug": slug.current,
-        "postCount": count(*[_type == "Activities_Collection" && references(^._id) && defined(categories)]),
-      }
-    `,
-    params: { language: lang },
-    tag: 'page.activities-list.category-pages',
-  })
-
-  return categories
-    .map(({ slug, postCount }) => {
-      const totalPages = Math.ceil(postCount / 16)
-      return Array.from({ length: totalPages - 1 }, (_, i) => ({
-        params: {
-          category: slug.split('/').slice(-2).join('/'),
-          page: `${(i + 2).toString()}/`,
-        },
-      }))
-    })
-    .flat()
+// Stub — returns empty so no paginated routes are generated. Removed in Phase 3 (redirects).
+// eslint-disable-next-line no-unused-vars
+export async function staticPathsCategoryPage(_lang: Language) {
+  return [] as { params: { category: string; page: string } }[]
 }
 
-const { page, metadata: _metadata, currentPage, currentCategory, canonicalUrl, doNotIndex, participantGroups } = Astro.props
+const { page, metadata: _metadata, currentCategory, canonicalUrl, doNotIndex, participantGroups } = Astro.props
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
-const totalPages = Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
-
-const translation = {
-  pl: {
-    pageUpper: 'Strona',
-    pageLower: 'strona',
-    categoryLower: 'kategoria',
-    prefix: '/pl/intergracje',
-  },
-  en: {
-    pageUpper: 'Page',
-    pageLower: 'page',
-    categoryLower: 'category',
-    prefix: '/en/activities',
-  },
-} as const
-
-const t = translation[lang]
 
 const metadata = {
   ..._metadata,
-  title: `${_metadata.title} | ${t.pageUpper} ${currentPage}`,
+  title: _metadata.title,
   description: _metadata.description,
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,
   ...(canonicalUrl && { canonicalUrl }),
   ...(doNotIndex && { doNotIndex }),
 }
-const getPaginationUrl = (page: number) => {
-  return currentCategory
-    ? `${t.prefix}/${t.categoryLower}/${currentCategory}/${t.pageLower}/${page}`
-    : `${t.prefix}/${t.pageLower}/${page}`
-}
 
 const breadcrumbs = [
   { name: page.name, path: page.slug },
   ...(page?.selectedCategory ? [{ name: page.selectedCategory.name, path: page.selectedCategory.slug }] : []),
-  ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
 
 // Determine which components to use based on the category settings, filtering out page builder ContactForms
@@ -322,10 +272,6 @@ const resolvedFormState = page.selectedCategory?.formOverrides?.overrideFormStat
 ---
 
 <Layout {...metadata}>
-  <Fragment slot="Head">
-    {currentPage > 2 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
-    {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
-  </Fragment>
   <Breadcrumbs data={breadcrumbs} firstItemType="ActivitiesListing" />
   <Listing
     selectedCategory={page.selectedCategory.name}
@@ -333,7 +279,7 @@ const resolvedFormState = page.selectedCategory?.formOverrides?.overrideFormStat
     description={page.selectedCategory.description.long}
     totalActivitiesByCategory={page.totalActivitiesByCategory}
     listing={page.listing}
-    currentPage={currentPage}
+    currentPage={1}
     currentCategory={currentCategory}
     participantRangeCounts={page.participantRangeCounts}
     activityTypes={page.activityTypes}

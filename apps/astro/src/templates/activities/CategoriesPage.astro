@@ -10,7 +10,7 @@ import ActivitiesListing, {
   Listing_Query as ActivitiesListing_Query,
   type ListingProps as ActivitiesListingProps,
 } from '@/src/components/activites/category/Listing.astro'
-import { ITEMS_PER_PAGE as ACTIVITIES_PER_PAGE } from './ActivitiesPage.astro'
+const ACTIVITIES_PER_PAGE = 16
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/Listing.astro'
 import SearchBar from '@/src/components/ui/SearchBar.astro'
 import { NoSearchResults_Query, type NoSearchResultsProps } from '@/src/components/activites/NoSearchResults.astro'

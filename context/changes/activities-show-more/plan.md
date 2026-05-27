@@ -13,13 +13,13 @@ Activity category pages (`/integracje/kategoria/[x]`) use server-side pagination
 - `ActivitiesPage.astro:21` — `ITEMS_PER_PAGE = 16` constant drives pagination math
 - `ActivitiesPage.astro:44-45` — `PAGINATION_BEFORE` and `PAGINATION_AFTER` computed from page number
 - `Listing_Query()` at `Listing.astro:261-269` — GROQ slice `[$PAGINATION_BEFORE...$PAGINATION_AFTER]` limits results
-- `ActivitiesPage.astro:222-244` — `staticPathsCategoryPage()` generates routes for pages 2+
-- `ActivitiesPage.astro:322-323` — `rel="prev"`/`rel="next"` links in `<head>`
+- `ActivitiesPage.astro:225-248` — `staticPathsCategoryPage()` generates routes for pages 2+
+- `ActivitiesPage.astro:326-327` — `rel="prev"`/`rel="next"` links in `<head>`
 - `Listing.astro:520-526` — `<Pagination>` component renders page navigation
 - `Listing.astro:697-713` — Grid: 4 columns (desktop), 3 (≤63.9375rem), 2 (≤49.3125rem), 1 (≤27.4375rem)
 - `TableOfContent.astro:398-408` — Existing vanilla JS `data-expanded` toggle pattern to follow
 - `init-listing-filters.ts:441-443` — Apply button strips page segments from URL before redirecting
-- `sitemap-index.xml.ts:161,178` — **Bug**: missing `/` between category slug and `strona`/`page` in sitemap entries
+- `sitemap-index.xml.ts:162,179` — **Bug**: missing `/` between category slug and `strona`/`page` in sitemap entries
 - Data volume is small (~20-80 activities per category, max ~100) — safe to load all at once
 - Images use `loading="lazy"` after index 8 (`Listing.astro:513`) — hidden items with `display: none` won't be fetched by browsers
 - **Prerequisite**: This plan assumes the bandwidth optimization (Phases 1-2) has already been implemented, meaning the Image component outputs plain `<img>` with Sanity CDN srcset instead of Astro `<Image />`. This produces lighter per-card HTML.
@@ -89,13 +89,13 @@ Remove the GROQ pagination slice so the query returns all activities. Remove pag
 
 **Contract**:
 - Remove `ITEMS_PER_PAGE` constant (line 21)
-- In `fetchData()`: remove `PAGINATION_BEFORE` and `PAGINATION_AFTER` computation (lines 44-45) and their GROQ params (lines 186-187). Pass `0` and a large number (e.g., `9999`) to keep the GROQ param slots if the query still references them, OR coordinate with Phase 1.1 to remove the slice entirely so these params aren't needed.
-- Remove `staticPathsCategoryPage` function (lines 222-244) and its export
-- Remove the `totalPages` computation (line 249)
-- Remove `rel="prev"`/`rel="next"` head links (lines 322-323)
-- Remove the `currentPage > 1` breadcrumb segment (line 286) and "Page N" title suffix (line 270)
+- In `fetchData()`: remove `PAGINATION_BEFORE` and `PAGINATION_AFTER` computation (lines 44-45) and their GROQ params (lines 187-188). Preserve the `tag: 'page.activities-list'` property at line 197. Pass `0` and a large number (e.g., `9999`) to keep the GROQ param slots if the query still references them, OR coordinate with Phase 1.1 to remove the slice entirely so these params aren't needed.
+- Remove `staticPathsCategoryPage` function (lines 225-248) and its export (includes the `tag: 'page.activities-list.category-pages'` added by the bandwidth optimization — this is removed with the function)
+- Remove the `totalPages` computation (line 253)
+- Remove `rel="prev"`/`rel="next"` head links (lines 326-327)
+- Remove the `currentPage > 1` breadcrumb segment (line 290) and "Page N" title suffix (line 274)
 - The `currentPage` prop is no longer meaningful — hardcode to 1 or remove from the Props type. Since the Listing component and filter routes still reference it, simplest approach is to always pass `currentPage={1}`.
-- Remove the `getPaginationUrl` function (lines 277-281)
+- Remove the `getPaginationUrl` function (lines 281-285)
 
 #### 3. Update base category routes
 
@@ -253,12 +253,12 @@ Convert the 4 paginated route files to 301 redirects pointing to the base catego
 
 **File**: `apps/astro/src/pages/sitemap-index.xml.ts`
 
-**Intent**: Remove the `activitiesStaticPathsCategoryPage` import and the two blocks (PL: lines 157-163, EN: lines 174-180) that add paginated category URLs to the sitemap. Also fix the existing bug where the category slug and page segment are concatenated without a `/` separator (lines 161, 178) — but since we're removing these blocks entirely, the bug is eliminated.
+**Intent**: Remove the `activitiesStaticPathsCategoryPage` import and the two blocks (PL: lines 158-164, EN: lines 175-181) that add paginated category URLs to the sitemap. Also fix the existing bug where the category slug and page segment are concatenated without a `/` separator (lines 162, 179) — but since we're removing these blocks entirely, the bug is eliminated.
 
 **Contract**:
 - Remove `import { staticPathsCategoryPage as activitiesStaticPathsCategoryPage }` (or its equivalent in the import block)
-- Remove the PL block (lines ~157-163) that calls `activitiesStaticPathsCategoryPage('pl')` and pushes paginated slugs
-- Remove the EN block (lines ~174-180) that calls `activitiesStaticPathsCategoryPage('en')` and pushes paginated slugs
+- Remove the PL block (lines ~158-164) that calls `activitiesStaticPathsCategoryPage('pl')` and pushes paginated slugs
+- Remove the EN block (lines ~175-181) that calls `activitiesStaticPathsCategoryPage('en')` and pushes paginated slugs
 - The `staticPathsCategory` import and its usage (category base URLs) remain untouched
 
 #### 6. Remove staticPathsCategoryPage from template exports
@@ -267,7 +267,7 @@ Convert the 4 paginated route files to 301 redirects pointing to the base catego
 
 **Intent**: If not already done in Phase 1, ensure `staticPathsCategoryPage` is fully removed — the function definition and its export. This was the function that queried Sanity for category post counts to generate paginated routes.
 
-**Contract**: The function `staticPathsCategoryPage` (lines 222-244) and any remaining references are removed. Verify no other file imports it (the sitemap and paginated routes were the only consumers — both handled in this phase).
+**Contract**: The function `staticPathsCategoryPage` (lines 225-248) and any remaining references are removed. Verify no other file imports it (the sitemap and paginated routes were the only consumers — both handled in this phase).
 
 ### Success Criteria:
 
@@ -386,14 +386,14 @@ Remove the page-segment stripping logic from `init-listing-filters.ts` since pag
 
 #### Automated
 
-- [ ] 1.1 TypeScript compiles: `npm run build` in `apps/astro`
-- [ ] 1.2 Linting passes: `npm run lint`
+- [x] 1.1 TypeScript compiles: `npm run build` in `apps/astro`
+- [x] 1.2 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 1.3 Category page shows ALL activities (not just 16)
-- [ ] 1.4 Filter routes still work with filters applied
-- [ ] 1.5 No console.log output from category routes
+- [x] 1.3 Category page shows ALL activities (not just 16)
+- [x] 1.4 Filter routes still work with filters applied
+- [x] 1.5 No console.log output from category routes
 
 ### Phase 2: Show More/Less UI & Logic
 

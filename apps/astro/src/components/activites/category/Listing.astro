@@ -1,6 +1,5 @@
 ---
 import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
-import { ITEMS_PER_PAGE } from '@/src/templates/activities/ActivitiesPage.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
 import Pagination from '../../ui/Pagination.astro'
 import ActivityCard, { ActivityCardQuery, type ActivityCardProps } from '../../ui/ActivityCard'
@@ -266,13 +265,12 @@ export const Listing_Query = (orderClause: string, participantGroups: Participan
     })}] {
       ${ActivityCardQuery}
       "_score": $embeddingResults[value.documentId == ^._id][0].score
-    } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
+    } | order(${orderClause}),
   `
 }
 
 const {
   listing,
-  currentPage,
   currentCategory,
   heading,
   description,
@@ -520,8 +518,8 @@ const getActivitiesCount = () => {
         <Pagination
           slugBase={slugBase}
           totalItems={totalActivitiesByCategory}
-          itemsPerPage={ITEMS_PER_PAGE}
-          currentPage={currentPage}
+          itemsPerPage={totalActivitiesByCategory || 1}
+          currentPage={1}
           searchParams={Astro.url.searchParams}
         />
       </>
