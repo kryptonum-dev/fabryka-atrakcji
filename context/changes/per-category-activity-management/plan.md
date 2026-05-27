@@ -378,31 +378,31 @@ No code changes. This phase is verification-only.
 
 #### Automated
 
-- [x] 3.1 TypeScript compilation passes: `npm run lint`
-- [x] 3.2 Astro build succeeds: `cd apps/astro && npm run build`
+- [x] 3.1 TypeScript compilation passes: `npm run lint` — dca7204
+- [x] 3.2 Astro build succeeds: `cd apps/astro && npm run build` — dca7204
 
 #### Manual
 
-- [x] 3.3 Default sort uses array order, not popularityIndex
-- [x] 3.4 Sort dropdown shows "Polecane" / "Recommended"
-- [x] 3.5 All sort options function correctly
-- [x] 3.6 Activity cards display overridden values
+- [x] 3.3 Default sort uses array order, not popularityIndex — dca7204
+- [x] 3.4 Sort dropdown shows "Polecane" / "Recommended" — dca7204
+- [x] 3.5 All sort options function correctly — dca7204
+- [x] 3.6 Activity cards display overridden values — dca7204
 
 ### Phase 4: End-to-End Verification
 
 #### Automated
 
-- 4.1 Full build succeeds: `npm run build`
-- 4.2 Lint passes: `npm run lint`
+- [x] 4.1 Full build succeeds: `npm run build`
+- [x] 4.2 Lint passes: `npm run lint`
 
 #### Manual
 
-- 4.3 PL category page works
-- 4.4 EN category page works
-- 4.5 Filter routes work for both languages
-- 4.6 Main listing works for both languages
-- 4.7 Empty category exclusion works
-- 4.8 Different overrides show on different category pages (SEO verification)
-- 4.9 Activity detail pages unaffected
-- 4.10 Full editor workflow: add, reorder, override, publish, verify on site
+- [x] 4.3 PL category page works
+- [x] 4.4 EN category page works
+- [x] 4.5 Filter routes work for both languages
+- [x] 4.6 Main listing works for both languages
+- [x] 4.7 Empty category exclusion works
+- [x] 4.8 Different overrides show on different category pages (SEO verification)
+- [x] 4.9 Activity detail pages unaffected
+- [x] 4.10 Full editor workflow: add, reorder, override, publish, verify on site
 

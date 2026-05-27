@@ -132,12 +132,13 @@ export default defineType({
             select: {
               activityName: 'activity.name',
               nameOverride: 'nameOverride',
-              image: 'activity.imageList.0',
+              mediaList: 'activity.mediaList',
+              imageList: 'activity.imageList',
             },
-            prepare: ({ activityName, nameOverride, image }) => ({
+            prepare: ({ activityName, nameOverride, mediaList, imageList }) => ({
               title: nameOverride || activityName || 'Wybierz integrację',
               subtitle: nameOverride ? `Oryginał: ${activityName}` : undefined,
-              media: image,
+              media: mediaList?.[0]?.image || imageList?.[0],
             }),
           },
         },
