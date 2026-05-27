@@ -343,23 +343,23 @@ No code changes. This phase is verification-only.
 
 #### Automated
 
-- [x] 1.1 Schema changes compile: `cd apps/sanity && npm run build`
-- [x] 1.2 TypeScript passes: `npm run lint` from root
-- [x] 1.3 Migration script runs in dry-run mode without errors
+- [x] 1.1 Schema changes compile: `cd apps/sanity && npm run build` — 720cb6c
+- [x] 1.2 TypeScript passes: `npm run lint` from root — 720cb6c
+- [x] 1.3 Migration script runs in dry-run mode without errors — 720cb6c
 
 #### Manual
 
-- [ ] 1.4 Category document in Studio shows functional `activities[]` field
-- [ ] 1.5 Activity document in Studio hides `categories[]` field
-- [ ] 1.6 Migration populates correct activities in popularityIndex order
-- [ ] 1.7 Spot-check 2-3 categories for correct activity counts
+- [x] 1.4 Category document in Studio shows functional `activities[]` field — 720cb6c
+- [x] 1.5 Activity document in Studio hides `categories[]` field — 720cb6c
+- [x] 1.6 Migration populates correct activities in popularityIndex order — 720cb6c
+- [x] 1.7 Spot-check 2-3 categories for correct activity counts — 720cb6c
 
 ### Phase 2: GROQ Query Rewrite
 
 #### Automated
 
-- [ ] 2.1 TypeScript compilation passes: `npm run lint`
-- [ ] 2.2 Astro build succeeds: `cd apps/astro && npm run build`
+- [x] 2.1 TypeScript compilation passes: `npm run lint`
+- [x] 2.2 Astro build succeeds: `cd apps/astro && npm run build`
 
 #### Manual
 

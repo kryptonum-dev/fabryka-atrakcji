@@ -10,7 +10,7 @@ export const CategoryBlockQuery = `
     long,
     short
   },
-  "referenceCount": count(*[_type == "Activities_Collection" && references(^._id)]),
+  "referenceCount": count(activities),
 `
 
 export type CategoryBlockProps = {

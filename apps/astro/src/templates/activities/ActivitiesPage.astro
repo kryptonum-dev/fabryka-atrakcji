@@ -12,7 +12,7 @@ import Listing, {
   type ListingProps,
   type ParticipantFilterGroup,
 } from '@/src/components/activites/category/Listing.astro'
-import { NoSearchResults_Query } from '@/src/components/activites/NoSearchResults.astro'
+import { NoSearchResults_Query, type NoSearchResultsProps } from '@/src/components/activites/NoSearchResults.astro'
 import { parseFilters, getOrderClause } from '@/utils/filters'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
@@ -103,11 +103,11 @@ export async function fetchData(
           overrideFormState?: boolean
           formState?: FormStateTypes
         }
-      }
+      } & ListingProps
       components: ComponentsProps
       escapeHatchHeading?: string
       escapeHatchText?: string
-    } & ListingProps &
+    } & NoSearchResultsProps &
       FormProps
   >({
     query: `
@@ -170,8 +170,8 @@ export async function fetchData(
             },
           },
           ${Components_Query}
+          ${Listing_Query(orderClause, participantGroups)}
         },
-        ${Listing_Query(orderClause, participantGroups)}
         ${Components_Query}
       }
     `,
@@ -271,14 +271,14 @@ const resolvedFormState = page.selectedCategory?.formOverrides?.overrideFormStat
     selectedCategory={page.selectedCategory.name}
     heading={page.selectedCategory.heading}
     description={page.selectedCategory.description.long}
-    totalActivitiesByCategory={page.totalActivitiesByCategory}
-    listing={page.listing}
+    totalActivitiesByCategory={page.selectedCategory.totalActivitiesByCategory}
+    listing={page.selectedCategory.listing}
     currentPage={1}
     currentCategory={currentCategory}
-    participantRangeCounts={page.participantRangeCounts}
-    activityTypes={page.activityTypes}
-    durationCounts={page.durationCounts}
-    priceRange={page.priceRange}
+    participantRangeCounts={page.selectedCategory.participantRangeCounts}
+    activityTypes={page.selectedCategory.activityTypes}
+    durationCounts={page.selectedCategory.durationCounts}
+    priceRange={page.selectedCategory.priceRange}
     noResults={page.noResults}
     participantGroups={participantGroups}
     escapeHintText={page.escapeHatchHeading}
@@ -298,7 +298,7 @@ const resolvedFormState = page.selectedCategory?.formOverrides?.overrideFormStat
       animate={false}
     />
   )}
-  <Components data={page.listing.length > 0 ? componentsToRender : page.noResults.components} hasPreviousSections />
+  <Components data={page.selectedCategory.listing.length > 0 ? componentsToRender : page.noResults.components} hasPreviousSections />
 </Layout>
 
 <script>

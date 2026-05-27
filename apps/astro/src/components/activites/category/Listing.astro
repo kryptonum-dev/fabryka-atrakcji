@@ -148,11 +148,174 @@ const getHourForm = (hours: number, lang: Language) => {
 export const Listing_Query = (orderClause: string, participantGroups: ParticipantFilterGroup[] = DEFAULT_PARTICIPANT_GROUPS) => {
   const participantsFilter = `
     (!defined($minParticipants) || (
-      participantsCount.max >= $minParticipants && 
+      activity->.participantsCount.max >= $minParticipants &&
+      activity->.participantsCount.min <= $minParticipants
+    ))
+    && (!defined($maxParticipants) || (
+      activity->.participantsCount.min <= $maxParticipants &&
+      activity->.participantsCount.max >= $maxParticipants
+    ))
+  `
+
+  const priceFilter = `
+    (!defined($minPrice) || activity->.pricing.additionalPersonPrice >= $minPrice)
+    && (!defined($maxPrice) || activity->.pricing.additionalPersonPrice <= $maxPrice)
+  `
+
+  const activityTypeFilter = `
+    (!defined($activityType) || $activityType in activity->.activityType[]->slug.current)
+  `
+
+  const durationFilter = `
+    (!defined($duration) || ($duration == 24 && activity->.duration.isFullDay == true) || ($duration < 24 && activity->.duration.hours == $duration && (activity->.duration.isFullDay == false || !defined(activity->.duration.isFullDay))))
+  `
+
+  const embeddingsFilter = `
+    (!defined($embeddingResults) || activity->._id in $embeddingResults[].value.documentId)
+  `
+
+  const createBaseFilter = (
+    includeFilters: {
+      participants?: boolean
+      price?: boolean
+      activityType?: boolean
+      duration?: boolean
+    } = {
+      participants: true,
+      price: true,
+      activityType: true,
+      duration: true,
+    }
+  ) => `
+    defined(activity->._id)
+    ${includeFilters.participants ? `&& ${participantsFilter}` : ''}
+    ${includeFilters.price ? `&& ${priceFilter}` : ''}
+    ${includeFilters.activityType ? `&& ${activityTypeFilter}` : ''}
+    ${includeFilters.duration ? `&& ${durationFilter}` : ''}
+    && ${embeddingsFilter}
+  `
+
+  const safeParticipantGroups =
+    participantGroups.length >= 2
+      ? participantGroups.slice(0, 6)
+      : DEFAULT_PARTICIPANT_GROUPS
+
+  const participantRangeCountsQuery = safeParticipantGroups
+    .map((group, index) => {
+      const maxCondition = typeof group.max === 'number' ? `&& activity->.participantsCount.min <= ${group.max}` : ''
+      return `"group${index}": count(activities[${createBaseFilter({
+        participants: false,
+        price: true,
+        activityType: true,
+        duration: true,
+      })} && activity->.participantsCount.max >= ${group.min} ${maxCondition}])`
+    })
+    .join(',\n')
+
+  const orderPipe = orderClause === 'popularityIndex desc' ? '' : `| order(${orderClause})`
+
+  return `
+    "totalActivitiesByCategory": count(activities[${createBaseFilter()}]),
+    "participantRangeCounts": {
+      ${participantRangeCountsQuery}
+    },
+    "activityTypes": *[_type == 'ActivitiesType_Collection' && language == $language] {
+      name,
+      "slug": slug.current,
+      "count": count(^.activities[${createBaseFilter({
+        participants: true,
+        price: true,
+        activityType: false,
+        duration: true,
+      })} && ^.slug.current in activity->.activityType[]->slug.current])
+    },
+    "durationCounts": {
+      "fullDay": count(activities[${createBaseFilter({
+        participants: true,
+        price: true,
+        activityType: true,
+        duration: false,
+      })} && activity->.duration.isFullDay == true]),
+      "hourly": activities[${createBaseFilter({
+        participants: true,
+        price: true,
+        activityType: true,
+        duration: false,
+      })} && (activity->.duration.isFullDay == false || !defined(activity->.duration.isFullDay))] {
+        "hours": activity->.duration.hours,
+        "count": 1
+      } | order(hours asc)
+    },
+    "priceRange": {
+      "min": activities[${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: true,
+        price: false,
+      })}] | order(activity->.pricing.additionalPersonPrice asc)[0].activity->.pricing.additionalPersonPrice,
+      "max": activities[${createBaseFilter({
+        participants: true,
+        activityType: true,
+        duration: true,
+        price: false,
+      })}] | order(activity->.pricing.additionalPersonPrice desc)[0].activity->.pricing.additionalPersonPrice
+    },
+    "listing": activities[${createBaseFilter()}] {
+      "name": coalesce(nameOverride, activity->.name),
+      "_id": activity->._id,
+      "previewImage": coalesce(
+        activity->.mediaList[0].image {
+          asset -> {
+            url,
+            altText,
+            extension,
+            metadata {
+              dimensions {
+                width,
+                height,
+              },
+              lqip,
+            },
+          },
+        },
+        activity->.imageList[0] {
+          asset -> {
+            url,
+            altText,
+            extension,
+            metadata {
+              dimensions {
+                width,
+                height,
+              },
+              lqip,
+            },
+          },
+        }
+      ),
+      "description": coalesce(descriptionOverride, activity->.description),
+      "participantsCount": activity->.participantsCount {
+        min,
+        max,
+      },
+      "slug": activity->.slug.current,
+      "_createdAt": activity->._createdAt,
+      "publishedDate": activity->.publishedDate,
+      "pricing": activity->.pricing,
+      "popularityIndex": activity->.popularityIndex,
+      "_score": $embeddingResults[value.documentId == activity->._id][0].score
+    } ${orderPipe},
+  `
+}
+
+export const GlobalListing_Query = (orderClause: string, participantGroups: ParticipantFilterGroup[] = DEFAULT_PARTICIPANT_GROUPS) => {
+  const participantsFilter = `
+    (!defined($minParticipants) || (
+      participantsCount.max >= $minParticipants &&
       participantsCount.min <= $minParticipants
     ))
     && (!defined($maxParticipants) || (
-      participantsCount.min <= $maxParticipants && 
+      participantsCount.min <= $maxParticipants &&
       participantsCount.max >= $maxParticipants
     ))
   `
@@ -170,7 +333,6 @@ export const Listing_Query = (orderClause: string, participantGroups: Participan
     (!defined($duration) || ($duration == 24 && duration.isFullDay == true) || ($duration < 24 && duration.hours == $duration && (duration.isFullDay == false || !defined(duration.isFullDay))))
   `
 
-  // Add embeddings filter
   const embeddingsFilter = `
     (!defined($embeddingResults) || _id in $embeddingResults[].value.documentId)
   `
@@ -189,7 +351,6 @@ export const Listing_Query = (orderClause: string, participantGroups: Participan
     }
   ) => `
     && language == $language
-    && select(defined($category) => categories[] -> slug.current match $category + "$", true)
     ${includeFilters.participants ? `&& ${participantsFilter}` : ''}
     ${includeFilters.price ? `&& ${priceFilter}` : ''}
     ${includeFilters.activityType ? `&& ${activityTypeFilter}` : ''}
@@ -260,12 +421,7 @@ export const Listing_Query = (orderClause: string, participantGroups: Participan
         price: false,
       })}] | order(pricing.additionalPersonPrice desc)[0].pricing.additionalPersonPrice
     },
-    "listing": *[_type == 'Activities_Collection' ${createBaseFilter({
-      participants: true,
-      price: true,
-      activityType: true,
-      duration: true,
-    })}] {
+    "listing": *[_type == 'Activities_Collection' ${createBaseFilter()}] {
       ${ActivityCardQuery}
       "_score": $embeddingResults[value.documentId == ^._id][0].score
     } | order(${orderClause}),
