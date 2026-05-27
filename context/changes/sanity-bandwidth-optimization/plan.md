@@ -395,18 +395,18 @@ After deploying all phases:
 
 #### Automated
 
-- [x] 3.1 TypeScript compiles: `npm run build`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 No untagged sanityFetch calls remain
+- [x] 3.1 TypeScript compiles: `npm run build` — a71be97
+- [x] 3.2 Linting passes: `npm run lint` — a71be97
+- [x] 3.3 No untagged sanityFetch calls remain — a71be97
 
 #### Manual
 
-- [x] 3.4 Pages load normally with tags
+- [x] 3.4 Pages load normally with tags — a71be97
 
 ### Phase 4: Inspect & Optimize Heavy SVG Asset
 
 #### Manual
 
-- [ ] 4.1 SVG inspected and size determined
-- [ ] 4.2 Asset replaced/optimized in Sanity Studio
-- [ ] 4.3 Activity category pages render correctly with new asset
+- [x] 4.1 SVG inspected and size determined
+- [x] 4.2 Asset replaced/optimized in Sanity Studio
+- [x] 4.3 Activity category pages render correctly with new asset
