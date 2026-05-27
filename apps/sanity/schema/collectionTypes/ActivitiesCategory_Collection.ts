@@ -74,6 +74,76 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'activities',
+      type: 'array',
+      title: 'Integracje w tej kategorii',
+      description:
+        'Lista integracji przypisanych do tej kategorii. Kolejność na liście = kolejność wyświetlania na stronie.',
+      validation: (Rule) =>
+        Rule.custom((items) => {
+          if (!items || items.length === 0) return true
+          const refs = (items as Array<{ activity?: { _ref?: string } }>)
+            .map((item) => item.activity?._ref)
+            .filter(Boolean)
+          if (new Set(refs).size !== refs.length) {
+            return 'Ta sama integracja nie może pojawić się w kategorii więcej niż raz'
+          }
+          return true
+        }),
+      of: [
+        {
+          type: 'object',
+          name: 'activityEntry',
+          fields: [
+            defineField({
+              name: 'activity',
+              type: 'reference',
+              to: [{ type: 'Activities_Collection' }],
+              title: 'Integracja',
+              validation: (Rule) => Rule.required(),
+              options: {
+                disableNew: true,
+                filter: ({ document }) => {
+                  const language = (document as { language?: string })?.language
+                  return {
+                    filter: 'language == $lang',
+                    params: { lang: language },
+                  }
+                },
+              },
+            }),
+            defineField({
+              name: 'nameOverride',
+              type: 'string',
+              title: 'Nadpisana nazwa (opcjonalnie)',
+              description:
+                'Jeśli uzupełnione, ta nazwa będzie wyświetlana zamiast oryginalnej nazwy integracji w tej kategorii.',
+            }),
+            defineField({
+              name: 'descriptionOverride',
+              type: 'text',
+              title: 'Nadpisany opis (opcjonalnie)',
+              description:
+                'Jeśli uzupełnione, ten opis będzie wyświetlany zamiast oryginalnego opisu integracji w tej kategorii.',
+              rows: 3,
+            }),
+          ],
+          preview: {
+            select: {
+              activityName: 'activity.name',
+              nameOverride: 'nameOverride',
+              image: 'activity.imageList.0',
+            },
+            prepare: ({ activityName, nameOverride, image }) => ({
+              title: nameOverride || activityName || 'Wybierz integrację',
+              subtitle: nameOverride ? `Oryginał: ${activityName}` : undefined,
+              media: image,
+            }),
+          },
+        },
+      ],
+    }),
+    defineField({
       name: 'overwriteActivityPageComponents',
       type: 'boolean',
       title: 'Zastąp komponenty strony integracji',

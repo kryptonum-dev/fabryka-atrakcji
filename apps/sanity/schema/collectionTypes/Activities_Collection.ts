@@ -168,9 +168,9 @@ export default defineType({
       name: 'categories',
       type: 'array',
       title: 'Kategorie',
-      validation: (Rule) => Rule.required().min(1).error('Przynajmniej jedna kategoria jest wymagana'),
-      description:
-        'Lista kategorii do których należy dana integracja, integracja może należeć do więcej niż jednej kategorii.',
+      description: 'Przypisywanie do kategorii odbywa się teraz z poziomu dokumentu kategorii.',
+      hidden: true,
+      readOnly: true,
       of: [
         {
           type: 'reference',
