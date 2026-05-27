@@ -16,7 +16,7 @@ export default async function metadataFetch(slug: string) {
         "path": slug.current,
         "title": seo.title,
         "description": seo.description,
-        "openGraphImage": seo.img.asset -> url + "?w=1200",
+        "openGraphImage": seo.img.asset -> url + "?w=1200&h=630&fit=crop&auto=format&q=80",
         "doNotIndex": seo.doNotIndex,
         "alternates": coalesce(
           *[_type == 'translation.metadata' && references(^._id)][0] {

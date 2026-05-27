@@ -15,7 +15,7 @@ const icons = {
 const seo = await sanityFetch<{ openGraphImage: string }>({
   query: `
     *[_type == "global"][0].seo {
-      "openGraphImage": img.asset -> url + "?w=1200",
+      "openGraphImage": img.asset -> url + "?w=1200&h=630&fit=crop&auto=format&q=80",
     }
   `,
 })
@@ -40,20 +40,11 @@ const {
   canonicalUrl,
 } = Astro.props as HeadProps
 
-const getOgImage = async () => {
-  const asset = await getImage({
-    src: openGraphImage || seo.openGraphImage,
-    width: 1200,
-    format: 'png',
-    inferSize: true,
-  })
-  return {
-    url: joinUrl(DOMAIN, asset.src),
-    width: asset.attributes.width,
-    height: asset.attributes.height,
-  }
+const ogImage = {
+  url: openGraphImage || seo.openGraphImage,
+  width: '1200',
+  height: '630',
 }
-const ogImage = await getOgImage()
 
 const url = _url || joinUrl(DOMAIN, path ?? '')
 
