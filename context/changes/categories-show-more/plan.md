@@ -371,13 +371,13 @@ Convert the 4 paginated route files to 301 redirects pointing to the base catego
 
 #### Automated
 
-- [x] 3.1 TypeScript compiles: `npm run build`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 No stale references to `activitiesStaticPaths` (pages import) remain
+- [x] 3.1 TypeScript compiles: `npm run build` — f56d5f2
+- [x] 3.2 Linting passes: `npm run lint` — f56d5f2
+- [x] 3.3 No stale references to `activitiesStaticPaths` (pages import) remain — f56d5f2
 
 #### Manual
 
-- [ ] 3.4 Paginated URLs return 301 redirects to base categories page
-- [ ] 3.5 Paginated filter URLs redirect with query params preserved
-- [ ] 3.6 Sitemap XML has no paginated categories listing entries
-- [ ] 3.7 Other listing pagination (blog, hotels, individual categories) unaffected
+- [x] 3.4 Paginated URLs return 301 redirects to base categories page — f56d5f2
+- [x] 3.5 Paginated filter URLs redirect with query params preserved — f56d5f2
+- [x] 3.6 Sitemap XML has no paginated categories listing entries — f56d5f2
+- [x] 3.7 Other listing pagination (blog, hotels, individual categories) unaffected — f56d5f2
