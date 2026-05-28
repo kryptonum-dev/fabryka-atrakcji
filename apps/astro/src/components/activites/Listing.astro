@@ -1,17 +1,13 @@
 ---
 import PortableText, { type PortableTextValue } from '@/src/components/ui/portable-text'
-import { ITEMS_PER_PAGE } from '@/src/templates/activities/CategoriesPage.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
-import Pagination from '../ui/Pagination.astro'
 import CategoryBlock, { CategoryBlockQuery, type CategoryBlockProps } from '../ui/CategoryBlock.astro'
 import SearchBar from '../ui/SearchBar.astro'
 
 type Props = {
   heading: PortableTextValue
   paragraph: PortableTextValue
-  totalItems: number
   listing: CategoryBlockProps[]
-  currentPage: number
 }
 export type ListingProps = Props
 
@@ -21,7 +17,6 @@ const translations = {
   pl: {
     pathPrefix: '/pl/integracje',
     filterPath: 'filtr',
-    pagePath: 'strona',
     categories: 'Kategorie',
     all: 'Wszystkie',
     placeholder: 'Wyszukaj integrację np. sabotażysta',
@@ -30,7 +25,6 @@ const translations = {
   en: {
     pathPrefix: '/en/activities',
     filterPath: 'filter',
-    pagePath: 'page',
     categories: 'Categories',
     all: 'All',
     placeholder: 'Search for activities',
@@ -41,22 +35,18 @@ const translations = {
 const t = translations[lang]
 
 export const Listing_Query = `
-    "totalItems": count(*[_type == 'ActivitiesCategory_Collection'
-      && language == $language
-      && count(activities) > 0
-    ]),
     "listing": *[_type == 'ActivitiesCategory_Collection'
       && language == $language
       && count(activities) > 0
-    ] | order(orderRank asc) [$PAGINATION_BEFORE...$PAGINATION_AFTER] {
+    ] | order(orderRank asc) {
         ${CategoryBlockQuery}
     },
 `
 
-const { listing, currentPage, heading, paragraph, totalItems } = Astro.props
+const { listing, heading, paragraph } = Astro.props
 ---
 
-<section class="Listing max-width" data-filter-path={t.filterPath} data-page-path={t.pagePath}>
+<section class="Listing max-width" data-filter-path={t.filterPath}>
   <header class="header">
     <PortableText value={heading} class="heading" heading="h1" />
     <PortableText value={paragraph} class="paragraph" />
@@ -78,13 +68,7 @@ const { listing, currentPage, heading, paragraph, totalItems } = Astro.props
       ))
     }
   </div>
-  <Pagination
-    slugBase={t.pathPrefix}
-    totalItems={totalItems}
-    itemsPerPage={ITEMS_PER_PAGE}
-    currentPage={currentPage}
-    searchParams={Astro.url.searchParams}
-  />
+
 </section>
 
 <style lang="scss">
@@ -117,9 +101,6 @@ const { listing, currentPage, heading, paragraph, totalItems } = Astro.props
       grid-template-columns: repeat(4, 1fr);
     }
 
-    :global(.Pagination) {
-      margin-top: clamp(2rem, calc(3vw / 0.48), 3rem);
-    }
     @media (max-width: 68.0625rem) {
       .list {
         grid-template-columns: repeat(3, 1fr);

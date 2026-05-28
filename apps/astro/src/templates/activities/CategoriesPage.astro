@@ -5,12 +5,11 @@ import metadataFetch from '@/utils/metadata.fetch'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
-import { getLangFromPath, type Language } from '@/global/languages'
+import { type Language } from '@/global/languages'
 import ActivitiesListing, {
   GlobalListing_Query as ActivitiesListing_Query,
   type ListingProps as ActivitiesListingProps,
 } from '@/src/components/activites/category/Listing.astro'
-const ACTIVITIES_PER_PAGE = 16
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/Listing.astro'
 import SearchBar from '@/src/components/ui/SearchBar.astro'
 import { NoSearchResults_Query, type NoSearchResultsProps } from '@/src/components/activites/NoSearchResults.astro'
@@ -22,8 +21,6 @@ import ActivitiesCarousel, {
 } from '@/src/components/global/ActivitiesCarousel/index.astro'
 import { DEFAULT_PARTICIPANT_GROUPS } from '@/src/components/activites/category/Listing.astro'
 import type { FormStateTypes } from '@/src/global/types'
-
-export const ITEMS_PER_PAGE = 8
 
 type FormProps = {
   formHeading?: PortableTextValue
@@ -47,42 +44,12 @@ type RegularPageProps = BasePageProps &
   }
 
 type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
-  currentPage: number
   canonicalUrl?: string
   doNotIndex?: boolean
 }
 
-const translation = {
-  pl: {
-    pageUpper: 'Strona',
-    pageLower: 'strona',
-    prefix: '/pl/integracje/strona/',
-    sort: {
-      relevance: 'Trafność',
-      popularity: 'Najpopularniejsze',
-      priceDesc: 'Cena: od najwyższej',
-      priceAsc: 'Cena: od najniższej',
-      newest: 'Od najnowszych',
-    },
-  },
-  en: {
-    pageUpper: 'Page',
-    pageLower: 'page',
-    prefix: '/en/activities/page/',
-    sort: {
-      relevance: 'Relevance',
-      popularity: 'Most popular',
-      priceDesc: 'Price: highest first',
-      priceAsc: 'Price: lowest first',
-      newest: 'Newest first',
-    },
-  },
-} as const
-
-export async function fetchData(lang: Language, pageNumber: number, url: string, searchParams?: URLSearchParams) {
+export async function fetchData(lang: Language, url: string, searchParams?: URLSearchParams) {
   const searchQuery = searchParams?.get('search')
-  const PAGINATION_BEFORE = (searchQuery ? ACTIVITIES_PER_PAGE : ITEMS_PER_PAGE) * (pageNumber - 1)
-  const PAGINATION_AFTER = PAGINATION_BEFORE + (searchQuery ? ACTIVITIES_PER_PAGE : ITEMS_PER_PAGE)
 
   const filters = parseFilters(searchParams || new URLSearchParams())
 
@@ -147,8 +114,6 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
     `,
     params: {
       language: lang,
-      PAGINATION_BEFORE,
-      PAGINATION_AFTER,
       minParticipants: filters.minParticipants,
       maxParticipants: filters.maxParticipants,
       minPrice: filters.minPrice,
@@ -161,35 +126,20 @@ export async function fetchData(lang: Language, pageNumber: number, url: string,
     tag: 'page.activities-categories',
   })
 
-  if (!page || (pageNumber > 1 && !page.listing.length)) return null
+  if (!page) return null
   const metadata = await metadataFetch(page.slug)
   return { page, metadata }
 }
 
-export async function staticPaths(lang: Language) {
-  const pages = await sanityFetchWithCdn<number>({
-    query: `count(*[_type == "ActivitiesCategory_Collection" && language == $language])`,
-    params: { language: lang },
-    tag: 'page.activities-categories.count',
-  })
-
-  const totalPages = Math.ceil(pages / ITEMS_PER_PAGE)
-
-  return Array.from({ length: totalPages - 1 }, (_, i) => ({
-    params: { page: (i + 2).toString() },
-  }))
-}
-
-const { page, metadata: _metadata, currentPage, canonicalUrl, doNotIndex } = Astro.props
-const lang = getLangFromPath(Astro.url.pathname) as Language
+const { page, metadata: _metadata, canonicalUrl, doNotIndex } = Astro.props
 const isSearchMode = Astro.url.searchParams.has('search')
 const searchQuery = Astro.url.searchParams.get('search') || ''
 
-const t = translation[lang]
+
 
 const metadata = {
   ..._metadata,
-  title: `${_metadata.title} | ${t.pageUpper} ${currentPage}`,
+  title: _metadata.title,
   description: _metadata.description,
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,
@@ -197,13 +147,8 @@ const metadata = {
   ...(doNotIndex && { doNotIndex }),
 }
 
-const getPaginationUrl = (page: number) => {
-  return `${t.prefix}${page}`
-}
-
 const breadcrumbs = [
   { name: page.name, path: page.slug },
-  ...(currentPage > 1 ? [{ name: `${t.pageUpper} ${currentPage}`, path: getPaginationUrl(currentPage) }] : []),
 ]
 
 // Type guard to check if we're in search mode
@@ -213,24 +158,15 @@ const isSearchPage = (page: SearchPageProps | RegularPageProps): page is SearchP
 
 // Type guard to check if we're in regular mode
 const isRegularPage = (page: SearchPageProps | RegularPageProps): page is RegularPageProps => {
-  return 'totalItems' in page
+  return 'paragraph' in page
 }
 
 // Filter out page builder ContactForms — we use the hardcoded one from the singleton instead
 const filteredComponents = (page.components || []).filter((c) => c._type !== 'ContactForm')
 
-// Get the total pages based on the page type
-const totalPages = isSearchPage(page)
-  ? Math.ceil(page.totalActivitiesByCategory / ITEMS_PER_PAGE)
-  : Math.ceil(page.totalItems / ITEMS_PER_PAGE)
 ---
 
 <Layout {...metadata}>
-  <Fragment slot="Head">
-    {currentPage > 2 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
-    {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
-  </Fragment>
-
   {
     isSearchMode
       ? isSearchPage(page) && (
@@ -241,7 +177,7 @@ const totalPages = isSearchPage(page)
               totalActivitiesByCategory={page.totalActivitiesByCategory}
               listing={page.listing}
               currentCategory={null}
-              currentPage={currentPage}
+              currentPage={1}
               participantRangeCounts={page.participantRangeCounts}
               activityTypes={page.activityTypes}
               durationCounts={page.durationCounts}
@@ -260,9 +196,7 @@ const totalPages = isSearchPage(page)
             <Listing
               heading={page.heading}
               paragraph={page.paragraph}
-              totalItems={page.totalItems}
               listing={page.listing}
-              currentPage={currentPage}
             />
             <ActivitiesCarousel {...page.activitiesCarousel} />
             <Components data={filteredComponents} hasPreviousSections />

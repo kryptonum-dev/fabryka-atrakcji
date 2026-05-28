@@ -42,7 +42,6 @@ try {
     staticPathsCategoryPage: caseStudyStaticPathsCategoryPage,
     staticPathsCategory: caseStudyStaticPathsCategory,
   } = await import('@/src/templates/caseStudies/CaseStudyPage.astro')
-  const { staticPaths: activitiesStaticPaths } = await import('@/src/templates/activities/CategoriesPage.astro')
   const { staticPathsCategory: activitiesStaticPathsCategory } = await import(
     '@/src/templates/activities/ActivitiesPage.astro'
   )
@@ -145,18 +144,10 @@ try {
     }
   })
 
-  // Activities pages (PL)
-  const activitiesPages = await activitiesStaticPaths('pl')
-  slugs.push(...activitiesPages.map(({ params }) => `/pl/integracje/strona/${params.page}/`))
-
   const activitiesCategories = await activitiesStaticPathsCategory('pl')
   activitiesCategories.forEach((category: any) => {
     slugs.push(`/pl/integracje/kategoria/${category.params.category}`)
   })
-
-  // Activities pages (EN)
-  const activitiesPagesEn = await activitiesStaticPaths('en')
-  slugs.push(...activitiesPagesEn.map(({ params }) => `/en/activities/page/${params.page}/`))
 
   const activitiesCategoriesEn = await activitiesStaticPathsCategory('en')
   activitiesCategoriesEn.forEach((category: any) => {
