@@ -342,21 +342,21 @@ Convert the 4 paginated route files to 301 redirects pointing to the base catego
 
 #### Automated
 
-- [x] 1.1 TypeScript compiles: `npm run build` in `apps/astro`
-- [x] 1.2 Linting passes: `npm run lint`
+- [x] 1.1 TypeScript compiles: `npm run build` in `apps/astro` — e3b49bf
+- [x] 1.2 Linting passes: `npm run lint` — e3b49bf
 
 #### Manual
 
-- [ ] 1.3 Categories page shows ALL categories (not just 8)
-- [ ] 1.4 Search mode still works — activities results load on search
-- [ ] 1.5 Filter routes still function correctly
+- [x] 1.3 Categories page shows ALL categories (not just 8) — e3b49bf
+- [x] 1.4 Search mode still works — activities results load on search — e3b49bf
+- [x] 1.5 Filter routes still function correctly — e3b49bf
 
 ### Phase 2: Show More/Less UI & Logic
 
 #### Automated
 
-- [ ] 2.1 TypeScript compiles: `npm run build`
-- [ ] 2.2 Linting passes: `npm run lint`
+- [x] 2.1 TypeScript compiles: `npm run build`
+- [x] 2.2 Linting passes: `npm run lint`
 
 #### Manual
 
