@@ -20,7 +20,7 @@ export default function BlogCard({
           <img
             src={image.src}
             srcSet={image.srcSet.attribute}
-            alt={''}
+            alt={image.alt}
             sizes={imageConfig.sizes}
             loading={imageConfig.loading}
           />

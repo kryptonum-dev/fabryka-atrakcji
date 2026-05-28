@@ -75,7 +75,7 @@ export default function Carousel({ children, activities, index, isNoAnchors = fa
                       <img
                         src={image.src}
                         srcSet={image.srcSet.attribute}
-                        alt={''}
+                        alt={image.alt}
                         loading={index === 0 ? 'eager' : 'lazy'}
                         fetchPriority={index === 0 && i === 0 ? 'high' : 'auto'}
                         sizes="324px"

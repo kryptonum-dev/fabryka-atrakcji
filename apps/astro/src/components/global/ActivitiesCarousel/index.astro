@@ -62,6 +62,7 @@ const clientActivities = await Promise.all(
       image: activity.previewImage.asset.url,
       width: activity.previewImage.asset.metadata.dimensions.width,
       height: activity.previewImage.asset.metadata.dimensions.height,
+      alt: activity.previewImage.asset.altText,
     }),
     isRecent: new Date(activity._createdAt) > fourteenDaysAgo,
   }))

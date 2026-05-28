@@ -52,7 +52,7 @@ export default function Testimonials({ testimonials }: Props) {
               {image?.profileImage ? (
                 <img
                   src={image.profileImage?.src}
-                  alt=""
+                  alt={image.profileImage?.alt || ''}
                   srcSet={image.profileImage?.srcSet.attribute}
                   loading="lazy"
                   sizes="36px"

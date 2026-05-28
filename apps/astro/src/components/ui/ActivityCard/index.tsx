@@ -86,7 +86,7 @@ export default function ActivityCard({
             <img
               src={clientImage.image.src}
               srcSet={clientImage.image.srcSet.attribute}
-              alt={''}
+              alt={clientImage.image.alt}
               loading={clientImage.loading}
               fetchPriority={clientImage.fetchPriority}
               sizes={clientImage.sizes || '324px'}

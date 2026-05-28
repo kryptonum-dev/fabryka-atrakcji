@@ -42,6 +42,7 @@ const clientBlogPosts = await Promise.all(
         image: blogPost.image.asset.url,
         width: blogPost.image.asset.metadata.dimensions.width,
         height: blogPost.image.asset.metadata.dimensions.height,
+        alt: blogPost.image.asset.altText,
       })),
     },
     readingTime: getEstimatedReadingTime({ content: blogPost.content, lang }),
