@@ -355,25 +355,25 @@ Convert the 4 paginated route files to 301 redirects pointing to the base catego
 
 #### Automated
 
-- [x] 2.1 TypeScript compiles: `npm run build`
-- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.1 TypeScript compiles: `npm run build` — af685fa
+- [x] 2.2 Linting passes: `npm run lint` — af685fa
 
 #### Manual
 
-- [ ] 2.3 2 rows visible initially with gradient peek, Show More reveals 4 more rows
-- [ ] 2.4 Show Less collapses to 2 rows and smooth-scrolls to listing top
-- [ ] 2.5 Resize across all breakpoints — items recalculate correctly
-- [ ] 2.6 Button hidden when all items fit in initial rows
-- [ ] 2.7 aria-expanded toggles correctly
-- [ ] 2.8 Search mode unaffected — navigates to /filtr independently
+- [x] 2.3 2 rows visible initially with gradient peek, Show More reveals 4 more rows — af685fa
+- [x] 2.4 Show Less collapses to 2 rows and smooth-scrolls to listing top — af685fa
+- [x] 2.5 Resize across all breakpoints — items recalculate correctly — af685fa
+- [x] 2.6 Button hidden when all items fit in initial rows — af685fa
+- [x] 2.7 aria-expanded toggles correctly — af685fa
+- [x] 2.8 Search mode unaffected — navigates to /filtr independently — af685fa
 
 ### Phase 3: Redirects, Sitemap & Dead Code Cleanup
 
 #### Automated
 
-- [ ] 3.1 TypeScript compiles: `npm run build`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 No stale references to `activitiesStaticPaths` (pages import) remain
+- [x] 3.1 TypeScript compiles: `npm run build`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 No stale references to `activitiesStaticPaths` (pages import) remain
 
 #### Manual
 

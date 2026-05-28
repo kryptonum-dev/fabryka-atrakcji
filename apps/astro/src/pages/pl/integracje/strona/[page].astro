@@ -1,13 +1,5 @@
 ---
-import ActivitiesListing, { fetchData } from '@/src/templates/activities/CategoriesPage.astro'
+export const prerender = false
 
-const data = await fetchData('pl', Astro.url.origin)
-
-if (!data) return Astro.rewrite('/pl/404')
-
-export async function getStaticPaths() {
-  return [{ params: { page: '2' } }]
-}
+return Astro.redirect('/pl/integracje/', 301)
 ---
-
-<ActivitiesListing {...data} />

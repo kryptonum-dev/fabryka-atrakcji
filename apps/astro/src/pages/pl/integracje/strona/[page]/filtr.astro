@@ -1,13 +1,8 @@
 ---
 export const prerender = false
 
-import ActivitiesListing, { fetchData } from '@/src/templates/activities/CategoriesPage.astro'
+const searchParams = Astro.url.searchParams.toString()
+const redirectUrl = searchParams ? `/pl/integracje/filtr?${searchParams}` : '/pl/integracje/'
 
-const data = await fetchData('pl', Astro.url.origin, Astro.url.searchParams)
-
-const canonicalUrl = Astro.url.origin + '/pl/integracje/'
-
-if (!data) return Astro.rewrite('/pl/404')
+return Astro.redirect(redirectUrl, 301)
 ---
-
-<ActivitiesListing {...data} canonicalUrl={canonicalUrl} doNotIndex={true} />

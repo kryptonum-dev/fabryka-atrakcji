@@ -1,13 +1,5 @@
 ---
-import ActivitiesListing, { fetchData } from '@/src/templates/activities/CategoriesPage.astro'
+export const prerender = false
 
-const data = await fetchData('en', Astro.url.origin)
-
-if (!data) return Astro.rewrite('/en/404')
-
-export async function getStaticPaths() {
-  return [{ params: { page: '2' } }]
-}
+return Astro.redirect('/en/activities/', 301)
 ---
-
-<ActivitiesListing {...data} />
