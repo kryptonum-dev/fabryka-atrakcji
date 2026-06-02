@@ -164,7 +164,7 @@ const blogSchema = {
   url: Astro.url.pathname,
   posts: page.listing.map((post) => ({
     name: post.name,
-    url: `${page.slug}${post.slug}`,
+    url: post.slug,
     description: post.seo?.description,
     image: post.image?.asset?.url,
     title: post.seo?.title,
