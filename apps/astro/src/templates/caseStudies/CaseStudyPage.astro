@@ -138,7 +138,7 @@ const t = translation[lang]
 
 const metadata = {
   ..._metadata,
-  title: `${_metadata.title} | ${t.page} ${currentPage}`,
+  title: currentPage > 1 ? `${_metadata.title} – ${t.page} ${currentPage}` : _metadata.title,
   description: _metadata.description,
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,

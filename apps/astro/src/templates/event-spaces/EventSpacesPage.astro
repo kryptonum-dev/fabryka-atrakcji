@@ -196,7 +196,7 @@ const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
 
 const metadata = {
   ..._metadata,
-  title: currentPage > 1 ? `${_metadata.title} | ${t.pageUpper} ${currentPage}` : _metadata.title,
+  title: currentPage > 1 ? `${_metadata.title} – ${t.pageUpper} ${currentPage}` : _metadata.title,
   description: _metadata.description,
   openGraphImage: _metadata.openGraphImage,
   path: Astro.url.pathname,

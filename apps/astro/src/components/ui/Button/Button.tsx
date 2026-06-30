@@ -25,7 +25,7 @@ export default function Button({
   const isExternal = linkType === 'external'
   const renderedProps = {
     ...(href && { href }),
-    ...(isExternal && { target: '_blank', rel: 'noreferrer' }),
+    ...(isExternal && { target: '_blank', rel: 'noopener noreferrer' }),
     'data-theme': theme,
     'data-shade': shade,
     className: `${styles.Button}${className ? ` ${className}` : ''}`,

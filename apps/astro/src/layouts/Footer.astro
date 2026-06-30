@@ -177,7 +177,7 @@ const OpenHoursText = getOpenHours({
             <div class="socials">
               <p>{data.footer.restOfInformation.socialMedia.heading}</p>
               {data.footer.restOfInformation.socialMedia.highlightedSocialMedia.map(({ name, link, iconString }) => (
-                <a href={link} target="_blank" rel="noreferrer">
+                <a href={link} target="_blank" rel="noopener noreferrer">
                   <Fragment set:html={iconString} />
                   <span>{name}</span>
                   <span class="circle" />
@@ -309,14 +309,14 @@ const OpenHoursText = getOpenHours({
         ) : (
           <>
             {t.createdBy}{' '}
-            <a class="bottom-row-link" target="_blank" href={`https://kryptonum.eu/${lang}`}>
+            <a class="bottom-row-link" target="_blank" rel="noopener noreferrer" href={`https://kryptonum.eu/${lang}`}>
               <>
                 <span>Kryptonum</span>
                 <span aria-hidden="true">Kryptonum</span>
               </>
             </a>
             {' & '}
-            <a href="https://www.linkedin.com/in/damian-budny/" target="_blank" class="bottom-row-link">
+            <a href="https://www.linkedin.com/in/damian-budny/" target="_blank" rel="noopener noreferrer" class="bottom-row-link">
               <>
                 <span>Luksari</span>
                 <span aria-hidden="true">Luksari</span>

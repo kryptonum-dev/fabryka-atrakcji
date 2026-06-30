@@ -13,7 +13,7 @@ const { node, ...props } = Astro.props
       href={(node as MarkType<{ href: string }>).markDef.href}
       {...((node as MarkType<{ linkType: 'external' | 'internal' }>).markDef.linkType === 'external' && {
         target: '_blank',
-        rel: 'noreferrer',
+        rel: 'noopener noreferrer',
       })}
       class="link"
       data-shade="light"

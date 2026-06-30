@@ -57,7 +57,7 @@ export default function FormState({ success, error, isSuccess, handleRestart, la
         <ul className={styles.socials}>
           {success.highlightedSocialMedia.map(({ link, iconString, name }) => (
             <li>
-              <a href={link} target="_blank" rel="noreferrer">
+              <a href={link} target="_blank" rel="noopener noreferrer">
                 <div dangerouslySetInnerHTML={{ __html: iconString }} />
                 <span>{name}</span>
               </a>
