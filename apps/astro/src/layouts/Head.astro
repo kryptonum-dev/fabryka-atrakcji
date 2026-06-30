@@ -51,6 +51,10 @@ const url = _url || joinUrl(DOMAIN, path ?? '')
 
 const finalCanonicalUrl = canonicalUrl || url
 
+// x-default points to the PL version (primary market), falling back to the first
+// available alternate. Only emitted when alternates exist (i.e. the page is translated).
+const xDefaultAlternate = alternates?.find(({ lang }) => lang === 'pl') ?? alternates?.[0]
+
 // Get locale from path for dynamic og:locale
 const locale = getLocaleFromPath(path ?? '')
 const ogLocale = ogLocales[locale]
@@ -61,7 +65,7 @@ const ogLocale = ogLocales[locale]
 <meta name="description" content={description} />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="generator" content={Astro.generator} />
-{doNotIndex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow" />}
+{doNotIndex ? <meta name="robots" content="noindex, follow" /> : <meta name="robots" content="index, follow" />}
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href={icons.favicon.src} type="image/svg+xml" />
 <link rel="apple-touch-icon" href={icons.appleTouchIcon.src} />
@@ -74,6 +78,7 @@ const ogLocale = ogLocales[locale]
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="canonical" href={finalCanonicalUrl} />
 {alternates && alternates.map(({ lang, url }) => <link rel="alternate" hreflang={lang} href={joinUrl(DOMAIN, url)} />)}
+{xDefaultAlternate && <link rel="alternate" hreflang="x-default" href={joinUrl(DOMAIN, xDefaultAlternate.url)} />}
 <meta property="og:url" content={url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
