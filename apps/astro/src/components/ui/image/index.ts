@@ -1,10 +1,10 @@
-export { default, type ImageDataProps } from './index.astro';
+export { default, type ImageDataProps } from './index.astro'
 
 export const ImageDataQuery = (name: string) => `
   ${name} {
     asset -> {
       url,
-      altText,
+      altTexts,
       extension,
       metadata {
         dimensions {

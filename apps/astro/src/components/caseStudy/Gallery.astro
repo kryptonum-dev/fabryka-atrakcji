@@ -39,7 +39,7 @@ type Props = {
 const { mediaArray, galleryHeading } = Astro.props as Props
 ---
 
-<section class="CaseStudyGallery" data-media={JSON.stringify(mediaArray)}>
+<section class="CaseStudyGallery" data-media={JSON.stringify(mediaArray)} data-lang={lang}>
   <header class="header">
     <PortableText value={galleryHeading} heading="h2" class="heading" />
   </header>
@@ -649,7 +649,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
     image: {
       asset: {
         url: string
-        altText: string
+        altTexts: { pl?: string | null; en?: string | null } | null
         playbackId: string
         thumbnailUrl: string
         duration: number
@@ -660,6 +660,8 @@ const { mediaArray, galleryHeading } = Astro.props as Props
 
   document.querySelectorAll('.CaseStudyGallery').forEach((gallery) => {
     const mediaArray = gallery.getAttribute('data-media') ? JSON.parse(gallery.getAttribute('data-media') || '[]') : []
+    const lang = (gallery.getAttribute('data-lang') as 'pl' | 'en') || 'pl'
+    const altOf = (media: Media) => media.image.asset.altTexts?.[lang] || media.image.asset.altTexts?.pl || ''
     let currentIndex = 0
 
     const items = gallery.querySelectorAll('.item')! as NodeListOf<HTMLElement>
@@ -707,7 +709,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
         setTimeout(() => closeVideoButton.focus(), 0)
       } else {
         popupImage.src = media.image.asset.url
-        popupImage.alt = media.image.asset.altText
+        popupImage.alt = altOf(media)
         closeVideoButton.style.display = 'none'
         closeButton.style.display = 'grid'
         prevButton.style.display = 'grid'
@@ -803,7 +805,7 @@ const { mediaArray, galleryHeading } = Astro.props as Props
 
         // Update the image source
         popupImage.src = targetMedia.image.asset.url
-        popupImage.alt = targetMedia.image.asset.altText
+        popupImage.alt = altOf(targetMedia)
 
         // Apply the appropriate animation class
         popupImage.classList.add(direction > 0 ? 'slide-next' : 'slide-prev')

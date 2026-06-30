@@ -6,6 +6,8 @@ import { ImageDataQuery, type ImageDataProps } from '@/components/ui/image'
 import PortableText, { PortableTextQuery, type PortableTextValue } from '@/components/ui/portable-text'
 import Carousel from './Carousel'
 import { optimizeImage } from '@/utils/optimize-images'
+import { getLangFromPath } from '@/global/languages'
+import { resolveAlt } from '@/utils/resolve-alt'
 
 export const ActivitiesCarousel_Query = `
   _type == "ActivitiesCarousel" => {
@@ -52,6 +54,8 @@ export type Props = {
 
 const { index, sectionId, labelIcon, heading, paragraph, ctas, activities } = Astro.props
 
+const lang = getLangFromPath(Astro.url.pathname)
+
 const fourteenDaysAgo = new Date()
 fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
 
@@ -62,7 +66,7 @@ const clientActivities = await Promise.all(
       image: activity.previewImage.asset.url,
       width: activity.previewImage.asset.metadata.dimensions.width,
       height: activity.previewImage.asset.metadata.dimensions.height,
-      alt: activity.previewImage.asset.altText,
+      alt: resolveAlt(activity.previewImage.asset.altTexts, lang),
     }),
     isRecent: new Date(activity._createdAt) > fourteenDaysAgo,
   }))

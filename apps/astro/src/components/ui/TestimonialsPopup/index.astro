@@ -4,6 +4,8 @@ import CloseButton from '../PopupWindow/CloseButton.astro'
 import RatingBox from '../RatingBox'
 import imageToInlineSvg from '@/src/utils/image-to-inline-svg'
 import { optimizeImage } from '@/src/utils/optimize-images'
+import { getLangFromPath } from '@/src/global/languages'
+import { resolveAlt } from '@/src/utils/resolve-alt'
 import type { ImageDataProps } from '../image'
 import type { PortableTextValue } from '../portable-text'
 import Testimonials from './Testimonials'
@@ -28,6 +30,8 @@ type Props = {
 
 const { googleData, testimonials } = Astro.props
 
+const lang = getLangFromPath(Astro.url.pathname)
+
 const clientTestimonials = await Promise.all(
   testimonials.map(async (testimonial) => ({
     ...testimonial,
@@ -39,7 +43,7 @@ const clientTestimonials = await Promise.all(
             image: testimonial.image.profileImage.asset.url,
             width: 36,
             height: 36,
-            alt: testimonial.image.profileImage.asset.altText || testimonial.name,
+            alt: resolveAlt(testimonial.image.profileImage.asset.altTexts, lang) || testimonial.name,
           })
         : null,
     },
