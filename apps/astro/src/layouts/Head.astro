@@ -4,7 +4,7 @@ import { DOMAIN, THEME_COLOR } from '@/global/constants'
 import sanityFetch from '@/utils/sanity.fetch'
 import icon from '../assets/icon.png'
 import faviconSvg from '../assets/favicon.svg'
-import { type Language, getLocaleFromPath, ogLocales } from '@/global/languages'
+import { type Language, getLangFromPath, getLocaleFromPath, ogLocales } from '@/global/languages'
 import { joinUrl } from '@/utils/join-url'
 
 const icons = {
@@ -12,12 +12,13 @@ const icons = {
   appleTouchIcon: await getImage({ src: icon, width: 180, height: 180, format: 'png' }),
 }
 
-const seo = await sanityFetch<{ openGraphImage: string }>({
+const seo = await sanityFetch<{ openGraphImage: string } | null>({
   query: `
-    *[_type == "global"][0].seo {
+    *[_type == "global" && language == $language][0].seo {
       "openGraphImage": img.asset -> url + "?w=1200&h=630&fit=crop&auto=format&q=80",
     }
   `,
+  params: { language: getLangFromPath(Astro.url.pathname) },
   tag: 'layout.head',
 })
 
@@ -42,7 +43,7 @@ const {
 } = Astro.props as HeadProps
 
 const ogImage = {
-  url: openGraphImage || seo.openGraphImage,
+  url: openGraphImage || seo?.openGraphImage,
   width: '1200',
   height: '630',
 }

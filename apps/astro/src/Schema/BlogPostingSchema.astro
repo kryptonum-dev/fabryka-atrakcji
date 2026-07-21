@@ -1,5 +1,7 @@
 ---
 import { DOMAIN } from '@/global/constants'
+import { joinUrl } from '@/utils/join-url'
+import type { Language } from '@/global/languages'
 
 export type BlogSchema = {
   title: string
@@ -8,10 +10,12 @@ export type BlogSchema = {
   updatedDate: string
   content: string
   image: string
+  /** Page path (e.g. `/pl/blog/slug/`); absolutised against DOMAIN below. */
   url: string
+  lang: Language
 }
 
-const { title, description, publishDate, updatedDate, image, url, content } = Astro.props as BlogSchema
+const { title, description, publishDate, updatedDate, image, url, content, lang } = Astro.props as BlogSchema
 
 const schema = {
   '@context': 'https://schema.org',
@@ -36,9 +40,9 @@ const schema = {
   },
   mainEntityOfPage: {
     '@type': 'WebPage',
-    '@id': url,
+    '@id': joinUrl(DOMAIN, url),
   },
-  inLanguage: 'pl',
+  inLanguage: lang,
   wordCount: content.split(/\s+/).filter((word) => word.length > 0).length,
 }
 ---

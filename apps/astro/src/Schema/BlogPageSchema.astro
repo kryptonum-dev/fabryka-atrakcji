@@ -1,13 +1,16 @@
 ---
 import { DOMAIN } from '@/global/constants'
+import { joinUrl } from '@/utils/join-url'
 
 export type BlogPageSchemaProps = {
   name: string
   description?: string
+  /** Page path (e.g. `/pl/blog/`); absolutised against DOMAIN below. */
   url: string
   posts?: {
     name: string
     title: string
+    /** Post path (e.g. `/pl/blog/slug/`); absolutised against DOMAIN below. */
     url: string
     description?: string
     image?: string
@@ -23,7 +26,7 @@ const schema = {
   '@id': `${DOMAIN}#blog`,
   name,
   description,
-  url,
+  url: joinUrl(DOMAIN, url),
   ...(posts && {
     mainEntity: {
       '@type': 'ItemList',
@@ -32,10 +35,10 @@ const schema = {
         position: index + 1,
         item: {
           '@type': 'BlogPosting',
-          '@id': post.url,
+          '@id': joinUrl(DOMAIN, post.url),
           name: post.name,
           headline: post.title,
-          url: post.url,
+          url: joinUrl(DOMAIN, post.url),
           ...(post.description && { description: post.description }),
           ...(post.image && { image: [post.image] }),
           ...(post.datePublished && { datePublished: post.datePublished }),

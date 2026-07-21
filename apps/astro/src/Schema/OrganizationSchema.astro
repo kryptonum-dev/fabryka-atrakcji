@@ -2,9 +2,13 @@
 import sanityFetch from '@/utils/sanity.fetch'
 import { DOMAIN } from '@/global/constants'
 import icon from '@/assets/icon.png'
+import { joinUrl } from '@/utils/join-url'
 import { getLangFromPath, type Language } from '../global/languages'
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
+
+// schema.org logo/image must be absolute — icon.src is a build-time relative path.
+const iconUrl = joinUrl(DOMAIN, icon.src)
 
 const {
   socials,
@@ -63,14 +67,14 @@ const schema = {
   image: [
     {
       '@type': 'ImageObject',
-      url: icon.src,
+      url: iconUrl,
       width: '512',
       height: '512',
     },
   ],
   logo: {
     '@type': 'ImageObject',
-    url: icon.src,
+    url: iconUrl,
     width: '512',
     height: '512',
     caption: organizationSchema.name,

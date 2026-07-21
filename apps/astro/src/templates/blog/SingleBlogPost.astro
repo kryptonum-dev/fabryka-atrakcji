@@ -32,6 +32,7 @@ export async function fetchData(slug: string, lang: Language) {
   const page = await sanityFetch<
     {
       name: string
+      slug: string
       blogPage: {
         name: string
         slug: string
@@ -45,6 +46,7 @@ export async function fetchData(slug: string, lang: Language) {
     query: `
       *[_type == 'BlogPost_Collection' && slug.current == $slug && language == $language][0] {
         name,
+        "slug": slug.current,
         _createdAt,
         _updatedAt,
         ${PortableTextQuery('title')}
@@ -91,7 +93,7 @@ export async function staticPaths(lang: Language) {
   }))
 }
 
-const { metadata, page, lang, slug } = Astro.props
+const { metadata, page, lang } = Astro.props
 
 const translations = {
   pl: {
@@ -106,7 +108,7 @@ const t = translations[lang]
 
 const breadcrumbs = [
   { name: page.blogPage.name, path: page.blogPage.slug },
-  { name: page.name, path: slug },
+  { name: page.name, path: page.slug },
 ]
 
 const readingTime = getEstimatedReadingTime({ content: page.content, lang })
@@ -119,6 +121,7 @@ const blogSchema = {
   content: ArticleToPlainText(page.content),
   image: page.image.asset.url,
   url: Astro.url.pathname,
+  lang,
 }
 ---
 

@@ -1,7 +1,10 @@
 ---
 import { DOMAIN } from '@/global/constants'
 import { toPlainText } from '../utils/to-plain-text'
+import { getLangFromPath } from '../global/languages'
 import type { PortableTextValue } from '../components/ui/portable-text'
+
+const reviewLabel = { pl: 'Opinia Klienta', en: 'Customer Review' }[getLangFromPath(Astro.url.pathname)]
 
 type Props = {
   testimonials: {
@@ -21,7 +24,7 @@ const reviewSchema = testimonials.map(({ date, name, position, company, logo, im
   '@context': 'https://schema.org',
   '@type': 'Review',
   datePublished: date,
-  name: `${company} - Opinia Klienta`,
+  name: `${company} - ${reviewLabel}`,
   reviewBody: toPlainText(review),
   author: {
     '@type': 'Person',
