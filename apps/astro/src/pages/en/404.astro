@@ -1,6 +1,11 @@
 ---
 import NotFoundPage, { fetchData } from '@/src/templates/NotFoundPage.astro'
 
+// Routes that cannot resolve rewrite into this page, and Astro's rewrite clamps the status to 200.
+// Setting it here (the page frontmatter, not NotFoundPage.astro) wins over that clamp — a nested
+// component would assign too late under streaming.
+Astro.response.status = 404
+
 const data = await fetchData('en')
 ---
 

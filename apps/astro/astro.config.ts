@@ -30,6 +30,9 @@ export default defineConfig({
       ? {
           isr: {
             bypassToken: process.env.ISR_BYPASS_TOKEN,
+            // Without this the adapter never expires an entry, so a 404 cached for a
+            // not-yet-published URL would outlive the publish.
+            expiration: 3600,
             exclude: [
               /^\/api\/.+/,
               /.*\/filtr.*/, // Exclude any URL containing "/filtr"

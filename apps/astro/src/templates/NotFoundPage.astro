@@ -49,7 +49,10 @@ export async function fetchData(lang: Language = 'pl') {
 const { page, metadata } = Astro.props
 ---
 
-<Layout {...metadata}>
+{/* `doNotIndex` and `noCanonical` are hardcoded, not CMS-driven: a 404 must never invite
+indexation nor canonicalise a phantom URL, regardless of editorial state. `follow` is kept
+deliberately (see 8e70f12) so link equity still flows. */}
+<Layout {...metadata} doNotIndex noCanonical>
   <Breadcrumbs data={[{ name: page.name, path: page.slug }]} firstItemType="NotFound" />
   <NotFoundHero {...page.hero} />
   <Components data={page.components} hasPreviousSections />

@@ -9,7 +9,9 @@ const normalizeUrl = (domain: string, path: string) => {
   return `${domain.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
 }
 
-// Types to exclude from sitemap
+// Types to exclude from sitemap.
+// The GROQ query below matches every document with a `slug`, so anything whose slug is not a
+// routable path has to be listed here or it gets advertised as a URL that 404s.
 const excludedTypes = [
   'NotFound_Page',
   'Amenities_Collection',
@@ -18,6 +20,13 @@ const excludedTypes = [
   'BlogCategory_Collection',
   'CaseStudyCategory_Collection',
   'ActivitiesCategory_Collection',
+  // Slugs are filter tokens ("gala", "loft", "outdoor"), not routes.
+  'EventSpaceFeatures_Collection',
+  // Orphaned documents: the schemas were deleted, the documents were not, and nothing in
+  // either app resolves them — so their slugs render the 404 page.
+  'Cart_Page',
+  'Quote_Page',
+  'ThankYouPage',
 ]
 
 const slugs = [

@@ -1,7 +1,7 @@
 import sanityFetch from '@/src/utils/sanity.fetch'
 import type { APIRoute } from 'astro'
 
-export const GET: APIRoute = async ({ params, redirect }) => {
+export const GET: APIRoute = async ({ params }) => {
   const { filename } = params
 
   try {
@@ -28,9 +28,9 @@ export const GET: APIRoute = async ({ params, redirect }) => {
     // Find the PDF with matching filename
     const document = documents?.find((doc) => doc?.originalFilename === filename)
 
-    // If no document found or filename doesn't match, redirect to 404
+    // If no document found or filename doesn't match, 404
     if (!document?.url) {
-      return redirect('/404')
+      return new Response(null, { status: 404 })
     }
 
     // Serve the PDF

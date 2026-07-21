@@ -1,7 +1,7 @@
 import sanityFetch from '@/src/utils/sanity.fetch'
 import type { APIRoute } from 'astro'
 
-export const GET: APIRoute = async ({ params, request, redirect }) => {
+export const GET: APIRoute = async ({ params, request }) => {
   const { filename } = params
   const url = new URL(request.url)
   const subscriberId = url.searchParams.get('id')
@@ -25,12 +25,12 @@ export const GET: APIRoute = async ({ params, request, redirect }) => {
 
     // 2. If no document found or filename doesn't match the original filename
     if (!document?.url || document.originalFilename !== filename) {
-      return redirect('/404')
+      return new Response(null, { status: 404 })
     }
 
-    // 3. If groups are restricted but no subscriber ID is provided, redirect to 404
+    // 3. If groups are restricted but no subscriber ID is provided, 404
     if (document.allowedGroups && document.allowedGroups.length > 0 && !subscriberId) {
-      return redirect('/404')
+      return new Response(null, { status: 404 })
     }
 
     // 4. If there are no group restrictions, serve the PDF to everyone
@@ -45,7 +45,7 @@ export const GET: APIRoute = async ({ params, request, redirect }) => {
     )
 
     if (!isAuthorized) {
-      return redirect('/404')
+      return new Response(null, { status: 404 })
     }
 
     // 6. Serve PDF to authorized subscriber

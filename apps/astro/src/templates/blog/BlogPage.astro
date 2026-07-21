@@ -104,7 +104,10 @@ export async function staticPathsCategoryPage(lang: Language) {
     query: `
       *[_type == 'BlogCategory_Collection' && language == $language][] {
         "slug": slug.current,
-        "postCount": count(*[_type == "BlogPost_Collection" && references(^._id) && defined(category)]),
+        // Must match what the page actually renders: same language, and categorised *by* this
+        // category. A bare references() also counts posts that merely link to it, and posts in
+        // the other language, which over-counts pages and advertises paginated URLs that 404.
+        "postCount": count(*[_type == "BlogPost_Collection" && language == $language && category._ref == ^._id]),
       }
     `,
     params: { language: lang },

@@ -99,9 +99,10 @@ export async function staticPathsCategory(lang: Language) {
 export async function staticPathsCategoryPage(lang: Language) {
   const categories = await sanityFetch<{ lang: Language; slug: string; postCount: number }[]>({
     query: `
-      *[_type == 'CaseStudyCategory_Collection' && language == $language && count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]) > 0][] {
+      *[_type == 'CaseStudyCategory_Collection' && language == $language && count(*[_type == "CaseStudy_Collection" && language == $language && category._ref == ^._id]) > 0][] {
         "slug": slug.current,
-        "postCount": count(*[_type == "CaseStudy_Collection" && references(^._id) && defined(category)]),
+        // See BlogPage.astro — same reasoning: a bare references() over-counts pages.
+        "postCount": count(*[_type == "CaseStudy_Collection" && language == $language && category._ref == ^._id]),
       }
     `,
     params: { language: lang },

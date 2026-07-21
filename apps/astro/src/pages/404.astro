@@ -2,6 +2,10 @@
 import NotFoundPage, { fetchData } from '@/src/templates/NotFoundPage.astro'
 import { getLangFromPath } from '@/global/languages'
 
+// Redundant on this route (Astro forces 404 for `/404` itself), but keeps the invariant
+// uniform across all three 404 entry points.
+Astro.response.status = 404
+
 const lang = getLangFromPath(Astro.url.pathname)
 const data = await fetchData(lang)
 ---
