@@ -85,7 +85,7 @@ const HeadingEl = isFirstIndex ? 'h1' : 'h2'
         font-weight: 400;
         line-height: 1.25;
         letter-spacing: -0.035em;
-        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+        font-family: var(--font-body);
         margin-bottom: clamp(0.75rem, calc(1vw / 0.48), 1rem);
         text-transform: none;
 
@@ -125,13 +125,13 @@ const HeadingEl = isFirstIndex ? 'h1' : 'h2'
       grid-template-rows: auto 1fr;
       gap: 1rem;
       .heading {
-        font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+        font-family: var(--font-heading);
         color: var(--primary-700, #600d2a);
         line-height: 0.9;
-        letter-spacing: -0.065em;
+        letter-spacing: -0.03em;
         font-size: var(--typography-heading-l, 2rem);
         text-transform: uppercase;
-        font-weight: 760;
+        font-weight: 850;
         grid-column: 1 / 2;
         grid-row: 1 / 2;
 

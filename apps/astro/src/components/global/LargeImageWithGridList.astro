@@ -314,7 +314,7 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
       .heading {
         color: var(--neutral-400, #ffe4ca);
         font-size: var(--typography-heading-l, 2rem);
-        letter-spacing: -0.065em;
+        letter-spacing: -0.03em;
       }
     }
 
@@ -338,7 +338,7 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
           font-weight: 700;
           line-height: 1.55;
           font-size: var(--typography-body-l, 1rem);
-          font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+          font-family: var(--font-body);
           letter-spacing: -0.03em;
         }
 
@@ -411,7 +411,7 @@ const listIcons = await Promise.all(textIconList.map(async (item) => imageToInli
           text-align: start;
           color: var(--primary-800, #45051c);
           font-size: var(--typography-heading-l, 2rem);
-          letter-spacing: -0.065em;
+          letter-spacing: -0.03em;
         }
       }
 

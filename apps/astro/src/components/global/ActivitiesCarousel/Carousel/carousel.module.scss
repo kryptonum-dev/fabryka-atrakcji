@@ -126,7 +126,7 @@
         font-size: var(--typography-body-l, 1rem);
         font-variant-numeric: lining-nums proportional-nums;
         line-height: 1.55;
-        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+        font-family: var(--font-body);
         font-weight: 700;
         color: var(--primary-800, #45051c);
         letter-spacing: -0.03em;

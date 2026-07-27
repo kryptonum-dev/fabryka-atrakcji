@@ -1,61 +1,51 @@
 @font-face {
-  font-family: 'Neue Haas Unica';
-  src:
-    url('/fonts/neue-haas-unica-regular.woff2') format('woff2'),
-    url('/fonts/neue-haas-unica-regular.woff') format('woff');
+  font-family: 'Archivo';
+  src: url('/fonts/archivo-regular.woff2') format('woff2');
   font-weight: 400;
   font-display: optional;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Neue Haas Unica';
-  src:
-    url('/fonts/neue-haas-unica-bold.woff2') format('woff2'),
-    url('/fonts/neue-haas-unica-bold.woff') format('woff');
+  font-family: 'Archivo';
+  src: url('/fonts/archivo-bold.woff2') format('woff2');
   font-weight: 700;
   font-display: optional;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Neue Haas Unica';
-  src:
-    url('/fonts/neue-haas-unica-medium.woff2') format('woff2'),
-    url('/fonts/neue-haas-unica-medium.woff') format('woff');
+  font-family: 'Archivo';
+  src: url('/fonts/archivo-medium.woff2') format('woff2');
   font-weight: 500;
   font-display: swap;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Neue Haas Unica Fallback';
+  font-family: 'Archivo Fallback';
   src: local('Arial');
-  ascent-override: 108.97%;
-  descent-override: 27.42%;
+  ascent-override: 88.91%;
+  descent-override: 21.26%;
   line-gap-override: 0%;
-  size-adjust: 100.3%;
+  size-adjust: 98.76%;
 }
 
 @font-face {
-  font-family: 'PF Grand Gothik';
-  src:
-    url('/fonts/pf-grand-gothic.woff2') format('woff2'),
-    url('/fonts/pf-grand-gothic.woff') format('woff');
-  font-weight: 760;
+  font-family: 'Archivo Expanded';
+  src: url('/fonts/archivo-expanded-black.woff2') format('woff2');
+  font-weight: 850;
   font-display: optional;
   font-style: normal;
-  font-stretch: 150%;
 }
 
 @font-face {
-  font-family: 'PF Grand Gothik Fallback';
+  font-family: 'Archivo Expanded Fallback';
   src: local('Arial');
-  ascent-override: 91.43%;
-  descent-override: 25.8%;
+  ascent-override: 65.69%;
+  descent-override: 15.71%;
   line-gap-override: 0%;
-  size-adjust: 130.14%;
-  font-stretch: 250%;
+  size-adjust: 133.66%;
 }
 
 *,
@@ -85,6 +75,9 @@
   --error-500: #aa0b50;
 
   --success-500: #69a87c;
+
+  --font-body: 'Archivo', 'Archivo Fallback', sans-serif;
+  --font-heading: 'Archivo Expanded', 'Archivo Expanded Fallback', sans-serif;
 
   --typography-body-2xl: clamp(1.25rem, calc(1.375vw / 0.48), 1.5rem);
   --typography-body-xl: 1.125rem;
@@ -205,7 +198,7 @@ body {
   font-variant-numeric: lining-nums proportional-nums;
   font-size: var(--typography-body-l, 1rem);
   line-height: 1.55;
-  font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: -0.02em;
   background-color: var(--neutral-100, #faf7f7);
   color: var(--primary-400, #74535e);
@@ -247,13 +240,13 @@ h1,
 .h1,
 h2,
 .h2 {
-  font-family: 'PF Grand Gothik', 'PF Grand Gothik Fallback', sans-serif;
+  font-family: var(--font-heading);
   color: var(--primary-700, #600d2a);
   line-height: 0.9;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.03em;
   font-size: var(--typography-heading-l, 2rem);
   text-transform: uppercase;
-  font-weight: 760;
+  font-weight: 850;
 
   strong {
     color: var(--primary-500, #f67258);

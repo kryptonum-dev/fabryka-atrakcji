@@ -85,7 +85,7 @@ const { headings, content, heading } = Astro.props as ContentProps
 
       :global(h2),
       :global(h3) {
-        font-family: 'Neue Haas Unica', 'Neue Haas Unica Fallback', sans-serif;
+        font-family: var(--font-body);
         line-height: 1.5;
         font-variant-numeric: lining-nums proportional-nums;
         color: var(--primary-800, #45051c);
