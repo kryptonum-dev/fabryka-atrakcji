@@ -6,40 +6,59 @@ export const ComparisonTable_Query = `
     comparisonHeading {
         leftColumn,
         rightColumn,
+        thirdColumn,
+        fourthColumn,
     },
     comparisonTable {
         ${PortableTextQuery('heading')}
         comparisonItems {
             leftColumn,
             rightColumn,
+            thirdColumn,
+            fourthColumn,
         },
     }[],
   },
 `
 
+type Columns = {
+  leftColumn?: string
+  rightColumn?: string
+  thirdColumn?: string
+  fourthColumn?: string
+}
+
 type Props = {
   node: {
-    comparisonHeading: {
-      leftColumn: string
-      rightColumn: string
-    }
+    comparisonHeading: Columns
     comparisonTable: {
       heading: PortableTextValue
-      comparisonItems: {
-        leftColumn: string
-        rightColumn: string
-      }
+      comparisonItems: Columns
     }[]
   }
 }
 
 const { node } = Astro.props
+
+const inOrder = (columns?: Columns | null) => [
+  columns?.leftColumn,
+  columns?.rightColumn,
+  columns?.thirdColumn,
+  columns?.fourthColumn,
+]
+
+// Liczba kolumn wynika z nagłówków — puste kolumny 3/4 nie są renderowane (min. 2, maks. 4)
+const headings = inOrder(node.comparisonHeading).map((heading) => heading?.trim() || '')
+const columnCount = Math.max(
+  2,
+  headings.reduce((count, heading, index) => (heading ? index + 1 : count), 0)
+)
+const columns = headings.slice(0, columnCount)
 ---
 
-<div class="ComparisonTable">
+<div class="ComparisonTable" data-columns={columnCount} style={`--columns: ${columnCount}`}>
   <header class="header">
-    <span>{node.comparisonHeading.leftColumn}</span>
-    <span>{node.comparisonHeading.rightColumn}</span>
+    {columns.map((heading) => <span>{heading}</span>)}
   </header>
   <ul class="list">
     {
@@ -47,8 +66,11 @@ const { node } = Astro.props
         <li class="item">
           <PortableText value={item.heading} class="heading" />
           <div class="items">
-            <p>{item.comparisonItems.leftColumn}</p>
-            <p>{item.comparisonItems.rightColumn}</p>
+            {inOrder(item.comparisonItems)
+              .slice(0, columnCount)
+              .map((cell, index) => (
+                <p data-label={columns[index]}>{cell}</p>
+              ))}
           </div>
         </li>
       ))
@@ -82,7 +104,7 @@ const { node } = Astro.props
 
     .header {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(var(--columns, 2), 1fr);
       gap: 0.125rem;
       align-items: center;
       margin-bottom: 0.125rem;
@@ -108,7 +130,7 @@ const { node } = Astro.props
           border-top-left-radius: clamp(0.45rem, calc(0.7vw / 0.48), 0.7rem);
         }
 
-        &:nth-child(2)::before {
+        &:last-child::before {
           border-top-right-radius: clamp(0.45rem, calc(0.7vw / 0.48), 0.7rem);
         }
       }
@@ -142,7 +164,7 @@ const { node } = Astro.props
 
         .items {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: repeat(var(--columns, 2), 1fr);
           gap: 0.125rem;
 
           p {
@@ -152,6 +174,38 @@ const { node } = Astro.props
             padding: clamp(0.75rem, calc(1vw / 0.48), 1rem) clamp(1rem, calc(1.25vw / 0.48), 1.25rem);
             margin-bottom: 0 !important;
             font-size: var(--typography-body-m, 0.875rem);
+
+            &::before {
+              display: none;
+              content: attr(data-label);
+              font-weight: 700;
+              letter-spacing: -0.03em;
+              color: var(--primary-800, #45051c);
+              margin-bottom: 0.125rem;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* Trzy i cztery kolumny są za wąskie na mobile — układamy komórki pionowo,
+     a nagłówek kolumny przenosimy do samej komórki. */
+  @media (max-width: 48rem) {
+    .ComparisonTable[data-columns='3'],
+    .ComparisonTable[data-columns='4'] {
+      .header {
+        display: none;
+      }
+
+      .list {
+        border-radius: clamp(0.45rem, calc(0.7vw / 0.48), 0.7rem);
+
+        .item .items {
+          grid-template-columns: 1fr;
+
+          p::before {
+            display: block;
           }
         }
       }

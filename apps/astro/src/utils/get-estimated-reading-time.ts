@@ -24,17 +24,13 @@ export const ArticleToPlainText = (blocks: PortableTextProps['value']) => {
     }
 
     if (block._type === 'ComparisonTable') {
-      const headingLeft = block.comparisonHeading?.leftColumn || ''
-      const headingRight = block.comparisonHeading?.rightColumn || ''
+      const columns = (value: any) =>
+        [value?.leftColumn, value?.rightColumn, value?.thirdColumn, value?.fourthColumn].filter(Boolean).join(' ')
+      const headings = columns(block.comparisonHeading)
       const items = (block.comparisonTable || [])
-        .map((item: any) => {
-          const heading = extractTextFromBlock(item.heading)
-          const leftCol = item.comparisonItems?.leftColumn || ''
-          const rightCol = item.comparisonItems?.rightColumn || ''
-          return `${heading} ${leftCol} ${rightCol}`
-        })
+        .map((item: any) => `${extractTextFromBlock(item.heading)} ${columns(item.comparisonItems)}`)
         .join(' ')
-      return `${headingLeft} ${headingRight} ${items}`
+      return `${headings} ${items}`
     }
 
     if (block._type === 'BulletList') {
