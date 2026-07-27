@@ -260,35 +260,35 @@ The plan reproduces the tuned posture 1:1: 3 preloads, `optional` on preloaded f
 
 #### Automated
 
-- [x] 1.1 Four files exist: `apps/astro/public/fonts/archivo-{regular,medium,bold,expanded-black}.woff2`
-- [x] 1.2 Each file ≤ 40 KB
-- [x] 1.3 Glyph-coverage check confirms all PL diacritics in all four files
+- [x] 1.1 Four files exist: `apps/astro/public/fonts/archivo-{regular,medium,bold,expanded-black}.woff2` — b7e8391
+- [x] 1.2 Each file ≤ 40 KB — b7e8391
+- [x] 1.3 Glyph-coverage check confirms all PL diacritics in all four files — b7e8391
 
 ### Phase 2: Global Layer Swap
 
 #### Automated
 
-- [x] 2.1 `npm run build` passes
-- [x] 2.2 `npm run lint` passes
-- [x] 2.3 Zero `Gothik|Unica|Haas` hits in `global.scss` + `Head.astro`
-- [x] 2.4 `--font-body` / `--font-heading` defined exactly once
+- [x] 2.1 `npm run build` passes — b7e8391
+- [x] 2.2 `npm run lint` passes — b7e8391
+- [x] 2.3 Zero `Gothik|Unica|Haas` hits in `global.scss` + `Head.astro` — b7e8391
+- [x] 2.4 `--font-body` / `--font-heading` defined exactly once — b7e8391
 
 #### Manual
 
-- [x] 2.5 Local dev smoke check: display vs body font render correctly, no fallback flash
+- [x] 2.5 Local dev smoke check: display vs body font render correctly, no fallback flash — b7e8391
 
 ### Phase 3: Component Sweep, Cleanup & Verification
 
 #### Automated
 
-- [x] 3.1 Repo-wide grep zero for `gothik|gothic|unica|haas` in `apps/astro`
-- [x] 3.2 Zero `font-weight: 760` hits in `apps/astro/src`
-- [x] 3.3 `public/fonts/` contains exactly the 4 `archivo-*.woff2` files
-- [x] 3.4 `npm run build` passes
-- [x] 3.5 `npm run lint` passes
+- [x] 3.1 Repo-wide grep zero for `gothik|gothic|unica|haas` in `apps/astro` — b7e8391
+- [x] 3.2 Zero `font-weight: 760` hits in `apps/astro/src` — b7e8391
+- [x] 3.3 `public/fonts/` contains exactly the 4 `archivo-*.woff2` files — b7e8391
+- [x] 3.4 `npm run build` passes — b7e8391
+- [x] 3.5 `npm run lint` passes — b7e8391
 
 #### Manual
 
-- [x] 3.6 Oliwier's visual review across breakpoints (hotspot set)
-- [x] 3.7 PL diacritics spot-check in headings and body
+- [x] 3.6 Oliwier's visual review across breakpoints (hotspot set) — b7e8391
+- [x] 3.7 PL diacritics spot-check in headings and body — b7e8391
 - [ ] 3.8 Post-deploy: no font 404s after ISR window; only `archivo-*` font requests
