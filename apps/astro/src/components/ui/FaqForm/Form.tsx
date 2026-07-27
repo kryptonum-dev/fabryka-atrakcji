@@ -4,7 +4,7 @@ import Input from '@/src/components/ui/input'
 import { REGEX } from '@/src/global/constants'
 import { translations, type Language } from '@/src/global/languages'
 import type { ClientFormStateTypes, FormStatusTypes } from '@/src/global/types'
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect, useRef } from 'preact/hooks'
 import { useForm, type FieldValues } from 'react-hook-form'
 import FormState from '../FormState'
 import Loader from '../Loader'
@@ -22,6 +22,9 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
     control,
     formState: { errors },
   } = useForm({ mode: 'onTouched' })
+
+  // Bot signal: how long the form was on screen before submit. See MIN_FILL_MS in /api/contact.
+  const renderedAt = useRef(Date.now())
 
   const t = translations[lang]
 
@@ -50,7 +53,12 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, lang, ...(utmString ? { utm: utmString } : {}) }),
+        body: JSON.stringify({
+          ...data,
+          lang,
+          elapsedMs: Date.now() - renderedAt.current,
+          ...(utmString ? { utm: utmString } : {}),
+        }),
       })
       const responseData = await response.json()
       if (response.ok && responseData.success) {
@@ -104,6 +112,17 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Honeypot. Off-screen rather than display:none, because bots that render CSS skip
+          hidden fields but still fill this one. Any value means a bot — see /api/contact. */}
+      <div
+        aria-hidden="true"
+        style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}
+      >
+        <label>
+          Strona firmowa
+          <input type="text" tabIndex={-1} autoComplete="off" {...register('companyWebsite')} />
+        </label>
+      </div>
       <Input
         aria-hidden={isFilled}
         disabled={isFilled}

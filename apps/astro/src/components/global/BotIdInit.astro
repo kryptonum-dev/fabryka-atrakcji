@@ -1,0 +1,8 @@
+<script>
+  import { initBotId } from 'botid/client/core'
+  // BotID classification runs through the Vercel proxy, which only exists on deployed
+  // environments — initialising it in dev would just fail every request.
+  if (!import.meta.env.DEV) {
+    initBotId({ protect: [{ path: '/api/contact', method: 'POST' }] })
+  }
+</script>

@@ -5,6 +5,7 @@ import OrganizationSchema from '../Schema/OrganizationSchema.astro'
 import Footer from './Footer.astro'
 import LandingHeader from './LandingHeader.astro'
 import CookieConsent from '@/components/cookie-consent/CookieConsent.astro'
+import BotIdInit from '@/components/global/BotIdInit.astro'
 import Toast from '../components/ui/Toast.astro'
 import { getLangFromPath } from '../global/languages'
 import type { ButtonDataProps } from '../components/ui/Button'
@@ -22,6 +23,7 @@ const lang = getLangFromPath(Astro.url.pathname)
 <html lang={lang}>
   <head>
     <Head {...headProps} />
+    <BotIdInit />
     <OrganizationSchema />
     <slot name="head" />
   </head>

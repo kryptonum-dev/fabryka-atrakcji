@@ -101,6 +101,9 @@ export default function InquiryForm({
     formState: { errors },
   } = useForm({ mode: 'onTouched' })
 
+  // Bot signal: how long the form was on screen before submit. See MIN_FILL_MS in /api/contact.
+  const renderedAt = useRef(Date.now())
+
   const showRegionRadio = variant === 'hotel_listing' || variant === 'event_space_listing'
   const showIntegrationCheckbox = variant === 'hotel_listing' || variant === 'hotel_detail'
 
@@ -112,6 +115,7 @@ export default function InquiryForm({
       ...data,
       lang,
       sourceUrl: window.location.href,
+      elapsedMs: Date.now() - renderedAt.current,
     }
 
     if (contextItem) {
@@ -211,6 +215,15 @@ export default function InquiryForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className={styles.InquiryForm}>
+      {/* Honeypot. Moved off-screen rather than display:none, because bots that render CSS
+          skip hidden fields but still fill this one. Humans never see or tab to it, so any
+          value means a bot — see MIN_FILL_MS / companyWebsite in /api/contact. */}
+      <div className={styles.honeypot} aria-hidden="true">
+        <label>
+          Strona firmowa
+          <input type="text" tabIndex={-1} autoComplete="off" {...register('companyWebsite')} />
+        </label>
+      </div>
       {/* Inquiry items display */}
       {showInquiries && isInquiryReady && inquiryItems.length > 0 && (
         <div className={styles.inquiryItems} aria-hidden={isFilled}>

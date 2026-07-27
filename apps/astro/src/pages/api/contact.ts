@@ -1,5 +1,6 @@
 export const prerender = false
 
+import { checkBotId } from 'botid/server'
 import { REGEX } from '@/global/constants'
 import { htmlToString } from '@/utils/html-to-string'
 import sanityFetch from '@/utils/sanity.fetch'
@@ -30,6 +31,10 @@ type BaseProps = {
   phone?: string
   lang: string
   utm?: string | null
+  /** Honeypot — hidden from humans, so any value here means a bot filled the DOM blindly. */
+  companyWebsite?: string
+  /** Milliseconds between form render and submit, measured client-side. */
+  elapsedMs?: number
 }
 
 type SimpleFormProps = BaseProps & {
@@ -56,6 +61,85 @@ type Props = SimpleFormProps | InquiryFormProps
 const isInquiryForm = (data: Props): data is InquiryFormProps => 'name' in data && !!data.name
 const MIN_ADDITIONAL_INFO_LETTERS = 16
 const countLetters = (value: string) => (value.match(/\p{L}/gu) || []).length
+
+// --- Bot signals ---
+
+/** Nobody fills a B2B inquiry form in under three seconds. */
+const MIN_FILL_MS = 3000
+
+type BotIdVerdict = {
+  isBot: boolean | null
+  isHuman: boolean | null
+  bypassed: boolean | null
+  /** Absent means the client script never ran — NOT evidence of a bot. See note below. */
+  headerPresent: boolean
+  error?: string
+}
+
+/**
+ * BotID runs in LOG-ONLY mode. It observes and records; it never rejects.
+ *
+ * In April 2026 (commit c17a8ea) BotID was removed after blocking real users: the
+ * `x-is-human` header was going missing for legitimate visitors — ad blockers, privacy
+ * extensions, a submit that beat classification — and absent evidence was being treated
+ * as proof of a bot. Leads landed in the Google Sheet with no email ever sent.
+ *
+ * So: this function can never throw and can never reject. Every failure path returns
+ * nulls and lets the submission through. Before this is ever allowed to block, check the
+ * [BOTLOG] lines for accepted submissions where isBot=true — those would have been the
+ * false positives.
+ */
+const getBotIdVerdict = async (request: Request): Promise<BotIdVerdict> => {
+  const headerPresent = request.headers.has('x-is-human')
+  const unknown = { isBot: null, isHuman: null, bypassed: null, headerPresent }
+  if (import.meta.env.DEV) return unknown
+  try {
+    const verification = await checkBotId({ advancedOptions: { checkLevel: 'basic' } })
+    return {
+      isBot: verification?.isBot ?? null,
+      isHuman: verification?.isHuman ?? null,
+      bypassed: verification?.bypassed ?? null,
+      headerPresent,
+    }
+  } catch (error) {
+    return { ...unknown, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+/**
+ * Every submission is logged to stdout (Vercel runtime logs) under a single greppable
+ * prefix, whether accepted or rejected. Search `[BOTLOG]` in the Vercel dashboard.
+ * The verdict is deliberately NOT returned to the caller — telling a spammer they were
+ * detected just lets them tune around it.
+ */
+const logSubmission = (params: {
+  verdict: 'accepted' | 'rejected'
+  reason: string
+  data: Partial<BaseProps & InquiryFormProps>
+  honeypotTripped: boolean
+  elapsedMs: number | null
+  botid: BotIdVerdict
+  request: Request
+  clientAddress: string | null
+}) => {
+  const { verdict, reason, data, honeypotTripped, elapsedMs, botid, request, clientAddress } = params
+  console.info(
+    '[BOTLOG]',
+    JSON.stringify({
+      verdict,
+      reason,
+      honeypotTripped,
+      elapsedMs,
+      botid,
+      email: data.email ?? null,
+      lang: data.lang ?? null,
+      sourceUrl: data.sourceUrl ?? null,
+      ip: clientAddress,
+      ua: request.headers.get('user-agent'),
+      referer: request.headers.get('referer'),
+    })
+  )
+}
 
 // --- Email helpers ---
 
@@ -99,24 +183,53 @@ const buildTeamData = (data: Props, isInquiry: boolean): TeamNotificationData =>
 
 // --- API Route ---
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
   try {
     const data = (await request.json()) as Props
     const { email, legal, phone, lang, utm } = data
 
+    const ip = clientAddress ?? null
+    const honeypotTripped = !!data.companyWebsite?.trim()
+    const elapsedMs = typeof data.elapsedMs === 'number' ? data.elapsedMs : null
+    const tooFast = elapsedMs !== null && elapsedMs < MIN_FILL_MS
+    // Observed and logged only — deliberately not part of any reject decision.
+    const botid = await getBotIdVerdict(request)
+    const logContext = {
+      data: data as Partial<BaseProps & InquiryFormProps>,
+      honeypotTripped,
+      elapsedMs,
+      botid,
+      request,
+      clientAddress: ip,
+    }
+
+    // Bot signals. Rejections return the same generic 400 as a validation failure, so a
+    // spammer cannot tell detection apart from a malformed payload.
+    if (honeypotTripped || tooFast) {
+      logSubmission({
+        ...logContext,
+        verdict: 'rejected',
+        reason: honeypotTripped ? 'honeypot' : 'too-fast',
+      })
+      return new Response(JSON.stringify({ message: 'Missing required fields', success: false }), { status: 400 })
+    }
+
     // Validation: email + legal always required; message required for simple form, name required for inquiry form
     if (!REGEX.email.test(email) || !legal) {
+      logSubmission({ ...logContext, verdict: 'rejected', reason: 'invalid-email-or-legal' })
       return new Response(JSON.stringify({ message: 'Missing required fields', success: false }), { status: 400 })
     }
 
     if (isInquiryForm(data)) {
       if (!data.name) {
+        logSubmission({ ...logContext, verdict: 'rejected', reason: 'missing-name' })
         return new Response(JSON.stringify({ message: 'Missing name field', success: false }), { status: 400 })
       }
 
       const additionalInfo = data.additionalInfo?.trim() || ''
       const isAdditionalInfoValid = additionalInfo.length > 0 && countLetters(additionalInfo) >= MIN_ADDITIONAL_INFO_LETTERS
       if (!isAdditionalInfoValid) {
+        logSubmission({ ...logContext, verdict: 'rejected', reason: 'additional-info-too-short' })
         const message =
           lang === 'en'
             ? 'Additional information is required and must contain at least 16 letters'
@@ -125,9 +238,12 @@ export const POST: APIRoute = async ({ request }) => {
       }
     } else {
       if (!data.message) {
+        logSubmission({ ...logContext, verdict: 'rejected', reason: 'missing-message' })
         return new Response(JSON.stringify({ message: 'Missing message field', success: false }), { status: 400 })
       }
     }
+
+    logSubmission({ ...logContext, verdict: 'accepted', reason: 'passed-all-checks' })
 
     // Build email content based on form type
     const isInquiry = isInquiryForm(data)
