@@ -31,8 +31,12 @@ type BaseProps = {
   phone?: string
   lang: string
   utm?: string | null
-  /** Honeypot — hidden from humans, so any value here means a bot filled the DOM blindly. */
-  companyWebsite?: string
+  /**
+   * Honeypot. Deliberately named so no browser autofill heuristic can classify it — the
+   * previous name `companyWebsite` matched Chromium's COMPANY_NAME regex on the `company`
+   * substring, so Chrome/Edge filled it for real users. See the note on honeypotConfirmed.
+   */
+  ref2?: string
   /** Milliseconds between form render and submit, measured client-side. */
   elapsedMs?: number
 }
@@ -77,17 +81,18 @@ type BotIdVerdict = {
 }
 
 /**
- * BotID runs in LOG-ONLY mode. It observes and records; it never rejects.
+ * BotID never rejects on its own. It can only CONFIRM a honeypot trip — see
+ * honeypotConfirmed below. A bot verdict with an empty honeypot is logged and let through.
  *
  * In April 2026 (commit c17a8ea) BotID was removed after blocking real users: the
  * `x-is-human` header was going missing for legitimate visitors — ad blockers, privacy
  * extensions, a submit that beat classification — and absent evidence was being treated
  * as proof of a bot. Leads landed in the Google Sheet with no email ever sent.
  *
- * So: this function can never throw and can never reject. Every failure path returns
- * nulls and lets the submission through. Before this is ever allowed to block, check the
- * [BOTLOG] lines for accepted submissions where isBot=true — those would have been the
- * false positives.
+ * So: this function can never throw. Every failure path returns nulls, which the
+ * `isBot === true` check downstream reads as "not a bot" and lets the submission through.
+ * Before BotID is ever allowed to block by itself, check the [BOTLOG] lines for accepted
+ * submissions where isBot=true — those would have been the false positives.
  */
 const getBotIdVerdict = async (request: Request): Promise<BotIdVerdict> => {
   const headerPresent = request.headers.has('x-is-human')
@@ -117,18 +122,22 @@ const logSubmission = (params: {
   reason: string
   data: Partial<BaseProps & InquiryFormProps>
   honeypotTripped: boolean
+  honeypotValue: string | null
   elapsedMs: number | null
   botid: BotIdVerdict
   request: Request
   clientAddress: string | null
 }) => {
-  const { verdict, reason, data, honeypotTripped, elapsedMs, botid, request, clientAddress } = params
+  const { verdict, reason, data, honeypotTripped, honeypotValue, elapsedMs, botid, request, clientAddress } = params
   console.info(
     '[BOTLOG]',
     JSON.stringify({
       verdict,
       reason,
       honeypotTripped,
+      // Truncated: enough to tell a browser autofill (a company name) from bot filler text,
+      // without dumping arbitrary user input into the logs.
+      honeypotValue: honeypotValue ? honeypotValue.slice(0, 32) : null,
       elapsedMs,
       botid,
       email: data.email ?? null,
@@ -189,27 +198,43 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const { email, legal, phone, lang, utm } = data
 
     const ip = clientAddress ?? null
-    const honeypotTripped = !!data.companyWebsite?.trim()
+    const honeypotValue = data.ref2?.trim() || null
+    const honeypotTripped = !!honeypotValue
     const elapsedMs = typeof data.elapsedMs === 'number' ? data.elapsedMs : null
     const tooFast = elapsedMs !== null && elapsedMs < MIN_FILL_MS
-    // Observed and logged only — deliberately not part of any reject decision.
     const botid = await getBotIdVerdict(request)
     const logContext = {
       data: data as Partial<BaseProps & InquiryFormProps>,
       honeypotTripped,
+      honeypotValue,
       elapsedMs,
       botid,
       request,
       clientAddress: ip,
     }
 
-    // Bot signals. Rejections return the same generic 400 as a validation failure, so a
-    // spammer cannot tell detection apart from a malformed payload.
-    if (honeypotTripped || tooFast) {
+    /**
+     * The honeypot alone is NOT sufficient to reject.
+     *
+     * On 2026-07-29 it blocked two real B2B leads (IFB Poland, Simon Kucher) — Chrome and
+     * Edge ignore `autocomplete="off"` for address-profile autofill and filled the field
+     * for humans. Three of the four honeypot trips in that observation window were false
+     * positives. BotID, meanwhile, was right 6/6 and said `isHuman` for every one of them.
+     *
+     * So a honeypot trip only rejects when BotID independently agrees it is a bot. The
+     * `=== true` is deliberate: a null/unknown verdict (BotID errored, header missing,
+     * classification never ran) falls through to accept, keeping the fail-open posture that
+     * c17a8ea established after the last round of blocked leads.
+     */
+    const honeypotConfirmed = honeypotTripped && botid.isBot === true
+
+    // Rejections return the same generic 400 as a validation failure, so a spammer cannot
+    // tell detection apart from a malformed payload.
+    if (honeypotConfirmed || tooFast) {
       logSubmission({
         ...logContext,
         verdict: 'rejected',
-        reason: honeypotTripped ? 'honeypot' : 'too-fast',
+        reason: honeypotConfirmed ? 'honeypot+botid' : 'too-fast',
       })
       return new Response(JSON.stringify({ message: 'Missing required fields', success: false }), { status: 400 })
     }

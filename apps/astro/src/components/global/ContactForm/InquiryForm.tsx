@@ -215,14 +215,16 @@ export default function InquiryForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className={styles.InquiryForm}>
-      {/* Honeypot. Moved off-screen rather than display:none, because bots that render CSS
-          skip hidden fields but still fill this one. Humans never see or tab to it, so any
-          value means a bot — see MIN_FILL_MS / companyWebsite in /api/contact. */}
+      {/* Honeypot. Off-screen rather than display:none, because bots that render CSS skip
+          hidden fields but still fill this one. Humans never see or tab to it.
+
+          No label text and a meaningless field name on purpose: this was `companyWebsite`
+          with a "Strona firmowa" label until 2026-07-29, and Chrome/Edge classified it as
+          a company-name field and autofilled it for real users — three blocked leads. A
+          trip here is now only a signal, never a rejection on its own; /api/contact
+          requires BotID to agree. */}
       <div className={styles.honeypot} aria-hidden="true">
-        <label>
-          Strona firmowa
-          <input type="text" tabIndex={-1} autoComplete="off" {...register('companyWebsite')} />
-        </label>
+        <input type="text" tabIndex={-1} autoComplete="off" {...register('ref2')} />
       </div>
       {/* Inquiry items display */}
       {showInquiries && isInquiryReady && inquiryItems.length > 0 && (

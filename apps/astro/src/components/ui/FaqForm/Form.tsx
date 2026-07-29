@@ -113,15 +113,14 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       {/* Honeypot. Off-screen rather than display:none, because bots that render CSS skip
-          hidden fields but still fill this one. Any value means a bot — see /api/contact. */}
+          hidden fields but still fill this one. No label text and a meaningless field name
+          so browser autofill cannot classify it — see the note in InquiryForm.tsx. A trip
+          here is a signal, not a rejection; /api/contact requires BotID to agree. */}
       <div
         aria-hidden="true"
         style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}
       >
-        <label>
-          Strona firmowa
-          <input type="text" tabIndex={-1} autoComplete="off" {...register('companyWebsite')} />
-        </label>
+        <input type="text" tabIndex={-1} autoComplete="off" {...register('ref2')} />
       </div>
       <Input
         aria-hidden={isFilled}
