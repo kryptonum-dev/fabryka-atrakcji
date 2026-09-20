@@ -7,9 +7,8 @@ import { searchClient } from '../../astro/src/server/search/search-client'
 const folder = new URL('../../../context/changes/sanity-dataset-embeddings-migration/', import.meta.url)
 const corpus = JSON.parse(await readFile(new URL('evaluation-corpus.json', folder), 'utf8'))
 const args = process.argv.slice(2)
-const provider = args[args.indexOf('--provider') + 1]
+const provider = 'dataset'
 const baseUrl = args.includes('--base-url') ? args[args.indexOf('--base-url') + 1] : undefined
-if (!['dataset', 'legacy'].includes(provider)) throw new Error('Specify --provider legacy|dataset')
 const positives = corpus.cases.filter((item: any) => item.assertion === 'positive')
 if (positives.length < 8) throw new Error('Judge at least eight real-content positives first')
 for (const type of ['activities', 'hotels'])
@@ -38,7 +37,7 @@ for (let run = 1; run <= 3; run++) {
           if (!response.ok) return { status: 'unavailable' as const }
           return { status: 'success' as const, data: parseCandidates((await response.json()).data, input.type) }
         })()
-      : await catalogSearch(input, { provider })
+      : await catalogSearch(input)
     const elapsedMs = Date.now() - start
     if (item.assertion === 'positive') timings.push(elapsedMs)
     const ids = result.status === 'success' ? result.data.map((row) => row.value.documentId) : []

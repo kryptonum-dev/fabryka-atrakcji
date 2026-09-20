@@ -9,7 +9,6 @@ import { Logo } from './schema/ui/logo'
 import { structure } from './structure'
 import { LANGUAGES } from './structure/languages'
 import { i18nTypes, schemaTypes, singletonActions, singletonTypes } from './structure/schema-types'
-import { embeddingsIndexDashboard } from '@sanity/embeddings-index-ui'
 
 export default defineConfig({
   name: STUDIO_HOST,
@@ -29,9 +28,6 @@ export default defineConfig({
       supportedLanguages: LANGUAGES,
       schemaTypes: i18nTypes,
     }),
-    process.env.NODE_ENV === 'development'
-      ? embeddingsIndexDashboard()
-      : { name: 'embeddings-index-dashboard-disabled' },
     assist({
       translate: {
         document: {

@@ -34,25 +34,26 @@ Implementation began at `fc9ee20e1d61150db9a9f22126b4b86d0d2feb69`. Scope is doc
 
 ## Recovery procedure
 
-Select `SANITY_SEARCH_PROVIDER=legacy` in production and redeploy the migration-capable code. A build-time value may be inlined, so changing an environment value without deployment is insufficient. Keep the legacy bearer token and both named indexes. Do not disable dataset embeddings as a rollback step.
+Current source uses Dataset Embeddings exclusively. The user requested repository cleanup on 2026-09-20, superseding the original provider switch and 14-day code retention. Changing an environment variable cannot restore legacy search in current source.
 
-Inspect readiness with `bun run search:embeddings status --check-ready`; wait with `status --wait --check-ready`. If content changes are not yet reflected, allow for Sanity's asynchronous indexing. Diagnose safe `[search]` provider/status/timing logs and HTTP 401/403/429 categories. There is no custom synchronization service to repair.
+Inspect readiness with `bun run search:embeddings status --check-ready`; wait with `status --wait --check-ready`. If content changes are not yet reflected, allow for Sanity's asynchronous indexing. Diagnose safe `[search]` status/timing logs and HTTP 401/403/429 categories. There is no custom synchronization service to repair.
 
-### Concrete rollback
-
-The retained legacy deployment already contains the migration's direct server helper and unavailable UI. For immediate recovery, persist the legacy setting and promote that deployment:
+For emergency recovery, the retained historical legacy deployment can still be promoted:
 
 ```sh
-printf %s legacy | vercel env update SANITY_SEARCH_PROVIDER production --scope kryptonum --yes
 vercel promote https://fabryka-atrakcji-5idwb146b-kryptonum.vercel.app --scope kryptonum --yes
 bun run search:smoke --base-url https://www.fabryka-atrakcji.com --check
 ```
 
-This promotes a verified migration-capable legacy build without waiting for a rebuild. Future deployments pick up the persisted setting. Alternatively redeploy the current migration code after changing the environment. Do not disable embeddings or delete indexes. The legacy baseline has a known relevance miss; rollback does not promise dataset ranking quality.
+That deployment uses its original configuration. A subsequent deployment of current source returns to Dataset Embeddings. The legacy baseline has a known relevance miss; rollback does not promise dataset ranking quality.
 
-## Retention
+## Repository cleanup — 2026-09-20
 
-Keep legacy indexes, their existing managed resources, code and credentials until at least **2026-10-04**, 14 days after successful cutover. Review outside consumers before any later retirement. Nothing is scheduled for automatic deletion.
+Removed the legacy provider, index-name constants, provider selector, obsolete environment declarations, Studio dashboard and legacy CLI/UI packages. Evaluation now runs with `bun run search:evaluate --check` and supports `--base-url` for deployed checks. The `/api/embeddings` route remains as the Dataset Embeddings API.
+
+Cleanup verification: nine focused tests pass (64 assertions); Astro type checking and both Astro and Studio production builds pass; a local API request returns 50 hotel candidates; Sanity readiness and its semantic-query probe pass.
+
+Historical research and evaluation evidence remain for traceability. Remote indexes, cloud credentials and retained deployments were not deleted. Review outside consumers before retiring those resources.
 
 ## Execution notes
 
@@ -62,6 +63,6 @@ TaskCreate/TaskUpdate tools are unavailable in this session; the plan's Progress
 
 - Readiness requires settings **and** an actual semantic query because settings briefly reported ready before indexing started.
 - Protected staging was verified through Vercel CLI's authenticated bypass; protection remained enabled. The CLI created a project automation bypass token in its own credential storage. No token is in source or evidence files.
-- Both production deployments used clean committed source exports so unrelated working changes were not published. The final runtime is `aec76a3`; later changes are evaluation tooling and evidence only.
-- The evaluation script also accepts `--base-url` for repeatable public-runtime checks. Use `bun run search:evaluate --provider dataset --base-url https://www.fabryka-atrakcji.com --check`.
-- Local `.env` selects the dataset provider for subsequent development. A dataset-backed Astro server remains available at http://127.0.0.1:4321.
+- Both production deployments used clean committed source exports so unrelated working changes were not published. The deployed runtime is `aec76a3`; the repository cleanup described above has not been deployed.
+- The evaluation script also accepts `--base-url` for repeatable public-runtime checks. Use `bun run search:evaluate --base-url https://www.fabryka-atrakcji.com --check`.
+- Local development now always uses Dataset Embeddings. A dataset-backed Astro server remains available at http://127.0.0.1:4321.

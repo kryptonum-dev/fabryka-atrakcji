@@ -5,55 +5,44 @@ import { handleSearchRequest } from '../../apps/astro/src/server/search/api'
 const input = { searchQuery: 'lake', type: 'hotels', language: 'en' } as const
 const candidate = { score: 1, value: { documentId: 'h1', type: 'Hotels_Collection' } }
 
-test('provider switch is explicit, without fallback', async () => {
-  let legacyCalls = 0
-  const providers = {
-    dataset: async () => [candidate],
-    legacy: async () => {
-      legacyCalls++
-      return []
-    },
-  }
-  expect(await catalogSearch(input, { provider: 'dataset', providers })).toEqual({
+test('dataset retrieval returns candidates or an unavailable result on failure', async () => {
+  expect(await catalogSearch(input, { retrieve: async () => [candidate] })).toEqual({
     status: 'success',
     data: [candidate],
   })
-  expect(await catalogSearch(input, { provider: 'invalid', providers })).toEqual({ status: 'unavailable' })
-  for (const status of [401, 403, 429, 500]) {
+  for (const statusCode of [401, 403, 429, 500]) {
     expect(
       await catalogSearch(input, {
-        provider: 'dataset',
-        providers: {
-          ...providers,
-          dataset: async () => {
-            throw new Error(`HTTP ${status}`)
-          },
+        retrieve: async () => {
+          throw Object.assign(new Error('Request failed'), { statusCode })
         },
       })
     ).toEqual({ status: 'unavailable' })
   }
-  expect(legacyCalls).toBe(0)
 })
 
 test('empty success, malformed results, deadline and cancellation are distinct', async () => {
-  const providers = { dataset: async () => [], legacy: async () => [] }
-  expect(await catalogSearch(input, { provider: 'dataset', providers })).toEqual({ status: 'success', data: [] })
-  expect(
-    await catalogSearch(input, {
-      provider: 'dataset',
-      providers: { ...providers, dataset: async () => ({ error: 'secret' }) },
-    })
-  ).toEqual({ status: 'unavailable' })
-  expect(
-    await catalogSearch(input, {
-      provider: 'dataset',
-      timeoutMs: 5,
-      providers: { ...providers, dataset: () => new Promise(() => {}) },
-    })
-  ).toEqual({ status: 'unavailable' })
-  expect(await catalogSearch(input, { provider: 'dataset', signal: AbortSignal.abort(), providers })).toEqual({
+  expect(await catalogSearch(input, { retrieve: async () => [] })).toEqual({ status: 'success', data: [] })
+  expect(await catalogSearch(input, { retrieve: async () => ({ error: 'secret' }) })).toEqual({
     status: 'unavailable',
   })
+  expect(
+    await catalogSearch(input, {
+      timeoutMs: 5,
+      retrieve: () => new Promise(() => {}),
+    })
+  ).toEqual({ status: 'unavailable' })
+  let calls = 0
+  expect(
+    await catalogSearch(input, {
+      signal: AbortSignal.abort(),
+      retrieve: async () => {
+        calls++
+        return []
+      },
+    })
+  ).toEqual({ status: 'unavailable' })
+  expect(calls).toBe(0)
 })
 
 test('API preserves the envelope and ignores public provider overrides', async () => {

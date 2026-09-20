@@ -1,7 +1,6 @@
 export const COLLECTIONS = { activities: 'Activities_Collection', hotels: 'Hotels_Collection' } as const
 export type SearchType = keyof typeof COLLECTIONS
 export type SearchLanguage = 'pl' | 'en'
-export type SearchProvider = 'legacy' | 'dataset'
 export type SearchInput = { searchQuery: string; type: SearchType; language?: SearchLanguage }
 export type SearchCandidate = { score: number; value: { documentId: string; type: string } }
 export type SearchResult = { status: 'success'; data: SearchCandidate[] } | { status: 'unavailable' }

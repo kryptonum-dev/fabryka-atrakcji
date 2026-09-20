@@ -1,12 +1,10 @@
 import { createClient, type QueryParams } from '@sanity/client'
 import { SEARCH_API_VERSION, SEARCH_DATASET, SEARCH_TIMEOUT_MS } from './contracts'
 
-export function searchConfig() {
+function searchConfig() {
   return {
     projectId: import.meta.env?.SANITY_PROJECT_ID || process.env.SANITY_PROJECT_ID || '',
     readToken: import.meta.env?.SANITY_SEARCH_READ_TOKEN || process.env.SANITY_SEARCH_READ_TOKEN,
-    legacyToken: import.meta.env?.EMBEDDINGS_INDEX_BEARER_TOKEN || process.env.EMBEDDINGS_INDEX_BEARER_TOKEN,
-    provider: import.meta.env?.SANITY_SEARCH_PROVIDER || process.env.SANITY_SEARCH_PROVIDER || 'legacy',
   }
 }
 

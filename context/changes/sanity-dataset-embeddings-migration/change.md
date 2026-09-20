@@ -24,3 +24,7 @@ See [decisions.md](decisions.md) for the four user-confirmed choices. These take
 ## Scope revision — 2026-09-20
 
 At the user’s request, the plan now has four phases and embeds only existing document-local name, title, description and main content. Hidden fields, reference-label synchronization, backfills and daily repair are removed. Other confirmed decisions remain in force.
+
+## Post-launch cleanup — 2026-09-20
+
+At the user's request, removed legacy search code, provider selection, obsolete environment declarations and Studio index tooling from the repository. Dataset Embeddings is now the sole provider. This supersedes the plan's temporary legacy code retention; historical evidence and remote resources remain. See rollout.md for the updated recovery procedure.

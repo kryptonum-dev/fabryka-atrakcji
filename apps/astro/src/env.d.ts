@@ -7,8 +7,6 @@ interface ImportMetaEnv {
   readonly SANITY_STUDIO_PREVIEW_DOMAIN: string
   readonly RESEND_API_KEY: string
   readonly MAILERLITE_API_KEY: string
-  readonly EMBEDDINGS_INDEX_BEARER_TOKEN: string
-  readonly SANITY_SEARCH_PROVIDER?: string
   readonly SANITY_SEARCH_READ_TOKEN?: string
   // Google Sheets Integration
   readonly GOOGLE_SERVICE_ACCOUNT_EMAIL: string
