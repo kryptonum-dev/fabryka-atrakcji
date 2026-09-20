@@ -39,8 +39,14 @@ export async function catalogSearch(input: SearchInput, options: Options = {}): 
     const data = parseCandidates(result, input.type)
     console.info('[search]', { provider, durationMs: Date.now() - started, status: 'success' })
     return { status: 'success', data }
-  } catch {
+  } catch (error) {
+    const statusCode =
+      typeof (error as { statusCode?: unknown })?.statusCode === 'number'
+        ? (error as { statusCode: number }).statusCode
+        : undefined
     console.error('[search]', {
+      statusCode,
+      category: statusCode === 401 || statusCode === 403 ? 'authorization' : statusCode === 429 ? 'quota' : 'provider',
       provider: provider === 'dataset' ? 'dataset' : provider === 'legacy' ? 'legacy' : 'invalid',
       durationMs: Date.now() - started,
       status: controller.signal.aborted ? 'aborted' : 'unavailable',

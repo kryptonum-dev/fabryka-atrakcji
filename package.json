@@ -8,6 +8,7 @@
   "devDependencies": {
     "dotenv-cli": "^8.0.0",
     "groq": "^5.9.0",
+    "groq-js": "1.19.0",
     "turbo": "^2.8.7"
   },
   "engines": {

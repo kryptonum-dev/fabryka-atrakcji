@@ -1,4 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises'
+import { searchClient } from '../../astro/src/server/search/search-client'
 import { SEARCH_API_VERSION, SEARCH_DATASET } from '../../astro/src/server/search/contracts'
 
 const projection = (
@@ -19,7 +20,33 @@ async function settings(method = 'GET') {
   if (!response.ok) throw new Error(`Settings HTTP ${response.status}: ${(await response.text()).slice(0, 1000)}`)
   return response.json()
 }
-const before = await settings()
+async function queryReady(): Promise<boolean> {
+  try {
+    await searchClient().fetch<unknown>(
+      '*[_type == "Hotels_Collection"] | score(text::semanticSimilarity("hotel"))[0...1]{_id}',
+      {},
+      { signal: AbortSignal.timeout(8000) }
+    )
+    return true
+  } catch {
+    return false
+  }
+}
+async function waitUntilReady() {
+  const deadline = Date.now() + 10 * 60_000
+  while (Date.now() < deadline) {
+    const state = await settings()
+    console.log(JSON.stringify({ enabled: state.enabled, status: state.status }))
+    if (state.status === 'error' || !state.enabled) throw new Error('Embeddings are not available')
+    if (state.status === 'ready' && (await queryReady())) {
+      if (state.projection?.trim() !== projection) throw new Error('Projection does not match')
+      return
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10_000))
+  }
+  throw new Error('Embeddings readiness timed out after ten minutes')
+}
+let before = await settings()
 if (args[0] === 'enable') {
   console.log(
     JSON.stringify(
@@ -44,12 +71,17 @@ if (args[0] === 'enable') {
       { flag: 'wx' }
     )
     console.log(JSON.stringify(await settings('PUT'), null, 2))
+    if (args.includes('--wait')) await waitUntilReady()
   }
 } else if (args[0] === 'status') {
+  if (args.includes('--wait')) {
+    await waitUntilReady()
+    before = await settings()
+  }
   console.log(JSON.stringify(before, null, 2))
   if (
     args.includes('--check-ready') &&
-    !(before.enabled && before.status === 'ready' && before.projection?.trim() === projection)
+    !(before.enabled && before.status === 'ready' && before.projection?.trim() === projection && (await queryReady()))
   )
     process.exitCode = 1
 } else throw new Error('Usage: status [--check-ready] | enable [--apply]')

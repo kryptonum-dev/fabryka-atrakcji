@@ -265,13 +265,22 @@ const t = translations[lang]
     })
 
     // Helper functions
+    function readHistory(): string[] {
+      try {
+        const value: unknown = JSON.parse(localStorage.getItem('searchHistory') || '[]')
+        return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string').slice(0, 5) : []
+      } catch {
+        return []
+      }
+    }
+
     function saveSearchTerm(term: string) {
       if (!term.trim()) return
 
-      const history = JSON.parse(localStorage.getItem('searchHistory') || '[]')
+      const history = readHistory()
       const newHistory = [term, ...history.filter((item: string) => item !== term)].slice(0, 5)
 
-      localStorage.setItem('searchHistory', JSON.stringify(newHistory))
+      try { localStorage.setItem('searchHistory', JSON.stringify(newHistory)) } catch { /* Search also works when storage is unavailable. */ }
     }
 
     function hideHistoryDropdown() {
@@ -294,7 +303,7 @@ const t = translations[lang]
     }
 
     function showHistoryDropdown(filterValue: string = '') {
-      const history = JSON.parse(localStorage.getItem('searchHistory') || '[]')
+      const history = readHistory()
 
       // Filter history items based on input value using fuzzy match
       const filteredHistory = filterValue

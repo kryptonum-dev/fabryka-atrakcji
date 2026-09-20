@@ -247,9 +247,9 @@ Implementation is in progress. This is the sole execution checklist; manual veri
 
 ### Phase 3: Connect listings and handle failure/navigation
 
-- [x] 3.1 Listing-state and navigation tests pass, including empty/unavailable and page reset: `bun run test:search`.
-- [x] 3.2 Astro production build and type checking pass: `bun run --cwd apps/astro build`.
-- [x] 3.3 Changed Astro source files pass ESLint with explicit changed-file paths from the Astro workspace.
+- [x] 3.1 Listing-state and navigation tests pass, including empty/unavailable and page reset: `bun run test:search`. — 41edae0
+- [x] 3.2 Astro production build and type checking pass: `bun run --cwd apps/astro build`. — 41edae0
+- [x] 3.3 Changed Astro source files pass ESLint with explicit changed-file paths from the Astro workspace. — 41edae0
 
 ### Phase 4: Enable, evaluate and switch production
 
