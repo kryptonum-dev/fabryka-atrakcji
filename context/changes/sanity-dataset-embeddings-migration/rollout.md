@@ -63,6 +63,14 @@ TaskCreate/TaskUpdate tools are unavailable in this session; the plan's Progress
 
 - Readiness requires settings **and** an actual semantic query because settings briefly reported ready before indexing started.
 - Protected staging was verified through Vercel CLI's authenticated bypass; protection remained enabled. The CLI created a project automation bypass token in its own credential storage. No token is in source or evidence files.
-- Both production deployments used clean committed source exports so unrelated working changes were not published. The deployed runtime is `aec76a3`; the repository cleanup described above has not been deployed.
+- Both production deployments used clean committed source exports so unrelated working changes were not published. The initial cutover runtime was `aec76a3`; the cleanup deployment below supersedes it.
 - The evaluation script also accepts `--base-url` for repeatable public-runtime checks. Use `bun run search:evaluate --base-url https://www.fabryka-atrakcji.com --check`.
 - Local development now always uses Dataset Embeddings. A dataset-backed Astro server remains available at http://127.0.0.1:4321.
+
+## Cleanup deployed — 2026-09-20
+
+- Website source: `6cd70fc`, exported from committed source to exclude unrelated working changes.
+- Production deployment: `dpl_A6LENqe1zgRgQpFNuSzCwPBc4TQS`, https://fabryka-atrakcji-t9qful76x-kryptonum.vercel.app, aliased to https://www.fabryka-atrakcji.com.
+- Studio deployed successfully to https://fabryka-atrakcji.sanity.studio/ using the production deployment script. Its live `/static/sanity-CE6LygH6.js` exactly matches the built bundle (SHA256 `315dc4ac73a59efca92d53c453207ea77e215e2065f9146c97a32de081edd12f`); legacy dashboard identifiers are absent.
+- Post-deployment verification passed: all 13 public route checks and all 48 public search evaluations. Search p95 was 362ms. Updated evidence is in `smoke-deployed.json` and `evaluation-dataset-deployed.json`.
+- Website build and type checks passed on Vercel; Studio build, schema deployment and static hosting upload passed. No deployment gate remains pending.
