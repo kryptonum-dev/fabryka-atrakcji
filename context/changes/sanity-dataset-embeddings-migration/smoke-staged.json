@@ -1,0 +1,36 @@
+{
+  "base": "https://fabryka-atrakcji-aln1a1sb1-kryptonum.vercel.app",
+  "passed": true,
+  "checks": [
+    {
+      "path": "/pl/integracje/filtr/?search=most",
+      "status": "200",
+      "cards": 50,
+      "passed": true
+    },
+    {
+      "path": "/en/activities/filter/?search=painting",
+      "status": "200",
+      "cards": 41,
+      "passed": true
+    },
+    {
+      "path": "/pl/hotele/filtr/?search=hotel",
+      "status": "200",
+      "cards": 16,
+      "passed": true
+    },
+    {
+      "path": "/en/hotels/filter/?search=hotel",
+      "status": "200",
+      "cards": 16,
+      "passed": true
+    },
+    {
+      "path": "/en/hotels/page/2/filter/?search=hotel",
+      "status": "200",
+      "cards": 16,
+      "passed": true
+    }
+  ]
+}

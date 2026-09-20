@@ -232,7 +232,7 @@ Use the existing production dataset as requested. No dataset copy or editorial m
 
 ## Progress
 
-Implementation is in progress. This is the sole execution checklist; manual verification remains in each phase. The prior pending five-phase checklist is superseded by the approved simpler scope.
+Implementation and production verification are complete. This is the sole execution checklist; manual verification remains in each phase. The prior pending five-phase checklist is superseded by the approved simpler scope.
 
 ### Phase 1: Define the local-text projection and contracts
 
@@ -253,7 +253,7 @@ Implementation is in progress. This is the sole execution checklist; manual veri
 
 ### Phase 4: Enable, evaluate and switch production
 
-- [ ] 4.1 Production settings are ready and match the checked-in projection: `bun run search:embeddings status --check-ready`.
-- [ ] 4.2 Dataset evaluation passes eligibility, applicable expected-hit and latency checks: `bun run search:evaluate --provider dataset --check`.
-- [ ] 4.3 Deployed bilingual route checks pass: `bun run search:smoke --base-url https://www.fabryka-atrakcji.com --check`.
-- [ ] 4.4 Rollout evidence records deployment ID, dataset provider, UTC cutover time and an executable rollback procedure.
+- [x] 4.1 Production settings are ready and match the checked-in projection: `bun run search:embeddings status --check-ready`.
+- [x] 4.2 Dataset evaluation passes eligibility, applicable expected-hit and latency checks: `bun run search:evaluate --provider dataset --check`.
+- [x] 4.3 Deployed bilingual route checks pass: `bun run search:smoke --base-url https://www.fabryka-atrakcji.com --check`.
+- [x] 4.4 Rollout evidence records deployment ID, dataset provider, UTC cutover time and an executable rollback procedure.

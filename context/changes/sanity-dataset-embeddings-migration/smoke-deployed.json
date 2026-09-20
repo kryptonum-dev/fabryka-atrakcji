@@ -1,0 +1,98 @@
+{
+  "base": "https://www.fabryka-atrakcji.com",
+  "timestamp": "2026-09-20T05:55:12.958Z",
+  "passed": true,
+  "checks": [
+    {
+      "path": "/pl/integracje/filtr/?search=Budowanie+Mostu",
+      "status": 200,
+      "cards": 50,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/pl/integracje/filtr/?search=Warsztaty+Florystyczne",
+      "status": 200,
+      "cards": 50,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/en/activities/filter/?search=Art+%26+Wine",
+      "status": 200,
+      "cards": 41,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/en/activities/filter/?search=Saboteur",
+      "status": 200,
+      "cards": 41,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/pl/hotele/filtr/?search=Barcel%C3%B3+Warsaw+Powi%C5%9Ble",
+      "status": 200,
+      "cards": 16,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/pl/hotele/filtr/?search=Zamek+Jan%C3%B3w+Podlaski",
+      "status": 200,
+      "cards": 16,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/en/hotels/filter/?search=Mierz%C4%99cin+Palace",
+      "status": 200,
+      "cards": 16,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/en/hotels/filter/?search=Kliczk%C3%B3w+Castle",
+      "status": 200,
+      "cards": 16,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/en/hotels/page/2/filter/?search=hotel",
+      "status": 200,
+      "cards": 16,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/pl/hotele/strona/2/filtr/?search=hotel",
+      "status": 200,
+      "cards": 16,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/pl/hotele/filtr/?search=hotel&stars=5&order=priceAsc",
+      "status": 200,
+      "cards": 19,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/en/hotels/filter/?search=hotel&stars=5&order=priceAsc",
+      "status": 200,
+      "cards": 7,
+      "cache": "MISS",
+      "passed": true
+    },
+    {
+      "path": "/en/activities/filter/?search=painting&order=newest",
+      "status": 200,
+      "cards": 50,
+      "cache": "MISS",
+      "passed": true
+    }
+  ]
+}

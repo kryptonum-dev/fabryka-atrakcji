@@ -1,0 +1,490 @@
+{
+  "provider": "dataset",
+  "timestamp": "2026-09-20T05:48:22.528Z",
+  "projectId": "fn3a7ltg",
+  "dataset": "production",
+  "p95Ms": 54,
+  "passed": false,
+  "reports": [
+    {
+      "id": "activities-pl-01",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 3921,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-pl-02",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 48,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-pl-03",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 49,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-pl-04",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 52,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-pl-05",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 53,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-pl-06",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 50,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-en-07",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 50,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-en-08",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 55,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-en-09",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 47,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-en-10",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 48,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-en-11",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 53,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "activities-en-12",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 52,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-pl-13",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 48,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-pl-14",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 54,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-pl-15",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 53,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-pl-16",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 47,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-pl-17",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 49,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-pl-18",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 52,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-en-19",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 50,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-en-20",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 55,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-en-21",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 54,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-en-22",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 49,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-en-23",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 51,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "hotels-en-24",
+      "run": 1,
+      "assertion": "observation",
+      "elapsedMs": 53,
+      "ids": [],
+      "valid": false,
+      "hit": true,
+      "passed": false
+    },
+    {
+      "id": "local-text-1-exact_name",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 57,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-1-concept",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 48,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-2-exact_name",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 46,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-2-concept",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 51,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-3-exact_name",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 49,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-3-concept",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 53,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-4-exact_name",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 53,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-4-concept",
+      "run": 1,
+      "assertion": "positive",
+      "elapsedMs": 50,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-1-exact_name",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 48,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-1-concept",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 50,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-2-exact_name",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 49,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-2-concept",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 53,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-3-exact_name",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 50,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-3-concept",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 51,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-4-exact_name",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 47,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-4-concept",
+      "run": 2,
+      "assertion": "positive",
+      "elapsedMs": 52,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-1-exact_name",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 47,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-1-concept",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 54,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-2-exact_name",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 50,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-2-concept",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 52,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-3-exact_name",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 51,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-3-concept",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 49,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-4-exact_name",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 49,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    },
+    {
+      "id": "local-text-4-concept",
+      "run": 3,
+      "assertion": "positive",
+      "elapsedMs": 48,
+      "ids": [],
+      "valid": false,
+      "hit": false,
+      "passed": false
+    }
+  ]
+}

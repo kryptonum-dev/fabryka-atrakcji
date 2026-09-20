@@ -10,7 +10,7 @@ Keep the migration small by embedding text already stored on each document.
 ## Starting Point
 
 Two legacy indexes currently provide candidate IDs used by existing listings.
-Dataset embeddings were disabled when researched; no implementation has started.
+Dataset embeddings were disabled when researched; implementation and production cutover are complete.
 Failed retrieval currently removes the search restriction and can show broad results.
 
 ## Desired End State
@@ -71,4 +71,4 @@ Inline amenity/location prose already in main content can still contribute natur
 Evaluation expectations must come from the document's own text, not omitted references.
 The bounded candidate pool and semantic-only ranking remain deliberate limitations.
 Launch requires readiness, applicable relevance/eligibility checks, latency checks and working PL/EN routes.
-All implementation checks are pending in the full plan's single Progress section.
+Completed checks are recorded in the full plan's single Progress section; rollout.md contains launch evidence.

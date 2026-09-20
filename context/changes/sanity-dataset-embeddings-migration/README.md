@@ -13,7 +13,7 @@ last_updated_by: Codex
 
 # Migration research package
 
-Start with [research.md](research.md) for the findings, then [decisions.md](decisions.md) for the user-confirmed answers that supersede earlier recommendations. The current scope embeds existing name/title/description/main content only, with no hidden fields or synchronization. Earlier reference-preservation proposals are superseded. Status is **planned**. Start implementation review with [plan-brief.md](plan-brief.md), then [plan.md](plan.md). Research snapshots below remain historical evidence.
+Start with [research.md](research.md) for the findings, then [decisions.md](decisions.md) for the user-confirmed answers that supersede earlier recommendations. The current scope embeds existing name/title/description/main content only, with no hidden fields or synchronization. Earlier reference-preservation proposals are superseded. Status is **implemented**. See [rollout.md](rollout.md) for production verification and rollback. Start implementation review with [plan-brief.md](plan-brief.md), then [plan.md](plan.md). Research snapshots below remain historical evidence.
 
 | File | Purpose |
 | --- | --- |
@@ -34,3 +34,11 @@ Start with [research.md](research.md) for the findings, then [decisions.md](deci
 Repository source links point to the researched commit. A pre-existing change in the activity Listing file removes a script import, so working-tree lines after the imports are one lower than committed lines. Links in these documents use committed coordinates for that file. Untracked historical documents use relative links because they have no permalink at this commit.
 
 Three research agents covered runtime, content/operations/history, and official Sanity documentation. The main agent verified live configuration and aggregate content reads and synthesized this package. No application code, dependency, cloud configuration, or content was changed.
+
+## Implementation evidence
+
+- [Rollout and rollback](rollout.md)
+- [Ready settings](settings-ready.json)
+- [Dataset evaluation](evaluation-dataset.json) and [legacy baseline](evaluation-legacy.json)
+- [Staged runtime evaluation](evaluation-dataset-staged.json) and [production API evaluation](evaluation-dataset-deployed.json)
+- [Production route checks](smoke-deployed.json) and [provider logs](runtime-provider-evidence.json)

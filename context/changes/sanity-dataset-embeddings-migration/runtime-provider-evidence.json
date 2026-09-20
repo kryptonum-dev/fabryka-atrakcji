@@ -1,0 +1,27 @@
+[
+  {
+    "deploymentId": "dpl_DcdXpCVjyj924KGmA5wu61nzVV6d",
+    "level": "info",
+    "message": "[search] { provider: 'dataset', durationMs: 190, status: 'success' }"
+  },
+  {
+    "deploymentId": "dpl_DcdXpCVjyj924KGmA5wu61nzVV6d",
+    "level": "info",
+    "message": "[search] { provider: 'dataset', durationMs: 157, status: 'success' }"
+  },
+  {
+    "deploymentId": "dpl_DcdXpCVjyj924KGmA5wu61nzVV6d",
+    "level": "info",
+    "message": "[search] { provider: 'dataset', durationMs: 196, status: 'success' }"
+  },
+  {
+    "deploymentId": "dpl_DcdXpCVjyj924KGmA5wu61nzVV6d",
+    "level": "info",
+    "message": "[search] { provider: 'dataset', durationMs: 113, status: 'success' }"
+  },
+  {
+    "deploymentId": "dpl_DcdXpCVjyj924KGmA5wu61nzVV6d",
+    "level": "info",
+    "message": "[search] { provider: 'dataset', durationMs: 230, status: 'success' }"
+  }
+]
