@@ -253,7 +253,7 @@ Implementation and production verification are complete. This is the sole execut
 
 ### Phase 4: Enable, evaluate and switch production
 
-- [x] 4.1 Production settings are ready and match the checked-in projection: `bun run search:embeddings status --check-ready`.
-- [x] 4.2 Dataset evaluation passes eligibility, applicable expected-hit and latency checks: `bun run search:evaluate --provider dataset --check`.
-- [x] 4.3 Deployed bilingual route checks pass: `bun run search:smoke --base-url https://www.fabryka-atrakcji.com --check`.
-- [x] 4.4 Rollout evidence records deployment ID, dataset provider, UTC cutover time and an executable rollback procedure.
+- [x] 4.1 Production settings are ready and match the checked-in projection: `bun run search:embeddings status --check-ready`. — 4fa6c2a
+- [x] 4.2 Dataset evaluation passes eligibility, applicable expected-hit and latency checks: `bun run search:evaluate --provider dataset --check`. — 4fa6c2a
+- [x] 4.3 Deployed bilingual route checks pass: `bun run search:smoke --base-url https://www.fabryka-atrakcji.com --check`. — 4fa6c2a
+- [x] 4.4 Rollout evidence records deployment ID, dataset provider, UTC cutover time and an executable rollback procedure. — 4fa6c2a

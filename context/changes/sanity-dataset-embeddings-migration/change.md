@@ -1,7 +1,7 @@
 ---
 change_id: sanity-dataset-embeddings-migration
 title: Migrate Sanity search to dataset embeddings
-status: implementing
+status: implemented
 created: 2026-09-20
 updated: 2026-09-20
 implementation_base: fc9ee20e1d61150db9a9f22126b4b86d0d2feb69
@@ -19,7 +19,7 @@ Replacement: https://www.sanity.io/docs/content-lake/dataset-embeddings
 
 ## Confirmed planning decisions
 
-See [decisions.md](decisions.md) for the four user-confirmed choices. These take precedence over earlier research recommendations. Planning is complete; implementation has not started. See [plan-brief.md](plan-brief.md) and [plan.md](plan.md).
+See [decisions.md](decisions.md) for the four user-confirmed choices. These take precedence over earlier research recommendations. Implementation and production verification are complete. See [rollout.md](rollout.md) for launch evidence and rollback. See [plan-brief.md](plan-brief.md) and [plan.md](plan.md).
 
 ## Scope revision — 2026-09-20
 
