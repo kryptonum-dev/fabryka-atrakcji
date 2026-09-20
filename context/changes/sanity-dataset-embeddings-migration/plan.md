@@ -236,14 +236,14 @@ Implementation is in progress. This is the sole execution checklist; manual veri
 
 ### Phase 1: Define the local-text projection and contracts
 
-- [x] 1.1 Local projection/contract tests cover nested text, optional fields and reference/metadata exclusion: `bun run test:search`.
-- [x] 1.2 Astro accepts the new modules and environment typing: `bun run --cwd apps/astro astro check`.
+- [x] 1.1 Local projection/contract tests cover nested text, optional fields and reference/metadata exclusion: `bun run test:search`. — da87956
+- [x] 1.2 Astro accepts the new modules and environment typing: `bun run --cwd apps/astro astro check`. — da87956
 
 ### Phase 2: Implement retrieval and evaluation tools
 
-- [ ] 2.1 Provider/API tests pass for success, validation, timeout and failure isolation: `bun run test:search`.
-- [ ] 2.2 Settings inspection completes without writes: `bun run search:embeddings status`.
-- [ ] 2.3 Astro type checking passes: `bun run --cwd apps/astro astro check`.
+- [x] 2.1 Provider/API tests pass for success, validation, timeout and failure isolation: `bun run test:search`.
+- [x] 2.2 Settings inspection completes without writes: `bun run search:embeddings status`.
+- [x] 2.3 Astro type checking passes: `bun run --cwd apps/astro astro check`.
 
 ### Phase 3: Connect listings and handle failure/navigation
 

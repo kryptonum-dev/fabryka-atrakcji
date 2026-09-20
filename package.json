@@ -20,7 +20,9 @@
     "dev": "dotenv -- turbo dev",
     "lint": "dotenv -- turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "test:search": "bun test tests/search"
+    "test:search": "bun test tests/search",
+    "search:embeddings": "dotenv -- bun apps/sanity/scripts/dataset-embeddings.ts",
+    "search:evaluate": "dotenv -- bun apps/sanity/scripts/evaluate-search.ts"
   },
   "workspaces": [
     "apps/*"

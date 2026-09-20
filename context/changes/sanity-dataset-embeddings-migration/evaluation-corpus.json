@@ -1,5 +1,5 @@
 {
-  "status": "proposed_unvalidated",
+  "status": "expectations_judged_not_run",
   "provenance": "synthetic cases, not analytics; reviewer must choose real expected documents before evaluation",
   "cases": [
     {
@@ -9,7 +9,9 @@
       "query": "kajaki",
       "category": "concept",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-pl-02",
@@ -18,7 +20,9 @@
       "query": "integracja zespołu na świeżym powietrzu",
       "category": "concept",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-pl-03",
@@ -27,7 +31,9 @@
       "query": "warsztaty kulinarne",
       "category": "activity_type",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-pl-04",
@@ -36,7 +42,9 @@
       "query": "atrakcje dla małej grupy",
       "category": "facet_interaction",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-pl-05",
@@ -45,7 +53,9 @@
       "query": "zajęcia prowadzone po angielsku",
       "category": "spoken_language",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-pl-06",
@@ -54,7 +64,9 @@
       "query": "zzzqqqxyz",
       "category": "negative",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-en-07",
@@ -63,7 +75,9 @@
       "query": "kayaking",
       "category": "concept",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-en-08",
@@ -72,7 +86,9 @@
       "query": "outdoor team building",
       "category": "concept",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-en-09",
@@ -81,7 +97,9 @@
       "query": "cooking workshop",
       "category": "activity_type",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-en-10",
@@ -90,7 +108,9 @@
       "query": "activities for a small team",
       "category": "facet_interaction",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-en-11",
@@ -99,7 +119,9 @@
       "query": "Polish speaking team event",
       "category": "spoken_language",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "activities-en-12",
@@ -108,7 +130,9 @@
       "query": "quantum printer cartridge",
       "category": "negative",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-pl-13",
@@ -117,7 +141,9 @@
       "query": "hotel ze spa i basenem",
       "category": "amenities",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-pl-14",
@@ -126,7 +152,9 @@
       "query": "hotel konferencyjny w Warszawie",
       "category": "location",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-pl-15",
@@ -135,7 +163,9 @@
       "query": "nocleg na wyjazd integracyjny",
       "category": "concept",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-pl-16",
@@ -144,7 +174,9 @@
       "query": "hotel z salą bankietową",
       "category": "capacity",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-pl-17",
@@ -153,7 +185,9 @@
       "query": "hotel na 100 osób",
       "category": "facet_interaction",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-pl-18",
@@ -162,7 +196,9 @@
       "query": "zzzqqqxyz",
       "category": "negative",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-en-19",
@@ -171,7 +207,9 @@
       "query": "hotel with spa and swimming pool",
       "category": "amenities",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-en-20",
@@ -180,7 +218,9 @@
       "query": "conference hotel in Warsaw",
       "category": "location",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-en-21",
@@ -189,7 +229,9 @@
       "query": "accommodation for a company retreat",
       "category": "concept",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-en-22",
@@ -198,7 +240,9 @@
       "query": "hotel with banquet facilities",
       "category": "capacity",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-en-23",
@@ -207,7 +251,9 @@
       "query": "hotel for 100 people",
       "category": "facet_interaction",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
     },
     {
       "id": "hotels-en-24",
@@ -216,7 +262,146 @@
       "query": "spaceship fuel supplier",
       "category": "negative",
       "evaluation_status": "not_run",
-      "expected_document_ids": null
+      "expected_document_ids": null,
+      "assertion": "observation",
+      "scope_note": "Original synthetic exploratory case; no expected-hit gate without an independently judged local-text match."
+    },
+    {
+      "id": "local-text-1-exact_name",
+      "type": "activities",
+      "language": "pl",
+      "query": "Budowanie Mostu",
+      "category": "exact_name",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "0916f3b7-009b-4b0e-a7fc-49fa19ce3e84"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "name",
+        "excerpt": "Budowanie Mostu",
+        "judged_before_semantic_queries": true
+      }
+    },
+    {
+      "id": "local-text-1-concept",
+      "type": "activities",
+      "language": "pl",
+      "query": "wspólne konstruowanie mostu przez zespoły",
+      "category": "concept",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "0916f3b7-009b-4b0e-a7fc-49fa19ce3e84"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "description",
+        "excerpt": "Podzielcie się na zespoły, zbudujcie własne segmenty — a potem połączcie je w jeden wielki most, po którym naprawdę coś przejedzie. Budowanie mostu to konstrukcyjny team building, w którym sukces zależy od wszystkich naraz: żaden segment nie zadziała osobno, a most stanie tylko wtedy, gdy zespoły dogadają się co do wymiarów, tempa i kolejności. To zadanie inżynieryjne w pigułce — z presją czasu, ograniczonymi materiałami i finałem, który wywołuje emocje. Nie trzeba żadnej wiedzy technicznej: liczy się współpraca, komunikacja i planowanie.\n",
+        "judged_before_semantic_queries": true
+      }
+    },
+    {
+      "id": "local-text-2-exact_name",
+      "type": "activities",
+      "language": "en",
+      "query": "Art & Wine",
+      "category": "exact_name",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "014af197-96cf-42be-89c0-d875c440dbb3"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "name",
+        "excerpt": "Art & Wine",
+        "judged_before_semantic_queries": true
+      }
+    },
+    {
+      "id": "local-text-2-concept",
+      "type": "activities",
+      "language": "en",
+      "query": "painting canvases with wine tasting",
+      "category": "concept",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "014af197-96cf-42be-89c0-d875c440dbb3"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "description",
+        "excerpt": "Art & Wine (also known as Paint & Sip) is a corporate painting workshop for companies that combines creating artwork with wine tasting — an elegant, relaxing format requiring no artistic skills whatsoever, ending with something tangible: every participant leaves with a hand-painted canvas of their own.\n\nExperienced art instructors guide participants step by step — from the first sketch to the final brushstroke. Choose between everyone painting the same motif (e.g. a loose interpretation of the company logo) or giving each person full creative freedom. Relaxing music in the background, a glass of wine in hand — and the conference room becomes an elegant artist's studio.\n\nFabryka Atrakcji organises Art & Wine across Poland — we bring easels, paints, canvases and full room protection to the client's chosen hotel, office or restaurant. For gr",
+        "judged_before_semantic_queries": true
+      }
+    },
+    {
+      "id": "local-text-3-exact_name",
+      "type": "hotels",
+      "language": "pl",
+      "query": "Barceló Warsaw Powiśle",
+      "category": "exact_name",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "07f9f187-c26f-4073-a0ad-79e76a784c9d"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "name",
+        "excerpt": "Barceló Warsaw Powiśle",
+        "judged_before_semantic_queries": true
+      }
+    },
+    {
+      "id": "local-text-3-concept",
+      "type": "hotels",
+      "language": "pl",
+      "query": "hotel przy Elektrowni Powiśle i Bulwarach Wiślanych",
+      "category": "concept",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "07f9f187-c26f-4073-a0ad-79e76a784c9d"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "description",
+        "excerpt": "Barceló Warsaw Powiśle to nowoczesny hotel lifestyle zlokalizowany przy Elektrowni Powiśle i Bulwarach Wiślanych. Industrialny charakter dawnej elektrowni połączony z nowoczesnym designem tworzy wyjątkową przestrzeń dla firm organizujących konferencje, spotkania biznesowe i eventy premium w centrum Warszawy.",
+        "judged_before_semantic_queries": true
+      }
+    },
+    {
+      "id": "local-text-4-exact_name",
+      "type": "hotels",
+      "language": "en",
+      "query": "Mierzęcin Palace",
+      "category": "exact_name",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "00a35c47-4d08-48f5-aa88-38b66cf238d0"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "name",
+        "excerpt": "Mierzęcin Palace",
+        "judged_before_semantic_queries": true
+      }
+    },
+    {
+      "id": "local-text-4-concept",
+      "type": "hotels",
+      "language": "en",
+      "query": "palace resort with a vineyard and vinotherapy",
+      "category": "concept",
+      "assertion": "positive",
+      "expected_document_ids": [
+        "00a35c47-4d08-48f5-aa88-38b66cf238d0"
+      ],
+      "evaluation_status": "not_run",
+      "evidence": {
+        "field": "description",
+        "excerpt": "Mierzęcin Palace Wellness & Wine Resort is an elegant palace-and-park complex in the Lubusz region of western Poland — and one of the most unique event venues in the country. Its defining feature is its own vineyard (one of the largest in Poland), a winery and a distinctive wellness offer built around vinotherapy.\n\nThis isn't an ordinary hotel — it's a self-sufficient resort spanning over 200 hectares, comprising a neo-Gothic palace, a farmstead, a horse stud and parkland. Fabryka Atrakcji uses this vast estate to deliver \"Slow Life\" scenarios, wine-making workshops and outdoor games in an aristocratic style.",
+        "judged_before_semantic_queries": true
+      }
     }
-  ]
+  ],
+  "scope": "Document-local name/title/description/content only. Original 24 cases retained as observations; eight independently judged positives added."
 }
