@@ -1,0 +1,44 @@
+{
+  "observed_date": "2026-09-20",
+  "project_id": "fn3a7ltg",
+  "dataset": "production",
+  "method": "GROQ field-presence booleans aggregated locally; exclude drafts.** and versions.** for coverage, but not flag counts",
+  "activities": {
+    "total": 92,
+    "languages": {
+      "pl": 51,
+      "en": 41
+    },
+    "eligible": 92,
+    "has_name": 92,
+    "has_title": 92,
+    "has_description": 92,
+    "has_categories": 92,
+    "has_activity_type": 92,
+    "has_custom_location": 54
+  },
+  "hotels": {
+    "total": 125,
+    "languages": {
+      "pl": 73,
+      "en": 52
+    },
+    "eligible": 125,
+    "has_description": 125,
+    "has_amenities": 125,
+    "has_location": 125,
+    "has_address": 125,
+    "has_seo": 125,
+    "has_rooms": 125
+  },
+  "noindex_counts_all_versions": {
+    "activities": {
+      "root": 0,
+      "seo": 3
+    },
+    "hotels": {
+      "root": 0,
+      "seo": 0
+    }
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "status": "proposed_unvalidated",
+  "provenance": "synthetic cases, not analytics; reviewer must choose real expected documents before evaluation",
+  "cases": [
+    {
+      "id": "activities-pl-01",
+      "type": "activities",
+      "language": "pl",
+      "query": "kajaki",
+      "category": "concept",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-pl-02",
+      "type": "activities",
+      "language": "pl",
+      "query": "integracja zespołu na świeżym powietrzu",
+      "category": "concept",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-pl-03",
+      "type": "activities",
+      "language": "pl",
+      "query": "warsztaty kulinarne",
+      "category": "activity_type",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-pl-04",
+      "type": "activities",
+      "language": "pl",
+      "query": "atrakcje dla małej grupy",
+      "category": "facet_interaction",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-pl-05",
+      "type": "activities",
+      "language": "pl",
+      "query": "zajęcia prowadzone po angielsku",
+      "category": "spoken_language",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-pl-06",
+      "type": "activities",
+      "language": "pl",
+      "query": "zzzqqqxyz",
+      "category": "negative",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-en-07",
+      "type": "activities",
+      "language": "en",
+      "query": "kayaking",
+      "category": "concept",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-en-08",
+      "type": "activities",
+      "language": "en",
+      "query": "outdoor team building",
+      "category": "concept",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-en-09",
+      "type": "activities",
+      "language": "en",
+      "query": "cooking workshop",
+      "category": "activity_type",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-en-10",
+      "type": "activities",
+      "language": "en",
+      "query": "activities for a small team",
+      "category": "facet_interaction",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-en-11",
+      "type": "activities",
+      "language": "en",
+      "query": "Polish speaking team event",
+      "category": "spoken_language",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "activities-en-12",
+      "type": "activities",
+      "language": "en",
+      "query": "quantum printer cartridge",
+      "category": "negative",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-pl-13",
+      "type": "hotels",
+      "language": "pl",
+      "query": "hotel ze spa i basenem",
+      "category": "amenities",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-pl-14",
+      "type": "hotels",
+      "language": "pl",
+      "query": "hotel konferencyjny w Warszawie",
+      "category": "location",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-pl-15",
+      "type": "hotels",
+      "language": "pl",
+      "query": "nocleg na wyjazd integracyjny",
+      "category": "concept",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-pl-16",
+      "type": "hotels",
+      "language": "pl",
+      "query": "hotel z salą bankietową",
+      "category": "capacity",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-pl-17",
+      "type": "hotels",
+      "language": "pl",
+      "query": "hotel na 100 osób",
+      "category": "facet_interaction",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-pl-18",
+      "type": "hotels",
+      "language": "pl",
+      "query": "zzzqqqxyz",
+      "category": "negative",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-en-19",
+      "type": "hotels",
+      "language": "en",
+      "query": "hotel with spa and swimming pool",
+      "category": "amenities",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-en-20",
+      "type": "hotels",
+      "language": "en",
+      "query": "conference hotel in Warsaw",
+      "category": "location",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-en-21",
+      "type": "hotels",
+      "language": "en",
+      "query": "accommodation for a company retreat",
+      "category": "concept",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-en-22",
+      "type": "hotels",
+      "language": "en",
+      "query": "hotel with banquet facilities",
+      "category": "capacity",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-en-23",
+      "type": "hotels",
+      "language": "en",
+      "query": "hotel for 100 people",
+      "category": "facet_interaction",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    },
+    {
+      "id": "hotels-en-24",
+      "type": "hotels",
+      "language": "en",
+      "query": "spaceship fuel supplier",
+      "category": "negative",
+      "evaluation_status": "not_run",
+      "expected_document_ids": null
+    }
+  ]
+}

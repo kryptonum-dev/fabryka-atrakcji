@@ -19,7 +19,8 @@
     "build": "dotenv -- turbo build",
     "dev": "dotenv -- turbo dev",
     "lint": "dotenv -- turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test:search": "bun test tests/search"
   },
   "workspaces": [
     "apps/*"

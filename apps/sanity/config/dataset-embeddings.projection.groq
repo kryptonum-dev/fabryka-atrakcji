@@ -1,0 +1,36 @@
+{
+  _type in ["Activities_Collection", "Hotels_Collection"] => {
+    name,
+    "title": pt::text(title),
+    "description": coalesce(pt::text(description), description),
+    "content": content[]{
+      _type == "block" => {"text": array::join(children[_type == "span"].text, "")},
+      _type == "Checklist" => {items},
+      _type == "BlocksWithImage" => {"blocks": blocks[]{"text": pt::text(text)}},
+      _type == "RowsWithIcons" => {"rows": rows[]{text}},
+      _type == "Timeline" => {"heading": pt::text(heading), "items": timelineItems[]{title, description}},
+      _type == "ImageWithHeadingAndText" => {"heading": pt::text(heading), "text": pt::text(text)},
+      _type == "Faq" && faqType == "scoped" => {
+        "questions": questions[]{"question": pt::text(question), "answer": pt::text(answer)}
+      },
+      _type == "Amenities" => {"groups": amenityGroups[]{heading, list}},
+      _type == "Location" => {
+        "travel": howToGetThere.transportList{byCar, publicTransport, parking},
+        "attractions": attractions.highlightedAttractions[].name,
+        "nearby": attractions.list[]{"names": items[].name}
+      },
+      _type == "StayingRules" => {
+        "rules": rulesList{
+          "checkIn": pt::text(checkIn),
+          "checkOut": pt::text(checkOut),
+          "cancellationPolicy": pt::text(cancellationPolicy),
+          "quietHours": pt::text(quietHours),
+          "petPolicy": pt::text(petPolicy),
+          "valuablesStorage": pt::text(valuablesStorage),
+          "guestPolicy": pt::text(guestPolicy),
+          "otherRules": pt::text(otherRules)
+        }
+      }
+    }
+  }
+}
