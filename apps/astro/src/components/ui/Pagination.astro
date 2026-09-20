@@ -1,4 +1,5 @@
 ---
+import { paginationPath } from '@/utils/search-navigation'
 import { getLangFromPath, type Language } from '@/global/languages'
 
 interface Props {
@@ -32,26 +33,7 @@ const ArrowRight = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="2
 const getPagePath = (pageNum?: number) => {
   if (!pageNum || pageNum < 1) return ''
 
-  // Check if we're currently in a filtered view
-  const currentPath = Astro.url.pathname
-  const isFiltered = currentPath.includes('/filtr')
-
-  let pagePath
-  if (pageNum > 1) {
-    // For paginated pages
-    pagePath = isFiltered
-      ? `${slugBase}/${LABELS[lang].page}/${pageNum}/filtr/`
-      : `${slugBase}/${LABELS[lang].page}/${pageNum}/`
-  } else {
-    // For first page
-    pagePath = isFiltered ? `${slugBase}/filtr/` : `${slugBase}/`
-  }
-
-  if (searchParams) {
-    const params = new URLSearchParams(searchParams)
-    return `${pagePath}?${params.toString()}`
-  }
-  return pagePath
+  return paginationPath(slugBase, pageNum, Astro.url.pathname, searchParams)
 }
 
 const getPaginationCase = () => {

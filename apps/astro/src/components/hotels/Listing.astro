@@ -1234,6 +1234,8 @@ const shouldDisableFilters = totalItems === 0
   </style>
 
   <script>
+    import { collectionPath } from '@/utils/search-navigation'
+    if (document.querySelector('.Listing')) {
     // Track filter changes
     type FilterValue = string | string[] | number | null
     const initialFilters: Record<string, FilterValue> = {
@@ -1441,7 +1443,7 @@ const shouldDisableFilters = totalItems === 0
         const listingSection = document.querySelector('.Listing')
         const filterPath = listingSection?.getAttribute('data-filter-path') || 'filtr'
         // Remove filter path from URL when clearing filters
-        let clearPath = window.location.pathname
+        let clearPath = collectionPath(window.location.pathname)
         if (clearPath.includes(`/${filterPath}`)) {
           clearPath = clearPath.replace(`/${filterPath}/`, '/').replace(`/${filterPath}`, '/')
         }
@@ -1661,5 +1663,6 @@ const shouldDisableFilters = totalItems === 0
         }
       }
     })
+    }
   </script>
 </section>

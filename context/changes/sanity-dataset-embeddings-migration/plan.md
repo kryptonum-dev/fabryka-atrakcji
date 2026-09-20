@@ -241,15 +241,15 @@ Implementation is in progress. This is the sole execution checklist; manual veri
 
 ### Phase 2: Implement retrieval and evaluation tools
 
-- [x] 2.1 Provider/API tests pass for success, validation, timeout and failure isolation: `bun run test:search`.
-- [x] 2.2 Settings inspection completes without writes: `bun run search:embeddings status`.
-- [x] 2.3 Astro type checking passes: `bun run --cwd apps/astro astro check`.
+- [x] 2.1 Provider/API tests pass for success, validation, timeout and failure isolation: `bun run test:search`. — 2fca53c
+- [x] 2.2 Settings inspection completes without writes: `bun run search:embeddings status`. — 2fca53c
+- [x] 2.3 Astro type checking passes: `bun run --cwd apps/astro astro check`. — 2fca53c
 
 ### Phase 3: Connect listings and handle failure/navigation
 
-- [ ] 3.1 Listing-state and navigation tests pass, including empty/unavailable and page reset: `bun run test:search`.
-- [ ] 3.2 Astro production build and type checking pass: `bun run --cwd apps/astro build`.
-- [ ] 3.3 Changed Astro source files pass ESLint with explicit changed-file paths from the Astro workspace.
+- [x] 3.1 Listing-state and navigation tests pass, including empty/unavailable and page reset: `bun run test:search`.
+- [x] 3.2 Astro production build and type checking pass: `bun run --cwd apps/astro build`.
+- [x] 3.3 Changed Astro source files pass ESLint with explicit changed-file paths from the Astro workspace.
 
 ### Phase 4: Enable, evaluate and switch production
 

@@ -1,6 +1,9 @@
 ---
 import Layout from '@/src/layouts/Layout.astro'
 import { sanityFetchWithCdn } from '@/utils/sanity.fetch'
+import { listingSearch } from '@/src/server/search/listing-state'
+import { publishedSearchFetch } from '@/src/server/search/search-client'
+import SearchUnavailable from '@/src/components/ui/SearchUnavailable.astro'
 import metadataFetch from '@/utils/metadata.fetch'
 import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
@@ -13,7 +16,7 @@ import ActivitiesListing, {
 import Listing, { Listing_Query, type ListingProps } from '@/src/components/activites/Listing.astro'
 import SearchBar from '@/src/components/ui/SearchBar.astro'
 import { NoSearchResults_Query, type NoSearchResultsProps } from '@/src/components/activites/NoSearchResults.astro'
-import { parseFilters, getOrderClause, fetchEmbeddings } from '@/utils/filters'
+import { parseFilters, getOrderClause } from '@/utils/filters'
 import { ButtonDataQuery } from '@/src/components/ui/Button'
 import { ImageDataQuery } from '@/src/components/ui/image'
 import ActivitiesCarousel, {
@@ -48,8 +51,8 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   doNotIndex?: boolean
 }
 
-export async function fetchData(lang: Language, url: string, searchParams?: URLSearchParams) {
-  const searchQuery = searchParams?.get('search')
+export async function fetchData(lang: Language, _url: string, searchParams?: URLSearchParams) {
+  const searchQuery = searchParams?.get('search')?.trim()
 
   const filters = parseFilters(searchParams || new URLSearchParams())
 
@@ -60,9 +63,10 @@ export async function fetchData(lang: Language, url: string, searchParams?: URLS
 
   const orderClause = getOrderClause(filters.order, !!searchQuery)
 
-  const data = searchQuery ? await fetchEmbeddings(searchQuery, 'activities', url) : null
+  const searchState = await listingSearch(searchQuery, 'activities', lang)
+  const fetchPage = searchState.isSearch ? publishedSearchFetch : sanityFetchWithCdn
 
-  const page = await sanityFetchWithCdn<SearchPageProps | RegularPageProps>({
+  const page = await fetchPage<SearchPageProps | RegularPageProps>({
     query: `
       *[_type == "Activities_Page" && language == $language][0] {
         name,
@@ -121,18 +125,18 @@ export async function fetchData(lang: Language, url: string, searchParams?: URLS
       category: null,
       activityType: filters.activityType,
       duration: filters.duration,
-      embeddingResults: data ?? null,
+      embeddingResults: searchState.candidates,
     },
     tag: 'page.activities-categories',
   })
 
   if (!page) return null
   const metadata = await metadataFetch(page.slug)
-  return { page, metadata }
+  return { page, metadata, searchUnavailable: searchState.unavailable }
 }
 
-const { page, metadata: _metadata, canonicalUrl, doNotIndex } = Astro.props
-const isSearchMode = Astro.url.searchParams.has('search')
+const { page, searchUnavailable, metadata: _metadata, canonicalUrl, doNotIndex } = Astro.props
+const isSearchMode = !!Astro.url.searchParams.get('search')?.trim()
 const searchQuery = Astro.url.searchParams.get('search') || ''
 
 
@@ -168,7 +172,7 @@ const filteredComponents = (page.components || []).filter((c) => c._type !== 'Co
 
 <Layout {...metadata}>
   {
-    isSearchMode
+    searchUnavailable ? <SearchUnavailable /> : isSearchMode
       ? isSearchPage(page) && (
           <>
             <SearchBar value={searchQuery} hasWrapper />

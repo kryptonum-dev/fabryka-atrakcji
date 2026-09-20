@@ -1,0 +1,37 @@
+---
+import Button from './Button'
+import { getLangFromPath } from '@/global/languages'
+import { collectionPath } from '@/utils/search-navigation'
+const english = getLangFromPath(Astro.url.pathname) === 'en'
+const text = english ? {
+  heading: 'Search is temporarily unavailable',
+  description: 'Please try again in a moment or browse the full collection.',
+  retry: 'Try again', browse: 'Browse all',
+} : {
+  heading: 'Wyszukiwanie jest chwilowo niedostępne',
+  description: 'Spróbuj ponownie za chwilę lub przejrzyj całą ofertę.',
+  retry: 'Spróbuj ponownie', browse: 'Przeglądaj całą ofertę',
+}
+---
+<section class="SearchUnavailable" aria-labelledby="search-unavailable-heading" data-search-unavailable>
+  <h1 id="search-unavailable-heading">{text.heading}</h1>
+  <p>{text.description}</p>
+  <div class="actions">
+    <Button href={Astro.url.pathname + Astro.url.search} text={text.retry} />
+    <Button href={collectionPath(Astro.url.pathname)} text={text.browse} theme="secondary" />
+  </div>
+</section>
+<style lang="scss">
+  .SearchUnavailable {
+    margin: clamp(3rem, 6vw, 5rem) auto;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    width: calc(100% - 2 * var(--pageMargin));
+    max-width: 48rem;
+    background: var(--neutral-200);
+    border-radius: var(--corner-radius-m);
+    text-align: center;
+    h1 { line-height: 1.15; }
+    p { margin: 1.5rem 0; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
+  }
+</style>

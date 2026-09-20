@@ -22,7 +22,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "test:search": "bun test tests/search",
     "search:embeddings": "dotenv -- bun apps/sanity/scripts/dataset-embeddings.ts",
-    "search:evaluate": "dotenv -- bun apps/sanity/scripts/evaluate-search.ts"
+    "search:evaluate": "dotenv -- bun apps/sanity/scripts/evaluate-search.ts",
+    "search:smoke": "bun apps/sanity/scripts/smoke-search-routes.ts"
   },
   "workspaces": [
     "apps/*"

@@ -38,7 +38,7 @@ const t = translations[lang]
 >
   <div class="search-wrapper">
     <div class="search-container">
-      <input type="text" name="search" value={value} placeholder={placeholder || ''} class="search-input" />
+      <input type="text" name="search" aria-label={t.buttonLabel} maxlength="500" value={value} placeholder={placeholder || ''} class="search-input" />
       <button type="submit" class="search-button" aria-label={t.buttonLabel}>
         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" viewBox="0 0 17 16" fill="none">
           <circle cx="8.16683" cy="7.66665" r="6.33333" stroke="#F67258" stroke-width="1.5"></circle>
@@ -50,57 +50,7 @@ const t = translations[lang]
   </div>
 </form>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const searchForm = document.querySelector('.SearchBar') as HTMLFormElement
 
-    if (searchForm) {
-      searchForm.addEventListener('submit', (e) => {
-        const formData = new FormData(searchForm)
-        const searchValue = formData.get('search') as string
-
-        // Only redirect to filter path if there's actually a search value
-        if (searchValue && searchValue.trim()) {
-          e.preventDefault()
-
-          const filterPathSegment = searchForm.getAttribute('data-filter-path') || 'filtr'
-          const pagePathSegment = searchForm.getAttribute('data-page-path') || 'strona'
-
-          const currentPath = window.location.pathname
-          let basePath = currentPath
-
-          // Remove filter path if already present
-          if (basePath.includes(`/${filterPathSegment}`)) {
-            basePath = basePath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
-          }
-
-          // Remove page path to always go back to first page when searching
-          if (basePath.includes(`/${pagePathSegment}/`)) {
-            basePath = basePath.replace(new RegExp(`\/${pagePathSegment}\/\\d+\/?`), '/')
-          }
-
-          // Ensure proper trailing slash and add filter path
-          if (!basePath.endsWith('/')) {
-            basePath += '/'
-          }
-          const filterPath = basePath + filterPathSegment + '/'
-
-          // Preserve existing query parameters and add search
-          const params = new URLSearchParams(window.location.search)
-          params.set('search', searchValue.trim())
-
-          // Reset order to default (search matching) when performing a new search
-          // This ensures search results are ordered by relevance by default
-          params.delete('order')
-
-          const finalUrl = `${filterPath}?${params.toString()}`
-          window.location.href = finalUrl
-        }
-        // If no search value, let the form submit normally (will clear search)
-      })
-    }
-  })
-</script>
 
 <style lang="scss">
   .SearchBar {
@@ -260,20 +210,19 @@ const t = translations[lang]
 </style>
 
 <script>
+  import { searchNavigation } from '@/utils/search-navigation'
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.SearchBar') as HTMLFormElement
+    if (!form) return
     const searchWrapper = form.querySelector('.search-wrapper') as HTMLDivElement
     const input = form.querySelector('.search-input') as HTMLInputElement
     const dropdown = form.querySelector('.search-history-dropdown') as HTMLDivElement
 
-    // Prevent empty form submission
     form.addEventListener('submit', (e) => {
+      e.preventDefault()
       const term = input.value.trim()
-      if (!term) {
-        e.preventDefault()
-        return
-      }
-      saveSearchTerm(term)
+      if (term) saveSearchTerm(term)
+      window.location.href = searchNavigation(window.location.pathname, new URLSearchParams(window.location.search), term)
     })
 
     // Show dropdown on focus if input is empty
@@ -380,17 +329,19 @@ const t = translations[lang]
 
         const id = `history-item-${index}`
         item.innerHTML = `
-          <input type="radio" id="${id}" value="${term}" />
+          <input type="radio" id="${id}" value="" />
           <label for="${id}">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none">
             <path stroke="#D2C1B0" stroke-linecap="round" stroke-linejoin="round" d="M6 4v2l1.25 1.25"/>
             <path fill="#D2C1B0" d="M2.802 2.802 2.45 2.45l.353.353Zm-.633.633-.5.003a.5.5 0 0 0 .497.497l.003-.5Zm1.27.507a.5.5 0 1 0 .005-1l-.005 1ZM2.662 2.16a.5.5 0 1 0-1 .005l1-.005Zm-.625 3.25a.5.5 0 0 0-.99-.136l.99.135ZM9.52 2.48C7.562.523 4.397.502 2.45 2.45l.707.707c1.55-1.55 4.082-1.543 5.656.032l.708-.708ZM2.482 9.52c1.958 1.958 5.123 1.979 7.07.031l-.707-.707c-1.55 1.55-4.082 1.543-5.656-.032l-.708.708Zm7.07.031c1.948-1.947 1.927-5.112-.031-7.07l-.708.707c1.575 1.574 1.582 4.106.032 5.656l.707.707ZM2.45 2.45l-.634.633.707.707.634-.633-.707-.707Zm-.283 1.486 1.273.007.005-1-1.273-.007-.005 1Zm.503-.502L2.662 2.16l-1 .005.007 1.273 1-.005Zm-1.623 1.84A5.03 5.03 0 0 0 2.481 9.52l.707-.708a4.031 4.031 0 0 1-1.15-3.403l-.992-.135Z"/>
             </svg>
-            <span>${term}</span>
+            <span></span>
           </label>
         `
 
         const radio = item.querySelector('input[type="radio"]') as HTMLInputElement
+        radio.value = term
+        item.querySelector('span')!.textContent = term
         const label = item.querySelector('label') as HTMLLabelElement
 
         // Handle click on label (more reliable than radio click)

@@ -177,38 +177,10 @@ export const getOrderClause = (
     case 'popularity':
       return preserveArrayOrder ? '' : 'popularityIndex desc'
     case 'searchMatching':
-      return isSearchMode && type !== 'eventSpaces' ? '_score desc' : preserveArrayOrder ? '' : 'popularityIndex desc'
+      return isSearchMode && type !== 'eventSpaces' ? '_score desc, _id asc' : preserveArrayOrder ? '' : 'popularityIndex desc'
     default:
-      if (isSearchMode && type !== 'eventSpaces') return '_score desc'
+      if (isSearchMode && type !== 'eventSpaces') return '_score desc, _id asc'
       return preserveArrayOrder ? '' : 'popularityIndex desc'
-  }
-}
-
-export const fetchEmbeddings = async (
-  searchQuery: string,
-  type: 'activities' | 'hotels',
-  url: string
-): Promise<{ data: { documentId: string; score: number }[] } | null> => {
-  try {
-    const response = await fetch(`${url}/api/embeddings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ searchQuery, type }),
-    })
-
-    if (!response.ok) {
-      console.error('Error fetching embeddings:', await response.text())
-      return null
-    }
-
-    const { data } = await response.json()
-    return data
-  } catch (error) {
-    console.error('Error in embeddings fetch:', error)
-    return null
   }
 }
 
