@@ -841,6 +841,6 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 10: Handover
 
-- [x] 10.1 `handover.md` exists and lists 8 mixed objects
-- [ ] 10.2 `verify.sh` passes against production
-- [x] 10.3 All tests pass: `bun test tests/filters tests/search`
+- [x] 10.1 `handover.md` exists and lists 8 mixed objects — 1c5a05e
+- [x] 10.2 `verify.sh` passes against production — 1c5a05e
+- [x] 10.3 All tests pass: `bun test tests/filters tests/search` — 1c5a05e

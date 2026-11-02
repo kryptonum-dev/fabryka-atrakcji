@@ -11,7 +11,7 @@ status: findings-open
 
 ## Summary
 
-WCAG and SCSS audits of the changed filter components ran on 2026-11-02, on production first and on a local dev server after the fixes. The audits found 10 defects worth fixing, and all 10 are fixed: F1 to F10. Two findings stay open on purpose: F11 is duplicated filter styling that the audit rules say not to extract automatically, and F12 is a contrast failure outside the filter components.
+WCAG and SCSS audits of the changed filter components ran on 2026-11-02: on production before the fixes, on a local dev server while fixing, and on production again at `1c5a05e`. The audits found 10 defects worth fixing, and all 10 are fixed: F1 to F10. Two findings stay open on purpose: F11 is duplicated filter styling that the audit rules say not to extract automatically, and F12 is a contrast failure outside the filter components.
 
 The semantics and SEO lanes were excluded, because plan Phase 10 scopes the audit to WCAG and SCSS. SEO behaviour of filter routes is covered by `verify.sh`. No ledger stamp was written, because `context/foundation/views.md` does not exist.
 
@@ -21,7 +21,7 @@ This report states which checks ran and how. It does not claim conformance.
 
 - **Source:** branch `main`, footprint below, content hash `7da92fdb91c3be2d` (sha256 of the concatenated files, first 16 characters), taken after fixes.
 - **Runtime before fixes:** production `https://www.fabryka-atrakcji.com`, build `3296abc`.
-- **Runtime after fixes:** local `astro dev` on port 4321 with the repo `.env`. Production recheck is recorded under History.
+- **Runtime after fixes:** local `astro dev` on port 4321 with the repo `.env`, then production at `1c5a05e`, deployment `dpl_KcpjhXASqPmz1FviLLXTGu96XHRB`. All results below are from the production recheck unless they say otherwise.
 - **Selection:** the plan's "changed filter components". There is no `views.md`, so the two views below are local ids, not ledger rows.
 - **Exclusions:** semantics and SEO lanes, as `--skip semantics,seo`.
 - **Locales:** PL and EN.
@@ -200,8 +200,13 @@ URLs: `/pl/przestrzenie-eventowe/`, `/en/event-spaces/`, `/pl/przestrzenie-event
 - The script's "unreached" list contains header links and the closed sort menu. Those are outside the filters, and the script starts its walk after the consent banner. Not investigated further.
 - axe incomplete items outside the filters stayed unresolved: `aria-prohibited-attr` on `.response-badge` and `.logo-marquee`, and `duplicate-id-aria` in the contact form's phone field.
 - The chip's mouse target is under 24 px tall. It passes the 2.5.8 equivalent-control exception, because the same action is available through 44 px controls.
-- Forms were never submitted. Suggestions in the keyboard probe were mocked.
+- Forms were never submitted. Suggestions in the keyboard probe were mocked. The end-to-end run under History used real suggestions.
 
 ## History
 
 - 2026-11-02, run 1: first audit on production at `3296abc`, fixes on a local dev server.
+- 2026-11-02, run 1 recheck on production at `1c5a05e`:
+  - `a11y-runtime.mjs`, 7 URLs at 1440 and 375, `--axe-include main`: axe serious 131 before, 36 after. All 36 are F12. Event space pages have 0 violations.
+  - Interaction probe: all checks in the tables above repeated with the same results, including 0 fully hidden focus stops and 0 clipped labels.
+  - End-to-end, desktop and mobile, real suggestions: typed "Prosta 51, Warszawa", picked the first suggestion, applied. URL `/pl/przestrzenie-eventowe/filtr/?lat=52.231&lng=20.988&radius=10`, 12 cards with km from 0,4 to 7,6, sorted "Od najbliższej". No request to a third-party host carried `lat`, `lng` or the address. The only console error came from the probe aborting analytics requests.
+  - `verify.sh`: 53 passed, 0 failed, 39 requests.
