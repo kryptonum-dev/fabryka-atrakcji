@@ -52,7 +52,6 @@ export const structure: StructureResolver = (S, context) =>
               createSingleton({ S, name: 'EventSpaces_Page' }),
               createCollection(S, context, 'EventSpaces_Collection'),
               S.divider(),
-              createCollection(S, context, 'EventSpaceFeatures_Collection'),
               createCollection(S, context, 'EventSpaceTypes_Collection', { orderable: true }),
               createCollection(S, context, 'EventTypes_Collection', { orderable: true }),
               createCollection(S, context, 'EventSpaceCharacters_Collection', { orderable: true }),

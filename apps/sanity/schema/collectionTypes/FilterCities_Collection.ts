@@ -1,7 +1,7 @@
 import { orderRankOrdering } from '@sanity/orderable-document-list'
 import { MapPin } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
-import { COPY_COORDINATES_HINT, defineFilterOptionFields } from '../../utils/filter-option'
+import { COPY_COORDINATES_HINT, defineFilterOptionFields, validateCoordinates } from '../../utils/filter-option'
 
 const name = 'FilterCities_Collection'
 const title = 'Miasta w filtrze odległości'
@@ -20,6 +20,7 @@ export default defineType({
       type: 'geopoint',
       title: 'Współrzędne',
       description: `Punkt, od którego liczymy promień w linii prostej, zwykle centrum miasta. ${COPY_COORDINATES_HINT}`,
+      validation: (Rule) => Rule.custom(validateCoordinates),
     }),
   ],
   preview: {

@@ -1,7 +1,7 @@
 import { House } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
-import { COPY_COORDINATES_HINT, filterByDocumentLanguage } from '../../utils/filter-option'
+import { COPY_COORDINATES_HINT, filterByDocumentLanguage, validateCoordinates } from '../../utils/filter-option'
 import {
   DocumentsIcon,
   InfoOutlineIcon,
@@ -192,44 +192,21 @@ export default defineType({
       name: 'maxPeople',
       type: 'number',
       title: 'Maksymalna liczba osób',
-      description: 'Główna maksymalna liczba osób dla tej przestrzeni eventowej',
-      validation: (Rule) =>
-        Rule.custom((value) => {
-          if (!value) return 'Maksymalna liczba osób jest wymagana'
-          if (value <= 0) return 'Maksymalna liczba osób musi być większa niż 0'
-          return true
-        }),
-      group: 'details',
-    }),
-    defineField({
-      name: 'features',
-      type: 'array',
-      title: 'Cechy przestrzeni',
-      description:
-        'Lista cech i tagow opisujacych przestrzen eventowa, np. loftowa, plenerowa, na piknik firmowy.',
-      of: [
-        {
-          type: 'reference',
-          to: { type: 'EventSpaceFeatures_Collection' },
-          options: {
-            disableNew: true,
-            filter: ({ document }) => {
-              const language = (document as { language?: string })?.language
-              return {
-                filter: 'language == $lang',
-                params: { lang: language },
-              }
-            },
-          },
-        },
-      ],
+      deprecated: {
+        reason: 'Liczbę osób ustawiasz teraz w polu „Pojemność według rodzaju przestrzeni”.',
+      },
+      readOnly: true,
+      hidden: true,
+      initialValue: undefined,
       group: 'details',
     }),
     defineField({
       name: 'isIndoor',
       type: 'string',
       title: 'Indoor/Outdoor',
-      description: 'Wybierz czy przestrzeń jest wewnątrz czy w plenerze',
+      deprecated: {
+        reason: 'Rodzaj przestrzeni ustawiasz teraz w polu „Pojemność według rodzaju przestrzeni”.',
+      },
       options: {
         list: [
           { title: 'Indoor (w pomieszczeniu)', value: 'indoor' },
@@ -238,8 +215,9 @@ export default defineType({
         layout: 'radio',
         direction: 'horizontal',
       },
-      initialValue: 'indoor',
-      validation: (Rule) => Rule.required().error('Wybierz typ przestrzeni'),
+      readOnly: true,
+      hidden: true,
+      initialValue: undefined,
       group: 'details',
     }),
     defineField({
@@ -250,7 +228,7 @@ export default defineType({
         'Jedna pozycja na rodzaj przestrzeni. Obiekt z wnętrzem i plenerem ma dwie pozycje i na stronie pokaże się też jako obiekt mieszany.',
       validation: (Rule) =>
         Rule.custom((items) => {
-          if (!items || items.length === 0) return true
+          if (!items || items.length === 0) return 'Dodaj przynajmniej jedną pojemność'
           const refs = (items as Array<{ spaceType?: { _ref?: string } }>)
             .map((item) => item.spaceType?._ref)
             .filter(Boolean)
@@ -439,7 +417,8 @@ export default defineType({
       name: 'point',
       type: 'geopoint',
       title: 'Współrzędne',
-      description: `Przestrzeń bez współrzędnych nie pojawi się w filtrze odległości od adresu. ${COPY_COORDINATES_HINT}`,
+      description: `Filtr odległości od adresu liczy dystans do tego punktu. ${COPY_COORDINATES_HINT}`,
+      validation: (Rule) => Rule.custom(validateCoordinates),
       group: 'details',
     }),
     defineField({

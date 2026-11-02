@@ -38,7 +38,6 @@ import CaseStudy_Collection from '../schema/collectionTypes/CaseStudy_Collection
 import CaseStudyCategory_Collection from '../schema/collectionTypes/CaseStudyCategory_Collection'
 import EventSpaceCharacters_Collection from '../schema/collectionTypes/EventSpaceCharacters_Collection'
 import EventSpaceFacilities_Collection from '../schema/collectionTypes/EventSpaceFacilities_Collection'
-import EventSpaceFeatures_Collection from '../schema/collectionTypes/EventSpaceFeatures_Collection'
 import EventSpaceTypes_Collection from '../schema/collectionTypes/EventSpaceTypes_Collection'
 import EventTypes_Collection from '../schema/collectionTypes/EventTypes_Collection'
 import Faq_Collection from '../schema/collectionTypes/Faq_Collection'
@@ -70,7 +69,6 @@ const collectionTypes = [
   ActivitiesType_Collection,
   Hotels_Collection,
   EventSpaces_Collection,
-  EventSpaceFeatures_Collection,
   Locations_Collection,
   Amenities_Collection,
   HotelSurroundings_Collection,

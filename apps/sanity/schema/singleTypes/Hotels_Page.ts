@@ -9,6 +9,9 @@ import { getLanguagePreview } from '../../structure/languages'
 const name = 'Hotels_Page'
 const title = 'Strona Hoteli'
 
+const defineHeading = (name: string, title: string) =>
+  defineField({ name, type: 'string', title, validation: (Rule) => Rule.required() })
+
 export default defineType({
   name,
   type: 'document',
@@ -78,15 +81,16 @@ export default defineType({
       type: 'object',
       title: 'Nagłówki filtrów',
       group: 'filters',
+      validation: (Rule) => Rule.required(),
       fields: [
-        defineField({ name: 'location', type: 'string', title: 'Region' }),
-        defineField({ name: 'distance', type: 'string', title: 'Odległość od miasta' }),
-        defineField({ name: 'overnight', type: 'string', title: 'Liczba uczestników: nocleg' }),
-        defineField({ name: 'conference', type: 'string', title: 'Liczba uczestników: konferencja' }),
-        defineField({ name: 'banquet', type: 'string', title: 'Liczba uczestników: bankiet' }),
-        defineField({ name: 'stars', type: 'string', title: 'Standard' }),
-        defineField({ name: 'amenities', type: 'string', title: 'Udogodnienia' }),
-        defineField({ name: 'surroundings', type: 'string', title: 'Otoczenie' }),
+        defineHeading('location', 'Region'),
+        defineHeading('distance', 'Odległość od miasta'),
+        defineHeading('overnight', 'Liczba uczestników: nocleg'),
+        defineHeading('conference', 'Liczba uczestników: konferencja'),
+        defineHeading('banquet', 'Liczba uczestników: bankiet'),
+        defineHeading('stars', 'Standard'),
+        defineHeading('amenities', 'Udogodnienia'),
+        defineHeading('surroundings', 'Otoczenie'),
       ],
     }),
     defineField({
@@ -133,6 +137,7 @@ export default defineType({
           },
         }),
       ],
+      validation: (Rule) => Rule.required().min(1),
     }),
     defineField({
       name: 'distanceRadii',
@@ -140,7 +145,7 @@ export default defineType({
       title: 'Promienie w filtrze odległości (km)',
       group: 'filters',
       of: [{ type: 'number', validation: (Rule) => Rule.required().positive() }],
-      validation: (Rule) => Rule.unique(),
+      validation: (Rule) => Rule.required().min(1).unique(),
     }),
     defineField({
       name: 'curatedAmenities',
@@ -158,7 +163,7 @@ export default defineType({
           },
         },
       ],
-      validation: (Rule) => Rule.unique(),
+      validation: (Rule) => Rule.required().min(1).unique(),
     }),
     defineField({
       name: 'visibleAmenities',
@@ -166,7 +171,7 @@ export default defineType({
       title: 'Liczba udogodnień widocznych od razu',
       description: 'Pozostałe udogodnienia są schowane pod przyciskiem „Pokaż więcej”.',
       group: 'filters',
-      validation: (Rule) => Rule.integer().min(1),
+      validation: (Rule) => Rule.required().integer().min(1),
     }),
     defineField({
       name: 'noCategoryLabel',
@@ -175,6 +180,7 @@ export default defineType({
       description:
         'Opcja filtra Standard. Pojawi się, gdy pierwszy hotel dostanie oznaczenie „Bez oficjalnej kategoryzacji”.',
       group: 'filters',
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'formHeading',

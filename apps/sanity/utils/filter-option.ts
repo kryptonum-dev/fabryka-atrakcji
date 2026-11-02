@@ -6,6 +6,10 @@ import { slugify } from './slugify'
 export const COPY_COORDINATES_HINT =
   'W Google Maps kliknij miejsce prawym przyciskiem myszy i wybierz pierwszą pozycję menu, czyli współrzędne. Skopiują się dwie liczby: pierwszą wpisz w Latitude, drugą w Longitude. Altitude zostaw puste.'
 
+// `required` accepts a point with one coordinate, and geo::distance then drops the object from results with no error.
+export const validateCoordinates = (value?: { lat?: number; lng?: number }) =>
+  Number.isFinite(value?.lat) && Number.isFinite(value?.lng) ? true : 'Wpisz obie współrzędne: Latitude i Longitude'
+
 export const filterByDocumentLanguage: ReferenceFilterResolver = ({ document }) => {
   const language = (document as { language?: string })?.language
   return {

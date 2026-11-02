@@ -8,6 +8,9 @@ import { getLanguagePreview } from '../../structure/languages'
 const name = 'EventSpaces_Page'
 const title = 'Strona Przestrzeni Eventowych'
 
+const defineHeading = (name: string, title: string, description?: string) =>
+  defineField({ name, type: 'string', title, description, validation: (Rule) => Rule.required() })
+
 export default defineType({
   name,
   type: 'document',
@@ -118,74 +121,28 @@ export default defineType({
       validation: (Rule) => Rule.required().min(1),
     }),
     defineField({
-      name: 'areaFilterOptions',
-      type: 'array',
-      title: 'Opcje filtra powierzchni (m2)',
-      description: 'Zarządzaj dostępnymi przedziałami powierzchni wyświetlanymi w filtrze.',
-      group: 'content',
-      of: [
-        defineField({
-          name: 'option',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'min',
-              type: 'number',
-              title: 'Minimum (m2)',
-              validation: (Rule) => Rule.required().min(1),
-            }),
-            defineField({
-              name: 'max',
-              type: 'number',
-              title: 'Maksimum (m2, opcjonalne)',
-              validation: (Rule) =>
-                Rule.custom((value, context) => {
-                  const min = (context.parent as { min?: number })?.min
-                  if (!value) return true
-                  if (value < 1) return 'Maksimum musi być większe niż 0'
-                  if (min && value <= min) return 'Maksimum musi być większe niż minimum'
-                  return true
-                }),
-            }),
-          ],
-          preview: {
-            select: {
-              min: 'min',
-              max: 'max',
-            },
-            prepare: ({ min, max }) => ({
-              title: max ? `${min}–${max} m2` : `${min}+ m2`,
-              subtitle: max ? `${min}–${max} m2` : `${min}+ m2`,
-            }),
-          },
-        }),
-      ],
-      validation: (Rule) => Rule.required().min(1),
-    }),
-    defineField({
       name: 'filterHeadings',
       type: 'object',
       title: 'Nagłówki filtrów',
       group: 'filters',
+      validation: (Rule) => Rule.required(),
       fields: [
-        defineField({ name: 'location', type: 'string', title: 'Lokalizacja' }),
-        defineField({ name: 'distance', type: 'string', title: 'Odległość od adresu' }),
-        defineField({
-          name: 'addressPlaceholder',
-          type: 'string',
-          title: 'Podpowiedź w polu adresu',
-          description: 'Tekst widoczny w pustym polu, np. przykładowy adres.',
-        }),
-        defineField({ name: 'spaceType', type: 'string', title: 'Rodzaj przestrzeni' }),
-        defineField({
-          name: 'capacityPrefix',
-          type: 'string',
-          title: 'Początek nagłówka filtra pojemności',
-          description: 'Strona dopisze za nim nazwę rodzaju przestrzeni, osobno dla każdego rodzaju.',
-        }),
-        defineField({ name: 'eventType', type: 'string', title: 'Typ wydarzenia' }),
-        defineField({ name: 'character', type: 'string', title: 'Charakter przestrzeni' }),
-        defineField({ name: 'facilities', type: 'string', title: 'Zaplecze i możliwości' }),
+        defineHeading('location', 'Lokalizacja'),
+        defineHeading('distance', 'Odległość od adresu'),
+        defineHeading(
+          'addressPlaceholder',
+          'Podpowiedź w polu adresu',
+          'Tekst widoczny w pustym polu, np. przykładowy adres.'
+        ),
+        defineHeading('spaceType', 'Rodzaj przestrzeni'),
+        defineHeading(
+          'capacityPrefix',
+          'Początek nagłówka filtra pojemności',
+          'Strona dopisze za nim nazwę rodzaju przestrzeni, osobno dla każdego rodzaju.'
+        ),
+        defineHeading('eventType', 'Typ wydarzenia'),
+        defineHeading('character', 'Charakter przestrzeni'),
+        defineHeading('facilities', 'Zaplecze i możliwości'),
       ],
     }),
     defineField({
@@ -194,7 +151,7 @@ export default defineType({
       title: 'Promienie w filtrze odległości (km)',
       group: 'filters',
       of: [{ type: 'number', validation: (Rule) => Rule.required().positive() }],
-      validation: (Rule) => Rule.unique(),
+      validation: (Rule) => Rule.required().min(1).unique(),
     }),
     defineField({
       name: 'mixedSpaceTypeLabel',
@@ -202,6 +159,7 @@ export default defineType({
       title: 'Etykieta obiektu mieszanego',
       description: 'Opcja filtra Rodzaj przestrzeni dla obiektów z dwoma lub więcej rodzajami, np. „Wnętrze + plener”.',
       group: 'filters',
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'formHeading',

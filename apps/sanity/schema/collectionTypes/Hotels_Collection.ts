@@ -1,7 +1,7 @@
 import { Hotel } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
-import { COPY_COORDINATES_HINT, filterByDocumentLanguage } from '../../utils/filter-option'
+import { COPY_COORDINATES_HINT, filterByDocumentLanguage, validateCoordinates } from '../../utils/filter-option'
 import {
   DocumentsIcon,
   InfoOutlineIcon,
@@ -212,6 +212,7 @@ export default defineType({
       type: 'array',
       title: 'Otoczenie',
       description: 'Hotel pojawi się w filtrze Otoczenie przy każdej zaznaczonej wartości.',
+      validation: (Rule) => Rule.required().min(1).error('Wybierz przynajmniej jedno otoczenie'),
       of: [
         {
           type: 'reference',
@@ -383,7 +384,8 @@ export default defineType({
       name: 'point',
       type: 'geopoint',
       title: 'Współrzędne',
-      description: `Hotel bez współrzędnych nie pojawi się w filtrze odległości. ${COPY_COORDINATES_HINT}`,
+      description: `Filtr odległości liczy dystans do tego punktu. ${COPY_COORDINATES_HINT}`,
+      validation: (Rule) => Rule.custom(validateCoordinates),
       group: 'details',
     }),
 

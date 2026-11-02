@@ -117,7 +117,6 @@ export function getDirectUrls(doc: SanityDocRef): string[] {
       urls.push(`${base}/en/hotels/`)
       break
 
-    case 'EventSpaceFeatures_Collection':
     case 'EventSpaceTypes_Collection':
     case 'EventTypes_Collection':
     case 'EventSpaceCharacters_Collection':

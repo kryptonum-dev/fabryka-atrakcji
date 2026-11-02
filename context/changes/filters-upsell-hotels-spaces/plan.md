@@ -832,7 +832,9 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 9: Remove old fields and tighten validation
 
-- [ ] 9.1 Build passes: `npm run build`
+> 9.2 and 9.3 stay open on purpose. The 9 feature documents stay in the dataset until Oliwier runs `apps/sanity/scripts/filters-upsell/cleanup-deletions.ts --apply`, so the sitemap entry and the document count cannot pass before that.
+
+- [x] 9.1 Build passes: `npm run build`
 - [ ] 9.2 No code references remain
 - [ ] 9.3 Dataset is clean
 - [ ] 9.4 `verify.sh` passes against production
