@@ -21,3 +21,5 @@ Zakres jest zapisany w `research.md`, sekcja "Zakres uzgodniony z klientem". Źr
 Strony SEO typu "Hotele nad morzem" są poza zakresem: wracamy do nich osobno po wdrożeniu filtrów.
 
 Geoapify (2026-11-02): repo-root `.env` holds a working `GEOAPIFY_API_KEY`, read from the Geoapify dashboard. The value in Vercel (Production and Preview) is invalid and returns 401. Do not change Vercel env vars: Oliwier replaces the value himself. Until then, prove suggestions on a local server with the `.env` key, and expect production `/api/geocode` to return the provider error path. The input, origin and radius checks in `verify.sh` do not depend on the key.
+
+Update 2026-11-02: production `/api/geocode` returned real suggestions after the Phase 8 deploy, so the Vercel value now works. The paragraph above is kept as history.
