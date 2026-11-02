@@ -30,11 +30,12 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
   data-radius={selectedRadius}
   open={!isDisabled}
   data-expanded={!isDisabled ? 'true' : 'false'}>
-  <summary>
+  <summary aria-disabled={isDisabled || undefined}>
     <span>{heading}</span>
-    <button class='selected-value' type='button' style='display: none;'>
+    {/* A mouse shortcut, not a control: a summary can't hold one, and the city field clears from the keyboard */}
+    <span class='selected-value' style='display: none;'>
       <span></span>
-      <div class='clear-icon'>
+      <span class='clear-icon'>
         <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'>
           <circle cx='9.9974' cy='10.0003' r='8.33333' stroke='#74535e'></circle>
           <path
@@ -42,9 +43,9 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
             stroke='#74535e'
             stroke-linecap='round'></path>
         </svg>
-      </div>
-    </button>
-    <div class='icon'>
+      </span>
+    </span>
+    <div class='icon' aria-hidden='true'>
       <svg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'>
         <path stroke='#600D2A' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.25' d='m4 6.25 4 4 4-4'
         ></path>
@@ -91,8 +92,8 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
   .distance-filter-group {
     overflow: hidden;
     color: var(--primary-800);
-    padding: 0.375rem 0rem;
-    border-bottom: 2px solid var(--neutral-200, #f5f1ec);
+    padding: 0.375rem 0;
+    border-bottom: 2px solid var(--neutral-200);
 
     &[data-disabled='true'] {
       summary {
@@ -116,7 +117,7 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
     }
 
     summary {
-      padding: 0rem 0.25rem 0rem 1rem;
+      padding: 0 0.25rem 0 1rem;
       min-height: 2.75rem;
       font-size: var(--typography-body-m);
       cursor: pointer;
@@ -127,15 +128,11 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
       user-select: none;
       gap: 0.5rem;
 
-      > span {
-        flex-shrink: 0;
-
-        &:first-of-type {
-          color: var(--primary-800, #45051c);
-          font-weight: 700;
-          line-height: 1.7;
-          font-size: var(--typography-body-m, 0.875rem);
-        }
+      > span:first-of-type {
+        color: var(--primary-800);
+        font-weight: 700;
+        line-height: 1.7;
+        font-size: var(--typography-body-m);
       }
 
       &:focus-visible {
@@ -144,6 +141,9 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
       }
 
       .selected-value {
+        // Gives way before the heading does, so a long heading only wraps once the value is at its smallest
+        flex-shrink: 100;
+        min-width: 4.5rem;
         margin-right: auto;
         font-size: var(--typography-body-s);
         padding: 0.1875rem 0.25rem;
@@ -160,7 +160,7 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
         max-width: 12.5rem;
         cursor: pointer;
         transition:
-          opacity 300ms var(--easing),
+          opacity 300ms linear,
           transform 300ms var(--easing);
 
         span {
@@ -263,7 +263,7 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
       width: 100%;
       min-height: 2.75rem;
       padding: 0 1.75rem 0 0.625rem;
-      border: 1px solid var(--neutral-500, #d2c1b0);
+      border: 1px solid var(--neutral-500);
       border-radius: 0.5rem;
       background: var(--neutral-100)
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'%3E%3Cpath stroke='%23600D2A' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.25' d='m4 6.25 4 4 4-4'/%3E%3C/svg%3E")
@@ -275,7 +275,7 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
       transition: border-color 150ms linear;
 
       &:hover:not(:disabled) {
-        border-color: var(--primary-700, #600d2a);
+        border-color: var(--primary-700);
       }
 
       &:focus-visible {
@@ -294,7 +294,7 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
   document.querySelectorAll<HTMLDetailsElement>('.distance-filter-group').forEach((details) => {
     const summary = details.querySelector<HTMLElement>('summary')!
     const content = details.querySelector<HTMLDivElement>('.filter-content')!
-    const clearButton = details.querySelector<HTMLButtonElement>('.selected-value')!
+    const clearButton = details.querySelector<HTMLElement>('.selected-value')!
     const city = details.querySelector<HTMLSelectElement>('select[name="city"]')!
     const radius = details.querySelector<HTMLSelectElement>('select[name="radius"]')!
     const isDisabled = details.dataset.disabled === 'true'

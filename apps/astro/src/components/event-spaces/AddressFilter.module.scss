@@ -2,8 +2,8 @@
   overflow: hidden;
   flex-shrink: 0;
   color: var(--primary-800);
-  padding: 0.375rem 0rem;
-  border-bottom: 2px solid var(--neutral-200, #f5f1ec);
+  padding: 0.375rem 0;
+  border-bottom: 2px solid var(--neutral-200);
 
   &[data-disabled='true'] {
     summary {
@@ -23,7 +23,7 @@
   }
 
   summary {
-    padding: 0rem 0.25rem 0rem 1rem;
+    padding: 0 0.25rem 0 1rem;
     min-height: 2.75rem;
     font-size: var(--typography-body-m);
     cursor: pointer;
@@ -34,15 +34,11 @@
     user-select: none;
     gap: 0.5rem;
 
-    > span {
-      flex-shrink: 0;
-
-      &:first-of-type {
-        color: var(--primary-800, #45051c);
-        font-weight: 700;
-        line-height: 1.7;
-        font-size: var(--typography-body-m, 0.875rem);
-      }
+    > span:first-of-type {
+      color: var(--primary-800);
+      font-weight: 700;
+      line-height: 1.7;
+      font-size: var(--typography-body-m);
     }
 
     &:focus-visible {
@@ -52,7 +48,9 @@
   }
 
   .selectedValue {
-    min-width: 0;
+    // Gives way before the heading does, so a long heading only wraps once the value is at its smallest
+    flex-shrink: 100;
+    min-width: 4.5rem;
     margin-right: auto;
     font-size: var(--typography-body-s);
     padding: 0.1875rem 0.25rem;
@@ -64,7 +62,7 @@
     white-space: nowrap;
     cursor: pointer;
     transition:
-      opacity 300ms var(--easing),
+      opacity 300ms linear,
       transform 300ms var(--easing);
 
     span {
@@ -140,7 +138,7 @@
   select {
     width: 100%;
     min-height: 2.75rem;
-    border: 1px solid var(--neutral-500, #d2c1b0);
+    border: 1px solid var(--neutral-500);
     border-radius: 0.5rem;
     color: var(--primary-800);
     font-size: var(--typography-body-m);
@@ -148,7 +146,7 @@
     transition: border-color 150ms linear;
 
     &:hover:not(:disabled) {
-      border-color: var(--primary-700, #600d2a);
+      border-color: var(--primary-700);
     }
 
     &:focus-visible {
@@ -202,7 +200,7 @@
 
   .popup {
     min-width: 0;
-    border: 1px solid var(--neutral-500, #d2c1b0);
+    border: 1px solid var(--neutral-500);
     border-radius: 0.5rem;
     overflow: hidden;
 
@@ -231,7 +229,7 @@
     flex-wrap: wrap;
     gap: 0 0.75rem;
     padding: 0 0.625rem;
-    border-top: 1px solid var(--neutral-300, #e8ddd1);
+    border-top: 1px solid var(--neutral-300);
     font-size: var(--typography-body-s);
 
     a {
@@ -242,7 +240,7 @@
       text-decoration: underline;
 
       &:hover {
-        color: var(--primary-700, #600d2a);
+        color: var(--primary-700);
       }
 
       &:focus-visible {

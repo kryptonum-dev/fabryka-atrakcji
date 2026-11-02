@@ -109,6 +109,8 @@ const translations = {
     foundHotelsMultipleLow: 'hotele',
     foundHotelsMultipleHigh: 'hoteli',
     filtersHeading: 'Filtry',
+    closeFilters: 'Zamknij filtry',
+    starsName: (stars: number) => `${stars} ${stars === 1 ? 'gwiazdka' : stars < 5 ? 'gwiazdki' : 'gwiazdek'}`,
     apply: 'Zastosuj filtry',
     clear: 'Wyczyść filtry',
     filterButton: 'Filtruj',
@@ -140,6 +142,8 @@ const translations = {
     foundHotelsMultipleLow: 'hotels',
     foundHotelsMultipleHigh: 'hotels',
     filtersHeading: 'Filters',
+    closeFilters: 'Close filters',
+    starsName: (stars: number) => `${stars} ${stars === 1 ? 'star' : 'stars'}`,
     apply: 'Apply filters',
     clear: 'Clear filters',
     filterButton: 'Filter',
@@ -241,7 +245,7 @@ const starsItems = Object.entries(counts.stars)
     name:
       value === '0'
         ? noCategoryLabel
-        : `<span class="stars-row" style="visibility: visible;">${Array(Number(value)).fill(starSVG).join('')}</span>`,
+        : `<span class="stars-row" style="visibility: visible;" aria-hidden="true">${Array(Number(value)).fill(starSVG).join('')}</span><span class="visually-hidden">${t.starsName(Number(value))}</span>`,
     count,
     value,
     isSelected: selected.stars.includes(value),
@@ -310,7 +314,7 @@ const shouldDisableFilters = totalItems === 0
     <div class='filters'>
       <div class='sidebar-header'>
         <span>{t.filtersHeading}</span>
-        <button class='close-sidebar' aria-label='Close filters'>
+        <button class='close-sidebar' type='button' aria-label={t.closeFilters}>
           <svg xmlns='http://www.w3.org/2000/svg' width={24} height={24} viewBox='0 0 24 24' fill='none'>
             <circle cx={12} cy={12} r={10} stroke='#F67258' stroke-width={1.5}></circle>
             <path
@@ -396,7 +400,7 @@ const shouldDisableFilters = totalItems === 0
     </div>
     <div class='box'>
       <SearchBar value={Astro.url.searchParams.get('search') || ''} placeholder={t.placeholder} />
-      <button class='mobile-filter-button'>
+      <button class='mobile-filter-button' type='button' aria-haspopup='dialog' aria-expanded='false'>
         <span>{t.filterButton}</span>
         <svg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'>
           <path
@@ -465,7 +469,7 @@ const shouldDisableFilters = totalItems === 0
         max-width: 85.375rem;
         margin: 0 auto;
         background: var(--neutral-100, #faf7f7);
-        border-radius: 0rem 0rem 2.5rem 2.5rem;
+        border-radius: 0 0 2.5rem 2.5rem;
         padding: clamp(4rem, calc(5.25vw / 0.48), 5.25rem) var(--pageMargin) 2rem;
         display: grid;
         grid-template-columns: minmax(auto, 40.9375rem);
@@ -546,7 +550,7 @@ const shouldDisableFilters = totalItems === 0
           justify-content: center;
           border: 1px solid var(--neutral-500, #d2c1b0);
           cursor: pointer;
-          transition: border-color 150ms;
+          transition: border-color 150ms linear;
           grid-column: 2/3;
           grid-row: 2/3;
           svg {
@@ -629,7 +633,15 @@ const shouldDisableFilters = totalItems === 0
             flex-direction: column;
             background-color: var(--neutral-100);
             border-radius: 0.5rem 0.5rem 0 0;
-            // padding-bottom: 5rem;
+
+            // A control that takes keyboard focus must stay clear of the sticky action buttons
+            :global(summary),
+            :global(input),
+            :global(select),
+            :global(.show-more) {
+              scroll-margin-bottom: 9rem;
+            }
+
             :global(.stars-row) {
               display: flex;
               align-items: center;
@@ -652,7 +664,6 @@ const shouldDisableFilters = totalItems === 0
             display: none; // Initially hidden, shown by JavaScript when needed
             flex-direction: column;
             gap: 0.5rem;
-            // box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
             z-index: 10;
           }
 
@@ -803,8 +814,8 @@ const shouldDisableFilters = totalItems === 0
         opacity: 0;
         visibility: hidden;
         transition:
-          opacity 200ms,
-          visibility 200ms;
+          opacity 200ms linear,
+          visibility 200ms linear;
 
         &[aria-hidden='false'] {
           opacity: 1;
@@ -834,8 +845,8 @@ const shouldDisableFilters = totalItems === 0
             opacity: 0;
             visibility: hidden;
             transition:
-              opacity 100ms,
-              visibility 100ms,
+              opacity 100ms linear,
+              visibility 100ms linear,
               transform 250ms var(--easing);
             display: flex;
             flex-direction: column;
@@ -864,7 +875,6 @@ const shouldDisableFilters = totalItems === 0
               position: sticky;
               bottom: 0;
               z-index: 10;
-              // margin: 0 -0.75rem 0 0;
             }
 
             .sidebar-header {
@@ -1063,6 +1073,8 @@ const shouldDisableFilters = totalItems === 0
 
   <script>
     import { collectionPath } from '@/utils/search-navigation'
+    import { initFilterDrawer } from '@/utils/filter-drawer'
+
     if (document.querySelector('.Listing')) {
     // Includes the removed rooms and price parameters, so applying filters drops them from an old URL
     const FILTER_PARAMS = [
@@ -1252,49 +1264,7 @@ const shouldDisableFilters = totalItems === 0
       updateFiltersActionsVisibility()
     })
 
-    // Toggle filter sidebar
-    const listingSection = document.querySelector<HTMLElement>('.Listing')! as HTMLElement
-    const filterButton = listingSection.querySelector<HTMLButtonElement>('.mobile-filter-button')! as HTMLButtonElement
-    const sidebar = listingSection.querySelector<HTMLDivElement>('.filters')! as HTMLDivElement
-    const closeButton = listingSection.querySelector<HTMLButtonElement>('.close-sidebar')! as HTMLButtonElement
-    const overlay = listingSection.querySelector<HTMLDivElement>('.overlay')! as HTMLDivElement
-
-    filterButton.addEventListener('click', () => {
-      listingSection.setAttribute('data-mobile-open', 'true')
-      sidebar.setAttribute('aria-hidden', 'false')
-      overlay.setAttribute('aria-hidden', 'false')
-    })
-
-    closeButton.addEventListener('click', () => {
-      listingSection.setAttribute('data-mobile-open', 'false')
-      sidebar.setAttribute('aria-hidden', 'true')
-      overlay.setAttribute('aria-hidden', 'true')
-    })
-
-    overlay.addEventListener('click', () => {
-      listingSection.setAttribute('data-mobile-open', 'false')
-      sidebar.setAttribute('aria-hidden', 'true')
-      overlay.setAttribute('aria-hidden', 'true')
-    })
-
-    // Handle resize events for responsive behavior
-    let currentWidth = window.innerWidth
-    window.addEventListener('resize', () => {
-      // Only check if width changed (to avoid triggering on height changes like mobile keyboard)
-      if (currentWidth !== window.innerWidth) {
-        currentWidth = window.innerWidth
-        const isMobile = currentWidth < 1109 // 69.3125rem
-
-        if (!isMobile && listingSection) {
-          // Close sidebar if user resizes to desktop while sidebar is open
-          if (sidebar && overlay && sidebar.getAttribute('aria-hidden') === 'false') {
-            listingSection.setAttribute('data-mobile-open', 'false')
-            sidebar.setAttribute('aria-hidden', 'true')
-            overlay.setAttribute('aria-hidden', 'true')
-          }
-        }
-      }
-    })
+    initFilterDrawer(document.querySelector<HTMLElement>('.Listing')!)
     }
   </script>
 </section>

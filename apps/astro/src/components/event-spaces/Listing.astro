@@ -183,6 +183,7 @@ const translations = {
     foundFew: 'przestrzenie',
     foundMany: 'przestrzeni',
     filtersHeading: 'Filtry',
+    closeFilters: 'Zamknij filtry',
     apply: 'Zastosuj filtry',
     clear: 'Wyczyść filtry',
     filterButton: 'Filtruj',
@@ -210,6 +211,7 @@ const translations = {
     foundFew: 'event spaces',
     foundMany: 'event spaces',
     filtersHeading: 'Filters',
+    closeFilters: 'Close filters',
     apply: 'Apply filters',
     clear: 'Clear filters',
     filterButton: 'Filter',
@@ -321,7 +323,7 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
     <div class='filters'>
       <div class='sidebar-header'>
         <span>{t.filtersHeading}</span>
-        <button class='close-sidebar' aria-label='Close filters'>
+        <button class='close-sidebar' type='button' aria-label={t.closeFilters}>
           <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'>
             <circle cx='12' cy='12' r='10' stroke='#F67258' stroke-width='1.5'></circle>
             <path d='M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5' stroke='#F67258' stroke-width='1.5' stroke-linecap='round'></path>
@@ -402,7 +404,7 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
     </div>
     <div class='box'>
       <SearchBar value={params.get('search') || ''} placeholder={t.placeholder} />
-      <button class='mobile-filter-button'>
+      <button class='mobile-filter-button' type='button' aria-haspopup='dialog' aria-expanded='false'>
         <span>{t.filterButton}</span>
         <svg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none'>
           <path
@@ -463,7 +465,7 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
         max-width: 85.375rem;
         margin: 0 auto;
         background: var(--neutral-100, #faf7f7);
-        border-radius: 0rem 0rem 2.5rem 2.5rem;
+        border-radius: 0 0 2.5rem 2.5rem;
         padding: clamp(4rem, calc(5.25vw / 0.48), 5.25rem) var(--pageMargin) 2rem;
         display: grid;
         grid-template-columns: minmax(auto, 40.9375rem);
@@ -544,7 +546,7 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
           justify-content: center;
           border: 1px solid var(--neutral-500, #d2c1b0);
           cursor: pointer;
-          transition: border-color 150ms;
+          transition: border-color 150ms linear;
           grid-column: 2/3;
           grid-row: 2/3;
           svg {
@@ -627,16 +629,13 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
             flex-direction: column;
             background-color: var(--neutral-100);
             border-radius: 0.5rem 0.5rem 0 0;
-            // padding-bottom: 5rem;
-            :global(.stars-row) {
-              display: flex;
-              align-items: center;
-              gap: 0.125rem;
 
-              svg {
-                width: 0.875rem;
-                height: 0.875rem;
-              }
+            // A control that takes keyboard focus must stay clear of the sticky action buttons
+            :global(summary),
+            :global(input),
+            :global(select),
+            :global(.show-more) {
+              scroll-margin-bottom: 9rem;
             }
           }
 
@@ -800,8 +799,8 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
         opacity: 0;
         visibility: hidden;
         transition:
-          opacity 200ms,
-          visibility 200ms;
+          opacity 200ms linear,
+          visibility 200ms linear;
 
         &[aria-hidden='false'] {
           opacity: 1;
@@ -831,8 +830,8 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
             opacity: 0;
             visibility: hidden;
             transition:
-              opacity 100ms,
-              visibility 100ms,
+              opacity 100ms linear,
+              visibility 100ms linear,
               transform 250ms var(--easing);
             display: flex;
             flex-direction: column;
@@ -1059,6 +1058,7 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
 
   <script>
     import { collectionPath } from '@/utils/search-navigation'
+    import { initFilterDrawer } from '@/utils/filter-drawer'
 
     // Includes the removed area, feature and single capacity parameters, so applying filters drops them from an old URL
     const FILTER_PARAMS = [
@@ -1184,42 +1184,5 @@ const noResultsList = noResults.list.slice(selected.radius === Math.max(...filte
       updateFiltersActionsVisibility()
     })
 
-    const filterButton = listingSection.querySelector<HTMLButtonElement>('.mobile-filter-button')! as HTMLButtonElement
-    const sidebar = listingSection.querySelector<HTMLDivElement>('.filters')! as HTMLDivElement
-    const closeButton = listingSection.querySelector<HTMLButtonElement>('.close-sidebar')! as HTMLButtonElement
-    const overlay = listingSection.querySelector<HTMLDivElement>('.overlay')! as HTMLDivElement
-
-    filterButton.addEventListener('click', () => {
-      listingSection.setAttribute('data-mobile-open', 'true')
-      sidebar.setAttribute('aria-hidden', 'false')
-      overlay.setAttribute('aria-hidden', 'false')
-    })
-
-    closeButton.addEventListener('click', () => {
-      listingSection.setAttribute('data-mobile-open', 'false')
-      sidebar.setAttribute('aria-hidden', 'true')
-      overlay.setAttribute('aria-hidden', 'true')
-    })
-
-    overlay.addEventListener('click', () => {
-      listingSection.setAttribute('data-mobile-open', 'false')
-      sidebar.setAttribute('aria-hidden', 'true')
-      overlay.setAttribute('aria-hidden', 'true')
-    })
-
-    let currentWidth = window.innerWidth
-    window.addEventListener('resize', () => {
-      if (currentWidth !== window.innerWidth) {
-        currentWidth = window.innerWidth
-        const isMobile = currentWidth < 1109
-
-        if (!isMobile && listingSection) {
-          if (sidebar && overlay && sidebar.getAttribute('aria-hidden') === 'false') {
-            listingSection.setAttribute('data-mobile-open', 'false')
-            sidebar.setAttribute('aria-hidden', 'true')
-            overlay.setAttribute('aria-hidden', 'true')
-          }
-        }
-      }
-    })
+    initFilterDrawer(listingSection)
   </script>

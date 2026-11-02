@@ -173,7 +173,7 @@ export default function AddressFilter({ heading, placeholder, lang, radii, point
     emit('filterChange', 'radius', String(selectedRadius))
   }
 
-  const clearAddress = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const clearAddress = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
     event.stopPropagation()
     cancelPending()
@@ -269,14 +269,15 @@ export default function AddressFilter({ heading, placeholder, lang, radii, point
       data-expanded={String(!disabled)}
       open={!disabled}
     >
-      <summary onClick={toggle}>
+      <summary aria-disabled={disabled || undefined} onClick={toggle}>
         <span>{heading}</span>
+        {/* A mouse shortcut, not a control: a summary can't hold one, and the field below clears from the keyboard */}
         {selection && (
-          <button className={styles.selectedValue} type="button" aria-label={t.clear} onClick={clearAddress}>
+          <span className={styles.selectedValue} title={t.clear} onClick={clearAddress}>
             <span>
               {query}, {selectedRadius} km
             </span>
-          </button>
+          </span>
         )}
         <div className={styles.icon} aria-hidden="true">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" fill="none">
