@@ -10,16 +10,6 @@ export interface FilterParams {
   embeddingIds: string[] | null
   embeddingScores: Record<string, number> | null
   order: OrderType | null
-  // Hotel specific filters
-  location: string | null
-  amenities: string[] | null
-  stars: number | null
-  minRooms: number | null
-  maxRooms: number | null
-  minArea: number | null
-  maxArea: number | null
-  minCapacity: number | null
-  maxCapacity: number | null
 }
 
 export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
@@ -68,64 +58,6 @@ export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
   const duration = searchParams.get('duration') ? parseInt(searchParams.get('duration')!) : null
   const order = searchParams.get('order') as OrderType | null
 
-  // Parse hotel specific filters
-  const location = searchParams.get('location')
-  const amenities = searchParams.get('amenities') ? searchParams.get('amenities')!.split(',') : null
-
-  // Validate stars (must be between 1 and 5)
-  const rawStars = searchParams.get('stars') ? parseInt(searchParams.get('stars')!) : null
-  const stars = rawStars && rawStars >= 1 && rawStars <= 5 ? rawStars : null
-
-  // Validate rooms
-  let minRooms: number | null = null
-  let maxRooms: number | null = null
-
-  const rawMinRooms = searchParams.get('minRooms') ? parseInt(searchParams.get('minRooms')!) : null
-  const rawMaxRooms = searchParams.get('maxRooms') ? parseInt(searchParams.get('maxRooms')!) : null
-
-  // Validate min rooms (must be at least 1)
-  if (rawMinRooms && rawMinRooms >= 1) {
-    minRooms = rawMinRooms
-  }
-
-  // Validate max rooms (must be at least 1 and greater than minRooms if it exists)
-  if (rawMaxRooms && rawMaxRooms >= 1 && (!minRooms || rawMaxRooms >= minRooms)) {
-    maxRooms = rawMaxRooms
-  }
-
-  // If maxRooms is invalid, also reset minRooms to maintain consistency
-  if (!maxRooms) {
-    minRooms = null
-  }
-
-  let minArea: number | null = null
-  let maxArea: number | null = null
-  const rawMinArea = searchParams.get('minArea') ? parseInt(searchParams.get('minArea')!) : null
-  const rawMaxArea = searchParams.get('maxArea') ? parseInt(searchParams.get('maxArea')!) : null
-  if (rawMinArea && rawMinArea >= 1) {
-    minArea = rawMinArea
-  }
-  if (rawMaxArea && rawMaxArea >= 1 && (!minArea || rawMaxArea >= minArea)) {
-    maxArea = rawMaxArea
-  }
-  if (!maxArea) {
-    minArea = null
-  }
-
-  let minCapacity: number | null = null
-  let maxCapacity: number | null = null
-  const rawMinCapacity = searchParams.get('minCapacity') ? parseInt(searchParams.get('minCapacity')!) : null
-  const rawMaxCapacity = searchParams.get('maxCapacity') ? parseInt(searchParams.get('maxCapacity')!) : null
-  if (rawMinCapacity && rawMinCapacity >= 1) {
-    minCapacity = rawMinCapacity
-  }
-  if (rawMaxCapacity && rawMaxCapacity >= 1 && (!minCapacity || rawMaxCapacity >= minCapacity)) {
-    maxCapacity = rawMaxCapacity
-  }
-  if (!maxCapacity) {
-    minCapacity = null
-  }
-
   return {
     minParticipants: minParticipants || null,
     maxParticipants: maxParticipants || null,
@@ -136,16 +68,6 @@ export const parseFilters = (searchParams: URLSearchParams): FilterParams => {
     embeddingIds: null, // This will be set by the embeddings fetch if needed
     embeddingScores: null, // This will be set by the embeddings fetch if needed
     order,
-    // Hotel specific filters
-    location,
-    amenities,
-    stars,
-    minRooms,
-    maxRooms,
-    minArea,
-    maxArea,
-    minCapacity,
-    maxCapacity,
   }
 }
 

@@ -1,5 +1,11 @@
 import { expect, test } from 'bun:test'
-import { computeFacets, parseRange, rangeMatches, type FacetGroup } from '../../apps/astro/src/utils/listing-facets'
+import {
+  computeFacets,
+  parseRange,
+  rangeMatches,
+  rangeValue,
+  type FacetGroup,
+} from '../../apps/astro/src/utils/listing-facets'
 
 type Hotel = { _id: string; location: string; stars: number; amenities: string[]; banquet: number }
 
@@ -125,4 +131,11 @@ test('parseRange rejects malformed values', () => {
   for (const value of ['', '-', '-100', '100', '200-100', '1-2-3', 'a-b', '1.5-2', ' 1-2']) {
     expect(parseRange(value)).toBeNull()
   }
+})
+
+test('rangeValue writes the form parseRange reads', () => {
+  expect(rangeValue({ min: 101, max: 200 })).toBe('101-200')
+  expect(rangeValue({ min: 501, max: null })).toBe('501-')
+  expect(rangeValue({ min: 501 })).toBe('501-')
+  expect(parseRange(rangeValue({ min: 501 }))).toEqual({ min: 501, max: null })
 })

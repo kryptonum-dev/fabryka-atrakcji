@@ -9,8 +9,16 @@ import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
-import Listing, { Listing_Query, type ListingProps } from '@/src/components/hotels/Listing.astro'
-import { parseFilters, getOrderClause } from '@/utils/filters'
+import Listing, {
+  Facets_Query,
+  Listing_Query,
+  type HotelFilterOptions,
+  type ListingProps,
+} from '@/src/components/hotels/Listing.astro'
+import { getOrderClause, type OrderType } from '@/utils/filters'
+import { computeFacets } from '@/utils/listing-facets'
+import { hotelFacetGroups, type HotelFacet } from '@/utils/hotel-facets'
+import { parseHotelParams } from '@/utils/listing-params'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
 import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
@@ -31,23 +39,52 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   doNotIndex?: boolean
 }
 
+type FacetData = Pick<HotelFilterOptions, 'locations' | 'surroundings' | 'cities'> & {
+  hotels: HotelFacet[]
+  config: Omit<HotelFilterOptions, 'locations' | 'surroundings' | 'cities'> | null
+}
+
 export async function fetchData(lang: Language, pageNumber: number, _url: string, searchParams?: URLSearchParams) {
-  const searchQuery = searchParams?.get('search')?.trim()
+  const urlParams = searchParams || new URLSearchParams()
+  const searchQuery = urlParams.get('search')?.trim()
   const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
   const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
 
-  const filters = parseFilters(searchParams || new URLSearchParams())
+  const params = parseHotelParams(urlParams)
 
   // In search mode, if no order specified, default to searchMatching
-  if (searchQuery && !filters.order) {
-    filters.order = 'searchMatching'
-  }
+  const order = (urlParams.get('order') as OrderType | null) ?? (searchQuery ? 'searchMatching' : null)
 
-  const orderClause = getOrderClause(filters.order, !!searchQuery, 'hotels')
+  const orderClause = getOrderClause(order, !!searchQuery, 'hotels')
   const searchState = await listingSearch(searchQuery, 'hotels', lang)
   const fetchPage = searchState.isSearch ? publishedSearchFetch : sanityFetchWithCdn
 
-  // Get all hotel filters
+  const cityPoint = params.city
+    ? await fetchPage<{ lat: number; lng: number } | null>({
+        query: `*[_type == 'FilterCities_Collection' && language == $language && slug.current == $city][0].point { lat, lng }`,
+        params: { language: lang, city: params.city },
+        tag: 'page.hotels-list.city',
+      })
+    : null
+
+  const facets = await fetchPage<FacetData>({
+    query: `{ ${Facets_Query} }`,
+    params: { language: lang, cityPoint },
+    tag: 'page.hotels-list.facets',
+  })
+
+  const { hotels, config, ...options } = facets
+  if (!config) return null
+
+  // An unknown city or a radius outside the list means no distance filter at all
+  const hasDistance = cityPoint !== null && config.distanceRadii.includes(params.radius ?? 0)
+  const selected = hasDistance ? params : { ...params, city: null, radius: null }
+
+  const candidateIds = searchState.candidates && new Set(searchState.candidates.map((item) => item.value.documentId))
+  const { matchingIds, counts } = computeFacets(
+    candidateIds ? hotels.filter((hotel) => candidateIds.has(hotel._id)) : hotels,
+    hotelFacetGroups(selected, { ...options, ...config })
+  )
 
   const page = await fetchPage<
     {
@@ -66,7 +103,7 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       }
       escapeHatchHeading?: string
       escapeHatchText?: string
-    } & ListingProps &
+    } & Pick<ListingProps, 'heading' | 'paragraph' | 'checklist' | 'listing'> &
       FormProps
   >({
     query: `
@@ -112,13 +149,7 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       language: lang,
       PAGINATION_BEFORE,
       PAGINATION_AFTER,
-      location: filters.location ?? null,
-      amenities: filters.amenities ?? null,
-      stars: filters.stars ?? null,
-      minRooms: filters.minRooms ?? null,
-      maxRooms: filters.maxRooms ?? null,
-      minPrice: filters.minPrice ?? null,
-      maxPrice: filters.maxPrice ?? null,
+      matchingIds,
       embeddingResults: searchState.candidates,
     },
     tag: 'page.hotels-list',
@@ -126,7 +157,15 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
 
   if (!page || (!searchState.unavailable && pageNumber > 1 && !page.listing.length)) return null
   const metadata = await metadataFetch(page.slug)
-  return { page, metadata, searchUnavailable: searchState.unavailable }
+  return {
+    page,
+    metadata,
+    searchUnavailable: searchState.unavailable,
+    totalItems: matchingIds.length,
+    filterOptions: { ...options, ...config },
+    counts,
+    selected,
+  }
 }
 
 export async function staticPaths(lang: Language) {
@@ -143,7 +182,18 @@ export async function staticPaths(lang: Language) {
   }))
 }
 
-const { page, searchUnavailable, metadata: _metadata, currentPage, canonicalUrl, doNotIndex } = Astro.props
+const {
+  page,
+  searchUnavailable,
+  metadata: _metadata,
+  totalItems,
+  filterOptions,
+  counts,
+  selected,
+  currentPage,
+  canonicalUrl,
+  doNotIndex,
+} = Astro.props
 const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translation = {
@@ -172,7 +222,7 @@ const translation = {
 } as const
 
 const t = translation[lang as keyof typeof translation]
-const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
+const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
 
 const metadata = {
   ..._metadata,
@@ -208,16 +258,13 @@ const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.par
   {searchUnavailable ? <SearchUnavailable /> : <Listing
     heading={page.heading}
     paragraph={page.paragraph}
-    totalItems={page.totalItems}
+    totalItems={totalItems}
     listing={page.listing}
     currentPage={currentPage}
-    locations={page.locations}
-    amenities={page.amenities}
-    roomsRange={page.roomsRange}
-    priceRange={page.priceRange}
+    filterOptions={filterOptions}
+    counts={counts}
+    selected={selected}
     checklist={page.checklist}
-    stars={page.stars}
-    roomRangeCounts={page.roomRangeCounts}
     escapeHintText={page.escapeHatchHeading}
     escapeHintCta={page.escapeHatchText}
   />}

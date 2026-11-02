@@ -8,6 +8,11 @@ export type FacetGroup<T> = {
 
 export type Range = { min: number; max: number | null }
 
+/** The URL form of a range: `101-200`, or `501-` when it is open-ended. */
+export function rangeValue({ min, max }: { min: number; max?: number | null }): string {
+  return `${min}-${max ?? ''}`
+}
+
 /** Reads `101-200` or the open-ended `501-`. Returns null for anything else. */
 export function parseRange(value: string): Range | null {
   const match = /^(\d+)-(\d*)$/.exec(value)

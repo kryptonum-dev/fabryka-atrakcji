@@ -804,13 +804,13 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 6: Hotels listing
 
-- [ ] 6.1 Build passes: `cd apps/astro && npm run build`
-- [ ] 6.2 Filter tests pass: `bun test tests/filters`
-- [ ] 6.3 `verify.sh` confirms `?location=a,b` combines regions
-- [ ] 6.4 `verify.sh` confirms participant range behaviour
-- [ ] 6.5 `verify.sh` confirms city radius behaviour
-- [ ] 6.6 `verify.sh` confirms no rooms or price filter markup
-- [ ] 6.7 `verify.sh` records hotel filter route response time at or under 1.74 s
+- [x] 6.1 Build passes: `cd apps/astro && npm run build`
+- [x] 6.2 Filter tests pass: `bun test tests/filters`
+- [x] 6.3 `verify.sh` confirms `?location=a,b` combines regions
+- [x] 6.4 `verify.sh` confirms participant range behaviour
+- [x] 6.5 `verify.sh` confirms city radius behaviour
+- [x] 6.6 `verify.sh` confirms no rooms or price filter markup
+- [x] 6.7 `verify.sh` records hotel filter route response time at or under 1.74 s
 
 ### Phase 7: Event spaces listing
 

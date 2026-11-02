@@ -47,7 +47,7 @@ fetch_url() {
       summary
     fi
     requests=$((requests + 1))
-    curl -sS --compressed --max-time 30 -D "$headers" -o "$BODY" "$url" || true
+    curl -sS --compressed --max-time 30 -D "$headers" -o "$BODY" -w '%{time_total}' "$url" >"$WORK/$key.time" || true
     [ -f "$headers" ] || : >"$headers"
     [ -f "$BODY" ] || : >"$BODY"
   fi
@@ -56,6 +56,7 @@ fetch_url() {
   CACHE="$(header_value x-vercel-cache "$headers")"
   CONTENT_TYPE="$(header_value content-type "$headers")"
   LOCATION="$(header_value location "$headers")"
+  RESPONSE_TIME="$(cat "$WORK/$key.time")"
 }
 
 header_value() {
@@ -70,6 +71,11 @@ result_ids() {
 
 result_count() {
   result_ids "$1" | wc -l | tr -d ' '
+}
+
+# The listing total, because cards stop at one page.
+found_count() {
+  tr '\n' ' ' <"$1" | grep -oE '<p class="count[^>]*>[^<]*<strong[^>]*>[^0-9<]*[0-9]+' | grep -oE '[0-9]+$'
 }
 
 is_cached() {
@@ -231,6 +237,95 @@ check_no_localhost() {
   fi
 }
 
+check_found_status() {
+  fetch_url "$1"
+  if [ "$STATUS" != 200 ]; then
+    fail "$1 returned $STATUS"
+    return 1
+  fi
+  FOUND="$(found_count "$BODY")"
+  if [ -z "$FOUND" ]; then
+    fail "$1 shows no result count"
+    return 1
+  fi
+}
+
+# Two options of one filter must return at least as many hotels as the larger one alone.
+check_multi_select() {
+  local path="$1" name="$2" first="$3" second="$4"
+  local first_found second_found
+
+  check_found_status "$path?$name=$first" || return
+  first_found="$FOUND"
+  check_found_status "$path?$name=$second" || return
+  second_found="$FOUND"
+  check_found_status "$path?$name=$first,$second" || return
+
+  if [ "$FOUND" -ge "$first_found" ] && [ "$FOUND" -ge "$second_found" ] &&
+    [ "$first_found" -gt 0 ] && [ "$second_found" -gt 0 ]; then
+    pass "$path: $name $first gives $first_found, $second gives $second_found, both give $FOUND"
+  else
+    fail "$path: $name $first gives $first_found, $second gives $second_found, both give $FOUND"
+  fi
+}
+
+check_fewer_results() {
+  local fewer="$1" more="$2"
+  local fewer_found
+
+  check_found_status "$fewer" || return
+  fewer_found="$FOUND"
+  check_found_status "$more" || return
+
+  if [ "$fewer_found" -gt 0 ] && [ "$fewer_found" -lt "$FOUND" ]; then
+    pass "$fewer gives $fewer_found, fewer than $FOUND from $more"
+  else
+    fail "$fewer gives $fewer_found, expected fewer than $FOUND from $more"
+  fi
+}
+
+# Option values and filter groups that must be gone from the page.
+check_filter_markup_absent() {
+  local url="$1"
+  shift
+
+  fetch_url "$url"
+  local name
+  for name in "$@"; do
+    if grep -qE "data-param-name=\"$name\"" "$BODY"; then
+      fail "$url still renders the $name filter"
+      return
+    fi
+  done
+  pass "$url renders none of: $*"
+}
+
+check_filter_markup_present() {
+  local url="$1"
+  shift
+
+  fetch_url "$url"
+  local name
+  for name in "$@"; do
+    if ! grep -qE "data-param-name=\"$name\"" "$BODY"; then
+      fail "$url does not render the $name filter"
+      return
+    fi
+  done
+  pass "$url renders: $*"
+}
+
+check_response_time() {
+  local url="$1" limit="$2"
+
+  fetch_url "$url"
+  if awk -v time="$RESPONSE_TIME" -v limit="$limit" 'BEGIN { exit !(time <= limit) }'; then
+    pass "$url answered in ${RESPONSE_TIME}s, limit ${limit}s"
+  else
+    fail "$url answered in ${RESPONSE_TIME}s, limit ${limit}s"
+  fi
+}
+
 summary() {
   printf '\n%s passed, %s failed, %s requests to %s\n' "$passed" "$failed" "$requests" "$BASE"
   [ "$failed" -eq 0 ]
@@ -239,7 +334,7 @@ summary() {
 
 # Phase 1: filter route caching
 echo '== Filter routes =='
-check_route_pair /pl/hotele/filtr/ stars=5 stars=3
+check_route_pair /pl/hotele/filtr/ overnight=101-200 overnight=501-
 check_route_pair /en/hotels/filter/ stars=5 stars=3
 check_route_pair /pl/przestrzenie-eventowe/filtr/ search=Kwadrat search=Reduta
 check_route_pair /en/event-spaces/filter/ search=Bez search=Waldorffa
@@ -265,7 +360,7 @@ check_static_asset
 
 # Phase 2: filter SEO fixes
 echo '== Canonicals =='
-check_canonical '/pl/hotele/filtr/?stars=5' /pl/hotele/
+check_canonical '/pl/hotele/filtr/?overnight=501-' /pl/hotele/
 check_canonical '/en/hotels/filter/?stars=5' /en/hotels/
 check_canonical '/pl/przestrzenie-eventowe/filtr/?search=Kwadrat' /pl/przestrzenie-eventowe/
 check_canonical '/en/event-spaces/filter/?search=Bez' /en/event-spaces/
@@ -287,5 +382,14 @@ check_no_followed_filter_links '/en/hotels/page/2/filter/?stars=4' 4
 check_no_localhost '/pl/integracje/kategoria/team-building/filtr/?duration=2'
 check_no_localhost '/en/activities/category/team-building-activities/filter/?duration=2'
 check_pagination_followed /pl/blog/
+
+# Phase 6: hotels listing
+echo '== Hotel filters =='
+check_multi_select /pl/hotele/filtr/ location jura-i-wyzyny mazury-i-pojezierze
+check_fewer_results '/pl/hotele/filtr/?overnight=501-' '/pl/hotele/filtr/?overnight=101-200'
+check_fewer_results '/pl/hotele/filtr/?city=warszawa&radius=25' '/pl/hotele/filtr/?city=warszawa&radius=150'
+check_filter_markup_absent /pl/hotele/ rooms price minRooms minPrice
+check_filter_markup_present /pl/hotele/ location overnight conference banquet stars amenities surroundings
+check_response_time '/pl/hotele/filtr/?city=warszawa&radius=150' 1.74
 
 summary

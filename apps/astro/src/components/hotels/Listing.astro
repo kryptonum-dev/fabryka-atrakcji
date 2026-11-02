@@ -8,19 +8,12 @@ import Pagination from '../ui/Pagination.astro'
 import { ITEMS_PER_PAGE } from '@/src/templates/hotels/HotelsPage.astro'
 import Button from '../ui/Button'
 import SelectFilter from '../ui/SelectFilter.astro'
-import PriceRangeFilter from '../ui/PriceRangeFilter.astro'
+import DistanceFilter from './DistanceFilter.astro'
+import { rangeValue } from '@/utils/listing-facets'
+import type { HotelParams } from '@/utils/listing-params'
 
-type LocationOption = {
-  _id: string
+type FilterOption = {
   name: string
-  count: number
-  slug: string
-}
-
-type AmenityOption = {
-  _id: string
-  name: string
-  count: number
   slug: string
 }
 
@@ -48,29 +41,43 @@ type HotelItem = {
   amenitiesList: string[]
 }
 
+type FilterOptions = {
+  locations: FilterOption[]
+  surroundings: FilterOption[]
+  cities: FilterOption[]
+  amenities: FilterOption[]
+  filterHeadings: {
+    location: string
+    distance: string
+    overnight: string
+    conference: string
+    banquet: string
+    stars: string
+    amenities: string
+    surroundings: string
+  }
+  participantRanges: { min: number; max: number | null }[]
+  distanceRadii: number[]
+  visibleAmenities: number
+  noCategoryLabel: string
+}
+
 type Props = {
   heading: PortableTextValue
   paragraph: PortableTextValue
   totalItems: number
   listing: HotelItem[]
   currentPage: number
-  locations: LocationOption[]
-  amenities: AmenityOption[]
-  roomsRange: { min: number; max: number }
-  priceRange: { min: number; max: number; minAbs: number; maxAbs: number }
+  filterOptions: FilterOptions
+  counts: Record<string, Record<string, number>>
+  selected: HotelParams
   checklist: string[]
-  stars: { stars: number; count: number }[]
-  roomRangeCounts: {
-    range1_50: number
-    range51_80: number
-    range81_150: number
-    range150plus: number
-  }
   escapeHintText?: string
   escapeHintCta?: string
 }
 
 export type ListingProps = Props
+export type HotelFilterOptions = FilterOptions
 
 const lang = getLangFromPath(Astro.url.pathname) as Language
 
@@ -82,16 +89,6 @@ const translations = {
     hotels: 'Hotele',
     placeholder: 'Wyszukaj hotel',
     search: 'Wyszukaj hotel',
-    filters: {
-      location: 'Lokalizacja',
-      stars: 'Gwiazdki',
-      rooms: 'Liczba pokoi',
-      amenities: 'Udogodnienia',
-      price: {
-        heading: 'Budżet na 1 osobę/noc',
-        description: 'Niższa cena przy zakwaterowaniu w pokojach dwuosobowych',
-      },
-    },
     sort: {
       popularity: 'Najpopularniejsze',
       priceDesc: 'Cena: od najwyższej',
@@ -123,16 +120,6 @@ const translations = {
     hotels: 'Hotels',
     placeholder: 'Search for hotels',
     search: 'Search for hotels',
-    filters: {
-      location: 'Location',
-      stars: 'Stars',
-      rooms: 'Number of rooms',
-      amenities: 'Amenities',
-      price: {
-        heading: 'Budget per person/night',
-        description: 'Lower price when staying in double rooms',
-      },
-    },
     sort: {
       popularity: 'Most popular',
       priceDesc: 'Price: highest first',
@@ -172,167 +159,45 @@ const starSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
             <clipPath id="paint0_angular_6107_29788_clip_path"><path d="M6.74064 1.11376C6.84763 0.896977 7.15675 0.896977 7.26374 1.11376L8.82014 4.26737C8.86263 4.35345 8.94475 4.41312 9.03975 4.42692L12.52 4.93263C12.7592 4.96739 12.8547 5.26138 12.6816 5.43012L10.1633 7.88487C10.0946 7.95187 10.0632 8.04842 10.0794 8.14303L10.6739 11.6092C10.7148 11.8475 10.4647 12.0291 10.2507 11.9167L7.13792 10.2802C7.05295 10.2355 6.95144 10.2355 6.86647 10.2802L3.75367 11.9167C3.53969 12.0291 3.28961 11.8475 3.33047 11.6092L3.92496 8.14303C3.94119 8.04842 3.90982 7.95187 3.84108 7.88487L1.32277 5.43012C1.14966 5.26138 1.24519 4.96739 1.48442 4.93263L4.96464 4.42692C5.05964 4.41312 5.14176 4.35345 5.18424 4.26737L6.74064 1.11376Z"/></clipPath><clipPath id="paint1_angular_6107_29788_clip_path"><path d="M4.96464 4.42692L3.88505 -3.00272L4.96464 4.42692ZM5.18424 4.26737L11.9166 7.59001L5.18424 4.26737ZM1.32277 5.43012L6.56322 0.0539811L1.32277 5.43012ZM1.48442 4.93263L2.56401 12.3623L1.48442 4.93263ZM3.92496 8.14303L-3.47466 6.8739V6.8739L3.92496 8.14303ZM3.84108 7.88487L9.08153 2.50873L3.84108 7.88487ZM3.75367 11.9167L7.24729 18.5619H7.2473L3.75367 11.9167ZM3.33047 11.6092L10.7301 12.8783L3.33047 11.6092ZM7.13792 10.2802L10.6315 3.63488L10.6315 3.63488L7.13792 10.2802ZM6.86647 10.2802L3.37284 3.63488L3.37284 3.63488L6.86647 10.2802ZM10.6739 11.6092L3.27429 12.8783V12.8783L10.6739 11.6092ZM10.2507 11.9167L6.75709 18.5619H6.75709L10.2507 11.9167ZM10.1633 7.88487L4.92286 2.50873L4.92286 2.50873L10.1633 7.88487ZM10.0794 8.14303L17.479 6.8739V6.8739L10.0794 8.14303ZM12.52 4.93263L11.4404 12.3623L12.52 4.93263ZM12.6816 5.43012L17.9221 10.8063L12.6816 5.43012ZM8.82014 4.26737L15.5525 0.944731V0.944731L8.82014 4.26737ZM9.03975 4.42692L10.1193 -3.00272L9.03975 4.42692ZM7.26374 1.11376L0.53134 4.43639L0.53134 4.4364L7.26374 1.11376ZM6.74064 1.11376L13.473 4.43639L6.74064 1.11376ZM0.53134 4.4364L2.08774 7.59001L15.5525 0.944731L13.9961 -2.20888L0.53134 4.4364ZM7.96016 11.8566L11.4404 12.3623L13.5996 -2.49702L10.1193 -3.00272L7.96016 11.8566ZM7.44117 0.0539809L4.92286 2.50873L15.4037 13.261L17.9221 10.8063L7.44117 0.0539809ZM2.6798 9.41216L3.27429 12.8783L18.0735 10.3401L17.479 6.8739L2.6798 9.41216ZM13.7443 5.27138L10.6315 3.63488L3.64429 16.9254L6.75709 18.5619L13.7443 5.27138ZM3.37284 3.63488L0.260037 5.27138L7.2473 18.5619L10.3601 16.9254L3.37284 3.63488ZM10.7301 12.8783L11.3246 9.41216L-3.47466 6.8739L-4.06915 10.3401L10.7301 12.8783ZM9.08153 2.50873L6.56322 0.0539811L-3.91767 10.8063L-1.39936 13.261L9.08153 2.50873ZM2.56401 12.3623L6.04423 11.8566L3.88505 -3.00272L0.404829 -2.49702L2.56401 12.3623ZM11.9166 7.59001L13.473 4.43639L0.00824416 -2.20888L-1.54816 0.944731L11.9166 7.59001ZM6.04423 11.8566C8.58456 11.4874 10.7806 9.89192 11.9166 7.59001L-1.54816 0.944731C-0.497064 -1.18501 1.53471 -2.6612 3.88505 -3.00272L6.04423 11.8566ZM6.56322 0.0539811C10.846 4.2287 8.48273 11.5022 2.56401 12.3623L0.404829 -2.49702C-5.99235 -1.56745 -8.54671 6.29406 -3.91767 10.8063L6.56322 0.0539811ZM11.3246 9.41216C11.7585 6.88211 10.9197 4.30052 9.08153 2.50873L-1.39936 13.261C-3.10007 11.6032 -3.87614 9.21472 -3.47466 6.8739L11.3246 9.41216ZM0.260038 5.27138C5.55389 2.48824 11.7411 6.98351 10.7301 12.8783L-4.06915 10.3401C-5.16192 16.7114 1.52549 21.5701 7.24729 18.5619L0.260038 5.27138ZM10.6315 3.63488C8.35941 2.44035 5.64497 2.44035 3.37284 3.63488L10.3601 16.9254C8.2579 18.0306 5.74648 18.0306 3.64429 16.9254L10.6315 3.63488ZM3.27429 12.8783C2.26325 6.98353 8.45048 2.48823 13.7443 5.27138L6.75709 18.5619C12.4789 21.5701 19.1663 16.7114 18.0735 10.3401L3.27429 12.8783ZM4.92286 2.50873C3.08465 4.30054 2.24586 6.88212 2.6798 9.41216L17.479 6.8739C17.8805 9.21471 17.1045 11.6032 15.4037 13.261L4.92286 2.50873ZM11.4404 12.3623C5.52168 11.5022 3.15833 4.22871 7.44117 0.0539811L17.9221 10.8063C22.5511 6.29405 19.9967 -1.56745 13.5996 -2.49702L11.4404 12.3623ZM2.08774 7.59001C3.2238 9.89192 5.41982 11.4874 7.96016 11.8566L10.1193 -3.00272C12.4697 -2.6612 14.5014 -1.18501 15.5525 0.944731L2.08774 7.59001ZM13.9961 -2.20888C11.1352 -8.00571 2.86915 -8.00571 0.00824416 -2.20888L13.473 4.43639C10.8261 9.79966 3.17827 9.79966 0.53134 4.43639L13.9961 -2.20888Z" mask="url(#path-1-inside-1_6107_29788)"/></clipPath></defs>
             </svg>`
 
+// Fetched before the page query, because the matching ids depend on it. Stays small: ids, slugs and numbers.
+export const Facets_Query = `
+  "hotels": *[_type == 'Hotels_Collection' && language == $language] {
+    _id,
+    "location": location->slug.current,
+    stars,
+    "amenities": amenities[]->slug.current,
+    "surroundings": surroundings[]->slug.current,
+    maxPeople,
+    "distanceKm": geo::distance(point, $cityPoint) / 1000,
+  },
+  "locations": *[_type == 'Locations_Collection' && language == $language && defined(slug.current)] {
+    name,
+    "slug": slug.current,
+  },
+  "surroundings": *[_type == 'HotelSurroundings_Collection' && language == $language] | order(orderRank) {
+    name,
+    "slug": slug.current,
+  },
+  "cities": *[_type == 'FilterCities_Collection' && language == $language] | order(orderRank) {
+    name,
+    "slug": slug.current,
+  },
+  "config": *[_type == 'Hotels_Page' && language == $language][0] {
+    filterHeadings,
+    participantRanges[] { min, max },
+    distanceRadii,
+    "amenities": curatedAmenities[]-> {
+      name,
+      "slug": slug.current,
+    },
+    visibleAmenities,
+    noCategoryLabel,
+  },
+`
+
 export const Listing_Query = (orderClause: string) => {
-  // Define individual filters
-  const locationFilter = `
-    (!defined($location) || location->slug.current == $location)
-  `
-
-  const amenitiesFilter = `
-    (!defined($amenities) || count(select(
-      defined(amenities) => amenities[]->slug.current,
-      []
-    )[@ in $amenities]) == count($amenities))
-  `
-
-  const starsFilter = `
-    (!defined($stars) || stars == $stars)
-  `
-
-  const roomsFilter = `
-    (!defined($minRooms) || numberOfRooms >= $minRooms)
-    && (!defined($maxRooms) || numberOfRooms <= $maxRooms)
-  `
-
-  const priceFilter = `
-    (!defined($minPrice) || (pricing.pricingVisible == true && pricing.pricePerPerson >= $minPrice))
-    && (!defined($maxPrice) || (pricing.pricingVisible == true && pricing.pricePerPerson <= $maxPrice))
-  `
-
-  // Add embeddings filter
-  const embeddingsFilter = `
-    (!defined($embeddingResults) || _id in $embeddingResults[].value.documentId)
-  `
-
-  // Create base filter function
-  const createBaseFilter = (
-    includeFilters: {
-      location?: boolean
-      amenities?: boolean
-      stars?: boolean
-      rooms?: boolean
-      price?: boolean
-    } = {
-      location: true,
-      amenities: true,
-      stars: true,
-      rooms: true,
-      price: true,
-    }
-  ) => `
-    && language == $language
-    ${includeFilters.location ? `&& ${locationFilter}` : ''}
-    ${includeFilters.amenities ? `&& ${amenitiesFilter}` : ''}
-    ${includeFilters.stars ? `&& ${starsFilter}` : ''}
-    ${includeFilters.rooms ? `&& ${roomsFilter}` : ''}
-    ${includeFilters.price ? `&& ${priceFilter}` : ''}
-    && ${embeddingsFilter}
-  `
-  const getStarFilter = (stars: number) => `
-    {
-        "stars": ${stars},
-        "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-          location: true,
-          amenities: true,
-          stars: false,
-          rooms: true,
-          price: true,
-        })} && stars == ${stars}])
-    },
-  `
-
   return `
-    "totalItems": count(*[_type == 'Hotels_Collection' ${createBaseFilter()}]),
-    "locations": *[_type == 'Locations_Collection' && language == $language] {
-      _id,
-      name,
-      "slug": slug.current,
-      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: false,
-        amenities: true,
-        stars: true,
-        rooms: true,
-        price: true,
-      })} && references(^._id)])
-    },
-    "amenities": *[_type == 'Amenities_Collection' && language == $language] {
-      _id,
-      name,
-      "slug": slug.current,
-      "count": count(*[_type == 'Hotels_Collection' ${createBaseFilter()} && references(^._id)])
-    },
-    "roomRangeCounts": {
-      "range1_50": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: false,
-        price: true,
-      })} && numberOfRooms <= 50]),
-      "range51_80": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: false,
-        price: true,
-      })} && numberOfRooms >= 51 && numberOfRooms <= 80]),
-      "range81_150": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: false,
-        price: true,
-      })} && numberOfRooms >= 81 && numberOfRooms <= 150]),
-      "range150plus": count(*[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: false,
-        price: true,
-      })} && numberOfRooms >= 150])
-    },
-    "roomsRange": {
-      "min": *[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: false,
-        price: true,
-      })}] | order(numberOfRooms asc)[0].numberOfRooms,
-      "max": *[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: false,
-        price: true,
-      })}] | order(numberOfRooms desc)[0].numberOfRooms
-    },
-    "stars": [
-      ${getStarFilter(1)}
-      ${getStarFilter(2)}
-      ${getStarFilter(3)}
-      ${getStarFilter(4)}
-      ${getStarFilter(5)}
-    ],
-    "priceRange": {
-      "min": *[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: true,
-        price: false,
-      })} && pricing.pricingVisible == true] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson,
-      "max": *[_type == 'Hotels_Collection' ${createBaseFilter({
-        location: true,
-        amenities: true,
-        stars: true,
-        rooms: true,
-        price: false,
-      })} && pricing.pricingVisible == true] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
-      "maxAbs": *[_type == 'Hotels_Collection' && pricing.pricingVisible == true] | order(pricing.pricePerPerson desc)[0].pricing.pricePerPerson,
-      "minAbs": *[_type == 'Hotels_Collection' && pricing.pricingVisible == true] | order(pricing.pricePerPerson asc)[0].pricing.pricePerPerson
-    },
-    "listing": *[_type == 'Hotels_Collection' ${createBaseFilter()}] {
+    "listing": *[_type == 'Hotels_Collection' && _id in $matchingIds] {
       ${HotelCardQuery}
       "_score": $embeddingResults[value.documentId == ^._id][0].score
     } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
@@ -346,88 +211,42 @@ const {
   totalItems,
   listing,
   currentPage,
-  locations,
-  amenities,
-  stars,
-  roomRangeCounts,
-  priceRange,
+  filterOptions,
+  counts,
+  selected,
   escapeHintText,
   escapeHintCta,
 } = Astro.props
 
-const params = Astro.url.searchParams
+const { filterHeadings, participantRanges, distanceRadii, visibleAmenities, noCategoryLabel } = filterOptions
 
-const roomsRangeItems = [
-  {
-    name: '1–50',
-    count: roomRangeCounts.range1_50,
-    isSelected: params.get('maxRooms') === '50' && !params.get('minRooms'),
-    value: '1-50',
-  },
-  {
-    name: '51–80',
-    count: roomRangeCounts.range51_80,
-    isSelected: params.get('minRooms') === '51' && params.get('maxRooms') === '80',
-    value: '51-80',
-  },
-  {
-    name: '81–150',
-    count: roomRangeCounts.range81_150,
-    isSelected: params.get('minRooms') === '81' && params.get('maxRooms') === '150',
-    value: '81-150',
-  },
-  {
-    name: '150+',
-    count: roomRangeCounts.range150plus,
-    isSelected: params.get('minRooms') === '150' && !params.get('maxRooms'),
-    value: '150-',
-  },
-].filter((item) => item.isSelected || item.count > 0)
-
-const locationItems = locations
-  .filter((location): location is LocationOption => Boolean(location?._id && location?.slug))
-  .map((location) => ({
-    name: location.name,
-    count: location.count,
-    isSelected: location.slug === params.get('location'),
-    value: location.slug,
+const toFilterItems = (options: FilterOption[], key: 'location' | 'surroundings' | 'amenities') =>
+  options.map((option) => ({
+    name: option.name,
+    value: option.slug,
+    count: counts[key][option.slug] ?? 0,
+    isSelected: selected[key].includes(option.slug),
   }))
 
-// Process amenities to handle both comma-separated values and multiple parameters
-const amenitiesParam = params.get('amenities')
-let amenitiesValues: string[] = []
-
-if (amenitiesParam) {
-  // If it's a single comma-separated value
-  amenitiesValues = amenitiesParam.split(',')
-} else {
-  // If there are multiple parameters with the same name
-  amenitiesValues = params.getAll('amenities')
-}
-
-const amenitiesItems = amenities
-  .map((amenity) => ({
-    name: amenity.name,
-    count: amenity.count,
-    isSelected: amenitiesValues.includes(amenity.slug),
-    value: amenity.slug,
+const toRangeItems = (key: 'overnight' | 'conference' | 'banquet') =>
+  participantRanges.map((range) => ({
+    name: range.max ? `${range.min}–${range.max}` : `${range.min}+`,
+    value: rangeValue(range),
+    count: counts[key][rangeValue(range)] ?? 0,
+    isSelected: selected[key].includes(rangeValue(range)),
   }))
-  .sort((a, b) => {
-    // First sort by selection status (selected items first)
-    if (a.isSelected && !b.isSelected) return -1
-    if (!a.isSelected && b.isSelected) return 1
-    // Then sort by count (higher count first)
-    return b.count - a.count
-  })
 
-const starsItems = stars
-  .map((starData) => ({
-    name: `<span class="stars-row" style="visibility: visible;">${Array(starData.stars).fill(starSVG).join('')}</span>`,
-    count: starData.count,
-    value: starData.stars.toString(),
-    isSelected: params.get('stars') === starData.stars.toString(),
+const starsItems = Object.entries(counts.stars)
+  .map(([value, count]) => ({
+    name:
+      value === '0'
+        ? noCategoryLabel
+        : `<span class="stars-row" style="visibility: visible;">${Array(Number(value)).fill(starSVG).join('')}</span>`,
+    count,
+    value,
+    isSelected: selected.stars.includes(value),
   }))
-  .sort((a, b) => parseInt(b.value) - parseInt(a.value)) // Sort by descending star count
+  .sort((a, b) => Number(b.value) - Number(a.value))
 
 const getHotelsCount = () => {
   if (totalItems % 10 >= 2 && totalItems % 10 <= 4 && (totalItems % 100 < 12 || totalItems % 100 > 14)) {
@@ -441,24 +260,11 @@ const getHotelsCount = () => {
   return t.foundHotelsMultipleHigh
 }
 
-// Get current filters from URL
 const searchParam = Astro.url.searchParams.get('search')?.trim() || undefined
 
-const currentFilters = {
-  location: Astro.url.searchParams.get('location'),
-  stars: Astro.url.searchParams.get('stars'),
-  minRooms: Astro.url.searchParams.has('minRooms') ? parseInt(Astro.url.searchParams.get('minRooms') || '') : undefined,
-  maxRooms: Astro.url.searchParams.has('maxRooms') ? parseInt(Astro.url.searchParams.get('maxRooms') || '') : undefined,
-  amenities: Astro.url.searchParams.getAll('amenities'),
-  minPrice: Astro.url.searchParams.has('minPrice') ? parseInt(Astro.url.searchParams.get('minPrice') || '') : undefined,
-  maxPrice: Astro.url.searchParams.has('maxPrice') ? parseInt(Astro.url.searchParams.get('maxPrice') || '') : undefined,
-  search: searchParam,
-}
-
-// Check if we have any active filters
-const hasActiveFilters = Object.values(currentFilters).some(
-  (value) => value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : true)
-)
+// Any selected filter or search shows the clear button
+const hasActiveFilters =
+  Boolean(searchParam) || Object.values(selected).some((value) => (Array.isArray(value) ? value.length > 0 : value))
 
 // Add this near where you handle the filters data
 const shouldDisableFilters = totalItems === 0
@@ -466,8 +272,6 @@ const shouldDisableFilters = totalItems === 0
 
 <section
   class='Listing'
-  data-price-min={priceRange.minAbs}
-  data-price-max={priceRange.maxAbs}
   data-mobile-open='false'
   data-filter-path={t.filterPath}
   data-page-path={t.pagePath}>
@@ -519,38 +323,62 @@ const shouldDisableFilters = totalItems === 0
       </div>
       <div class='filters-content'>
         <SelectFilter
-          heading={t.filters.location}
-          items={locationItems}
+          heading={filterHeadings.location}
+          items={toFilterItems(filterOptions.locations, 'location')}
           paramName='location'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <DistanceFilter
+          heading={filterHeadings.distance}
+          cities={filterOptions.cities}
+          radii={distanceRadii}
+          selectedCity={selected.city}
+          selectedRadius={selected.radius}
           forceDisabled={shouldDisableFilters}
         />
         <SelectFilter
-          heading={t.filters.stars}
+          heading={filterHeadings.overnight}
+          items={toRangeItems('overnight')}
+          paramName='overnight'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={filterHeadings.conference}
+          items={toRangeItems('conference')}
+          paramName='conference'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={filterHeadings.banquet}
+          items={toRangeItems('banquet')}
+          paramName='banquet'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={filterHeadings.stars}
           items={starsItems}
           paramName='stars'
+          isMulti
           allowHtmlName
           forceDisabled={shouldDisableFilters}
         />
         <SelectFilter
-          heading={t.filters.rooms}
-          items={roomsRangeItems}
-          paramName='rooms'
+          heading={filterHeadings.amenities}
+          items={toFilterItems(filterOptions.amenities, 'amenities')}
+          paramName='amenities'
+          isMulti
+          visibleCount={visibleAmenities}
           forceDisabled={shouldDisableFilters}
         />
         <SelectFilter
-          heading={t.filters.amenities}
-          items={amenitiesItems}
-          paramName='amenities'
+          heading={filterHeadings.surroundings}
+          items={toFilterItems(filterOptions.surroundings, 'surroundings')}
+          paramName='surroundings'
           isMulti
-          forceDisabled={shouldDisableFilters}
-        />
-        <PriceRangeFilter
-          heading={t.filters.price.heading}
-          description={t.filters.price.description}
-          minPrice={priceRange.min}
-          maxPrice={priceRange.max}
-          currentMin={currentFilters.minPrice}
-          currentMax={currentFilters.maxPrice}
           forceDisabled={shouldDisableFilters}
         />
       </div>
@@ -1236,40 +1064,29 @@ const shouldDisableFilters = totalItems === 0
   <script>
     import { collectionPath } from '@/utils/search-navigation'
     if (document.querySelector('.Listing')) {
-    // Track filter changes
-    type FilterValue = string | string[] | number | null
-    const initialFilters: Record<string, FilterValue> = {
-      minPrice: (() => {
-        const value = new URLSearchParams(window.location.search).get('minPrice')
-        return value ? parseInt(value) : null
-      })(),
-      maxPrice: (() => {
-        const value = new URLSearchParams(window.location.search).get('maxPrice')
-        return value ? parseInt(value) : null
-      })(),
-    }
+    // Includes the removed rooms and price parameters, so applying filters drops them from an old URL
+    const FILTER_PARAMS = [
+      'location',
+      'surroundings',
+      'amenities',
+      'stars',
+      'overnight',
+      'conference',
+      'banquet',
+      'city',
+      'radius',
+      'minRooms',
+      'maxRooms',
+      'minPrice',
+      'maxPrice',
+    ]
+
     const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')!
     const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')!
 
-    // Store the initial URL state
-    const initialUrlState = {
-      location: new URLSearchParams(window.location.search).get('location'),
-      stars: new URLSearchParams(window.location.search).get('stars'),
-      rooms: (() => {
-        const params = new URLSearchParams(window.location.search)
-        const minRooms = params.get('minRooms')
-        const maxRooms = params.get('maxRooms')
-
-        if (minRooms === '1' && maxRooms === '50') return '1-50'
-        if (minRooms === '51' && maxRooms === '80') return '51-80'
-        if (minRooms === '81' && maxRooms === '150') return '81-150'
-        if (minRooms === '150' && !maxRooms) return '150-'
-        return null
-      })(),
-      amenities: new URLSearchParams(window.location.search).get('amenities')?.split(',') || [],
-      minPrice: initialFilters.minPrice,
-      maxPrice: initialFilters.maxPrice,
-    }
+    // What the page shows now, and what the visitor has picked since
+    const initialValues: Record<string, string[]> = {}
+    const currentValues: Record<string, string[]> = {}
 
     // Custom event types
     interface FilterChangeEvent extends CustomEvent {
@@ -1277,15 +1094,12 @@ const shouldDisableFilters = totalItems === 0
         paramName: string
         value?: string
         checked?: boolean
-        minValue?: number
-        maxValue?: number
       }
     }
 
     interface FilterClearEvent extends CustomEvent {
       detail: {
         paramName: string
-        secondaryParamName?: string
       }
     }
 
@@ -1314,54 +1128,9 @@ const shouldDisableFilters = totalItems === 0
 
     // Compare current state with initial state to detect changes
     function checkFiltersChanged() {
-      let changed = false
-
-      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-        const paramName = filterGroup.dataset.paramName
-        if (!paramName) return
-
-        const isMulti = filterGroup.dataset.multi === 'true'
-
-        // Check select filters (both single and multi)
-        if (paramName === 'price') {
-          // Check if price range has changed
-
-          const currentMinPrice = initialFilters.minPrice as number | null
-          const currentMaxPrice = initialFilters.maxPrice as number | null
-
-          // Compare current price range with initial state
-          if (currentMinPrice !== initialUrlState.minPrice || currentMaxPrice !== initialUrlState.maxPrice) {
-            changed = true
-          }
-        } else if (isMulti) {
-          const selectedValues = new URLSearchParams(window.location.search).get(paramName)?.split(',') || []
-
-          const initialValues = (initialFilters[paramName] as string[]) || []
-
-          if (initialValues.length !== selectedValues.length) {
-            changed = true
-          } else {
-            for (const value of selectedValues) {
-              if (!initialValues.includes(value)) {
-                changed = true
-                break
-              }
-            }
-          }
-        } else if (paramName === 'rooms') {
-          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-          const currentValue = selectedInput ? selectedInput.value : null
-
-          // Compare with initial URL state instead of current filter state
-          if (currentValue !== initialUrlState.rooms) {
-            changed = true
-          }
-        } else {
-          // Compare with initial URL state
-          if (initialFilters[paramName] !== initialUrlState[paramName as keyof typeof initialUrlState]) {
-            changed = true
-          }
-        }
+      const changed = Object.entries(currentValues).some(([paramName, values]) => {
+        const initial = initialValues[paramName]
+        return values.length !== initial.length || values.some((value) => !initial.includes(value))
       })
 
       // Update apply button visibility
@@ -1380,57 +1149,20 @@ const shouldDisableFilters = totalItems === 0
 
     // Set up filter listeners
     function setupFilterListeners() {
-      // Listen for filterChange events from SelectFilter component
+      // Multi filters send `checked`. Single values replace what was selected.
       window.addEventListener('filterChange', ((e: FilterChangeEvent) => {
-        const { paramName, value, checked, minValue, maxValue } = e.detail
+        const { paramName, value, checked } = e.detail
+        if (!value) return
 
-        if (paramName === 'price') {
-          // Handle price range filter
-          initialFilters.minPrice = typeof minValue === 'number' ? minValue : null
-          initialFilters.maxPrice = typeof maxValue === 'number' ? maxValue : null
-        } else if (paramName === 'amenities') {
-          // For multi-select filters, handle array management
-          if (!initialFilters[paramName]) {
-            initialFilters[paramName] = []
-          }
-
-          if (Array.isArray(initialFilters[paramName])) {
-            // For multi-select filters, we need to either add or remove the value
-            if (checked === false) {
-              // Remove value if it exists in the array
-              initialFilters[paramName] = (initialFilters[paramName] as string[]).filter((item) => item !== value)
-            } else {
-              // Add if not already present
-              if (!(initialFilters[paramName] as string[]).includes(value || '')) {
-                ;(initialFilters[paramName] as string[]).push(value || '')
-              }
-            }
-          }
-        } else {
-          initialFilters[paramName] = value || null
-        }
+        const others = (currentValues[paramName] ?? []).filter((item) => item !== value)
+        if (checked === undefined) currentValues[paramName] = [value]
+        else currentValues[paramName] = checked ? [...others, value] : others
 
         checkFiltersChanged()
       }) as EventListener)
 
-      // Listen for filterClear events from SelectFilter component
       window.addEventListener('filterClear', ((e: FilterClearEvent) => {
-        const { paramName } = e.detail
-
-        if (paramName === 'price') {
-          // Clear price range filter
-          initialFilters.minPrice = null
-          initialFilters.maxPrice = null
-        } else if (paramName === 'rooms') {
-          // Special handling for room ranges
-          initialFilters[paramName] = null
-        } else if (paramName === 'amenities') {
-          // For multi-select, set to empty array
-          initialFilters[paramName] = []
-        } else {
-          // For single-select, set to null
-          initialFilters[paramName] = null
-        }
+        currentValues[e.detail.paramName] = []
 
         checkFiltersChanged()
       }) as EventListener)
@@ -1458,76 +1190,12 @@ const shouldDisableFilters = totalItems === 0
       const params = new URLSearchParams(window.location.search)
 
       // Clear existing filter parameters (but preserve search, order, etc.)
-      ;['location', 'stars', 'amenities', 'minRooms', 'maxRooms', 'minPrice', 'maxPrice'].forEach((param) => {
-        params.delete(param)
+      FILTER_PARAMS.forEach((param) => params.delete(param))
+
+      // Comma-separated values are the URL-friendly format for multi filters
+      Object.entries(currentValues).forEach(([paramName, values]) => {
+        if (values.length > 0) params.set(paramName, values.join(','))
       })
-
-      // Collect all filter values
-      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-        const paramName = filterGroup.dataset.paramName
-        if (!paramName) return
-
-        const isMulti = filterGroup.dataset.multi === 'true'
-
-        if (paramName === 'rooms') {
-          // Handle room ranges
-          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-          if (selectedInput && wasSelected) {
-            const value = selectedInput.value
-
-            // Parse the room range value (e.g., "1-50", "51-80", "81-150", "150-")
-            const [min, max] = value.split('-')
-
-            // For 1-50 range, only use maxRooms
-            if (min === '1' && max === '50') {
-              params.append('maxRooms', max)
-            } else {
-              // For other ranges, use both min and max
-              if (min) {
-                params.append('minRooms', min)
-              }
-
-              if (max && max !== '') {
-                params.append('maxRooms', max)
-              }
-            }
-          }
-        } else if (isMulti) {
-          // Handle multi-select filters
-          const selectedValues = (initialFilters[paramName] as string[]) || []
-
-          if (selectedValues.length > 0) {
-            // Join values with commas for URL-friendly format
-            params.append(paramName, selectedValues.join(','))
-          }
-        } else {
-          // Handle single-select filters
-          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-          const minAbs = document.querySelector<HTMLElement>('.Listing')?.getAttribute('data-price-min')
-          const maxAbs = document.querySelector<HTMLElement>('.Listing')?.getAttribute('data-price-max')
-
-          if (
-            (paramName === 'minPrice' && selectedInput?.value === minAbs) ||
-            (paramName === 'maxPrice' && selectedInput?.value === maxAbs)
-          ) {
-            return
-          }
-
-          if (selectedInput && wasSelected) {
-            params.append(paramName, selectedInput.value)
-          }
-        }
-      })
-
-      // Handle price range filter
-      const minPrice = initialFilters.minPrice
-      const maxPrice = initialFilters.maxPrice
-      if (typeof minPrice === 'number' && typeof maxPrice === 'number') {
-        params.set('minPrice', minPrice.toString())
-        params.set('maxPrice', maxPrice.toString())
-      }
 
       // Build the filtered URL with filter segment (avoid double filter path, always go to page 1)
       const listingSection = document.querySelector('.Listing')
@@ -1558,59 +1226,23 @@ const shouldDisableFilters = totalItems === 0
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Initialize filters from URL parameters
-      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-        const paramName = filterGroup.dataset.paramName
-        if (!paramName) return
+      // Start from what the server rendered, because it already dropped unknown URL values
+      document.querySelectorAll<HTMLElement>('.filter-group[data-multi="true"]').forEach((filterGroup) => {
+        const inputs = filterGroup.querySelectorAll<HTMLInputElement>('input')
+        inputs.forEach((input) => {
+          input.checked = input.parentElement?.getAttribute('data-selected') === 'true'
+        })
+        const values = Array.from(inputs, (input) => (input.checked ? input.value : '')).filter(Boolean)
 
-        const isMulti = filterGroup.dataset.multi === 'true'
+        initialValues[filterGroup.dataset.paramName!] = values
+        currentValues[filterGroup.dataset.paramName!] = [...values]
+      })
 
-        if (isMulti) {
-          // Handle multi-select filters (like amenities)
-          const values = initialUrlState.amenities
-          initialFilters[paramName] = values
-
-          // Check each checkbox that matches a value in our array
-          if (values.length > 0) {
-            filterGroup.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
-              input.checked = values.includes(input.value)
-              const label = input.parentElement
-              if (label) {
-                label.setAttribute('data-selected', input.checked.toString())
-              }
-            })
-          }
-        } else if (paramName === 'rooms') {
-          // Handle room ranges
-          const roomValue = initialUrlState.rooms
-          initialFilters[paramName] = roomValue
-
-          if (roomValue) {
-            filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
-              const isMatch = input.value === roomValue
-              input.checked = isMatch
-              const label = input.parentElement
-              if (label) {
-                label.setAttribute('data-selected', isMatch.toString())
-              }
-            })
-          }
-        } else {
-          // Handle single-select filters (location and stars)
-          const value = initialUrlState[paramName as keyof typeof initialUrlState]
-          initialFilters[paramName] = value
-
-          if (value) {
-            filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
-              const isMatch = input.value === value
-              input.checked = isMatch
-              const label = input.parentElement
-              if (label) {
-                label.setAttribute('data-selected', isMatch.toString())
-              }
-            })
-          }
-        }
+      const distanceFilter = document.querySelector<HTMLElement>('.distance-filter-group')
+      ;['city', 'radius'].forEach((paramName) => {
+        const value = distanceFilter?.dataset[paramName]
+        initialValues[paramName] = value ? [value] : []
+        currentValues[paramName] = value ? [value] : []
       })
 
       // Then setup all the listeners
