@@ -326,6 +326,10 @@ const isDisabled = availableItems.length === 0 && !hasSelection
 </style>
 
 <script>
+  // Bundled here because the `?url` import in Listing.astro ships raw .ts, which browsers refuse to run.
+  // Without this script the mobile filter drawer never opens.
+  import '@/src/scripts/init-listing-filters'
+
   document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((details) => {
     const summary = details.querySelector<HTMLElement>('summary')!
     const content = details.querySelector<HTMLDivElement>('.filter-content')
