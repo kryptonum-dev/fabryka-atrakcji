@@ -1,0 +1,622 @@
+{
+  "23e0a261-1e07-467d-916f-ce33cb7d9ac1": {
+    "name": "Airport Hotel Okęcie",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Warszawa, 800 m od terminala Lotniska Chopina"
+  },
+  "b9b96763-ba60-4f9b-b4e8-ef132d4aadf9": {
+    "name": "ApartHotel Uniejów",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Uzdrowiskowy Uniejów, przy kompleksie termalnym w mieście"
+  },
+  "14ba54eb-a986-4484-b705-deffcca79a51": {
+    "name": "Arche Hotel Lotnisko Gdańsk",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Gdańsk, przy lotnisku, do morza daleko"
+  },
+  "9f570e8c-01be-4c2a-bdc8-ca2cfd6449ed": {
+    "name": "Arche Poloneza",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Warszawa, Ursynów"
+  },
+  "98b5467c-51c4-4758-9d9c-6884747bc976": {
+    "name": "Aries Hotel & Spa",
+    "surroundings": [
+      "gory",
+      "miasto"
+    ],
+    "working": true,
+    "note": "Centrum Zakopanego, 350 m od Krupówek, wyjścia w Tatry"
+  },
+  "07f9f187-c26f-4073-a0ad-79e76a784c9d": {
+    "name": "Barceló Warsaw Powiśle",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Centrum Warszawy, Powiśle"
+  },
+  "ed5f709d-a34e-4d93-9ca2-809c6b676e51": {
+    "name": "Bobrowy Dwór",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Nad rzeką Orzyc, sielski teren z dala od miasta"
+  },
+  "c07bf971-ab5d-44a2-85c3-a0ff831343ed": {
+    "name": "Cukrownia Żnin",
+    "surroundings": [
+      "nad-jeziorem-woda"
+    ],
+    "working": true,
+    "note": "Nad Jeziorem Dużym Żnińskim, plaża na terenie obiektu"
+  },
+  "bb3c9f47-89fb-4ec4-b6a8-7ba76ded23c3": {
+    "name": "Dworek Wapionka",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Między dwoma jeziorami, park krajobrazowy, izolacja obiektu"
+  },
+  "8807b95f-182a-4184-83ce-7df8ccc6fb77": {
+    "name": "Dworek nad Pilicą",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Nad Pilicą, otoczony Puszczą Pilicką"
+  },
+  "b9894643-96b4-4090-b1a4-30b82feb0353": {
+    "name": "Dwór Elizy",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Długopole-Zdrój, Sudety"
+  },
+  "d0f41dff-86b1-4e19-8153-e60d7d11a433": {
+    "name": "Folwark Łochów",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Rozległy teren w otoczeniu natury, godzina od Warszawy"
+  },
+  "66337d00-d48a-4a3d-aded-61cf7a93788d": {
+    "name": "Folwark Łękuk",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Jezioro Łękuk, otulina Puszczy Boreckiej, \"lokalizacja na uboczu\""
+  },
+  "eeb5b26d-3855-42d5-92cb-f41a1fdd007f": {
+    "name": "Forest Park Resort & Spa",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Świeradów-Zdrój, Góry Izerskie, przy gondoli"
+  },
+  "2bfbce29-e1d0-4a9c-b1e9-0a895d59d6ee": {
+    "name": "GrandHotel Tiffi",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "miasto"
+    ],
+    "working": true,
+    "note": "Iława, nad Jeziorakiem, blisko centrum i dworca"
+  },
+  "e0881ec8-a4fb-405f-a90e-8cfa53ad9ff3": {
+    "name": "Green Mountain Karpacz",
+    "surroundings": [
+      "gory",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Karpacz, otulina KPN, tarasy otoczone lasem"
+  },
+  "b246869b-99de-4e61-b990-bf2c97326002": {
+    "name": "Gwiazda Morza Resort",
+    "surroundings": [
+      "nad-morzem"
+    ],
+    "working": true,
+    "note": "Władysławowo, 100 m od plaży"
+  },
+  "c02f9411-6c5f-4a23-a72e-8394830483f9": {
+    "name": "Głęboczek Vine Resort & SPA",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Pojezierze Brodnickie, widok na jezioro, cisza i kontakt z naturą"
+  },
+  "c9c308d0-9648-48ed-b616-6128d63cb150": {
+    "name": "Herbarium Hotel & SPA",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Nad Jeziorem Chomiąskim, 6 ha parku, izolacja obiektu"
+  },
+  "f1d9849a-5dda-41e9-9195-a6d8da009c1b": {
+    "name": "Heron Live Hotel",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "gory"
+    ],
+    "working": true,
+    "note": "Nad Jeziorem Rożnowskim, lasy i wzgórza Beskidu Sądeckiego"
+  },
+  "e22de9e0-45ab-4610-9323-125c0e7b049e": {
+    "name": "Hotel Anders Stare Jabłonki",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Nad jeziorem Szeląg Mały, 11 ha parku i lasu"
+  },
+  "b27c17db-4b96-4fa4-b0db-94f4b082cedc": {
+    "name": "Hotel Astor",
+    "surroundings": [
+      "nad-morzem"
+    ],
+    "working": true,
+    "note": "Jastrzębia Góra, 100 m od plaży"
+  },
+  "a2da7847-6bd3-42b9-930c-3f0c50480918": {
+    "name": "Hotel Bajka & Resort",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Dwa akweny i sosnowy las na 28 ha prywatnego terenu"
+  },
+  "8bf787fe-3ed7-4533-b69a-c8c7d1ba2b69": {
+    "name": "Hotel Bonifacio",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Dolina Wkry, spływy rzeką, hotel otoczony lasem"
+  },
+  "71bfd0ca-e00e-4ffd-8c94-b039ca9bab4b": {
+    "name": "Hotel Boss",
+    "surroundings": [
+      "miasto",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Administracyjnie Warszawa (Wawer), las i otulina parku krajobrazowego"
+  },
+  "27de809c-83da-4ec3-a9e8-1f95b75c69e1": {
+    "name": "Hotel Czarny Groń",
+    "surroundings": [
+      "gory",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Ślepa dolina Beskidu Małego, pełne odcięcie od ruchu"
+  },
+  "3bdf62a9-b4fd-4b7e-88c5-6202ff208442": {
+    "name": "Hotel Czarny Potok Resort SPA",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Krynica-Zdrój, u podnóża Jaworzyny Krynickiej"
+  },
+  "d4aaa7ba-686c-4483-85df-cf6622f8580b": {
+    "name": "Hotel Dosłońce",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Wyżyna Miechowska, sielskie pola, z dala od miasta"
+  },
+  "f0cdf1ff-794e-4085-9786-c68f677df4a2": {
+    "name": "Hotel Green Garden",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Falenty, przy rezerwacie Stawy Raszyńskie, ogród"
+  },
+  "4b1a8a01-c3e1-45a6-acdf-1311218ba978": {
+    "name": "Hotel Grzegorzewski",
+    "surroundings": [
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Tuszyn, w bezpośrednim sąsiedztwie Lasu Tuszyńskiego"
+  },
+  "27210c0a-d860-4976-8fbf-85dbb6e5c805": {
+    "name": "Hotel Kawallo",
+    "surroundings": [
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Leonów, \"w sercu mazowieckiego lasu\""
+  },
+  "ba6f79aa-9903-48a7-8a16-ddb273e70a5f": {
+    "name": "Hotel Kiston",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Kaszuby, otoczenie lasów i jezior"
+  },
+  "d6949f2b-d287-435a-9485-1bc10f59f5db": {
+    "name": "Hotel Kossak",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Ścisłe centrum Krakowa, Wisła tylko jako widok"
+  },
+  "b6dcac95-f81e-443b-9b6d-fca1e7cd5ed8": {
+    "name": "Hotel Magellan",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Nad Zalewem Sulejowskim, lasy parku krajobrazowego"
+  },
+  "21039fb5-b930-4d64-b660-c55bd1f9f313": {
+    "name": "Hotel Marina Club",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Półwysep na Jeziorze Wulpińskim, otoczenie lasu i wody"
+  },
+  "17b083bb-b0af-4b64-9810-0441e379a020": {
+    "name": "Hotel Mercure Wiązowna Brant",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Otulina Mazowieckiego PK, 5 ha terenu ze starodrzewem"
+  },
+  "1c6afb8b-53d6-4a77-8fc2-9e68d07db831": {
+    "name": "Hotel Moran SPA",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Cypel na Jeziorze Powidzkim, woda i las z trzech stron"
+  },
+  "c4d2bbf4-0d5b-4a4f-8a47-69f76dbc81b1": {
+    "name": "Hotel Narvil Conference & Spa",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Nad Narwią, otoczony lasami"
+  },
+  "8a941c40-9b62-409b-9ada-9c2ad92ac3ea": {
+    "name": "Hotel Natura Mazur Resort",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Nad Jeziorem Świętajno, mazurskie lasy"
+  },
+  "ca71c44c-1f16-479a-af6d-a1ef15867cdc": {
+    "name": "Hotel Nowodwory",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Nad rzeką Nurzec, cisza, cztery hektary zieleni"
+  },
+  "de189123-e447-4b49-9f65-e6f4a02394bc": {
+    "name": "Hotel Remes Sport & Spa",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Hektary terenu wokół hotelu, alternatywa dla hoteli miejskich"
+  },
+  "6847adf6-eb54-457a-8243-85c54b22997c": {
+    "name": "Hotel Sielanka nad Pilicą",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Dolina Pilicy, ponad 100 ha terenu blisko natury"
+  },
+  "1c4b429d-651c-4d70-8391-dcc3dc28b0b9": {
+    "name": "Hotel St. Bruno",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "miasto"
+    ],
+    "working": true,
+    "note": "Giżycko, nad Kanałem Łuczańskim, port żeglugi i twierdza obok"
+  },
+  "0f6aee0c-5132-47ab-9c3c-a7f8feb95d03": {
+    "name": "Hotel Stok",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Wisła, Beskid Śląski, własna stacja narciarska"
+  },
+  "acaa844c-e1d6-4f17-8568-b617c8567be1": {
+    "name": "Hotel Villa Verde Congress & Spa",
+    "surroundings": [
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Zawiercie, otaczające lasy Jury. Jura to nie góry, więc bez Góry"
+  },
+  "385adb40-755a-4f33-b908-eae0d519bc7c": {
+    "name": "Hotel Windsor",
+    "surroundings": [
+      "nad-jeziorem-woda"
+    ],
+    "working": true,
+    "note": "Jachranka, bezpośrednio nad Zalewem Zegrzyńskim"
+  },
+  "0dd3d8c8-c9ea-4b7a-9c96-57b24fbd5512": {
+    "name": "Hotel Żubrówka",
+    "surroundings": [
+      "las-puszcza",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Sąsiedztwo Białowieskiego PN, Puszcza Białowieska, z dala od miast"
+  },
+  "66be0b9b-fb3f-4195-b875-025601fb49bf": {
+    "name": "Kocierz Resort Hotel & SPA",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Przełęcz Kocierska, 750 m n.p.m., Beskid Mały"
+  },
+  "7eb9bf56-429c-45b4-9635-c36541a9f502": {
+    "name": "Król Kazimierz Hotel & SPA",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "miasto"
+    ],
+    "working": true,
+    "note": "Kazimierz Dolny, przy zakolu Wisły"
+  },
+  "6ea1ecf7-a104-4ba7-988e-ae2addee1dd7": {
+    "name": "Lake Hill Resort & SPA",
+    "surroundings": [
+      "gory",
+      "nad-jeziorem-woda"
+    ],
+    "working": true,
+    "note": "Karkonosze, nad Zalewem Sosnówka"
+  },
+  "32e339f3-b43f-4b8a-963d-2f6c677bd9f2": {
+    "name": "Lemon Resort Spa",
+    "surroundings": [
+      "nad-jeziorem-woda"
+    ],
+    "working": true,
+    "note": "Bezpośrednio nad Jeziorem Rożnowskim, marina"
+  },
+  "1d7e95db-947b-46bf-a84f-b2e5d49829f7": {
+    "name": "Meta Resort & Vine SPA",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Szczyrk, przy wyciągu na Skrzyczne"
+  },
+  "e708939b-bb93-4daa-bb21-545f410549fc": {
+    "name": "Natura Residence Bussiness & SPA",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Siewierz, sosnowy las nad brzegiem zalewu"
+  },
+  "1544b53a-f12f-4b04-b33a-5c6c97f35075": {
+    "name": "Novotel Gdańsk Marina",
+    "surroundings": [
+      "nad-morzem",
+      "miasto"
+    ],
+    "working": true,
+    "note": "Gdańsk Jelitkowo, kilkadziesiąt metrów od plaży"
+  },
+  "1fc4759a-3023-4cc1-9fe2-09e364e440c7": {
+    "name": "Novotel Kraków Centrum",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Centrum Krakowa, Wisła tylko jako widok"
+  },
+  "78201af6-f0f0-4b2d-bf97-8f93b7ac498a": {
+    "name": "Odpocznia Resort & Las",
+    "surroundings": [
+      "las-puszcza",
+      "nad-jeziorem-woda"
+    ],
+    "working": true,
+    "note": "42 ha prywatnego lasu, własny staw z plażą i molo"
+  },
+  "19cee02a-bf87-4ac9-86d1-058cb42058f4": {
+    "name": "Pałac Alexandrinum",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "13 ha zabytkowego parku pod Warszawą"
+  },
+  "92cd873e-dc1c-41ce-9b8c-8128a85c2d21": {
+    "name": "Pałac Mała Wieś",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "30 ha ogrodów i parku pod Warszawą"
+  },
+  "b5f07f1d-e8bb-47ba-858b-add988747595": {
+    "name": "Pałac Mierzęcin",
+    "surroundings": [
+      "natura-na-uboczu",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Ponad 200 ha parku, lasów i terenów nad strugą"
+  },
+  "127d361e-5773-4039-a0c0-d6b89dbb02cb": {
+    "name": "Pałac Poledno",
+    "surroundings": [
+      "nad-jeziorem-woda"
+    ],
+    "working": true,
+    "note": "Park pałacowy nad jeziorem"
+  },
+  "2a50e8d2-d92f-4062-840d-a3df275a9760": {
+    "name": "Pałac Żelechów SPA & Wellness",
+    "surroundings": [
+      "miasto"
+    ],
+    "working": true,
+    "note": "Pałac w Żelechowie, adres w mieście. Tekst nie opisuje otoczenia, do sprawdzenia"
+  },
+  "ee8e60eb-f001-4d02-a92d-406ba3da1fd2": {
+    "name": "Pensjonat Jurkowski",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Ochotnica Dolna, serce Gorców"
+  },
+  "88c95c13-7253-4750-9357-e2b65b717d19": {
+    "name": "Perła Beskidu",
+    "surroundings": [
+      "gory"
+    ],
+    "working": true,
+    "note": "Ustroń-Jaszowiec, zbocze Równicy"
+  },
+  "8abcb55b-4bc6-45ba-a68f-7b308b8cc861": {
+    "name": "Rancho Pod Bocianem",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Otulina Chojnowskiego PK, klimat wsi, 20 ha terenu"
+  },
+  "e020378b-9d82-4f74-a4b2-009679c00faf": {
+    "name": "Ruciane Park",
+    "surroundings": [
+      "nad-jeziorem-woda",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Domki nad jeziorem w Ruciane-Nida, mazurska natura"
+  },
+  "5d878159-12e0-466f-954d-68899be67164": {
+    "name": "Saltic Resort & SPA Grzybowo",
+    "surroundings": [
+      "nad-morzem",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Grzybowo, skraj sosnowego lasu, 3 minuty do plaży"
+  },
+  "3ce51780-e92e-4274-862d-699a8f11aaf5": {
+    "name": "Santa Natura Resort & SPA",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "6 ha łąk i stawów, formuła slow life"
+  },
+  "aa313d93-77e5-44ba-a798-cf646f72e697": {
+    "name": "Shellter Resort",
+    "surroundings": [
+      "nad-morzem",
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Rogowo, mierzeja, sosnowy las Natura 2000, zejście na plażę"
+  },
+  "2bad4836-e9c8-4835-874b-5434e4d6f4be": {
+    "name": "Skansen Bicz",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "15 ha zieleni, odpoczynek od miejskiego zgiełku"
+  },
+  "793b8db3-223e-47ac-8df2-a7fdd0faba2b": {
+    "name": "Szumy Park",
+    "surroundings": [
+      "las-puszcza",
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Roztocze, lasy Puszczy Solskiej, pełna izolacja"
+  },
+  "1d6bc0d3-c11f-4899-91d1-95f8876ce60c": {
+    "name": "Z-Hotel Business & SPA",
+    "surroundings": [
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Otwock, sosnowe bory przy rzece Świder, sale z widokiem na las"
+  },
+  "0bc114e3-5a2a-41ce-b2b4-e138898d6743": {
+    "name": "Zamek Janów Podlaski",
+    "surroundings": [
+      "natura-na-uboczu"
+    ],
+    "working": true,
+    "note": "Nadbużańskie tereny zielone, ponad 40 ha"
+  },
+  "9e4147f4-e872-4262-a60b-8f9721348225": {
+    "name": "Zamek Kliczków",
+    "surroundings": [
+      "las-puszcza"
+    ],
+    "working": true,
+    "note": "Serce Borów Dolnośląskich"
+  }
+}

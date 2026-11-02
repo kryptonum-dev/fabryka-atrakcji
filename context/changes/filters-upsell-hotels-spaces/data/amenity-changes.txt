@@ -1,0 +1,128 @@
+[migrate-amenities] mode=apply project=fn3a7ltg dataset=production
+- create EN amenity filters-amenity-spa-wellness-en "SPA / Wellness"
+- create EN amenity filters-amenity-exclusive-use-en "Exclusive use"
+- rename 41db0a59-0b83-405e-b8e7-c6ccd2f29243 "Outdoor pool" -> "Outdoor team-building area"
+- rename 52ba31b5-75a9-406c-b218-db16170ccf70 "Private beach" -> "By the lake / beach"
+- [en] Mierzęcin Palace: -◉  Basen, -⚽ Zaplecze sportowe, -Spa +Swimming pool, +Sports fields, +SPA / Wellness
+- [pl] Zamek Janów Podlaski: -Spa +♨  SPA / Wellness
+- [en] Kliczków Castle: -◉  Basen, -P  Parking / autokar, -Spa +Swimming pool, +Parking, +SPA / Wellness
+- [en] Poledno Palace: -Spa, -🔥 Grill / ognisko / wiata, -◉  Basen +SPA / Wellness, +Grill, +Swimming pool
+- [pl] Hotel Stok: -Spa +♨  SPA / Wellness
+- [en] Czarny Potok Resort & Spa Hotel: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [pl] Pałac Poledno: -Spa +♨  SPA / Wellness
+- [pl] Arche Hotel Lotnisko Gdańsk: -Spa +♨  SPA / Wellness
+- [pl] Novotel Gdańsk Marina: -Spa +♨  SPA / Wellness
+- [pl] Hotel Mercure Wiązowna Brant: -Spa +♨  SPA / Wellness
+- [pl] Hotel St. Bruno: -Spa, -Dostęp do jeziora +♨  SPA / Wellness, +≋  Nad jeziorem / plaża
+- [pl] Hotel Moran SPA: -Spa +♨  SPA / Wellness
+- [en] Kossak Hotel: -Spa +SPA / Wellness
+- [en] Łękuk Farm: -⚽ Zaplecze sportowe, -Spa +Sports fields, +SPA / Wellness
+- [pl] Meta Resort & Vine SPA: -Spa +♨  SPA / Wellness
+- [pl] Novotel Kraków Centrum: -Spa +♨  SPA / Wellness
+- [pl] Hotel Marina Club: -Spa +♨  SPA / Wellness
+- [en] Hotel Sielanka by the Pilica: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata, -⚽ Zaplecze sportowe +Swimming pool, +SPA / Wellness, +Grill, +Sports fields
+- [pl] Hotel Kawallo: -Spa +♨  SPA / Wellness
+- [pl] Hotel Czarny Groń: -Spa, -Dostęp do jeziora +♨  SPA / Wellness, +≋  Nad jeziorem / plaża
+- [en] Zamek Janów Podlaski: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata, -⚽ Zaplecze sportowe +Swimming pool, +SPA / Wellness, +Grill, +Sports fields
+- [en] Natura Residence Bussiness & SPA: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [en] Hotel Villa Verde Congress & Spa: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [pl] Pałac Żelechów SPA & Wellness: -♧  Teren na integrację outdoor +
+- [pl] GrandHotel Tiffi: -Spa, -Dostęp do jeziora +♨  SPA / Wellness, +≋  Nad jeziorem / plaża
+- [pl] Lemon Resort Spa: -Spa +♨  SPA / Wellness
+- [en] Pałac Żelechów SPA & Wellness: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [pl] Hotel Windsor: -Spa, -Dostęp do jeziora +♨  SPA / Wellness, +≋  Nad jeziorem / plaża
+- [en] Lemon Resort Spa: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [pl] Hotel Czarny Potok Resort SPA: -Spa +♨  SPA / Wellness
+- [en] Hotel Arche Poloneza: -P  Parking / autokar +Parking
+- [en] Głęboczek Vine Resort & SPA: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata, -Dostęp do jeziora +Swimming pool, +SPA / Wellness, +Grill, +Private beach
+- [en] PAŁAC ALEXANDRINUM: -◉  Basen +Swimming pool
+- [en] Novotel Gdańsk Marina: -P  Parking / autokar, -◉  Basen, -Spa +Parking, +Swimming pool, +SPA / Wellness
+- [en] Pałac Mała Wieś: -Spa +SPA / Wellness
+- [pl] Hotel Grzegorzewski: -♧  Teren na integrację outdoor +◉  Basen
+- [en] Arche Cukrownia Żnin: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [en] Skansen Bicz Family & SPA: -🔥 Grill / ognisko / wiata +Grill
+- [en] Hotel Grzegorzewski: -🔥 Grill / ognisko / wiata, -♪  Klub / wieczorna strefa rozrywki +Grill, +Night club
+- [pl] Saltic Resort & SPA Grzybowo: -Spa +♨  SPA / Wellness
+- [en] Rancho Pod Bocianem: -Spa, -🔥 Grill / ognisko / wiata, -P  Parking / autokar +SPA / Wellness, +Grill, +Parking
+- [pl] Folwark Łękuk: -Spa +♨  SPA / Wellness
+- [pl] Kocierz Resort Hotel & SPA: -Spa +♨  SPA / Wellness
+- [pl] Hotel Sielanka nad Pilicą: -Spa +♨  SPA / Wellness
+- [en] Arche Hotel Gdańsk Airport: -P  Parking / autokar, -◉  Basen, -Spa +Parking, +Swimming pool, +SPA / Wellness
+- [en] Hotel Kiston: -◉  Basen, -♪  Klub / wieczorna strefa rozrywki, -Spa +Swimming pool, +Night club, +SPA / Wellness
+- [pl] Lake Hill Resort & SPA: -Spa +♨  SPA / Wellness
+- [en] Hotel Moran SPA: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [en] Hotel Kawallo: -◉  Basen, -♪  Klub / wieczorna strefa rozrywki, -Spa, -⚽ Zaplecze sportowe, -P  Parking / autokar +Swimming pool, +Night club, +SPA / Wellness, +Sports fields, +Parking
+- [en] Green Mountain Karpacz: -◉  Basen, -⚽ Zaplecze sportowe, -Spa +Swimming pool, +Sports fields, +SPA / Wellness
+- [en] Folwark Łochow: -◉  Basen, -⚽ Zaplecze sportowe +Swimming pool, +Sports fields
+- [pl] Szumy Park: -Spa +♨  SPA / Wellness
+- [pl] Król Kazimierz Hotel & SPA: -Spa +♨  SPA / Wellness
+- [en] Barceló Warsaw Powiśle: -P  Parking / autokar +Parking
+- [en] Hotel Bobrowy Dwór: -Dostęp do jeziora, -🔥 Grill / ognisko / wiata +Private beach, +Grill
+- [en] Hotel Stok: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [en] Novotel Kraków Centrum: -P  Parking / autokar, -◉  Basen, -Spa +Parking, +Swimming pool, +SPA / Wellness
+- [en] Hotel Bonifacio: -P  Parking / autokar, -◉  Basen, -♧  Teren na integrację outdoor, -🔥 Grill / ognisko / wiata, -Spa, -⚽ Zaplecze sportowe +Parking, +Swimming pool, +Grill, +SPA / Wellness, +Sports fields
+- [en] Lake Hill Resort & SPA: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [pl] Hotel Natura Mazur Resort: -Spa +♨  SPA / Wellness
+- [pl] Rancho Pod Bocianem: -♧  Teren na integrację outdoor +◉  Basen
+- [pl] Hotel Bonifacio: -♧  Teren na integrację outdoor, -Spa +♨  SPA / Wellness
+- [pl] Pałac Mała Wieś: -Spa +♨  SPA / Wellness
+- [en] Hotel Żubrówka: -Spa +SPA / Wellness
+- [en] Heron Live Hotel: -P  Parking / autokar, -◉  Basen, -🔥 Grill / ognisko / wiata, -Spa +Parking, +Swimming pool, +Grill, +SPA / Wellness
+- [pl] Aries Hotel & Spa: -Spa +♨  SPA / Wellness
+- [pl] Zamek Kliczków: -Spa +♨  SPA / Wellness
+- [pl] Hotel Bajka & Resort: -♧  Teren na integrację outdoor, -Dostęp do jeziora +◉  Basen
+- [en] ApartHotel Uniejów: -◉  Basen +Swimming pool
+- [en] Hotel Natura Mazur Resort: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata, -⚽ Zaplecze sportowe +Swimming pool, +SPA / Wellness, +Grill, +Sports fields
+- [pl] Shellter Resort: -Spa +♨  SPA / Wellness
+- [pl] Hotel Villa Verde Congress & Spa: -Spa +♨  SPA / Wellness
+- [en] Hotel Green Garden: -P  Parking / autokar, -🔥 Grill / ognisko / wiata +Parking, +Grill
+- [en] Santa Natura Resort & SPA: -Spa +SPA / Wellness
+- [en] Forest Park Resort & Spa: -Outdoor pool +
+- [pl] Gwiazda Morza Resort: -Spa +♨  SPA / Wellness
+- [pl] Pałac Mierzęcin: -Spa +♨  SPA / Wellness
+- [pl] Dwór Elizy: -Spa +♨  SPA / Wellness
+- [pl] Hotel Kiston: -Spa +♨  SPA / Wellness
+- [pl] Dworek Wapionka: -Dostęp do jeziora +≋  Nad jeziorem / plaża
+- [en] Hotel Windsor: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata, -Dostęp do jeziora +Swimming pool, +SPA / Wellness, +Grill, +Private beach
+- [en] Airport Hotel Okęcie: -♪  Klub / wieczorna strefa rozrywki, -P  Parking / autokar +Night club, +Parking
+- [pl] Głęboczek Vine Resort & SPA: -Spa, -Dostęp do jeziora +♨  SPA / Wellness, +≋  Nad jeziorem / plaża
+- [pl] Cukrownia Żnin: -Spa +♨  SPA / Wellness
+- [pl] Hotel Narvil Conference & Spa: -Spa +♨  SPA / Wellness
+- [pl] Herbarium Hotel & SPA: -Spa +♨  SPA / Wellness
+- [pl] Hotel Nowodwory: -Spa +♨  SPA / Wellness
+- [en] Hotel Anders Stare Jabłonki: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [en] Hotel Bajka & Resort: -Outdoor pool, -Lake access +Swimming pool
+- [pl] Folwark Łochów: -Spa +♨  SPA / Wellness
+- [en] Hotel Astor: -◉  Basen, -♪  Klub / wieczorna strefa rozrywki, -⚽ Zaplecze sportowe +Swimming pool, +Night club, +Sports fields
+- [en] Głęboczek Vine Resort & SPA: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata, -Dostęp do jeziora +Swimming pool, +SPA / Wellness, +Grill, +Private beach
+- [en] Hotel Narvil Conference & Spa: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [pl] Hotel Remes Sport & Spa: -Spa +♨  SPA / Wellness
+- [pl] Ruciane Park: -Spa +♨  SPA / Wellness
+- [pl] Green Mountain Karpacz: -Spa +♨  SPA / Wellness
+- [en] Kocierz Resort Hotel & SPA: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- [pl] Hotel Anders Stare Jabłonki: -Spa +♨  SPA / Wellness
+- [pl] Natura Residence Bussiness & SPA: -Spa +♨  SPA / Wellness
+- [pl] Bobrowy Dwór: -Dostęp do jeziora +≋  Nad jeziorem / plaża
+- [pl] Forest Park Resort & Spa: -Spa +♨  SPA / Wellness
+- [pl] Heron Live Hotel: -♧  Teren na integrację outdoor +
+- [en] Wapionka Manor: -Dostęp do jeziora, -P  Parking / autokar, -⚽ Zaplecze sportowe, -🔥 Grill / ognisko / wiata +Private beach, +Parking, +Sports fields, +Grill
+- [en] Hotel Mercure Wiązowna Brant: -Spa, -🔥 Grill / ognisko / wiata +SPA / Wellness, +Grill
+- [en] Gwiazda Morza Resort: -◉  Basen, -Spa, -🔥 Grill / ognisko / wiata +Swimming pool, +SPA / Wellness, +Grill
+- capacity Folwark Łochów (EN): overnight 309 -> 1077, conference 600 -> 800
+- capacity Hotel Villa Verde Congress & Spa (EN): conference 600 -> 500, banquet 500 -> 350
+- capacity Hotel Kossak (EN): conference 160 -> 170
+- capacity Gwiazda Morza Resort (EN): overnight 400 -> 380
+- capacity Hotel Astor (EN): overnight 230 -> 229, conference 900 -> 1000
+- capacity Hotel Stok (EN): banquet 320 -> 220
+- capacity Hotel Mercure Wiązowna Brant (EN): overnight 120 -> 150
+[migrate-amenities] applied changes=116
+
+# Second run: stale drafts
+[migrate-amenities] mode=apply project=fn3a7ltg dataset=production
+- [en] Pałac Alexandrinum: -◉  Basen +Swimming pool
+- [en] Novotel Gdańsk Marina: -P  Parking / autokar, -◉  Basen, -Spa +Parking, +Swimming pool, +SPA / Wellness
+- [en] Novotel Gdańsk Marina: -P  Parking / autokar, -◉  Basen, -Spa +Parking, +Swimming pool, +SPA / Wellness
+- [en] Santa Natura Resort & SPA: -Spa +SPA / Wellness
+- [en] Hotel Mercure Wiązowna Brant: -Spa, -🔥 Grill / ognisko / wiata +SPA / Wellness, +Grill
+- capacity Hotel Mercure Wiązowna Brant (EN): overnight 120 -> 150
+[migrate-amenities] applied changes=6

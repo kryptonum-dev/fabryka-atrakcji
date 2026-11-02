@@ -1,0 +1,360 @@
+{
+  "fe7edc37-10c6-4a63-ab24-3d96034c30eb": {
+    "name": "Akademia Kulinarna GoCook",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 200
+      },
+      {
+        "spaceType": "plener",
+        "maxPeople": 100,
+        "working": true,
+        "source": "50% of first capacity",
+        "note": "Taras i ogród 600 m², tekst nie podaje liczby osób"
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "warsztaty"
+    ],
+    "characters": [
+      "nowoczesna-designerska"
+    ],
+    "facilities": [
+      "mozliwosc-wylacznosci",
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "a595d984-dc1d-4abb-ba95-e90dccb5d0dd": {
+    "name": "Art Bistro Stalowa52",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 100
+      },
+      {
+        "spaceType": "plener",
+        "maxPeople": 50,
+        "working": true,
+        "source": "50% of first capacity",
+        "note": "Przeszklone patio i dziedziniec, tekst nie podaje liczby osób"
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "warsztaty"
+    ],
+    "characters": [
+      "industrialna-loftowa",
+      "zabytkowa-historyczna"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "f65631bc-bbe9-47a9-9dcc-a463dde991db": {
+    "name": "BezSłowa",
+    "capacities": [
+      {
+        "spaceType": "plener",
+        "maxPeople": 1000
+      },
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 130,
+        "working": true,
+        "source": "text",
+        "note": "Tekst: sala wewnątrz (Stodoła) do 90 osób zasiadanych lub do 130 koktajlowo. Łukasz pisał o małym wnętrzu. Plener: pole maxPeople ma 1000, a tekst mówi o 500-600 osobach, do potwierdzenia"
+      }
+    ],
+    "eventTypes": [
+      "integracja-impreza-firmowa",
+      "warsztaty"
+    ],
+    "characters": [
+      "naturalna-rustykalna"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "ee5db1af-d820-4ac4-9087-4135df3f195d": {
+    "name": "Food Hall Browary Warszawskie",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 250
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "premiera-pokaz-event-promocyjny"
+    ],
+    "characters": [
+      "industrialna-loftowa",
+      "zabytkowa-historyczna"
+    ],
+    "facilities": [
+      "mozliwosc-wylacznosci",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "48c538d5-ec0f-400b-8da1-51cadedddcb3": {
+    "name": "Foodie City Warsaw",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 200
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "warsztaty"
+    ],
+    "characters": [
+      "nowoczesna-designerska"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "2280230f-f484-4c49-83ec-7dbcb7951946": {
+    "name": "Kwadrat Praski",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 150
+      },
+      {
+        "spaceType": "plener",
+        "maxPeople": 80,
+        "working": true,
+        "source": "50% of first capacity",
+        "note": "Ogródek i patio, tekst nie podaje liczby osób"
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "warsztaty",
+      "premiera-pokaz-event-promocyjny"
+    ],
+    "characters": [
+      "industrialna-loftowa"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "0a8d02ce-168d-43cc-a75f-eb344d752946": {
+    "name": "Miejsce - przestrzeń eventowa nad Wisłą",
+    "capacities": [
+      {
+        "spaceType": "plener",
+        "maxPeople": 300
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "warsztaty"
+    ],
+    "characters": [
+      "industrialna-loftowa"
+    ],
+    "facilities": [],
+    "working": true
+  },
+  "ee93017d-26f4-4359-bb42-f18204fca29c": {
+    "name": "Piękno",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 120
+      },
+      {
+        "spaceType": "plener",
+        "maxPeople": 60,
+        "working": true,
+        "source": "50% of first capacity",
+        "note": "Wewnętrzne patio i dziedziniec, tekst nie podaje liczby osób"
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "premiera-pokaz-event-promocyjny"
+    ],
+    "characters": [
+      "industrialna-loftowa",
+      "zabytkowa-historyczna",
+      "nowoczesna-designerska"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "493bc94b-f429-4d7b-9454-e67759f2e3dd": {
+    "name": "Reduta Banku Polskiego",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 400
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "premiera-pokaz-event-promocyjny"
+    ],
+    "characters": [
+      "elegancka-reprezentacyjna",
+      "zabytkowa-historyczna"
+    ],
+    "facilities": [
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "f649d3c2-7a39-49bb-9712-7ef640803570": {
+    "name": "Restauracja \"Na Cyplu\"",
+    "capacities": [
+      {
+        "spaceType": "plener",
+        "maxPeople": 80
+      },
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 150,
+        "working": true,
+        "source": "text",
+        "note": "Tekst: sala 131 m² mieści 100 osób kinowo, 80 przy bankiecie zasiadanym, 150 koktajlowo"
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa"
+    ],
+    "characters": [
+      "naturalna-rustykalna"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "011d59c1-0727-4c3d-8ddb-a352c4ed30df": {
+    "name": "Samo Centrum Wszechświata",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 300
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "warsztaty",
+      "premiera-pokaz-event-promocyjny"
+    ],
+    "characters": [
+      "industrialna-loftowa",
+      "nowoczesna-designerska"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "c904f1bc-d1bb-4396-bf0c-7ef50db754fd": {
+    "name": "Stodoła Rasztów",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 250
+      },
+      {
+        "spaceType": "plener",
+        "maxPeople": 130,
+        "working": true,
+        "source": "50% of first capacity",
+        "note": "Ponad 2 ha terenu zielonego, tekst nie podaje liczby osób"
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "warsztaty"
+    ],
+    "characters": [
+      "industrialna-loftowa",
+      "naturalna-rustykalna"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  },
+  "15c98b7c-dd25-4526-a711-b239c1cc95c9": {
+    "name": "Waldorffa 25",
+    "capacities": [
+      {
+        "spaceType": "wnetrze",
+        "maxPeople": 400
+      },
+      {
+        "spaceType": "plener",
+        "maxPeople": 200,
+        "working": true,
+        "source": "50% of first capacity",
+        "note": "Ogród 3000 m², tekst nie podaje liczby osób. Wnętrze: tekst mówi do 1000 osób stojąco, pole maxPeople ma 400"
+      }
+    ],
+    "eventTypes": [
+      "konferencja-szkolenie",
+      "gala-bankiet-wigilia",
+      "integracja-impreza-firmowa",
+      "premiera-pokaz-event-promocyjny"
+    ],
+    "characters": [
+      "industrialna-loftowa",
+      "zabytkowa-historyczna"
+    ],
+    "facilities": [
+      "zaplecze-techniczne",
+      "zaplecze-kuchenne-kulinarne"
+    ],
+    "working": true
+  }
+}
