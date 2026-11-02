@@ -45,6 +45,7 @@ export type SingleEventSpaceProps = {
   }
   areaM2: number
   maxPeople: number
+  spaceTypes?: string[] | null
   isIndoor: 'indoor' | 'outdoor'
   address: {
     street: string
@@ -141,7 +142,8 @@ export async function fetchData(slug: string, lang: Language) {
           name
         },
         areaM2,
-        maxPeople,
+        "maxPeople": coalesce(math::max(capacities[].maxPeople), maxPeople),
+        "spaceTypes": capacities[].spaceType->name,
         "isIndoor": coalesce(isIndoor, "indoor"),
         address,
         googleMaps{

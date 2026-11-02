@@ -315,6 +315,63 @@ check_filter_markup_present() {
   pass "$url renders: $*"
 }
 
+# Every result of the first URL must also be a result of the second.
+check_results_included() {
+  local narrow="$1" wide="$2"
+  local narrow_ids missing
+
+  fetch_url "$narrow"
+  narrow_ids="$(result_ids "$BODY" | sort)"
+  fetch_url "$wide"
+  missing="$(printf '%s\n' "$narrow_ids" | comm -23 - <(result_ids "$BODY" | sort))"
+
+  if [ -z "$narrow_ids" ]; then
+    fail "$narrow has no result cards"
+  elif [ -n "$missing" ]; then
+    fail "$wide is missing results of $narrow: $missing"
+  else
+    pass "$wide includes all $(printf '%s\n' "$narrow_ids" | wc -l | tr -d ' ') results of $narrow"
+  fi
+}
+
+# Options of an AND filter narrow: both selected give no more than either alone.
+check_all_selected_narrows() {
+  local path="$1" name="$2" first="$3" second="$4"
+  local first_found second_found
+
+  check_found_status "$path?$name=$first" || return
+  first_found="$FOUND"
+  check_found_status "$path?$name=$second" || return
+  second_found="$FOUND"
+  check_found_status "$path?$name=$first,$second" || return
+
+  if [ "$FOUND" -gt 0 ] && [ "$FOUND" -le "$first_found" ] && [ "$FOUND" -le "$second_found" ]; then
+    pass "$path: $name $first gives $first_found, $second gives $second_found, both give $FOUND"
+  else
+    fail "$path: $name $first gives $first_found, $second gives $second_found, both give $FOUND"
+  fi
+}
+
+check_different_order() {
+  local first="$1" second="$2"
+  local first_ids second_ids
+
+  fetch_url "$first"
+  first_ids="$(result_ids "$BODY")"
+  fetch_url "$second"
+  second_ids="$(result_ids "$BODY")"
+
+  if [ -z "$first_ids" ]; then
+    fail "$first has no result cards"
+  elif [ "$first_ids" = "$second_ids" ]; then
+    fail "$first and $second give the same order"
+  elif [ "$(printf '%s\n' "$first_ids" | sort)" != "$(printf '%s\n' "$second_ids" | sort)" ]; then
+    fail "$first and $second give different results, not only a different order"
+  else
+    pass "$first and $second give the same results in a different order"
+  fi
+}
+
 check_response_time() {
   local url="$1" limit="$2"
 
@@ -336,7 +393,7 @@ summary() {
 echo '== Filter routes =='
 check_route_pair /pl/hotele/filtr/ overnight=101-200 overnight=501-
 check_route_pair /en/hotels/filter/ stars=5 stars=3
-check_route_pair /pl/przestrzenie-eventowe/filtr/ search=Kwadrat search=Reduta
+check_route_pair /pl/przestrzenie-eventowe/filtr/ spaceType=mixed spaceType=plener
 check_route_pair /en/event-spaces/filter/ search=Bez search=Waldorffa
 check_route_pair /pl/integracje/filtr/ search=kajaki search=gotowanie
 check_route_pair /en/activities/filter/ search=kayaking search=cooking
@@ -362,7 +419,7 @@ check_static_asset
 echo '== Canonicals =='
 check_canonical '/pl/hotele/filtr/?overnight=501-' /pl/hotele/
 check_canonical '/en/hotels/filter/?stars=5' /en/hotels/
-check_canonical '/pl/przestrzenie-eventowe/filtr/?search=Kwadrat' /pl/przestrzenie-eventowe/
+check_canonical '/pl/przestrzenie-eventowe/filtr/?spaceType=mixed' /pl/przestrzenie-eventowe/
 check_canonical '/en/event-spaces/filter/?search=Bez' /en/event-spaces/
 check_canonical '/pl/integracje/filtr/?search=kajaki' /pl/integracje/
 check_canonical '/en/activities/filter/?search=kayaking' /en/activities/
@@ -391,5 +448,14 @@ check_fewer_results '/pl/hotele/filtr/?city=warszawa&radius=25' '/pl/hotele/filt
 check_filter_markup_absent /pl/hotele/ rooms price minRooms minPrice
 check_filter_markup_present /pl/hotele/ location overnight conference banquet stars amenities surroundings
 check_response_time '/pl/hotele/filtr/?city=warszawa&radius=150' 1.74
+
+# Phase 7: event spaces listing
+echo '== Event space filters =='
+check_fewer_results '/pl/przestrzenie-eventowe/filtr/?spaceType=mixed' /pl/przestrzenie-eventowe/
+check_results_included '/pl/przestrzenie-eventowe/filtr/?spaceType=mixed' '/pl/przestrzenie-eventowe/filtr/?spaceType=plener'
+check_all_selected_narrows /pl/przestrzenie-eventowe/filtr/ facilities mozliwosc-wylacznosci zaplecze-techniczne
+check_filter_markup_absent /pl/przestrzenie-eventowe/ features area capacity minArea minCapacity location
+check_filter_markup_present /pl/przestrzenie-eventowe/ spaceType capacity_wnetrze capacity_plener eventType character facilities
+check_different_order /pl/przestrzenie-eventowe/ '/pl/przestrzenie-eventowe/strona/1/filtr/?order=newest'
 
 summary

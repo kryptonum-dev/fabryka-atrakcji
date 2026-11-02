@@ -17,8 +17,11 @@ export const EventSpaceCardQuery = `
   },
   address,
   areaM2,
-  maxPeople,
-  pricing
+  "maxPeople": coalesce(math::max(capacities[].maxPeople), maxPeople),
+  pricing,
+  popularityIndex,
+  publishedDate,
+  _createdAt
 `
 
 export type EventSpaceCardProps = {

@@ -6,11 +6,19 @@ import Breadcrumbs from '@/src/layouts/Breadcrumbs.astro'
 import { PortableTextQuery, type PortableTextValue } from '@/src/components/ui/portable-text'
 import Components, { Components_Query, type ComponentsProps } from '@/src/components/Components.astro'
 import { getLangFromPath, type Language } from '@/global/languages'
-import Listing, { Listing_Query, type ListingProps } from '@/src/components/event-spaces/Listing.astro'
+import Listing, {
+  Facets_Query,
+  Listing_Query,
+  type ListingProps,
+  type SpaceFilterOptions,
+} from '@/src/components/event-spaces/Listing.astro'
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
 import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
-import { getOrderClause } from '@/src/utils/filters'
+import { getOrderClause, type OrderType } from '@/src/utils/filters'
+import { computeFacets } from '@/utils/listing-facets'
+import { parseSpaceParams } from '@/utils/listing-params'
+import { spaceFacetGroups, type SpaceFacet } from '@/utils/space-facets'
 
 export const ITEMS_PER_PAGE = 16
 
@@ -28,31 +36,38 @@ type Props = NonNullable<Awaited<ReturnType<typeof fetchData>>> & {
   doNotIndex?: boolean
 }
 
+type OptionKeys = 'locations' | 'spaceTypes' | 'eventTypes' | 'characters' | 'facilities'
+
+type FacetData = Pick<SpaceFilterOptions, OptionKeys> & {
+  spaces: SpaceFacet[]
+  config: Omit<SpaceFilterOptions, OptionKeys> | null
+}
+
 export async function fetchData(lang: Language, pageNumber: number, _url: string, searchParams?: URLSearchParams) {
-  const searchQuery = searchParams?.get('search')
-  const trimmedSearchQuery = searchQuery?.trim()
-  const searchPattern = trimmedSearchQuery ? `*${trimmedSearchQuery}*` : null
-  const featuresParam = searchParams?.get('features')
-  const features = featuresParam
-    ? featuresParam
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean)
-    : null
-  const location = searchParams?.get('location') || null
-  const minArea = searchParams?.get('minArea') ? parseInt(searchParams.get('minArea')!) : null
-  const maxArea = searchParams?.get('maxArea') ? parseInt(searchParams.get('maxArea')!) : null
-  const minCapacity = searchParams?.get('minCapacity') ? parseInt(searchParams.get('minCapacity')!) : null
-  const maxCapacity = searchParams?.get('maxCapacity') ? parseInt(searchParams.get('maxCapacity')!) : null
-  const order = (searchParams?.get('order') || 'popularity') as
-    | 'popularity'
-    | 'newest'
-    | 'priceDesc'
-    | 'priceAsc'
-    | 'searchMatching'
-  const orderClause = getOrderClause(order, !!searchPattern, 'eventSpaces')
+  const urlParams = searchParams || new URLSearchParams()
+  const searchQuery = urlParams.get('search')?.trim()
+  const searchPattern = searchQuery ? `*${searchQuery}*` : null
   const PAGINATION_BEFORE = ITEMS_PER_PAGE * (pageNumber - 1)
   const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
+
+  const params = parseSpaceParams(urlParams)
+  const order = (urlParams.get('order') || 'popularity') as OrderType
+  const orderClause = getOrderClause(order, !!searchPattern, 'eventSpaces')
+
+  const facets = await sanityFetchWithCdn<FacetData>({
+    query: `{ ${Facets_Query} }`,
+    params: { language: lang, searchPattern, point: params.point },
+    tag: 'page.event-spaces-list.facets',
+  })
+
+  const { spaces, config, ...options } = facets
+  if (!config) return null
+
+  // A radius outside the list means no distance filter at all
+  const hasDistance = config.distanceRadii.includes(params.radius ?? 0)
+  const selected = hasDistance ? params : { ...params, point: null, radius: null }
+
+  const { matchingIds, counts } = computeFacets(spaces, spaceFacetGroups(selected, { ...options, ...config }))
 
   const page = await sanityFetchWithCdn<
     {
@@ -64,31 +79,13 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       }
       heading: PortableTextValue
       paragraph: PortableTextValue
-      checklist?: string[]
       escapeHatchHeading?: string
       escapeHatchText?: string
-      features: {
-        _id: string
-        name: string
-        count: number
-        slug: string
-      }[]
-      capacityFilterOptions?: {
-        min: number
-        max?: number
-      }[]
-      areaFilterOptions?: {
-        min: number
-        max?: number
-      }[]
-      capacityFilterSource?: {
-        maxPeople: number
-      }[]
       components: ComponentsProps
       noResults: {
         components: ComponentsProps
       }
-    } & ListingProps &
+    } & Pick<ListingProps, 'heading' | 'paragraph' | 'checklist' | 'listing'> &
       FormProps
   >({
     query: `
@@ -123,17 +120,6 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
         checklist[],
         escapeHatchHeading,
         escapeHatchText,
-        capacityFilterOptions[]{
-          min,
-          max
-        },
-        areaFilterOptions[]{
-          min,
-          max
-        },
-        capacityFilterSource[]{
-          maxPeople
-        },
         noResults {
           ${Components_Query}
         },
@@ -145,20 +131,23 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       language: lang,
       PAGINATION_BEFORE,
       PAGINATION_AFTER,
-      searchPattern,
-      features,
-      location,
-      minArea,
-      maxArea,
-      minCapacity,
-      maxCapacity,
+      matchingIds,
     },
     tag: 'page.event-spaces-list',
   })
 
   if (!page || (pageNumber > 1 && !page.listing.length)) return null
   const metadata = await metadataFetch(page.slug)
-  return metadata ? { page, metadata } : null
+  return metadata
+    ? {
+        page,
+        metadata,
+        totalItems: matchingIds.length,
+        filterOptions: { ...options, ...config },
+        counts,
+        selected,
+      }
+    : null
 }
 
 export async function staticPaths(lang: Language) {
@@ -175,7 +164,17 @@ export async function staticPaths(lang: Language) {
   }))
 }
 
-const { page, metadata: _metadata, currentPage, canonicalUrl, doNotIndex } = Astro.props as Props
+const {
+  page,
+  metadata: _metadata,
+  totalItems,
+  filterOptions,
+  counts,
+  selected,
+  currentPage,
+  canonicalUrl,
+  doNotIndex,
+} = Astro.props as Props
 const lang = getLangFromPath(Astro.url.pathname) as Language
 
 const translation = {
@@ -192,7 +191,7 @@ const translation = {
 } as const
 
 const t = translation[lang]
-const totalPages = Math.ceil(page.totalItems / ITEMS_PER_PAGE)
+const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
 
 const metadata = {
   ..._metadata,
@@ -226,16 +225,13 @@ const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.par
   <Listing
     heading={page.heading}
     paragraph={page.paragraph}
-    totalItems={page.totalItems}
+    totalItems={totalItems}
     listing={page.listing}
     currentPage={currentPage}
+    filterOptions={filterOptions}
+    counts={counts}
+    selected={selected}
     checklist={page.checklist}
-    features={page.features}
-    locations={page.locations}
-    areaFilterOptions={page.areaFilterOptions}
-    areaFilterSource={page.areaFilterSource}
-    capacityFilterSource={page.capacityFilterSource}
-    capacityFilterOptions={page.capacityFilterOptions}
     escapeHintText={page.escapeHatchHeading}
     escapeHintCta={page.escapeHatchText}
   />

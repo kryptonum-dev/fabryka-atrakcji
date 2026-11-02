@@ -814,12 +814,12 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 7: Event spaces listing
 
-- [ ] 7.1 Build passes: `cd apps/astro && npm run build`
-- [ ] 7.2 Filter tests pass: `bun test tests/filters`
-- [ ] 7.3 `verify.sh` confirms `mixed` and single type behaviour
-- [ ] 7.4 `verify.sh` confirms facilities AND behaviour
-- [ ] 7.5 `verify.sh` confirms no area or features filter markup
-- [ ] 7.6 `verify.sh` confirms "Polecane" and "Od najnowszych" give different orders
+- [x] 7.1 Build passes: `cd apps/astro && npm run build`
+- [x] 7.2 Filter tests pass: `bun test tests/filters`
+- [x] 7.3 `verify.sh` confirms `mixed` and single type behaviour
+- [x] 7.4 `verify.sh` confirms facilities AND behaviour
+- [x] 7.5 `verify.sh` confirms no area or features filter markup
+- [x] 7.6 `verify.sh` confirms "Polecane" and "Od najnowszych" give different orders
 
 ### Phase 8: Distance from an address
 

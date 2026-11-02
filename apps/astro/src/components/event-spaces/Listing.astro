@@ -8,18 +8,12 @@ import Pagination from '../ui/Pagination.astro'
 import { ITEMS_PER_PAGE } from '@/src/templates/event-spaces/EventSpacesPage.astro'
 import Button from '../ui/Button'
 import SelectFilter from '../ui/SelectFilter.astro'
+import { rangeValue } from '@/utils/listing-facets'
+import type { SpaceParams } from '@/utils/listing-params'
+import { MIXED_SPACE_TYPE } from '@/utils/space-facets'
 
-type LocationOption = {
-  _id: string
+type FilterOption = {
   name: string
-  count: number
-  slug: string
-}
-
-type FeatureOption = {
-  _id: string
-  name: string
-  count: number
   slug: string
 }
 
@@ -47,115 +41,96 @@ type EventSpaceItem = {
   }
 }
 
+type FilterOptions = {
+  locations: FilterOption[]
+  spaceTypes: FilterOption[]
+  eventTypes: FilterOption[]
+  characters: FilterOption[]
+  facilities: FilterOption[]
+  filterHeadings: {
+    location: string
+    spaceType: string
+    capacityPrefix: string
+    eventType: string
+    character: string
+    facilities: string
+  }
+  capacityFilterOptions: { min: number; max: number | null }[]
+  distanceRadii: number[]
+  mixedSpaceTypeLabel: string
+}
+
 type Props = {
   heading: PortableTextValue
   paragraph: PortableTextValue
   totalItems: number
   listing: EventSpaceItem[]
   currentPage: number
-  features: FeatureOption[]
-  locations: LocationOption[]
-  areaFilterOptions: {
-    min: number
-    max?: number
-  }[]
-  areaFilterSource: {
-    areaM2: number
-  }[]
-  capacityFilterSource: {
-    maxPeople: number
-  }[]
-  capacityFilterOptions: {
-    min: number
-    max?: number
-  }[]
+  filterOptions: FilterOptions
+  counts: Record<string, Record<string, number>>
+  selected: SpaceParams
   checklist: string[] | null
   escapeHintText?: string
   escapeHintCta?: string
 }
 
 export type ListingProps = Props
+export type SpaceFilterOptions = FilterOptions
+
+// Fetched before the page query, because the matching ids depend on it. Stays small: ids, slugs and numbers.
+export const Facets_Query = `
+  "spaces": *[
+    _type == 'EventSpaces_Collection'
+    && language == $language
+    && (!defined($searchPattern) || name match $searchPattern)
+  ] {
+    _id,
+    "location": location->slug.current,
+    "eventTypes": eventTypes[]->slug.current,
+    "characters": characters[]->slug.current,
+    "facilities": facilities[]->slug.current,
+    "capacities": capacities[] {
+      "type": spaceType->slug.current,
+      maxPeople,
+    },
+    "distanceKm": geo::distance(point, $point) / 1000,
+  },
+  "locations": *[
+    _type == 'Locations_Collection'
+    && language == $language
+    && defined(slug.current)
+    && count(*[_type == 'EventSpaces_Collection' && references(^._id)]) > 0
+  ] {
+    name,
+    "slug": slug.current,
+  },
+  "spaceTypes": *[_type == 'EventSpaceTypes_Collection' && language == $language] | order(orderRank) {
+    name,
+    "slug": slug.current,
+  },
+  "eventTypes": *[_type == 'EventTypes_Collection' && language == $language] | order(orderRank) {
+    name,
+    "slug": slug.current,
+  },
+  "characters": *[_type == 'EventSpaceCharacters_Collection' && language == $language] | order(orderRank) {
+    name,
+    "slug": slug.current,
+  },
+  "facilities": *[_type == 'EventSpaceFacilities_Collection' && language == $language] | order(orderRank) {
+    name,
+    "slug": slug.current,
+  },
+  "config": *[_type == 'EventSpaces_Page' && language == $language][0] {
+    filterHeadings,
+    capacityFilterOptions[] { min, max },
+    distanceRadii,
+    mixedSpaceTypeLabel,
+  },
+`
 
 export const Listing_Query = (orderClause: string) => {
-  const locationFilter = `(!defined($location) || location->slug.current == $location)`
-  const featuresFilter = `
-    (!defined($features) || count(select(
-      defined(features) => features[]->slug.current,
-      []
-    )[@ in $features]) == count($features))
-  `
-  const areaFilter = `
-    (!defined($minArea) || areaM2 >= $minArea)
-    && (!defined($maxArea) || areaM2 <= $maxArea)
-  `
-  const capacityFilter = `
-    (!defined($minCapacity) || maxPeople >= $minCapacity)
-    && (!defined($maxCapacity) || maxPeople <= $maxCapacity)
-  `
-  const searchFilter = `(!defined($searchPattern) || name match $searchPattern)`
-
-  const createBaseFilter = (
-    includeFilters: {
-      location?: boolean
-      features?: boolean
-      area?: boolean
-      capacity?: boolean
-    } = {
-      location: true,
-      features: true,
-      area: true,
-      capacity: true,
-    }
-  ) => `
-    && language == $language
-    && ${searchFilter}
-    ${includeFilters.location ? `&& ${locationFilter}` : ''}
-    ${includeFilters.features ? `&& ${featuresFilter}` : ''}
-    ${includeFilters.area ? `&& ${areaFilter}` : ''}
-    ${includeFilters.capacity ? `&& ${capacityFilter}` : ''}
-  `
-
   return `
-    "totalItems": count(*[_type == 'EventSpaces_Collection' ${createBaseFilter()}]),
-    "locations": *[_type == 'Locations_Collection' && language == $language] {
-      _id,
-      name,
-      "slug": slug.current,
-      "count": count(*[_type == 'EventSpaces_Collection' ${createBaseFilter({
-        location: false,
-        features: true,
-        area: true,
-        capacity: true,
-      })} && references(^._id)])
-    },
-    "features": *[_type == 'EventSpaceFeatures_Collection' && language == $language] {
-      _id,
-      name,
-      "slug": slug.current,
-      "count": count(*[_type == 'EventSpaces_Collection' ${createBaseFilter({
-        location: true,
-        features: true,
-        area: true,
-        capacity: true,
-      })} && references(^._id)])
-    },
-    "areaFilterSource": *[_type == 'EventSpaces_Collection' ${createBaseFilter({
-      location: true,
-      features: true,
-      area: false,
-      capacity: true,
-    })}] {
-      areaM2
-    },
-    "capacityFilterSource": *[_type == 'EventSpaces_Collection' ${createBaseFilter({
-      location: true,
-      features: true,
-      area: true,
-      capacity: false,
-    })}] {
-      maxPeople
-    },
-    "listing": *[_type == 'EventSpaces_Collection' ${createBaseFilter()}] {
+    "listing": *[_type == 'EventSpaces_Collection' && _id in $matchingIds] {
       ${EventSpaceCardQuery}
     } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
   `
@@ -168,12 +143,9 @@ const {
   totalItems,
   listing,
   currentPage,
-  features,
-  locations,
-  areaFilterOptions,
-  areaFilterSource,
-  capacityFilterSource,
-  capacityFilterOptions,
+  filterOptions,
+  counts,
+  selected,
   escapeHintText,
   escapeHintCta,
 } = Astro.props as Props
@@ -188,12 +160,6 @@ const translations = {
     filterPath: 'filtr',
     pagePath: 'strona',
     placeholder: 'Wyszukaj przestrzeń eventową',
-    filters: {
-      location: 'Lokalizacja',
-      features: 'Cechy przestrzeni',
-      capacity: 'Maks. liczba osób',
-      area: 'Powierzchnia',
-    },
     noResults: {
       heading: '<span>Nie znaleziono wyników dla</span> <strong>podanych filtrów</strong>',
       list: [
@@ -217,12 +183,6 @@ const translations = {
     filterPath: 'filter',
     pagePath: 'page',
     placeholder: 'Search event spaces',
-    filters: {
-      location: 'Location',
-      features: 'Space features',
-      capacity: 'Max people',
-      area: 'Area',
-    },
     noResults: {
       heading: '<span>No results found for</span> <strong>the given filters</strong>',
       list: [
@@ -245,72 +205,43 @@ const translations = {
 
 const t = translations[lang]
 
-const normalizedAreaFilterOptions = (areaFilterOptions || []).filter(
-  (option: { min: number; max?: number }) => option?.min
-)
-const normalizedCapacityFilterOptions = (capacityFilterOptions || []).filter(
-  (option: { min: number; max?: number }) => option?.min
-)
+const { filterHeadings, capacityFilterOptions, mixedSpaceTypeLabel } = filterOptions
 
-const areaRangeItems = normalizedAreaFilterOptions
-  .map((option: { min: number; max?: number }) => ({
-    name: option.max ? `${option.min}–${option.max} m2` : `${option.min}+ m2`,
-    count: (areaFilterSource || []).filter((item: { areaM2: number }) => {
-      if (!item?.areaM2) return false
-      return option.max ? item.areaM2 >= option.min && item.areaM2 <= option.max : item.areaM2 >= option.min
-    }).length,
-    isSelected:
-      params.get('minArea') === option.min.toString() &&
-      ((option.max && params.get('maxArea') === option.max.toString()) || (!option.max && !params.get('maxArea'))),
-    value: option.max ? `${option.min}-${option.max}` : `${option.min}-`,
+const toFilterItems = (
+  options: FilterOption[],
+  key: 'location' | 'spaceType' | 'eventType' | 'character' | 'facilities'
+) =>
+  options.map((option) => ({
+    name: option.name,
+    value: option.slug,
+    count: counts[key][option.slug] ?? 0,
+    isSelected: selected[key].includes(option.slug),
   }))
-  .filter((item: { isSelected: boolean; count: number }) => item.isSelected || item.count > 0)
 
-const capacityRangeItems = normalizedCapacityFilterOptions
-  .map((option: { min: number; max?: number }) => ({
+const toCapacityItems = (typeSlug: string) =>
+  capacityFilterOptions.map((range) => ({
     name:
       lang === 'pl'
-        ? option.max
-          ? `${option.min}–${option.max} osób`
-          : `od ${option.min} osób`
-        : option.max
-          ? `${option.min}–${option.max} people`
-          : `from ${option.min} people`,
-    count: (capacityFilterSource || []).filter((item: { maxPeople: number }) => {
-      if (!item?.maxPeople) return false
-      return option.max ? item.maxPeople >= option.min && item.maxPeople <= option.max : item.maxPeople >= option.min
-    }).length,
-    isSelected:
-      params.get('minCapacity') === option.min.toString() &&
-      ((option.max && params.get('maxCapacity') === option.max.toString()) || (!option.max && !params.get('maxCapacity'))),
-    value: option.max ? `${option.min}-${option.max}` : `${option.min}-`,
-  }))
-  .filter((item: { isSelected: boolean; count: number }) => item.isSelected || item.count > 0)
-
-const locationItems = locations
-  .filter((location): location is LocationOption => Boolean(location?._id && location?.slug))
-  .map((location) => ({
-    name: location.name,
-    count: location.count,
-    isSelected: location.slug === params.get('location'),
-    value: location.slug,
+        ? range.max
+          ? `${range.min}–${range.max} osób`
+          : `od ${range.min} osób`
+        : range.max
+          ? `${range.min}–${range.max} people`
+          : `from ${range.min} people`,
+    value: rangeValue(range),
+    count: counts[`capacity_${typeSlug}`][rangeValue(range)] ?? 0,
+    isSelected: selected.capacity[typeSlug]?.includes(rangeValue(range)) ?? false,
   }))
 
-const featuresParam = params.get('features')
-const featureValues = featuresParam ? featuresParam.split(',').map((value) => value.trim()) : params.getAll('features')
-
-const featureItems = features
-  .map((feature) => ({
-    name: feature.name,
-    count: feature.count,
-    isSelected: featureValues.includes(feature.slug),
-    value: feature.slug,
-  }))
-  .sort((a, b) => {
-    if (a.isSelected && !b.isSelected) return -1
-    if (!a.isSelected && b.isSelected) return 1
-    return b.count - a.count
-  })
+const spaceTypeItems = [
+  ...toFilterItems(filterOptions.spaceTypes, 'spaceType'),
+  {
+    name: mixedSpaceTypeLabel,
+    value: MIXED_SPACE_TYPE,
+    count: counts.spaceType[MIXED_SPACE_TYPE] ?? 0,
+    isSelected: selected.spaceType.includes(MIXED_SPACE_TYPE),
+  },
+]
 
 const getSpacesCount = () => {
   if (lang === 'en') return totalItems === 1 ? t.foundSingle : t.foundMany
@@ -321,18 +252,13 @@ const getSpacesCount = () => {
 
 const searchParam = params.get('search')?.trim() || undefined
 
-const currentFilters = {
-  location: params.get('location'),
-  features: featureValues,
-  area: params.get('minArea') || params.get('maxArea'),
-  minCapacity: params.has('minCapacity') ? parseInt(params.get('minCapacity') || '') : undefined,
-  maxCapacity: params.has('maxCapacity') ? parseInt(params.get('maxCapacity') || '') : undefined,
-  search: searchParam,
-}
+// Any selected filter or search shows the clear button
+const { capacity, ...otherFilters } = selected
+const hasActiveFilters =
+  Boolean(searchParam) ||
+  Object.keys(capacity).length > 0 ||
+  Object.values(otherFilters).some((value) => (Array.isArray(value) ? value.length > 0 : value))
 
-const hasActiveFilters = Object.values(currentFilters).some(
-  (value) => value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : true)
-)
 const shouldDisableFilters = totalItems === 0
 ---
 
@@ -384,16 +310,56 @@ const shouldDisableFilters = totalItems === 0
         </button>
       </div>
       <div class='filters-content'>
-        <SelectFilter heading={t.filters.location} items={locationItems} paramName='location' forceDisabled={shouldDisableFilters} />
+        {
+          filterOptions.locations.length >= 2 && (
+            <SelectFilter
+              heading={filterHeadings.location}
+              items={toFilterItems(filterOptions.locations, 'location')}
+              paramName='location'
+              isMulti
+              forceDisabled={shouldDisableFilters}
+            />
+          )
+        }
         <SelectFilter
-          heading={t.filters.features}
-          items={featureItems}
-          paramName='features'
+          heading={filterHeadings.spaceType}
+          items={spaceTypeItems}
+          paramName='spaceType'
           isMulti
           forceDisabled={shouldDisableFilters}
         />
-        <SelectFilter heading={t.filters.area} items={areaRangeItems} paramName='area' forceDisabled={shouldDisableFilters} />
-        <SelectFilter heading={t.filters.capacity} items={capacityRangeItems} paramName='capacity' forceDisabled={shouldDisableFilters} />
+        {
+          filterOptions.spaceTypes.map((spaceType) => (
+            <SelectFilter
+              heading={`${filterHeadings.capacityPrefix} ${spaceType.name}`}
+              items={toCapacityItems(spaceType.slug)}
+              paramName={`capacity_${spaceType.slug}`}
+              isMulti
+              forceDisabled={shouldDisableFilters}
+            />
+          ))
+        }
+        <SelectFilter
+          heading={filterHeadings.eventType}
+          items={toFilterItems(filterOptions.eventTypes, 'eventType')}
+          paramName='eventType'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={filterHeadings.character}
+          items={toFilterItems(filterOptions.characters, 'character')}
+          paramName='character'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
+        <SelectFilter
+          heading={filterHeadings.facilities}
+          items={toFilterItems(filterOptions.facilities, 'facilities')}
+          paramName='facilities'
+          isMulti
+          forceDisabled={shouldDisableFilters}
+        />
       </div>
 
       <div class='filters-actions'>
@@ -1063,38 +1029,29 @@ const shouldDisableFilters = totalItems === 0
   </style>
 
   <script>
-    type FilterValue = string | string[] | number | null
+    import { collectionPath } from '@/utils/search-navigation'
 
-    const params = new URLSearchParams(window.location.search)
-    const initialFilters: Record<string, FilterValue> = {
-      location: params.get('location'),
-      features: [...(params.get('features')?.split(',') || [])],
-      area: null,
-      capacity: null,
-    }
+    // Includes the removed area, feature and single capacity parameters, so applying filters drops them from an old URL
+    const FILTER_PARAMS = [
+      'location',
+      'spaceType',
+      'eventType',
+      'character',
+      'facilities',
+      'features',
+      'minArea',
+      'maxArea',
+      'minCapacity',
+      'maxCapacity',
+    ]
 
     const applyButton = document.querySelector<HTMLButtonElement>('.apply-filters')
     const clearButton = document.querySelector<HTMLButtonElement>('.clear-filters')
     const listingSection = document.querySelector<HTMLElement>('.Listing')! as HTMLElement
 
-    const initialUrlState = {
-      location: params.get('location'),
-      features: [...(params.get('features')?.split(',') || [])],
-      area: (() => {
-        const min = params.get('minArea')
-        const max = params.get('maxArea')
-        if (min && max) return `${min}-${max}`
-        if (min && !max) return `${min}-`
-        return null
-      })(),
-      capacity: (() => {
-        const min = params.get('minCapacity')
-        const max = params.get('maxCapacity')
-        if (min && max) return `${min}-${max}`
-        if (min && !max) return `${min}-`
-        return null
-      })(),
-    }
+    // What the page shows now, and what the visitor has picked since
+    const initialValues: Record<string, string[]> = {}
+    const currentValues: Record<string, string[]> = {}
 
     function updateFiltersActionsVisibility() {
       const container = document.querySelector<HTMLElement>('.filters-actions')
@@ -1104,28 +1061,10 @@ const shouldDisableFilters = totalItems === 0
       container.style.display = applyVisible || clearVisible ? 'flex' : 'none'
     }
 
-    function hasDifferentArrayValues(current: string[] = [], initial: string[] = []) {
-      if (current.length !== initial.length) return true
-      return current.some((value) => !initial.includes(value))
-    }
-
     function checkFiltersChanged() {
-      let changed = false
-
-      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-        const paramName = filterGroup.dataset.paramName
-        if (!paramName) return
-
-        const isMulti = filterGroup.dataset.multi === 'true'
-        if (isMulti) {
-          changed ||= hasDifferentArrayValues(
-            (initialFilters[paramName] as string[]) || [],
-            (initialUrlState[paramName as keyof typeof initialUrlState] as string[]) || []
-          )
-          return
-        }
-
-        changed ||= initialFilters[paramName] !== initialUrlState[paramName as keyof typeof initialUrlState]
+      const changed = Object.entries(currentValues).some(([paramName, values]) => {
+        const initial = initialValues[paramName]
+        return values.length !== initial.length || values.some((value) => !initial.includes(value))
       })
 
       if (applyButton) {
@@ -1137,72 +1076,30 @@ const shouldDisableFilters = totalItems === 0
     }
 
     window.addEventListener('filterChange', ((e: CustomEvent) => {
-      const { paramName, value, checked, minValue, maxValue } = e.detail || {}
+      const { paramName, value, checked } = e.detail
+      if (!value) return
 
-      if (paramName === 'features') {
-        if (!Array.isArray(initialFilters[paramName])) initialFilters[paramName] = []
-
-        if (checked === false) {
-          initialFilters[paramName] = (initialFilters[paramName] as string[]).filter((item) => item !== value)
-        } else if (value && !(initialFilters[paramName] as string[]).includes(value)) {
-          ;(initialFilters[paramName] as string[]).push(value)
-        }
-      } else {
-        initialFilters[paramName] =
-          value || (typeof minValue === 'number' && typeof maxValue === 'number' ? `${minValue}-${maxValue}` : null)
-      }
+      const others = (currentValues[paramName] ?? []).filter((item) => item !== value)
+      currentValues[paramName] = checked ? [...others, value] : others
 
       checkFiltersChanged()
     }) as EventListener)
 
     window.addEventListener('filterClear', ((e: CustomEvent) => {
-      const { paramName } = e.detail || {}
-      initialFilters[paramName] = paramName === 'features' ? [] : null
+      currentValues[e.detail.paramName] = []
       checkFiltersChanged()
     }) as EventListener)
 
     function applyFilters() {
       const currentPath = window.location.pathname
       const params = new URLSearchParams(window.location.search)
-      ;['location', 'features', 'minArea', 'maxArea', 'minCapacity', 'maxCapacity'].forEach((param) => params.delete(param))
 
-      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-        const paramName = filterGroup.dataset.paramName
-        if (!paramName) return
+      FILTER_PARAMS.forEach((param) => params.delete(param))
+      // Capacity parameters are named after space types, so they cannot be listed up front
+      ;[...params.keys()].filter((param) => param.startsWith('capacity_')).forEach((param) => params.delete(param))
 
-        const isMulti = filterGroup.dataset.multi === 'true'
-
-        if (isMulti) {
-          const selectedValues = (initialFilters[paramName] as string[]) || []
-          if (selectedValues.length > 0) params.set(paramName, selectedValues.join(','))
-          return
-        }
-
-        if (paramName === 'area') {
-          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-          if (selectedInput && wasSelected) {
-            const [min, max] = selectedInput.value.split('-')
-            if (min) params.set('minArea', min)
-            if (max) params.set('maxArea', max)
-          }
-          return
-        }
-
-        if (paramName === 'capacity') {
-          const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-          const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-          if (selectedInput && wasSelected) {
-            const [min, max] = selectedInput.value.split('-')
-            if (min) params.set('minCapacity', min)
-            if (max) params.set('maxCapacity', max)
-          }
-          return
-        }
-
-        const selectedInput = filterGroup.querySelector<HTMLInputElement>('input[type="radio"]:checked')
-        const wasSelected = selectedInput?.parentElement?.getAttribute('data-selected') === 'true'
-        if (selectedInput && wasSelected) params.set(paramName, selectedInput.value)
+      Object.entries(currentValues).forEach(([paramName, values]) => {
+        if (values.length > 0) params.set(paramName, values.join(','))
       })
 
       const filterPathSegment = listingSection.getAttribute('data-filter-path') || 'filtr'
@@ -1225,41 +1122,20 @@ const shouldDisableFilters = totalItems === 0
 
     applyButton?.addEventListener('click', applyFilters)
     clearButton?.addEventListener('click', () => {
-      const filterPathSegment = listingSection.getAttribute('data-filter-path') || 'filtr'
-      let clearPath = window.location.pathname
-      if (clearPath.includes(`/${filterPathSegment}`)) clearPath = clearPath.replace(`/${filterPathSegment}/`, '/').replace(`/${filterPathSegment}`, '/')
-      window.location.href = clearPath
+      window.location.href = collectionPath(window.location.pathname)
     })
 
     window.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll<HTMLDetailsElement>('.filter-group').forEach((filterGroup) => {
-        const paramName = filterGroup.dataset.paramName
-        if (!paramName) return
+      // Start from what the server rendered, because it already dropped unknown URL values
+      document.querySelectorAll<HTMLElement>('.filter-group[data-multi="true"]').forEach((filterGroup) => {
+        const inputs = filterGroup.querySelectorAll<HTMLInputElement>('input')
+        inputs.forEach((input) => {
+          input.checked = input.parentElement?.getAttribute('data-selected') === 'true'
+        })
+        const values = Array.from(inputs, (input) => (input.checked ? input.value : '')).filter(Boolean)
 
-        const isMulti = filterGroup.dataset.multi === 'true'
-        const value = initialUrlState[paramName as keyof typeof initialUrlState]
-
-        if (isMulti) {
-          const values = (value as string[]) || []
-          initialFilters[paramName] = [...values]
-          if (values.length > 0) {
-            filterGroup.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => {
-              const isMatch = values.includes(input.value)
-              input.checked = isMatch
-              input.parentElement?.setAttribute('data-selected', String(isMatch))
-            })
-          }
-          return
-        }
-
-        initialFilters[paramName] = value as FilterValue
-        if (value) {
-          filterGroup.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
-            const isMatch = input.value === value
-            input.checked = isMatch
-            input.parentElement?.setAttribute('data-selected', String(isMatch))
-          })
-        }
+        initialValues[filterGroup.dataset.paramName!] = values
+        currentValues[filterGroup.dataset.paramName!] = [...values]
       })
 
       updateFiltersActionsVisibility()
