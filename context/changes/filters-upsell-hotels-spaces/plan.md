@@ -776,11 +776,11 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 2: Filter SEO fixes
 
-- [x] 2.1 Build passes: `cd apps/astro && npm run build`
-- [x] 2.2 No origin leak under `apps/astro/src/pages/`
-- [ ] 2.3 `verify.sh` confirms production-host canonicals on all filter routes
-- [ ] 2.4 `verify.sh` confirms zero followed filter links on `/pl/hotele/` and one activity category
-- [ ] 2.5 `verify.sh` confirms blog pagination has no `nofollow`
+- [x] 2.1 Build passes: `cd apps/astro && npm run build` — 48d597a
+- [x] 2.2 No origin leak under `apps/astro/src/pages/` — 48d597a
+- [x] 2.3 `verify.sh` confirms production-host canonicals on all filter routes — 48d597a
+- [x] 2.4 `verify.sh` confirms zero followed filter links on `/pl/hotele/` and one activity category — 48d597a
+- [x] 2.5 `verify.sh` confirms blog pagination has no `nofollow` — 48d597a
 
 ### Phase 3: Sanity schema, additive
 
