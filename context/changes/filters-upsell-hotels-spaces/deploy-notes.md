@@ -49,12 +49,29 @@ Do not print the project object from the Vercel API. It contains the deploy hook
 - The 8 unpushed commits, `da87956..55af545`, were therefore already live. `6cd70fc..55af545` changes only rollout evidence under `context/`, so pushing them changes no runtime code.
 - Those commits also touch `apps/sanity/**`, so the first push redeploys the Studio from the same source that went live on 2026-09-20.
 
+## Wildcard probe before the first push
+
+`e0ea56f` was built as a production-target deployment from a `git archive` export, `dpl_5gLGz2y95eCHQi1sC1nVn1U8uCow`, with `--skip-domain`. `--skip-domain` left the public domains alone and moved only `fabryka-atrakcji-kryptonum.vercel.app`.
+
+Through `vercel curl`, on that build with ISR on:
+
+| Route                                                    | Status                                         | Cache | Cards |
+| -------------------------------------------------------- | ---------------------------------------------- | ----- | ----- |
+| `/pl/przestrzenie-eventowe/filtr/?search=Kwadrat`        | 200                                            | MISS  | 1     |
+| `/pl/przestrzenie-eventowe/strona/1/filtr/?order=newest` | 200                                            | MISS  | 13    |
+| `/en/event-spaces/page/1/filter/?order=newest`           | 200                                            | MISS  | 5     |
+| `/pl/hotele/filtr/?stars=5`                              | 200                                            | MISS  | 7     |
+| `/pl/hotele/strona/2/filtr/?stars=4`                     | 200                                            | MISS  | 16    |
+| `/en/activities/page/2/filter/?search=kayaking`          | 301 to `/en/activities/filter?search=kayaking` | MISS  | none  |
+
+So the wildcard works and the explicit route list from the plan's fallback was not needed.
+
 ## Rollback
 
-Promote the previous deployment:
+Promote the previous deployment, as `sanity-dataset-embeddings-migration/rollout.md` does:
 
 ```sh
 vercel promote https://fabryka-atrakcji-t9qful76x-kryptonum.vercel.app --scope kryptonum --yes
 ```
 
-A promote pauses automatic domain assignment for Git deployments. Check this in the Vercel dashboard before relying on the next push.
+Check afterwards that the next push still reaches the public domains.

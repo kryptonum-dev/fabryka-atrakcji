@@ -769,9 +769,9 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 1: Fix filter route caching
 
-- [x] 1.1 Build passes: `cd apps/astro && npm run build`
-- [x] 1.2 `vercel.json` has no route-specific filter entries
-- [x] 1.3 Search navigation tests pass: `bun test tests/search`
+- [x] 1.1 Build passes: `cd apps/astro && npm run build` — e0ea56f
+- [x] 1.2 `vercel.json` has no route-specific filter entries — e0ea56f
+- [x] 1.3 Search navigation tests pass: `bun test tests/search` — e0ea56f
 - [ ] 1.4 `verify.sh` passes against production after deploy
 
 ### Phase 2: Filter SEO fixes
