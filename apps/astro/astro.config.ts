@@ -33,10 +33,13 @@ export default defineConfig({
             // Without this the adapter never expires an entry, so a 404 cached for a
             // not-yet-published URL would outlive the publish.
             expiration: 3600,
+            // Filter routes need both layers. The adapter turns these regexes into patterns with no
+            // trailing slash, so they only cover `/filtr` and `/filter`. The canonical `/filtr/` and
+            // `/filter/` forms the app links to are bypassed by the wildcard rewrites in vercel.json.
             exclude: [
               /^\/api\/.+/,
               /.*\/filtr.*/, // Exclude any URL containing "/filtr"
-              /.*\/filter.*/, // Exclude any URL containing "/filtr"
+              /.*\/filter.*/, // Exclude any URL containing "/filter"
             ],
           },
         }
