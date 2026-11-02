@@ -790,11 +790,11 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 4: Data migration
 
-- [x] 4.1 All scripts report zero changes on a second dry-run after `--apply`
-- [x] 4.2 All objects have points
-- [x] 4.3 All PL hotels have surroundings, and all spaces have at least one capacity
-- [x] 4.4 No EN object references a PL option
-- [x] 4.5 Build passes: `npm run build`
+- [x] 4.1 All scripts report zero changes on a second dry-run after `--apply` — 75b1ab9
+- [x] 4.2 All objects have points — 75b1ab9
+- [x] 4.3 All PL hotels have surroundings, and all spaces have at least one capacity — 75b1ab9
+- [x] 4.4 No EN object references a PL option — 75b1ab9
+- [x] 4.5 Build passes: `npm run build` — 75b1ab9
 
 ### Phase 5: Shared filter logic and UI
 
