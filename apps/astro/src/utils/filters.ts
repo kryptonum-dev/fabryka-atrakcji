@@ -1,4 +1,4 @@
-export type OrderType = 'popularity' | 'newest' | 'priceDesc' | 'priceAsc' | 'searchMatching'
+export type OrderType = 'popularity' | 'newest' | 'priceDesc' | 'priceAsc' | 'searchMatching' | 'distance'
 
 export interface FilterParams {
   minParticipants: number | null
@@ -155,6 +155,8 @@ export const getOrderClause = (
   type: 'activities' | 'hotels' | 'eventSpaces' = 'activities',
   preserveArrayOrder = false
 ): string => {
+  if (order === 'distance' && type === 'eventSpaces') return 'distanceKm asc'
+
   switch (order) {
     case 'newest':
       return 'coalesce(publishedDate, _createdAt) desc'
@@ -181,36 +183,6 @@ export const getOrderClause = (
     default:
       if (isSearchMode && type !== 'eventSpaces') return '_score desc, _id asc'
       return preserveArrayOrder ? '' : 'popularityIndex desc'
-  }
-}
-
-export const getHotelFilters = (filters: FilterParams) => {
-  const locationFilter = filters.location
-    ? `&& references(*[_type == "Locations_Collection" && _id == "${filters.location}"]._id)`
-    : ''
-
-  const amenitiesFilter = filters.amenities?.length
-    ? `&& count(amenities[_ref in [${filters.amenities.map((id: string) => `"${id}"`).join(',')}]]) == ${filters.amenities.length}`
-    : ''
-
-  const starsFilter = filters.stars ? `&& stars == ${filters.stars}` : ''
-
-  const minRoomsFilter = filters.minRooms ? `&& numberOfRooms >= ${filters.minRooms}` : ''
-
-  const maxRoomsFilter = filters.maxRooms ? `&& numberOfRooms <= ${filters.maxRooms}` : ''
-
-  const priceFilter =
-    filters.maxPrice || filters.minPrice
-      ? `&& ((pricing.pricingType == "perPerson" && pricing.pricePerPerson >= ${filters.minPrice || 0} && pricing.pricePerPerson <= ${filters.maxPrice || 100000}) || (pricing.pricingType == "fixed" && pricing.additionalPersonPrice >= ${filters.minPrice || 0} && pricing.additionalPersonPrice <= ${filters.maxPrice || 100000}))`
-      : ''
-
-  return {
-    locationFilter,
-    amenitiesFilter,
-    starsFilter,
-    minRoomsFilter,
-    maxRoomsFilter,
-    priceFilter,
   }
 }
 
@@ -265,26 +237,8 @@ export const buildFilterUrl = (params: {
 
   const queryString = newParams.toString()
 
-  // Check if we have any filters at all (including existing ones not being modified)
-  const hasAnyFilters =
-    newParams.has('minParticipants') ||
-    newParams.has('maxParticipants') ||
-    newParams.has('activityType') ||
-    newParams.has('duration') ||
-    newParams.has('order') ||
-    newParams.has('minPrice') ||
-    newParams.has('maxPrice') ||
-    newParams.has('search') ||
-    // Hotel specific filters
-    newParams.has('location') ||
-    newParams.has('amenities') ||
-    newParams.has('stars') ||
-    newParams.has('minRooms') ||
-    newParams.has('maxRooms') ||
-    newParams.has('minArea') ||
-    newParams.has('maxArea') ||
-    newParams.has('minCapacity') ||
-    newParams.has('maxCapacity')
+  // Any parameter that remains keeps the filter route, so new filters need no change here
+  const hasAnyFilters = queryString !== ''
 
   // If we're on a filter page but have no filters, redirect to static page
   if (params.currentPath.includes(`/${filterPath}`) && !hasAnyFilters) {

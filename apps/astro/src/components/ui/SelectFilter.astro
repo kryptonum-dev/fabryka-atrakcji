@@ -16,7 +16,27 @@ type Props = {
   allowHtmlName?: boolean
   allowZeroCount?: boolean
   forceDisabled?: boolean
+  visibleCount?: number
+  showMoreLabel?: string
 }
+
+// Get language and prepare translation string
+const lang = getLangFromPath(Astro.url.pathname) as Language | 'pl'
+const translations = {
+  pl: {
+    starLabel: 'Gwiazdki',
+    selectedLabel: 'Wybrano',
+    showMore: 'Pokaż więcej',
+    showLess: 'Pokaż mniej',
+  },
+  en: {
+    starLabel: 'Stars',
+    selectedLabel: 'Selected',
+    showMore: 'Show more',
+    showLess: 'Show less',
+  },
+}
+const t = translations[lang]
 
 const {
   heading,
@@ -26,26 +46,20 @@ const {
   allowHtmlName = false,
   allowZeroCount = false,
   forceDisabled = false,
+  visibleCount,
+  showMoreLabel = t.showMore,
 } = Astro.props
 
 const availableItems = allowZeroCount ? items : items.filter((item) => item.count > 0 || item.isSelected)
 const selectedItems = items.filter((item) => item.isSelected)
-// Special case: if this is a multi-select filter with multiple selected items and forceDisabled is true
-const isAmenitiesSpecialCase = isMulti && forceDisabled && paramName === 'amenities' && selectedItems.length > 1
-// Component should be disabled unless it's the special amenities case
-const isDisabled = (availableItems.length === 0 || forceDisabled) && !isAmenitiesSpecialCase
+// With no results the filters are disabled, but a multi filter keeps its selected options so they can be cleared
+const isClearable = isMulti && forceDisabled && selectedItems.length > 0
+const isDisabled = (availableItems.length === 0 || forceDisabled) && !isClearable
 
-// Get language and prepare translation string
-const lang = getLangFromPath(Astro.url.pathname) as Language | 'pl'
-const translations = {
-  pl: {
-    starLabel: 'Gwiazdki',
-  },
-  en: {
-    starLabel: 'Stars',
-  },
-}
-const t = translations[lang]
+const renderedItems = isClearable ? selectedItems : availableItems
+const overflowStart = visibleCount ?? renderedItems.length
+const overflowItems = renderedItems.slice(overflowStart)
+const hasShowMore = overflowItems.length > 0 && !isDisabled
 ---
 
 <details
@@ -54,7 +68,8 @@ const t = translations[lang]
   data-param-name={paramName}
   data-multi={isMulti}
   data-star-label={t.starLabel}
-  data-amenities-special-case={isAmenitiesSpecialCase}
+  data-selected-label={t.selectedLabel}
+  data-clearable={isClearable}
   open={!isDisabled}
   data-expanded={!isDisabled ? 'true' : 'false'}>
   <summary>
@@ -86,14 +101,14 @@ const t = translations[lang]
   <div class='filter-content'>
     <div class='filter-options'>
       {
-        // Show only selected items in special case, otherwise show all available items
-        (isAmenitiesSpecialCase ? selectedItems : availableItems).map((item) => (
+        renderedItems.map((item, index) => (
           <label
             class='filter-option'
             data-selected={item.isSelected}
             data-active={item.isSelected}
             data-count={item.count}
-            data-value={item.value}>
+            data-value={item.value}
+            data-overflow={index >= overflowStart || undefined}>
             <input
               type={isMulti ? 'checkbox' : 'radio'}
               name={paramName}
@@ -119,11 +134,32 @@ const t = translations[lang]
               </svg>
             </span>
             <span class='value'>{allowHtmlName ? <Fragment set:html={item.name} /> : item.name}</span>
-            <span class='count'>{isAmenitiesSpecialCase ? '' : item.count}</span>
+            <span class='count'>{isClearable ? '' : item.count}</span>
           </label>
         ))
       }
     </div>
+    {
+      hasShowMore && (
+        <button
+          class='show-more'
+          type='button'
+          aria-expanded='false'
+          data-show-more={showMoreLabel}
+          data-show-less={t.showLess}
+          hidden={overflowItems.every((item) => item.isSelected)}>
+          <span>{showMoreLabel}</span>
+          <svg xmlns='http://www.w3.org/2000/svg' width='16' height='17' fill='none' aria-hidden='true'>
+            <path
+              stroke='#600D2A'
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              stroke-width='1.25'
+              d='m4 6.25 4 4 4-4'></path>
+          </svg>
+        </button>
+      )
+    }
   </div>
 </details>
 
@@ -178,7 +214,7 @@ const t = translations[lang]
       border-color: var(--neutral-300);
     }
 
-    &[data-amenities-special-case='true'] {
+    &[data-clearable='true'] {
       .filter-content {
         opacity: 1;
         pointer-events: auto;
@@ -318,6 +354,46 @@ const t = translations[lang]
     .filter-content {
       transition: height 200ms var(--easing);
       overflow: hidden;
+    }
+
+    .filter-options:not([data-show-all]) {
+      .filter-option[data-overflow]:not([data-selected='true']) {
+        display: none;
+      }
+    }
+
+    .show-more {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      width: 100%;
+      min-height: 2.75rem;
+      padding: 0rem 1rem;
+      color: var(--primary-800);
+      font-size: var(--typography-body-m);
+      cursor: pointer;
+      transition: background-color 150ms linear;
+
+      &[hidden] {
+        display: none;
+      }
+
+      &:hover {
+        background-color: var(--neutral-200);
+      }
+
+      &:focus-visible {
+        outline-offset: -2px;
+        border-radius: 0.25rem;
+      }
+
+      svg {
+        transition: transform 250ms var(--easing);
+      }
+
+      &[aria-expanded='true'] svg {
+        transform: rotate(180deg);
+      }
     }
 
     .filter-options {
@@ -501,11 +577,33 @@ const t = translations[lang]
     const inputs = details.querySelectorAll<HTMLInputElement>('input')!
     const isDisabled = details.dataset.disabled === 'true'
     const isMulti = details.dataset.multi === 'true'
-    const isAmenitiesSpecialCase = details.dataset.amenitiesSpecialCase === 'true'
+    const isClearable = details.dataset.clearable === 'true'
     const paramName = details.dataset.paramName
     const starLabel = details.dataset.starLabel
+    const selectedLabel = details.dataset.selectedLabel
+    const showMoreButton = details.querySelector<HTMLButtonElement>('.show-more')
+    const options = details.querySelector<HTMLDivElement>('.filter-options')!
 
     let isAnimating = false
+
+    // Selected options stay visible, so the toggle only exists while it has something to reveal
+    function updateShowMore() {
+      if (!showMoreButton) return
+      showMoreButton.hidden = !details.querySelector('.filter-option[data-overflow]:not([data-selected="true"])')
+
+      // Unchecking a hidden option removes it from view, so keep keyboard focus inside the filter
+      const focusedOption = details.querySelector('.filter-option:has(input:focus)')
+      if (focusedOption && getComputedStyle(focusedOption).display === 'none') showMoreButton.focus()
+    }
+
+    showMoreButton?.addEventListener('click', () => {
+      const isExpanded = showMoreButton.getAttribute('aria-expanded') !== 'true'
+      showMoreButton.setAttribute('aria-expanded', isExpanded.toString())
+      options.toggleAttribute('data-show-all', isExpanded)
+      showMoreButton.querySelector('span')!.textContent = isExpanded
+        ? showMoreButton.dataset.showLess!
+        : showMoreButton.dataset.showMore!
+    })
 
     function updateSelectedValue() {
       const selectedInputs = Array.from(inputs).filter((input) => input.checked)
@@ -525,13 +623,17 @@ const t = translations[lang]
         .filter(Boolean)
 
       if (selectedLabels.length > 0) {
-        selectedValueSpan.textContent = selectedLabels.join(', ')
+        selectedValueSpan.textContent = isMulti
+          ? `${selectedLabel}: ${selectedLabels.length}`
+          : selectedLabels.join(', ')
         clearButton.style.display = 'flex'
         details.setAttribute('data-has-selection', 'true')
       } else {
         clearButton.style.display = 'none'
         details.setAttribute('data-has-selection', 'false')
       }
+
+      updateShowMore()
     }
 
     // Initialize with no selection
@@ -585,8 +687,8 @@ const t = translations[lang]
       summary.addEventListener('click', (event) => {
         event.preventDefault()
 
-        // If disabled and not special case, prevent any interaction
-        if (isDisabled && !isAmenitiesSpecialCase) {
+        // If disabled and not clearable, prevent any interaction
+        if (isDisabled && !isClearable) {
           event.stopPropagation()
           details.open = false
           return
