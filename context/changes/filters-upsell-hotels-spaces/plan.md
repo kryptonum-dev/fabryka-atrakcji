@@ -798,9 +798,9 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 5: Shared filter logic and UI
 
-- [x] 5.1 Filter tests pass: `bun test tests/filters`
-- [x] 5.2 Search tests pass: `bun test tests/search`
-- [x] 5.3 Build passes: `cd apps/astro && npm run build`
+- [x] 5.1 Filter tests pass: `bun test tests/filters` — 444dc38
+- [x] 5.2 Search tests pass: `bun test tests/search` — 444dc38
+- [x] 5.3 Build passes: `cd apps/astro && npm run build` — 444dc38
 
 ### Phase 6: Hotels listing
 
