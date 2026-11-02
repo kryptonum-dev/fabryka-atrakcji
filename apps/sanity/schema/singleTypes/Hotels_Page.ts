@@ -1,8 +1,9 @@
 import { Book, MessageSquare } from 'lucide-react'
 import { defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
+import { filterByDocumentLanguage } from '../../utils/filter-option'
 import { defineField } from 'sanity'
-import { CommentIcon, ComposeIcon, SearchIcon } from '@sanity/icons'
+import { CommentIcon, ComposeIcon, FilterIcon, SearchIcon } from '@sanity/icons'
 import { getLanguagePreview } from '../../structure/languages'
 
 const name = 'Hotels_Page'
@@ -71,6 +72,109 @@ export default defineType({
       type: 'components',
       title: 'Komponenty podstrony (opcjonalne)',
       group: 'content',
+    }),
+    defineField({
+      name: 'filterHeadings',
+      type: 'object',
+      title: 'Nagłówki filtrów',
+      group: 'filters',
+      fields: [
+        defineField({ name: 'location', type: 'string', title: 'Region' }),
+        defineField({ name: 'distance', type: 'string', title: 'Odległość od miasta' }),
+        defineField({ name: 'overnight', type: 'string', title: 'Liczba uczestników: nocleg' }),
+        defineField({ name: 'conference', type: 'string', title: 'Liczba uczestników: konferencja' }),
+        defineField({ name: 'banquet', type: 'string', title: 'Liczba uczestników: bankiet' }),
+        defineField({ name: 'stars', type: 'string', title: 'Standard' }),
+        defineField({ name: 'amenities', type: 'string', title: 'Udogodnienia' }),
+        defineField({ name: 'surroundings', type: 'string', title: 'Otoczenie' }),
+      ],
+    }),
+    defineField({
+      name: 'participantRanges',
+      type: 'array',
+      title: 'Przedziały liczby uczestników',
+      description:
+        'Wspólne dla noclegu, konferencji i bankietu. Hotel pasuje, gdy jego maksymalna liczba osób sięga minimum przedziału.',
+      group: 'filters',
+      of: [
+        defineField({
+          name: 'option',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'min',
+              type: 'number',
+              title: 'Minimum',
+              validation: (Rule) => Rule.required().min(1),
+            }),
+            defineField({
+              name: 'max',
+              type: 'number',
+              title: 'Maksimum (opcjonalne)',
+              validation: (Rule) =>
+                Rule.custom((value, context) => {
+                  const min = (context.parent as { min?: number })?.min
+                  if (!value) return true
+                  if (value < 1) return 'Maksimum musi być większe niż 0'
+                  if (min && value <= min) return 'Maksimum musi być większe niż minimum'
+                  return true
+                }),
+            }),
+          ],
+          preview: {
+            select: {
+              min: 'min',
+              max: 'max',
+            },
+            prepare: ({ min, max }) => ({
+              title: max ? `${min}–${max} osób` : `od ${min} osób`,
+              subtitle: max ? `${min}–${max} osób` : `od ${min} osób`,
+            }),
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: 'distanceRadii',
+      type: 'array',
+      title: 'Promienie w filtrze odległości (km)',
+      group: 'filters',
+      of: [{ type: 'number', validation: (Rule) => Rule.required().positive() }],
+      validation: (Rule) => Rule.unique(),
+    }),
+    defineField({
+      name: 'curatedAmenities',
+      type: 'array',
+      title: 'Udogodnienia w filtrze',
+      description: 'Filtr pokazuje tylko te udogodnienia, w tej samej kolejności co tutaj.',
+      group: 'filters',
+      of: [
+        {
+          type: 'reference',
+          to: { type: 'Amenities_Collection' },
+          options: {
+            disableNew: true,
+            filter: filterByDocumentLanguage,
+          },
+        },
+      ],
+      validation: (Rule) => Rule.unique(),
+    }),
+    defineField({
+      name: 'visibleAmenities',
+      type: 'number',
+      title: 'Liczba udogodnień widocznych od razu',
+      description: 'Pozostałe udogodnienia są schowane pod przyciskiem „Pokaż więcej”.',
+      group: 'filters',
+      validation: (Rule) => Rule.integer().min(1),
+    }),
+    defineField({
+      name: 'noCategoryLabel',
+      type: 'string',
+      title: 'Etykieta opcji bez kategoryzacji',
+      description:
+        'Opcja filtra Standard. Pojawi się, gdy pierwszy hotel dostanie oznaczenie „Bez oficjalnej kategoryzacji”.',
+      group: 'filters',
     }),
     defineField({
       name: 'formHeading',
@@ -199,6 +303,11 @@ export default defineType({
       name: 'content',
       title: 'Treść',
       icon: ComposeIcon,
+    },
+    {
+      name: 'filters',
+      title: 'Filtry',
+      icon: FilterIcon,
     },
     {
       name: 'inquiry',

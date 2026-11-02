@@ -1,6 +1,7 @@
 import { House } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
+import { COPY_COORDINATES_HINT, filterByDocumentLanguage } from '../../utils/filter-option'
 import {
   DocumentsIcon,
   InfoOutlineIcon,
@@ -242,6 +243,111 @@ export default defineType({
       group: 'details',
     }),
     defineField({
+      name: 'capacities',
+      type: 'array',
+      title: 'Pojemność według rodzaju przestrzeni',
+      description:
+        'Jedna pozycja na rodzaj przestrzeni. Obiekt z wnętrzem i plenerem ma dwie pozycje i na stronie pokaże się też jako obiekt mieszany.',
+      validation: (Rule) =>
+        Rule.custom((items) => {
+          if (!items || items.length === 0) return true
+          const refs = (items as Array<{ spaceType?: { _ref?: string } }>)
+            .map((item) => item.spaceType?._ref)
+            .filter(Boolean)
+          if (new Set(refs).size !== refs.length) {
+            return 'Każdy rodzaj przestrzeni może pojawić się tylko raz'
+          }
+          return true
+        }),
+      of: [
+        {
+          type: 'object',
+          name: 'capacityEntry',
+          fields: [
+            defineField({
+              name: 'spaceType',
+              type: 'reference',
+              to: [{ type: 'EventSpaceTypes_Collection' }],
+              title: 'Rodzaj przestrzeni',
+              validation: (Rule) => Rule.required().error('Wybierz rodzaj przestrzeni'),
+              options: {
+                disableNew: true,
+                filter: filterByDocumentLanguage,
+              },
+            }),
+            defineField({
+              name: 'maxPeople',
+              type: 'number',
+              title: 'Maksymalna liczba osób',
+              validation: (Rule) => Rule.required().min(1).error('Liczba osób musi być większa niż 0'),
+            }),
+          ],
+          preview: {
+            select: {
+              spaceTypeName: 'spaceType.name',
+              maxPeople: 'maxPeople',
+            },
+            prepare: ({ spaceTypeName, maxPeople }) => ({
+              title: spaceTypeName || 'Wybierz rodzaj przestrzeni',
+              subtitle: maxPeople ? `do ${maxPeople} osób` : 'Brak liczby osób',
+            }),
+          },
+        },
+      ],
+      group: 'details',
+    }),
+    defineField({
+      name: 'eventTypes',
+      type: 'array',
+      title: 'Typy wydarzeń',
+      description: 'Przestrzeń pojawi się w filtrze przy każdym zaznaczonym typie wydarzenia.',
+      of: [
+        {
+          type: 'reference',
+          to: { type: 'EventTypes_Collection' },
+          options: {
+            disableNew: true,
+            filter: filterByDocumentLanguage,
+          },
+        },
+      ],
+      group: 'details',
+    }),
+    defineField({
+      name: 'characters',
+      type: 'array',
+      title: 'Charakter przestrzeni',
+      description: 'Przestrzeń pojawi się w filtrze przy każdym zaznaczonym charakterze.',
+      of: [
+        {
+          type: 'reference',
+          to: { type: 'EventSpaceCharacters_Collection' },
+          options: {
+            disableNew: true,
+            filter: filterByDocumentLanguage,
+          },
+        },
+      ],
+      group: 'details',
+    }),
+    defineField({
+      name: 'facilities',
+      type: 'array',
+      title: 'Zaplecze i możliwości',
+      description: 'Filtr pokazuje przestrzenie, które mają wszystkie pozycje wybrane przez użytkownika.',
+      of: [
+        {
+          type: 'reference',
+          to: { type: 'EventSpaceFacilities_Collection' },
+          options: {
+            disableNew: true,
+            filter: filterByDocumentLanguage,
+          },
+        },
+      ],
+      group: 'details',
+    }),
+    defineField({
       name: 'address',
       type: 'object',
       title: 'Adres przestrzeni eventowej',
@@ -328,6 +434,13 @@ export default defineType({
           description: 'Kod Embed Google Maps - używany do wyświetlania interaktywnej mapy na stronie',
         }),
       ],
+    }),
+    defineField({
+      name: 'point',
+      type: 'geopoint',
+      title: 'Współrzędne',
+      description: `Przestrzeń bez współrzędnych nie pojawi się w filtrze odległości od adresu. ${COPY_COORDINATES_HINT}`,
+      group: 'details',
     }),
     defineField({
       name: 'popularityIndex',

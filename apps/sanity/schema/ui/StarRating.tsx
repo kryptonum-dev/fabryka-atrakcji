@@ -1,5 +1,5 @@
 import React from 'react'
-import { Stack, Text, Flex } from '@sanity/ui'
+import { Button, Stack, Text, Flex } from '@sanity/ui'
 import type { NumberInputProps, NumberSchemaType } from 'sanity'
 import { set } from 'sanity'
 
@@ -33,8 +33,12 @@ const StarIcon = () => (
   </svg>
 )
 
+const NO_CATEGORY_LABEL = 'Bez oficjalnej kategoryzacji'
+
 const StarRating = (props: NumberInputProps<NumberSchemaType>) => {
-  const { value = 3, onChange } = props
+  const { onChange } = props
+  const value = props.value ?? 3
+  const hasNoCategory = value === 0
 
   return (
     <Stack space={3}>
@@ -45,7 +49,7 @@ const StarRating = (props: NumberInputProps<NumberSchemaType>) => {
             align="center"
             onClick={() => onChange(set(rating))}
             style={{
-              opacity: rating <= (value || 0) ? 1 : 0.3,
+              opacity: rating <= value ? 1 : 0.3,
               transition: 'opacity 0.15s',
             }}
           >
@@ -54,8 +58,22 @@ const StarRating = (props: NumberInputProps<NumberSchemaType>) => {
         ))}
       </Flex>
       <Text size={1}>
-        {value || 0} {value === 1 ? 'gwiazdka' : value < 5 ? 'gwiazdki' : 'gwiazdek'}
+        {hasNoCategory
+          ? NO_CATEGORY_LABEL
+          : `${value} ${value === 1 ? 'gwiazdka' : value < 5 ? 'gwiazdki' : 'gwiazdek'}`}
       </Text>
+      <Flex>
+        <Button
+          type="button"
+          mode="ghost"
+          fontSize={1}
+          padding={2}
+          text={NO_CATEGORY_LABEL}
+          selected={hasNoCategory}
+          aria-pressed={hasNoCategory}
+          onClick={() => onChange(set(0))}
+        />
+      </Flex>
     </Stack>
   )
 }

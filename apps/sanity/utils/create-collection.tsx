@@ -64,6 +64,15 @@ export const createCollection = (
                   id: `orderable-${name}-${lang.id}`,
                   filter: 'language == $lang',
                   params: { lang: lang.id },
+                  // The plugin's own create intent has no template, so the new document would have no language
+                  // and would not show up in either list.
+                  createIntent: false,
+                  menuItems: [
+                    S.menuItem()
+                      .title(`Dodaj: ${title}`)
+                      .intent({ type: 'create', params: { type: name, template: `${name}-${lang.id}` } })
+                      .serialize(),
+                  ],
                   S,
                   context,
                 })

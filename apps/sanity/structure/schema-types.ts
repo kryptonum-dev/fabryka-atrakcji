@@ -36,8 +36,14 @@ import BlogCategory_Collection from '../schema/collectionTypes/BlogCategory_Coll
 import BlogPost_Collection from '../schema/collectionTypes/BlogPost_Collection'
 import CaseStudy_Collection from '../schema/collectionTypes/CaseStudy_Collection'
 import CaseStudyCategory_Collection from '../schema/collectionTypes/CaseStudyCategory_Collection'
+import EventSpaceCharacters_Collection from '../schema/collectionTypes/EventSpaceCharacters_Collection'
+import EventSpaceFacilities_Collection from '../schema/collectionTypes/EventSpaceFacilities_Collection'
 import EventSpaceFeatures_Collection from '../schema/collectionTypes/EventSpaceFeatures_Collection'
+import EventSpaceTypes_Collection from '../schema/collectionTypes/EventSpaceTypes_Collection'
+import EventTypes_Collection from '../schema/collectionTypes/EventTypes_Collection'
 import Faq_Collection from '../schema/collectionTypes/Faq_Collection'
+import FilterCities_Collection from '../schema/collectionTypes/FilterCities_Collection'
+import HotelSurroundings_Collection from '../schema/collectionTypes/HotelSurroundings_Collection'
 import Pages_Collection from '../schema/collectionTypes/Pages_Collection'
 import LandingPage_Collection from '../schema/collectionTypes/LandingPage_Collection'
 import SocialMedia_Collection from '../schema/collectionTypes/SocialMedia_Collection'
@@ -67,6 +73,12 @@ const collectionTypes = [
   EventSpaceFeatures_Collection,
   Locations_Collection,
   Amenities_Collection,
+  HotelSurroundings_Collection,
+  EventSpaceTypes_Collection,
+  EventTypes_Collection,
+  EventSpaceCharacters_Collection,
+  EventSpaceFacilities_Collection,
+  FilterCities_Collection,
 ]
 
 // Components

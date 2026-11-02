@@ -1,6 +1,7 @@
 import { Hotel } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
+import { COPY_COORDINATES_HINT, filterByDocumentLanguage } from '../../utils/filter-option'
 import {
   DocumentsIcon,
   InfoOutlineIcon,
@@ -207,14 +208,32 @@ export default defineType({
       group: 'details',
     }),
     defineField({
+      name: 'surroundings',
+      type: 'array',
+      title: 'Otoczenie',
+      description: 'Hotel pojawi się w filtrze Otoczenie przy każdej zaznaczonej wartości.',
+      of: [
+        {
+          type: 'reference',
+          to: { type: 'HotelSurroundings_Collection' },
+          options: {
+            disableNew: true,
+            filter: filterByDocumentLanguage,
+          },
+        },
+      ],
+      group: 'details',
+    }),
+    defineField({
       name: 'stars',
       type: 'number',
       title: 'Liczba gwiazdek',
+      description: 'Hotel bez oficjalnej kategorii oznacz przyciskiem „Bez oficjalnej kategoryzacji”.',
       initialValue: 3,
       components: {
         input: StarRating,
       },
-      validation: (Rule) => Rule.required().min(1).max(5).error('Liczba gwiazdek musi być między 1 a 5'),
+      validation: (Rule) => Rule.required().min(0).max(5).error('Liczba gwiazdek musi być między 0 a 5'),
       group: 'details',
     }),
     defineField({
@@ -359,6 +378,13 @@ export default defineType({
           description: 'Kod Embed Google Maps - używany do wyświetlania interaktywnej mapy na stronie',
         }),
       ],
+    }),
+    defineField({
+      name: 'point',
+      type: 'geopoint',
+      title: 'Współrzędne',
+      description: `Hotel bez współrzędnych nie pojawi się w filtrze odległości. ${COPY_COORDINATES_HINT}`,
+      group: 'details',
     }),
 
     defineField({

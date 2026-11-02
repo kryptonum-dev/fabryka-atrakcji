@@ -111,7 +111,17 @@ export function getDirectUrls(doc: SanityDocRef): string[] {
       urls.push(`${base}/en/event-spaces/`)
       break
 
+    case 'HotelSurroundings_Collection':
+    case 'FilterCities_Collection':
+      urls.push(`${base}/pl/hotele/`)
+      urls.push(`${base}/en/hotels/`)
+      break
+
     case 'EventSpaceFeatures_Collection':
+    case 'EventSpaceTypes_Collection':
+    case 'EventTypes_Collection':
+    case 'EventSpaceCharacters_Collection':
+    case 'EventSpaceFacilities_Collection':
       urls.push(`${base}/pl/przestrzenie-eventowe/`)
       urls.push(`${base}/en/event-spaces/`)
       break

@@ -2,7 +2,7 @@ import { Book } from 'lucide-react'
 import { defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { defineField } from 'sanity'
-import { CommentIcon, ComposeIcon, SearchIcon } from '@sanity/icons'
+import { CommentIcon, ComposeIcon, FilterIcon, SearchIcon } from '@sanity/icons'
 import { getLanguagePreview } from '../../structure/languages'
 
 const name = 'EventSpaces_Page'
@@ -163,6 +163,47 @@ export default defineType({
       validation: (Rule) => Rule.required().min(1),
     }),
     defineField({
+      name: 'filterHeadings',
+      type: 'object',
+      title: 'Nagłówki filtrów',
+      group: 'filters',
+      fields: [
+        defineField({ name: 'location', type: 'string', title: 'Lokalizacja' }),
+        defineField({ name: 'distance', type: 'string', title: 'Odległość od adresu' }),
+        defineField({
+          name: 'addressPlaceholder',
+          type: 'string',
+          title: 'Podpowiedź w polu adresu',
+          description: 'Tekst widoczny w pustym polu, np. przykładowy adres.',
+        }),
+        defineField({ name: 'spaceType', type: 'string', title: 'Rodzaj przestrzeni' }),
+        defineField({
+          name: 'capacityPrefix',
+          type: 'string',
+          title: 'Początek nagłówka filtra pojemności',
+          description: 'Strona dopisze za nim nazwę rodzaju przestrzeni, osobno dla każdego rodzaju.',
+        }),
+        defineField({ name: 'eventType', type: 'string', title: 'Typ wydarzenia' }),
+        defineField({ name: 'character', type: 'string', title: 'Charakter przestrzeni' }),
+        defineField({ name: 'facilities', type: 'string', title: 'Zaplecze i możliwości' }),
+      ],
+    }),
+    defineField({
+      name: 'distanceRadii',
+      type: 'array',
+      title: 'Promienie w filtrze odległości (km)',
+      group: 'filters',
+      of: [{ type: 'number', validation: (Rule) => Rule.required().positive() }],
+      validation: (Rule) => Rule.unique(),
+    }),
+    defineField({
+      name: 'mixedSpaceTypeLabel',
+      type: 'string',
+      title: 'Etykieta obiektu mieszanego',
+      description: 'Opcja filtra Rodzaj przestrzeni dla obiektów z dwoma lub więcej rodzajami, np. „Wnętrze + plener”.',
+      group: 'filters',
+    }),
+    defineField({
       name: 'formHeading',
       type: 'Heading',
       title: 'Nagłówek formularza',
@@ -289,6 +330,11 @@ export default defineType({
       name: 'content',
       title: 'Treść',
       icon: ComposeIcon,
+    },
+    {
+      name: 'filters',
+      title: 'Filtry',
+      icon: FilterIcon,
     },
     {
       name: 'inquiry',

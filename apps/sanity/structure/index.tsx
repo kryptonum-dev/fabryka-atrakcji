@@ -38,6 +38,8 @@ export const structure: StructureResolver = (S, context) =>
               S.divider(),
               createCollection(S, context, 'Locations_Collection'),
               createCollection(S, context, 'Amenities_Collection'),
+              createCollection(S, context, 'HotelSurroundings_Collection', { orderable: true }),
+              createCollection(S, context, 'FilterCities_Collection', { orderable: true }),
             ])
         ),
       S.listItem()
@@ -51,6 +53,11 @@ export const structure: StructureResolver = (S, context) =>
               createCollection(S, context, 'EventSpaces_Collection'),
               S.divider(),
               createCollection(S, context, 'EventSpaceFeatures_Collection'),
+              createCollection(S, context, 'EventSpaceTypes_Collection', { orderable: true }),
+              createCollection(S, context, 'EventTypes_Collection', { orderable: true }),
+              createCollection(S, context, 'EventSpaceCharacters_Collection', { orderable: true }),
+              createCollection(S, context, 'EventSpaceFacilities_Collection', { orderable: true }),
+              createCollection(S, context, 'FilterCities_Collection', { orderable: true }),
             ])
         ),
       S.listItem()

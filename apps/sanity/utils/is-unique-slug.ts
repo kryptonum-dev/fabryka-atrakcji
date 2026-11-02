@@ -8,3 +8,19 @@ export const isUniqueSlug: SlugIsUniqueValidator = async (slug, { document, getC
   const result = await client.fetch<boolean>(query, params);
   return result;
 };
+
+// Filter options are read per language, and a new translation starts as a copy of its source, slug included.
+export const isUniqueSlugInLanguage: SlugIsUniqueValidator = async (slug, { document, getClient }) => {
+  const client = getClient({ apiVersion: '2024-09-09' });
+  const id = document?._id.replace(/^drafts\./, '');
+  const query = `!defined(*[_type == $type && language == $language && !(_id in [$draft, $published]) && slug.current == $slug][0]._id)`;
+  const params = {
+    type: document?._type ?? '',
+    language: (document?.language as string | undefined) ?? '',
+    draft: `drafts.${id}`,
+    published: id,
+    slug,
+  };
+  const result = await client.fetch<boolean>(query, params);
+  return result;
+};
