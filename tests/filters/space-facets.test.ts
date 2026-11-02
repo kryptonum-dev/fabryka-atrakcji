@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 import { computeFacets } from '../../apps/astro/src/utils/listing-facets'
 import { parseSpaceParams } from '../../apps/astro/src/utils/listing-params'
-import { spaceFacetGroups, type SpaceFacet } from '../../apps/astro/src/utils/space-facets'
+import { spaceFacetGroups, spaceOrder, type SpaceFacet } from '../../apps/astro/src/utils/space-facets'
 
 const space = (_id: string, fields: Partial<SpaceFacet> = {}): SpaceFacet => ({
   _id,
@@ -137,4 +137,16 @@ test('distance keeps objects inside the radius and drops objects with no distanc
   const items = [space('near', { distanceKm: 0.5 }), space('far', { distanceKm: 3 }), space('none')]
 
   expect(facets(items, 'lat=52.23&lng=21&radius=1').matchingIds).toEqual(['near'])
+})
+
+test('a point sorts nearest first unless the visitor picked another order', () => {
+  expect(spaceOrder(null, true)).toBe('distance')
+  expect(spaceOrder('distance', true)).toBe('distance')
+  expect(spaceOrder('newest', true)).toBe('newest')
+})
+
+test('with no point there is no distance to sort by', () => {
+  expect(spaceOrder(null, false)).toBe('popularity')
+  expect(spaceOrder('distance', false)).toBe('popularity')
+  expect(spaceOrder('newest', false)).toBe('newest')
 })

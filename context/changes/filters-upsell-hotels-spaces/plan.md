@@ -823,12 +823,12 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 8: Distance from an address
 
-- [ ] 8.1 `geoapify-check.ts` reports at least 18 of 20
-- [ ] 8.2 Build passes: `cd apps/astro && npm run build`
-- [ ] 8.3 Filter tests pass: `bun test tests/filters`
+- [x] 8.1 `geoapify-check.ts` reports at least 18 of 20
+- [x] 8.2 Build passes: `cd apps/astro && npm run build`
+- [x] 8.3 Filter tests pass: `bun test tests/filters`
 - [ ] 8.4 `verify.sh` confirms `/api/geocode` input and origin checks
 - [ ] 8.5 `verify.sh` confirms radius and km sorting
-- [ ] 8.6 The bundle does not contain the key
+- [x] 8.6 The bundle does not contain the key
 
 ### Phase 9: Remove old fields and tighten validation
 

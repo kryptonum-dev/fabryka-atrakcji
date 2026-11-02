@@ -10,6 +10,7 @@ import FormState from '../../ui/FormState'
 import Loader from '../../ui/Loader'
 import { trackEvent } from '@/utils/track-event'
 import { getUtmString, getUtmForSheet } from '@/utils/analytics-user-storage'
+import { stripLocationParams } from '@/utils/strip-location-params'
 import { dispatchToast } from '@/src/utils/events'
 import styles from './InquiryForm.module.scss'
 
@@ -114,7 +115,7 @@ export default function InquiryForm({
     const payload: Record<string, unknown> = {
       ...data,
       lang,
-      sourceUrl: window.location.href,
+      sourceUrl: stripLocationParams(window.location.href),
       elapsedMs: Date.now() - renderedAt.current,
     }
 
@@ -146,7 +147,7 @@ export default function InquiryForm({
         selectedItems: inquiryItems.length > 0
           ? inquiryItems.map((i) => ({ name: i.name, type: i.type }))
           : undefined,
-        sourceUrl: window.location.href,
+        sourceUrl: stripLocationParams(window.location.href),
         utm: getUtmForSheet(),
       })], { type: 'application/json' })
     )

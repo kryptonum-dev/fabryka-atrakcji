@@ -10,6 +10,7 @@ import FormState from '../FormState'
 import Loader from '../Loader'
 import { trackEvent } from '@/utils/track-event'
 import { getUtmString, getUtmForSheet } from '@/utils/analytics-user-storage'
+import { stripLocationParams } from '@/utils/strip-location-params'
 
 export default function Form({ lang = 'pl', formState }: { lang?: Language; formState: ClientFormStateTypes }) {
   const [status, setStatus] = useState<FormStatusTypes>({ sending: false, success: undefined })
@@ -44,7 +45,7 @@ export default function Form({ lang = 'pl', formState }: { lang?: Language; form
       email: data.email,
       phone: data.phone && data.phone !== '+48' ? data.phone : undefined,
       message: data.message,
-      sourceUrl: window.location.href,
+      sourceUrl: stripLocationParams(window.location.href),
       utm: getUtmForSheet(),
     })], { type: 'application/json' }))
 

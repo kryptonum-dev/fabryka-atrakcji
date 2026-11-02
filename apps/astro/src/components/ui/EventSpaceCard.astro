@@ -46,6 +46,7 @@ export type EventSpaceCardProps = {
     fromPrice?: number
     priceLabel?: string
   }
+  distanceKm?: number | null
   imgConfig: {
     sizes: string
     loading: 'lazy' | 'eager'
@@ -66,6 +67,7 @@ const translations = {
     area: 'm2',
     button: 'Sprawdź przestrzeń',
     buttonFull: 'Przejdź do widoku przestrzeni eventowej',
+    fromAddress: 'od adresu',
   },
   en: {
     pricing: {
@@ -78,13 +80,34 @@ const translations = {
     area: 'm2',
     button: 'Check venue',
     buttonFull: 'Go to event space view',
+    fromAddress: 'from the address',
   },
 } as const
 
-const t = translations[(getLangFromPath(Astro.url.pathname) as Language) || 'pl']
+const lang = (getLangFromPath(Astro.url.pathname) as Language) || 'pl'
+const t = translations[lang]
 
-const { name, slug, previewImage, address, areaM2, maxPeople, pricing, imgConfig, _id, variant = 'default' } =
-  Astro.props as EventSpaceCardProps
+const {
+  name,
+  slug,
+  previewImage,
+  address,
+  areaM2,
+  maxPeople,
+  pricing,
+  distanceKm,
+  imgConfig,
+  _id,
+  variant = 'default',
+} = Astro.props as EventSpaceCardProps
+
+const distanceFormat = new Intl.NumberFormat(lang, {
+  style: 'unit',
+  unit: 'kilometer',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+})
+const distanceText = typeof distanceKm === 'number' ? ` • ${distanceFormat.format(distanceKm)} ${t.fromAddress}` : ''
 
 const getEventPriceSuffix = (value?: string) => {
   const normalizedValue = value?.trim()
@@ -159,7 +182,7 @@ const pricingText =
               fill-rule="evenodd"
               d="M3.336 5.676c0-2.399 2.09-4.343 4.667-4.343s4.666 1.944 4.666 4.343c0 2.38-1.49 5.157-3.813 6.15a2.183 2.183 0 0 1-1.707 0c-2.324-.993-3.813-3.77-3.813-6.15Zm4.667 1.657a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z"
               clip-rule="evenodd"></path></svg
-          >{address.city}{', '}{getVoivodeship(address.voivodeship)}</span
+          >{address.city}{', '}{getVoivodeship(address.voivodeship)}{distanceText}</span
         >
         <span class="price"
           ><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"

@@ -8,6 +8,7 @@ import Pagination from '../ui/Pagination.astro'
 import { ITEMS_PER_PAGE } from '@/src/templates/event-spaces/EventSpacesPage.astro'
 import Button from '../ui/Button'
 import SelectFilter from '../ui/SelectFilter.astro'
+import AddressFilter from './AddressFilter'
 import { rangeValue } from '@/utils/listing-facets'
 import type { SpaceParams } from '@/utils/listing-params'
 import { MIXED_SPACE_TYPE } from '@/utils/space-facets'
@@ -39,6 +40,7 @@ type EventSpaceItem = {
     fromPrice?: number
     priceLabel?: string
   }
+  distanceKm?: number | null
 }
 
 type FilterOptions = {
@@ -49,6 +51,8 @@ type FilterOptions = {
   facilities: FilterOption[]
   filterHeadings: {
     location: string
+    distance: string
+    addressPlaceholder: string
     spaceType: string
     capacityPrefix: string
     eventType: string
@@ -131,7 +135,8 @@ export const Facets_Query = `
 export const Listing_Query = (orderClause: string) => {
   return `
     "listing": *[_type == 'EventSpaces_Collection' && _id in $matchingIds] {
-      ${EventSpaceCardQuery}
+      ${EventSpaceCardQuery},
+      "distanceKm": geo::distance(point, $point) / 1000,
     } | order(${orderClause}) [$PAGINATION_BEFORE...$PAGINATION_AFTER],
   `
 }
@@ -169,6 +174,10 @@ const translations = {
       ],
       button: 'Wróć do wszystkich przestrzeni',
     },
+    noResultsInRadius: {
+      heading: '<span>Brak przestrzeni</span> <strong>w wybranym promieniu</strong>',
+      list: ['Wybierz większy promień w filtrze odległości', 'Sprawdź, czy wybrany adres jest poprawny'],
+    },
     foundPrefix: 'Znaleziono',
     foundSingle: 'przestrzeń',
     foundFew: 'przestrzenie',
@@ -191,6 +200,10 @@ const translations = {
         'Or find interesting venues in the full event spaces listing',
       ],
       button: 'Back to all event spaces',
+    },
+    noResultsInRadius: {
+      heading: '<span>No event spaces</span> <strong>within the selected radius</strong>',
+      list: ['Choose a larger radius in the distance filter', 'Check that the selected address is correct'],
     },
     foundPrefix: 'Found',
     foundSingle: 'event space',
@@ -260,13 +273,19 @@ const hasActiveFilters =
   Object.values(otherFilters).some((value) => (Array.isArray(value) ? value.length > 0 : value))
 
 const shouldDisableFilters = totalItems === 0
+const noResults = selected.point ? t.noResultsInRadius : t.noResults
+// At the largest radius there is nothing bigger to suggest
+const noResultsList = noResults.list.slice(selected.radius === Math.max(...filterOptions.distanceRadii) ? 1 : 0)
 ---
 
 <section
   class='Listing'
   data-mobile-open='false'
   data-filter-path={t.filterPath}
-  data-page-path={t.pagePath}>
+  data-page-path={t.pagePath}
+  data-lat={selected.point?.lat}
+  data-lng={selected.point?.lng}
+  data-radius={selected.radius}>
   <header class='header'>
     <PortableText value={heading} heading='h1' class='heading' />
     <PortableText value={paragraph} class='paragraph' />
@@ -321,6 +340,16 @@ const shouldDisableFilters = totalItems === 0
             />
           )
         }
+        <AddressFilter
+          client:visible
+          heading={filterHeadings.distance}
+          placeholder={filterHeadings.addressPlaceholder}
+          lang={lang}
+          radii={filterOptions.distanceRadii}
+          point={selected.point}
+          radius={selected.radius}
+          disabled={shouldDisableFilters && !selected.point}
+        />
         <SelectFilter
           heading={filterHeadings.spaceType}
           items={spaceTypeItems}
@@ -382,7 +411,7 @@ const shouldDisableFilters = totalItems === 0
           ></path>
         </svg>
       </button>
-      <Dropdown isSortingDropdown />
+      <Dropdown isSortingDropdown hasDistanceSort={Boolean(selected.point)} />
       <p class='count'>
         {t.foundPrefix}
         <strong>
@@ -415,9 +444,9 @@ const shouldDisableFilters = totalItems === 0
         </>
       ) : (
         <div class='no-results'>
-          <p><Fragment set:html={t.noResults.heading} /></p>
+          <p><Fragment set:html={noResults.heading} /></p>
           <ul class='list'>
-            {t.noResults.list.map((item) => <li>{item}</li>)}
+            {noResultsList.map((item) => <li>{item}</li>)}
           </ul>
           <Button theme='secondary' href={t.pathPrefix}>{t.noResults.button}</Button>
         </div>
@@ -1038,6 +1067,9 @@ const shouldDisableFilters = totalItems === 0
       'eventType',
       'character',
       'facilities',
+      'lat',
+      'lng',
+      'radius',
       'features',
       'minArea',
       'maxArea',
@@ -1075,12 +1107,14 @@ const shouldDisableFilters = totalItems === 0
       updateFiltersActionsVisibility()
     }
 
+    // Multi filters send `checked`. Single values replace what was selected.
     window.addEventListener('filterChange', ((e: CustomEvent) => {
       const { paramName, value, checked } = e.detail
       if (!value) return
 
       const others = (currentValues[paramName] ?? []).filter((item) => item !== value)
-      currentValues[paramName] = checked ? [...others, value] : others
+      if (checked === undefined) currentValues[paramName] = [value]
+      else currentValues[paramName] = checked ? [...others, value] : others
 
       checkFiltersChanged()
     }) as EventListener)
@@ -1101,6 +1135,9 @@ const shouldDisableFilters = totalItems === 0
       Object.entries(currentValues).forEach(([paramName, values]) => {
         if (values.length > 0) params.set(paramName, values.join(','))
       })
+
+      // A new point starts nearest first, and a removed one leaves no distance to sort by
+      if (['lat', 'lng'].some((param) => currentValues[param][0] !== initialValues[param][0])) params.delete('order')
 
       const filterPathSegment = listingSection.getAttribute('data-filter-path') || 'filtr'
       const pagePathSegment = listingSection.getAttribute('data-page-path') || 'strona'
@@ -1136,6 +1173,12 @@ const shouldDisableFilters = totalItems === 0
 
         initialValues[filterGroup.dataset.paramName!] = values
         currentValues[filterGroup.dataset.paramName!] = [...values]
+      })
+
+      ;['lat', 'lng', 'radius'].forEach((paramName) => {
+        const value = listingSection.dataset[paramName]
+        initialValues[paramName] = value ? [value] : []
+        currentValues[paramName] = value ? [value] : []
       })
 
       updateFiltersActionsVisibility()

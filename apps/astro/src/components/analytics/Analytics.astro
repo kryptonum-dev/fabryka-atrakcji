@@ -1,4 +1,5 @@
 <script>
+  import { stripLocationParams } from '@/utils/strip-location-params'
   import { trackEvent } from '@/utils/track-event'
 
   if (typeof window !== 'undefined') {
@@ -6,14 +7,14 @@
       const { location, document } = window
       const pathname = location?.pathname ?? ''
       const search = location?.search ?? ''
-      const url = location?.href ?? `${pathname}${search}`
+      const url = stripLocationParams(location?.href ?? `${pathname}${search}`)
       const title = document?.title ?? undefined
 
       trackEvent({
         meta: {
           eventName: 'PageView',
           params: {
-            page_path: `${pathname}${search}` || undefined,
+            page_path: stripLocationParams(`${pathname}${search}`) || undefined,
             ...(title ? { page_title: title } : {}),
           },
         },

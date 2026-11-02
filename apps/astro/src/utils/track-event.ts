@@ -5,6 +5,7 @@ import {
   saveAnalyticsUser,
   saveAnalyticsUtm,
 } from './analytics-user-storage'
+import { hasCoordinates, stripLocationParams } from './strip-location-params'
 
 export type TrackEventUser = AnalyticsUser
 
@@ -462,7 +463,9 @@ function sendEvent(event: PendingEvent) {
   processedEvent.user = resolvedUser
 
   const perms = resolveMetaPermissions()
-  const canSendMetaPixel = Boolean(meta) && perms.pixel
+  // The pixel reads the address bar itself and cannot be given another URL, so a page with coordinates reports
+  // through the Conversions API only, which gets the stripped URL.
+  const canSendMetaPixel = Boolean(meta) && perms.pixel && !hasCoordinates(window.location.search)
   const canSendMetaCapi = Boolean(meta) && perms.capi
 
   const utmPayload = resolveUtmPayload(processedEvent.utm)
@@ -617,7 +620,7 @@ export function trackEvent<
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2))
 
-  const eventUrl = params.url || window.location.href
+  const eventUrl = stripLocationParams(params.url || window.location.href)
   const providedUser = normalizeUser(params.user)
   const existingUtm = loadAnalyticsUtm()
   const urlUtm = extractUtmFromUrl(eventUrl)

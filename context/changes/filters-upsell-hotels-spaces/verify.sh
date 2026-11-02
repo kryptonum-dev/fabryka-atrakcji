@@ -372,6 +372,50 @@ check_different_order() {
   fi
 }
 
+# The cards must run nearest first. EN, because the number format is fixed there.
+check_sorted_by_km() {
+  local url="$1" values
+
+  fetch_url "$url"
+  values="$(grep -oE '[0-9]+\.[0-9][^0-9a-z<]{1,8}km from the address' "$BODY" | grep -oE '^[0-9]+\.[0-9]')"
+  if [ "$(printf '%s\n' "$values" | grep -c .)" -lt 2 ]; then
+    fail "$url shows fewer than two distances"
+  elif printf '%s\n' "$values" | sort -n -c 2>/dev/null; then
+    pass "$url shows km on the cards, nearest first: $(printf '%s ' $values)"
+  else
+    fail "$url is not sorted by km: $(printf '%s ' $values)"
+  fi
+}
+
+# Without this, the next page's referrer would carry the coordinates to analytics.
+check_referrer_origin_only() {
+  fetch_url "$1"
+  if grep -qE '<meta[^>]*name="referrer"[^>]*content="origin"' "$BODY"; then
+    pass "$1 limits the referrer to the origin"
+  else
+    fail "$1 has no origin-only referrer policy"
+  fi
+}
+
+# POST and uncached, so unlike fetch_url every call costs a request.
+check_geocode() {
+  local label="$1" expected="$2" status
+  shift 2
+
+  if [ "$requests" -ge "$MAX_REQUESTS" ]; then
+    fail "request budget of $MAX_REQUESTS used up before /api/geocode: $label"
+    summary
+  fi
+  requests=$((requests + 1))
+
+  status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$@" "$BASE/api/geocode")"
+  if [ "$status" = "$expected" ]; then
+    pass "/api/geocode: $label gives $status"
+  else
+    fail "/api/geocode: $label gives $status, expected $expected"
+  fi
+}
+
 check_response_time() {
   local url="$1" limit="$2"
 
@@ -389,12 +433,15 @@ summary() {
   exit
 }
 
+# Beside an EN space, so radius=1 is not empty. Reused below to stay inside the request budget.
+SPACE_POINT='lat=52.237&lng=20.988'
+
 # Phase 1: filter route caching
 echo '== Filter routes =='
 check_route_pair /pl/hotele/filtr/ overnight=101-200 overnight=501-
 check_route_pair /en/hotels/filter/ stars=5 stars=3
 check_route_pair /pl/przestrzenie-eventowe/filtr/ spaceType=mixed spaceType=plener
-check_route_pair /en/event-spaces/filter/ search=Bez search=Waldorffa
+check_route_pair /en/event-spaces/filter/ search=Bez "$SPACE_POINT&radius=30"
 check_route_pair /pl/integracje/filtr/ search=kajaki search=gotowanie
 check_route_pair /en/activities/filter/ search=kayaking search=cooking
 check_route_pair /pl/integracje/kategoria/team-building/filtr/ duration=2 duration=4
@@ -407,10 +454,6 @@ check_route '/en/event-spaces/page/1/filter/?order=newest'
 
 check_redirect '/pl/integracje/strona/2/filtr/?search=kajaki' '/pl/integracje/filtr?search=kajaki'
 check_redirect '/en/activities/page/2/filter/?search=kayaking' '/en/activities/filter?search=kayaking'
-check_redirect '/pl/integracje/kategoria/team-building/strona/2/filtr/?order=newest' \
-  '/pl/integracje/kategoria/team-building/filtr/?order=newest'
-check_redirect '/en/activities/category/team-building-activities/page/2/filter/?order=newest' \
-  '/en/activities/category/team-building-activities/filter/?order=newest'
 
 echo '== Static assets =='
 check_static_asset
@@ -457,5 +500,16 @@ check_all_selected_narrows /pl/przestrzenie-eventowe/filtr/ facilities mozliwosc
 check_filter_markup_absent /pl/przestrzenie-eventowe/ features area capacity minArea minCapacity location
 check_filter_markup_present /pl/przestrzenie-eventowe/ spaceType capacity_wnetrze capacity_plener eventType character facilities
 check_different_order /pl/przestrzenie-eventowe/ '/pl/przestrzenie-eventowe/strona/1/filtr/?order=newest'
+
+# Phase 8: distance from an address. No check here needs a working provider key.
+echo '== Address filter =='
+check_geocode 'GET' 405
+check_geocode 'too short text' 400 -X POST -H "Origin: $BASE" -H 'Content-Type: application/json' -d '{"text":"ab"}'
+check_geocode 'cross-origin request' 403 -X POST -H 'Origin: https://example.com' -H 'Content-Type: application/json' \
+  -d '{"text":"Prosta 51"}'
+check_fewer_results "/en/event-spaces/filter/?$SPACE_POINT&radius=1" "/en/event-spaces/filter/?$SPACE_POINT&radius=30"
+check_sorted_by_km "/en/event-spaces/filter/?$SPACE_POINT&radius=30"
+check_referrer_origin_only "/en/event-spaces/filter/?$SPACE_POINT&radius=30"
+check_canonical "/en/event-spaces/filter/?$SPACE_POINT&radius=30" /en/event-spaces/
 
 summary

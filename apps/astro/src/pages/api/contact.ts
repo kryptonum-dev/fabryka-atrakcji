@@ -4,6 +4,7 @@ import { checkBotId } from 'botid/server'
 import { REGEX } from '@/global/constants'
 import { htmlToString } from '@/utils/html-to-string'
 import sanityFetch from '@/utils/sanity.fetch'
+import { stripLocationParams } from '@/utils/strip-location-params'
 import { clientConfirmation, teamNotification, type TeamNotificationData } from '@/src/emails/contact-emails'
 import type { APIRoute } from 'astro'
 
@@ -129,6 +130,7 @@ const logSubmission = (params: {
   clientAddress: string | null
 }) => {
   const { verdict, reason, data, honeypotTripped, honeypotValue, elapsedMs, botid, request, clientAddress } = params
+  const referer = request.headers.get('referer')
   console.info(
     '[BOTLOG]',
     JSON.stringify({
@@ -142,10 +144,10 @@ const logSubmission = (params: {
       botid,
       email: data.email ?? null,
       lang: data.lang ?? null,
-      sourceUrl: data.sourceUrl ?? null,
+      sourceUrl: data.sourceUrl ? stripLocationParams(data.sourceUrl) : null,
       ip: clientAddress,
       ua: request.headers.get('user-agent'),
-      referer: request.headers.get('referer'),
+      referer: referer ? stripLocationParams(referer) : null,
     })
   )
 }

@@ -13,6 +13,7 @@ interface ImportMetaEnv {
   readonly GOOGLE_PRIVATE_KEY: string
   readonly GOOGLE_SHEET_ID: string
   readonly GOOGLE_SHEET_NAME?: string // defaults to 'Sheet1'
+  readonly GEOAPIFY_API_KEY: string
 }
 
 interface ImportMeta {

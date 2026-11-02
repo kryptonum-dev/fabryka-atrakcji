@@ -13,7 +13,8 @@
     "GOOGLE_SHEET_ID",
     "ISR_BYPASS_TOKEN",
     "REVALIDATION_SECRET",
-    "SANITY_SEARCH_READ_TOKEN"
+    "SANITY_SEARCH_READ_TOKEN",
+    "GEOAPIFY_API_KEY"
   ],
   "tasks": {
     "build": {

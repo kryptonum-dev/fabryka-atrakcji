@@ -9,11 +9,14 @@ interface DropdownItem {
   href: string
 }
 
-type Props = { items: DropdownItem[]; params: string[]; heading: string } | { isSortingDropdown: true }
+type Props =
+  | { items: DropdownItem[]; params: string[]; heading: string }
+  | { isSortingDropdown: true; hasDistanceSort?: boolean }
 
 const translations = {
   pl: {
     label: 'Sortowanie',
+    distance: 'Od najbliższej',
     relevance: 'Trafność: od najwyższej',
     popularity: 'Polecane',
     priceDesc: 'Cena: od najwyższej',
@@ -22,6 +25,7 @@ const translations = {
   },
   en: {
     label: 'Sorting',
+    distance: 'Nearest first',
     relevance: 'Relevance: from highest',
     popularity: 'Recommended',
     priceDesc: 'Price: from highest',
@@ -32,15 +36,33 @@ const translations = {
 
 const t = translations[(getLangFromPath(Astro.url.pathname) as Language) || 'pl']
 
+const props = Astro.props
+const isSortingDropdown = 'isSortingDropdown' in props
+const hasDistanceSort = isSortingDropdown && Boolean(props.hasDistanceSort)
 const isSearchMode = Astro.url.searchParams.has('search')
+const order = Astro.url.searchParams.get('order')
 
 const sortingItems = [
+  ...(hasDistanceSort
+    ? [
+        {
+          name: t.distance,
+          count: 1,
+          isSelected: !order || order === 'distance',
+          href: buildFilterUrl({
+            order: 'distance',
+            searchParams: Astro.url.searchParams,
+            currentPath: Astro.url.pathname,
+          }),
+        },
+      ]
+    : []),
   ...(isSearchMode
     ? [
         {
           name: t.relevance,
           count: 1,
-          isSelected: !Astro.url.searchParams.get('order') || Astro.url.searchParams.get('order') === 'searchMatching',
+          isSelected: (!hasDistanceSort && !order) || order === 'searchMatching',
           href: buildFilterUrl({
             order: 'searchMatching',
             searchParams: Astro.url.searchParams,
@@ -52,8 +74,7 @@ const sortingItems = [
   {
     name: t.popularity,
     count: 1,
-    isSelected:
-      (!isSearchMode && !Astro.url.searchParams.get('order')) || Astro.url.searchParams.get('order') === 'popularity',
+    isSelected: (!hasDistanceSort && !isSearchMode && !order) || order === 'popularity',
     href: buildFilterUrl({
       order: 'popularity',
       searchParams: Astro.url.searchParams,
@@ -80,8 +101,6 @@ const sortingItems = [
   },
 ]
 
-const props = Astro.props
-const isSortingDropdown = 'isSortingDropdown' in props
 const selectedItems = isSortingDropdown ? sortingItems : props.items
 const selectedItem = selectedItems.find((item) => item.isSelected)
 const hasSelection = !!selectedItem

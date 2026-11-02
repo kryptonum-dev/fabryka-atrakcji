@@ -15,10 +15,11 @@ import Listing, {
 import ContactForm from '@/src/components/global/ContactForm/index.astro'
 import type { FormStateTypes } from '@/src/global/types'
 import { ImageDataQuery, type ImageDataProps } from '@/src/components/ui/image'
-import { getOrderClause, type OrderType } from '@/src/utils/filters'
+import { getOrderClause } from '@/src/utils/filters'
 import { computeFacets } from '@/utils/listing-facets'
 import { parseSpaceParams } from '@/utils/listing-params'
-import { spaceFacetGroups, type SpaceFacet } from '@/utils/space-facets'
+import { spaceFacetGroups, spaceOrder, type SpaceFacet } from '@/utils/space-facets'
+import { hasCoordinates } from '@/utils/strip-location-params'
 
 export const ITEMS_PER_PAGE = 16
 
@@ -51,8 +52,6 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
   const PAGINATION_AFTER = PAGINATION_BEFORE + ITEMS_PER_PAGE
 
   const params = parseSpaceParams(urlParams)
-  const order = (urlParams.get('order') || 'popularity') as OrderType
-  const orderClause = getOrderClause(order, !!searchPattern, 'eventSpaces')
 
   const facets = await sanityFetchWithCdn<FacetData>({
     query: `{ ${Facets_Query} }`,
@@ -66,6 +65,8 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
   // A radius outside the list means no distance filter at all
   const hasDistance = config.distanceRadii.includes(params.radius ?? 0)
   const selected = hasDistance ? params : { ...params, point: null, radius: null }
+  const order = spaceOrder(urlParams.get('order'), !!selected.point)
+  const orderClause = getOrderClause(order, !!searchPattern, 'eventSpaces')
 
   const { matchingIds, counts } = computeFacets(spaces, spaceFacetGroups(selected, { ...options, ...config }))
 
@@ -132,6 +133,7 @@ export async function fetchData(lang: Language, pageNumber: number, _url: string
       PAGINATION_BEFORE,
       PAGINATION_AFTER,
       matchingIds,
+      point: selected.point,
     },
     tag: 'page.event-spaces-list',
   })
@@ -220,6 +222,8 @@ const resolvedFormParagraph = page.formParagraph || page.globalFormDefaults?.par
     {currentPage > 1 && <link rel="prev" href={getPaginationUrl(currentPage - 1)} />}
     {currentPage < totalPages && <link rel="next" href={getPaginationUrl(currentPage + 1)} />}
   </Fragment>
+  {/* Same-origin requests and the next page's document.referrer would otherwise carry the coordinates to analytics */}
+  {hasCoordinates(Astro.url.search) && <meta slot="head" name="referrer" content="origin" />}
 
   <Breadcrumbs data={breadcrumbs} firstItemType="HotelsListing" />
   <Listing

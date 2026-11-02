@@ -1,3 +1,4 @@
+import type { OrderType } from './filters'
 import { rangeMatches, rangeValue, type FacetGroup } from './listing-facets'
 import type { SpaceParams } from './listing-params'
 
@@ -23,6 +24,12 @@ type FacetOptions = {
 
 /** Not a document: objects with two or more capacities. The space type schema reserves this slug. */
 export const MIXED_SPACE_TYPE = 'mixed'
+
+/** Nearest first once there is a point. With no point there is nothing to measure, so `distance` falls back. */
+export function spaceOrder(order: string | null, hasPoint: boolean): OrderType {
+  if (hasPoint) return (order || 'distance') as OrderType
+  return (!order || order === 'distance' ? 'popularity' : order) as OrderType
+}
 
 const slugs = (options: { slug: string }[]) => options.map((option) => option.slug)
 

@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import Switch from '@/components/ui/Switch'
 import { loadAnalyticsUser, normalizeAnalyticsUser } from '@/utils/analytics-user-storage'
 import { setCookie } from '@/utils/set-cookie'
+import { stripLocationParams } from '@/utils/strip-location-params'
 
 import './CookieConsent.scss'
 
@@ -438,6 +439,9 @@ export default function CookieConsentClient({
 
       if (primaryGtagId && requiresGtag) {
         await ensureGtagScript(primaryGtagId)
+
+        // gtag sends the address bar with every event unless told otherwise, including the ones it collects itself
+        window.gtag?.('set', { page_location: stripLocationParams(window.location.href) })
 
         if (ga4Id && !configuredIdsRef.current.has(ga4Id)) {
           window.gtag?.('config', ga4Id, { send_page_view: false })

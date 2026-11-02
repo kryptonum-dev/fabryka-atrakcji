@@ -52,10 +52,11 @@ npm run deploy:production # Deploy to production
 - `/api/s3d` — Google Sheets logging (sendBeacon)
 - `/api/analytics/meta` — Meta Conversions API
 - `/api/embeddings` — Semantic search for activities/hotels
+- `/api/geocode` — Address suggestions (Geoapify proxy). POST and same-origin only; never log the text
 
 ## Environment Variables
 
-Required (defined in turbo.json globalEnv): `SANITY_API_TOKEN`, `SANITY_PROJECT_ID`, `RESEND_API_KEY`, `MAILERLITE_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID`, `ISR_BYPASS_TOKEN`, `REVALIDATION_SECRET`
+Required (defined in turbo.json globalEnv): `SANITY_API_TOKEN`, `SANITY_PROJECT_ID`, `RESEND_API_KEY`, `MAILERLITE_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID`, `ISR_BYPASS_TOKEN`, `REVALIDATION_SECRET`, `GEOAPIFY_API_KEY`
 
 ## Sanity
 
