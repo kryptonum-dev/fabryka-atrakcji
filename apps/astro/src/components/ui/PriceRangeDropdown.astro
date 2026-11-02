@@ -79,8 +79,10 @@ const isEffectivelyDisabled = !hasAvailablePrices || isDisabled
             params.forEach((param) => {
               url.searchParams.delete(param)
             })
-            return url.toString()
+            // Relative, because Astro.url has a localhost origin on Vercel.
+            return url.pathname + url.search
           })()}
+          rel="nofollow"
           class="selected-value"
           tabindex={isDisabled ? -1 : 0}
         >

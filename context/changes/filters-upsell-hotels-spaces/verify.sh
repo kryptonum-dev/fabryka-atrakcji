@@ -169,6 +169,68 @@ check_static_asset() {
   esac
 }
 
+# A filter route must point at its base listing on the production host, whatever host served it.
+check_canonical() {
+  local url="$1" expected="https://www.fabryka-atrakcji.com$2"
+  local canonical
+
+  fetch_url "$url"
+  canonical="$(grep -oE '<link rel="canonical" href="[^"]*"' "$BODY" | sed -E 's/.*href="([^"]*)"/\1/')"
+  if [ "$canonical" = "$expected" ]; then
+    pass "$url canonical is $expected"
+  else
+    fail "$url canonical is '$canonical', expected $expected"
+  fi
+}
+
+# Anchors into the filter URL space. A followed one is a crawl signal.
+filter_anchors() {
+  grep -oE '<a [^>]*>' "$1" | grep -E 'href="[^"]*/(filtr|filter)[/?"]' || true
+}
+
+check_no_followed_filter_links() {
+  local url="$1" minimum="$2"
+  local total followed
+
+  fetch_url "$url"
+  total="$(filter_anchors "$BODY" | wc -l | tr -d ' ')"
+  followed="$(filter_anchors "$BODY" | grep -vc 'rel="nofollow"')"
+  if [ "$total" -lt "$minimum" ]; then
+    fail "$url has $total filter links, expected at least $minimum"
+  elif [ "$followed" != 0 ]; then
+    fail "$url has $followed followed filter links out of $total"
+  else
+    pass "$url: all $total filter links are nofollow"
+  fi
+}
+
+check_pagination_followed() {
+  local url="$1"
+  local links
+
+  fetch_url "$url"
+  links="$(grep -oE '<a [^>]*(class="number"|data-prev|data-next)[^>]*>' "$BODY")"
+  if [ -z "$links" ]; then
+    fail "$url has no pagination links"
+  elif printf '%s\n' "$links" | grep -q 'nofollow'; then
+    fail "$url pagination carries nofollow"
+  else
+    pass "$url: $(printf '%s\n' "$links" | wc -l | tr -d ' ') pagination links stay followed"
+  fi
+}
+
+# Astro.url has a localhost origin on Vercel, so anything built from it leaks into the markup.
+check_no_localhost() {
+  local url="$1"
+
+  fetch_url "$url"
+  if grep -q 'https://localhost' "$BODY"; then
+    fail "$url contains https://localhost"
+  else
+    pass "$url has no localhost link"
+  fi
+}
+
 summary() {
   printf '\n%s passed, %s failed, %s requests to %s\n' "$passed" "$failed" "$requests" "$BASE"
   [ "$failed" -eq 0 ]
@@ -200,5 +262,30 @@ check_redirect '/en/activities/category/team-building-activities/page/2/filter/?
 
 echo '== Static assets =='
 check_static_asset
+
+# Phase 2: filter SEO fixes
+echo '== Canonicals =='
+check_canonical '/pl/hotele/filtr/?stars=5' /pl/hotele/
+check_canonical '/en/hotels/filter/?stars=5' /en/hotels/
+check_canonical '/pl/przestrzenie-eventowe/filtr/?search=Kwadrat' /pl/przestrzenie-eventowe/
+check_canonical '/en/event-spaces/filter/?search=Bez' /en/event-spaces/
+check_canonical '/pl/integracje/filtr/?search=kajaki' /pl/integracje/
+check_canonical '/en/activities/filter/?search=kayaking' /en/activities/
+check_canonical '/pl/integracje/kategoria/team-building/filtr/?duration=2' /pl/integracje/kategoria/team-building/
+check_canonical '/en/activities/category/team-building-activities/filter/?duration=2' \
+  /en/activities/category/team-building-activities/
+check_canonical '/pl/hotele/strona/2/filtr/?stars=4' /pl/hotele/strona/2/
+check_canonical '/en/hotels/page/2/filter/?stars=4' /en/hotels/page/2/
+check_canonical '/pl/przestrzenie-eventowe/strona/1/filtr/?order=newest' /pl/przestrzenie-eventowe/strona/1/
+check_canonical '/en/event-spaces/page/1/filter/?order=newest' /en/event-spaces/page/1/
+
+echo '== Filter links =='
+check_no_followed_filter_links /pl/hotele/ 4
+check_no_followed_filter_links /pl/integracje/kategoria/team-building/ 20
+check_no_followed_filter_links '/pl/hotele/strona/2/filtr/?stars=4' 4
+check_no_followed_filter_links '/en/hotels/page/2/filter/?stars=4' 4
+check_no_localhost '/pl/integracje/kategoria/team-building/filtr/?duration=2'
+check_no_localhost '/en/activities/category/team-building-activities/filter/?duration=2'
+check_pagination_followed /pl/blog/
 
 summary

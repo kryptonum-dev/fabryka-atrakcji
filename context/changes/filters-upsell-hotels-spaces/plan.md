@@ -772,12 +772,12 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 - [x] 1.1 Build passes: `cd apps/astro && npm run build` — e0ea56f
 - [x] 1.2 `vercel.json` has no route-specific filter entries — e0ea56f
 - [x] 1.3 Search navigation tests pass: `bun test tests/search` — e0ea56f
-- [ ] 1.4 `verify.sh` passes against production after deploy
+- [x] 1.4 `verify.sh` passes against production after deploy — e0ea56f
 
 ### Phase 2: Filter SEO fixes
 
-- [ ] 2.1 Build passes: `cd apps/astro && npm run build`
-- [ ] 2.2 No origin leak under `apps/astro/src/pages/`
+- [x] 2.1 Build passes: `cd apps/astro && npm run build`
+- [x] 2.2 No origin leak under `apps/astro/src/pages/`
 - [ ] 2.3 `verify.sh` confirms production-host canonicals on all filter routes
 - [ ] 2.4 `verify.sh` confirms zero followed filter links on `/pl/hotele/` and one activity category
 - [ ] 2.5 `verify.sh` confirms blog pagination has no `nofollow`

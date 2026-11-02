@@ -1,5 +1,5 @@
 ---
-import { paginationPath } from '@/utils/search-navigation'
+import { isFilterPath, paginationPath } from '@/utils/search-navigation'
 import { getLangFromPath, type Language } from '@/global/languages'
 
 interface Props {
@@ -27,6 +27,10 @@ const LABELS = {
 
 const totalPages = Math.ceil(totalItems / itemsPerPage)
 
+// Only filtered pagination leaves the crawl. Blog, case study and unfiltered listing pages stay followed.
+const rel = isFilterPath(Astro.url.pathname) ? 'nofollow' : undefined
+const relAttribute = rel ? `rel="${rel}"` : ''
+
 const ArrowLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12.503 14.167 8.336 10l4.167-4.166"/></svg>`
 const ArrowRight = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.333 5.833 12.5 10l-4.167 4.166"/></svg>`
 
@@ -44,7 +48,7 @@ const getPaginationCase = () => {
 }
 
 const createPageLink = (pageNum: number) =>
-  `<a href="${getPagePath(pageNum)}" ${currentPage === pageNum ? 'aria-current="page"' : ''} class="number"><div class='gradient'></div>${pageNum}</a>`
+  `<a href="${getPagePath(pageNum)}" ${relAttribute} ${currentPage === pageNum ? 'aria-current="page"' : ''} class="number"><div class='gradient'></div>${pageNum}</a>`
 
 const generatePagination = () => {
   switch (getPaginationCase()) {
@@ -62,7 +66,7 @@ const generatePagination = () => {
       return [
         createPageLink(1),
         '<div>...</div>',
-        `<a href="${getPagePath(currentPage)}" aria-current="page" class="number"><div class='gradient'></div>${currentPage}</a>`,
+        `<a href="${getPagePath(currentPage)}" ${relAttribute} aria-current="page" class="number"><div class='gradient'></div>${currentPage}</a>`,
         '<div>...</div>',
         createPageLink(totalPages),
       ].join('')
@@ -83,6 +87,7 @@ const generatePagination = () => {
       {currentPage > 1 ? (
         <a
           href={getPagePath(currentPage - 1)}
+          rel={rel}
           aria-label={LABELS[lang].nav.prev}
           data-prev
           class="arrow"
@@ -97,6 +102,7 @@ const generatePagination = () => {
       {currentPage < totalPages ? (
         <a
           href={getPagePath(currentPage + 1)}
+          rel={rel}
           aria-label={LABELS[lang].nav.next}
           data-next
           class="arrow"

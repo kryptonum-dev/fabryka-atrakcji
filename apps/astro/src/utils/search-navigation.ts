@@ -14,9 +14,13 @@ export function searchNavigation(path: string, currentParams: URLSearchParams, v
   return `${base}${path.startsWith('/en/') ? 'filter' : 'filtr'}/?${params}`
 }
 
+export function isFilterPath(path: string): boolean {
+  return /\/(?:filtr|filter)(?:\/|$)/.test(path)
+}
+
 export function paginationPath(slugBase: string, page: number, path: string, params?: URLSearchParams): string {
   const english = path.startsWith('/en/')
-  const filtered = /\/(?:filtr|filter)(?:\/|$)/.test(path)
+  const filtered = isFilterPath(path)
   const base = collectionPath(slugBase).replace(/\/$/, '')
   const target = `${base}${page > 1 ? `/${english ? 'page' : 'strona'}/${page}` : ''}${filtered ? `/${english ? 'filter' : 'filtr'}` : ''}/`
   return `${target}${params?.size ? `?${params}` : ''}`

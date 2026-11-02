@@ -116,8 +116,10 @@ const isDisabled = availableItems.length === 0
             props.params.forEach((param) => {
               url.searchParams.delete(param)
             })
-            return url.toString()
+            // Relative, because Astro.url has a localhost origin on Vercel.
+            return url.pathname + url.search
           })()}
+          rel="nofollow"
           class="selected-value"
           tabindex={isDisabled ? -1 : 0}
         >
@@ -151,7 +153,7 @@ const isDisabled = availableItems.length === 0
       <ul>
         {availableItems.map((item) => (
           <li>
-            <a data-selected={item.isSelected} href={item.href}>
+            <a data-selected={item.isSelected} href={item.href} rel="nofollow">
               <span class="value">{item.name}</span>
               {!isSortingDropdown && <span class="count">{item.count}</span>}
             </a>

@@ -2,11 +2,13 @@
 export const prerender = false
 
 import ActivitiesListing, { fetchData } from '@/src/templates/activities/CategoriesPage.astro'
+import { DOMAIN } from '@/global/constants'
+import { joinUrl } from '@/utils/join-url'
 
-const data = await fetchData('en', Astro.url.origin, Astro.url.searchParams)
+const data = await fetchData('en', DOMAIN, Astro.url.searchParams)
 
 // Calculate canonical URL (remove /filter from current path)
-const canonicalUrl = Astro.url.origin + '/en/activities/'
+const canonicalUrl = joinUrl(DOMAIN, '/en/activities/')
 
 if (!data) return Astro.rewrite('/en/404')
 ---

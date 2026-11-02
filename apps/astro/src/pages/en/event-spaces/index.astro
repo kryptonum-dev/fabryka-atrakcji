@@ -2,8 +2,9 @@
 export const prerender = false
 
 import EventSpacesListing, { fetchData } from '@/src/templates/event-spaces/EventSpacesPage.astro'
+import { DOMAIN } from '@/global/constants'
 
-const data = await fetchData('en', 1, Astro.url.origin)
+const data = await fetchData('en', 1, DOMAIN)
 
 if (!data) return Astro.rewrite('/en/404')
 ---

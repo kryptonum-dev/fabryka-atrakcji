@@ -2,13 +2,15 @@
 export const prerender = false
 
 import ActivitiesListing, { fetchData, staticPathsCategory } from '@/src/templates/activities/ActivitiesPage.astro'
+import { DOMAIN } from '@/global/constants'
+import { joinUrl } from '@/utils/join-url'
 
 const page = 1
 const category = Astro.params.category as string
 const data = await fetchData('en', category, page, Astro.url.searchParams)
 
 // Calculate canonical URL (remove /filter from current path)
-const canonicalUrl = Astro.url.origin + `/en/activities/category/${category}/`
+const canonicalUrl = joinUrl(DOMAIN, `/en/activities/category/${category}/`)
 
 if (!data) return Astro.rewrite('/en/404')
 

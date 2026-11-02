@@ -2,12 +2,14 @@
 export const prerender = false
 
 import HotelsListing, { fetchData, staticPaths } from '@/src/templates/hotels/HotelsPage.astro'
+import { DOMAIN } from '@/global/constants'
+import { joinUrl } from '@/utils/join-url'
 
 const page = parseInt(Astro.params.page || '1')
-const data = await fetchData('pl', page, Astro.url.origin, Astro.url.searchParams)
+const data = await fetchData('pl', page, DOMAIN, Astro.url.searchParams)
 
 // Calculate canonical URL (remove /filtr from current path)
-const canonicalUrl = Astro.url.origin + `/pl/hotele/strona/${page}/`
+const canonicalUrl = joinUrl(DOMAIN, `/pl/hotele/strona/${page}/`)
 
 if (!data) return Astro.rewrite('/pl/404')
 
