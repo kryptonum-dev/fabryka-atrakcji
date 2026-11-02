@@ -784,9 +784,9 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 3: Sanity schema, additive
 
-- [x] 3.1 Studio schema builds: `npm run build`
-- [x] 3.2 Lint passes: `npm run lint`
-- [x] 3.3 New types are excluded from the sitemap
+- [x] 3.1 Studio schema builds: `npm run build` — e70d942
+- [x] 3.2 Lint passes: `npm run lint` — e70d942
+- [x] 3.3 New types are excluded from the sitemap — e70d942
 
 ### Phase 4: Data migration
 
