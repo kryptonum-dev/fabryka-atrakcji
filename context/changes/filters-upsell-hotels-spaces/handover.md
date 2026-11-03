@@ -201,57 +201,8 @@ Wszystkie 143 obiekty mają współrzędne z geokodowania adresu. Sprawdziliśmy
 
 Jedna rzecz do poprawy: mapa Lake Hill Resort & SPA pokazuje Król Kazimierz Hotel & SPA w Kazimierzu Dolnym, 439 km od hotelu w Sosnówce. Popraw pole „Link do Google Maps Embed” w dokumencie hotelu.
 
-## 4. Jak dodać opcję filtra w dwóch językach
-
-Opcje są osobnymi dokumentami PL i EN. Otoczenie jest w **Hotele → Otoczenie hotelu**. Rodzaje przestrzeni, typy wydarzeń, charakter i zaplecze są w **Przestrzenie eventowe**, każda lista osobno.
-
-1. Utwórz dokument w wersji PL, wpisz nazwę, wygeneruj slug i opublikuj.
-2. W nagłówku dokumentu kliknij **Translations**, wybierz angielski, wpisz nazwę i opublikuj.
-3. Ustaw kolejność, przeciągając pozycje na liście. Każdy język ma swoją listę.
-4. Zaznacz opcję przy obiektach, osobno w PL i EN. Pole w obiekcie pokazuje tylko dokumenty w jego języku.
-
-Nowa opcja pojawi się w filtrze po zaznaczeniu jej przy pierwszym obiekcie.
-
-Nowy rodzaj przestrzeni sam dostaje własny filtr liczby uczestników. Slug `mixed` jest zarezerwowany dla opcji „Wnętrze + plener”, której nazwę zmieniasz w **Strona Przestrzeni Eventowych → Filtry**.
-
-Nagłówki filtrów, promienie i przedziały uczestników hoteli są w **Strona Hoteli → Filtry**, a nagłówki i promienie przestrzeni w **Strona Przestrzeni Eventowych → Filtry**. Przedziały pojemności przestrzeni są w tym samym dokumencie, w polu „Opcje filtra liczby osób”. Każdy z tych dokumentów ma wersję PL i EN.
-
-## 5. Jak dodać miasto albo obiekt ze współrzędnymi
-
-Współrzędne kopiujesz z Google Maps:
-
-1. Znajdź miejsce i kliknij je prawym przyciskiem myszy.
-2. Kliknij pierwszą pozycję menu, czyli dwie liczby. Skopiują się do schowka.
-3. Pierwszą liczbę wpisz w **Latitude**, drugą w **Longitude**. Altitude zostaw puste.
-
-**Miasto.** Wejdź w **Hotele → Miasta w filtrze odległości**, dodaj nazwę, slug i współrzędne, zwykle centrum miasta, a potem utwórz wersję EN przez Translations i wpisz te same współrzędne. Promień liczymy w linii prostej od tego punktu. Trójmiasto ma dziś punkt w Sopocie, możesz go zmienić.
-
-**Hotel albo przestrzeń.** Pole „Współrzędne” jest w zakładce „Szczegóły” i jest wymagane, więc Studio nie pozwoli opublikować obiektu bez niego. Tak samo wymagane są Otoczenie przy hotelu i pojemność przy przestrzeni. Wersja EN to osobny dokument, tam też wpisz współrzędne.
-
-## 6. Hotel bez oficjalnej kategorii
+## 4. Hotel bez oficjalnej kategorii
 
 W dokumencie hotelu, w polu „Liczba gwiazdek”, kliknij **Bez oficjalnej kategoryzacji** i opublikuj. Hotel z wersją EN oznacz w obu językach.
 
 Dziś żaden hotel nie ma tego oznaczenia, więc opcji nie widać w filtrze „Standard”. Pokaże się po oznaczeniu pierwszego hotelu. Nazwę opcji zmieniasz w **Strona Hoteli → Filtry**, w polu „Etykieta opcji bez kategoryzacji”.
-
-## 7. Geoapify i polityka prywatności do sprawdzenia
-
-Podpowiedzi adresów w przestrzeniach dostarcza Geoapify. Darmowy plan wymaga widocznego linku, więc na liście podpowiedzi są dwa: „Powered by Geoapify” i „© OpenStreetMap”.
-
-Dopisaliśmy też jeden punkt na końcu § 4 polityki prywatności, w PL i EN. Znajdziesz go w **Konfiguracja strony → Polityka prywatności**. Polityka to dokument Fabryki, więc sprawdź, czy treść pasuje, i w razie potrzeby ją popraw.
-
-Treść po polsku:
-
-> Jeśli korzystają Państwo z wyszukiwania przestrzeni eventowych według odległości od adresu, wpisany adres trafia przez nasz serwer do Geoapify, dostawcy podpowiedzi adresów. Używamy go wyłącznie po to, żeby pokazać podpowiedzi, i sami go nie zapisujemy. Geoapify przetwarza dane na serwerach w Unii Europejskiej i zgodnie ze swoją polityką prywatności (https://www.geoapify.com/privacy-policy/) przechowuje dane zapytania zwykle nie dłużej niż 24 godziny. Współrzędne wybranego adresu, zaokrąglone do około 100 metrów, widać w adresie strony z wynikami, ale nie przekazujemy ich do narzędzi analitycznych ani marketingowych.
-
-Treść po angielsku:
-
-> If you search event spaces by distance from an address, the address you type is sent through our server to Geoapify, the provider of address suggestions. We use it only to show suggestions and do not store it ourselves. Geoapify processes data on servers in the European Union and, under its privacy policy (https://www.geoapify.com/privacy-policy/), generally keeps request data for no longer than 24 hours. The coordinates of the selected address, rounded to about 100 metres, appear in the address of the results page, but we do not pass them to analytics or marketing tools.
-
-## 8. Konto Geoapify
-
-Konto Geoapify ma należeć do Fabryki Atrakcji, bo to Fabryka odpowiada za dane odwiedzających. Klucz jest w ustawieniach strony na Vercelu i nie trafia do przeglądarki.
-
-[Oliwier: przed wysłaniem potwierdź, czyje jest to konto. Jeśli nie Fabryki, dopisz tu, jak je przejmuje.]
-
-Darmowy plan daje 3000 kredytów dziennie, także przy użyciu komercyjnym. Szacujemy około 760 zapytań miesięcznie, a przy pięciokrotnie większym ruchu około 3800, więc ten limit wystarcza.
