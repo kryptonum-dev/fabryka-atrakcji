@@ -10,7 +10,6 @@ import Button from '@/src/components/ui/Button'
 import FilterGroup from './FilterGroup.astro'
 import PriceRangeFilter from './PriceRangeFilter.astro'
 import { buildFilterUrl } from '@/utils/filters'
-import listingFiltersScript from '@/src/scripts/init-listing-filters.ts?url'
 
 export type ParticipantFilterGroup = {
   label: string
@@ -1163,7 +1162,9 @@ const getActivitiesCount = () => {
   }
 </style>
 
-<script type="module" defer src={listingFiltersScript}></script>
+<script>
+  import '@/src/scripts/init-listing-filters'
+</script>
 
 <script>
   const INITIAL_ROWS = 2
