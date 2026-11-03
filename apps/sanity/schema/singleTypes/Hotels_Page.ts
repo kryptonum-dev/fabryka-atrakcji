@@ -3,7 +3,7 @@ import { defineType } from 'sanity'
 import { defineSlugForDocument } from '../../utils/define-slug-for-document'
 import { filterByDocumentLanguage } from '../../utils/filter-option'
 import { defineField } from 'sanity'
-import { CommentIcon, ComposeIcon, FilterIcon, SearchIcon } from '@sanity/icons'
+import { CommentIcon, ComposeIcon, FilterIcon, SearchIcon, UsersIcon } from '@sanity/icons'
 import { getLanguagePreview } from '../../structure/languages'
 
 const name = 'Hotels_Page'
@@ -133,6 +133,7 @@ export default defineType({
             prepare: ({ min, max }) => ({
               title: max ? `${min}–${max} osób` : `od ${min} osób`,
               subtitle: max ? `${min}–${max} osób` : `od ${min} osób`,
+              media: UsersIcon,
             }),
           },
         }),
