@@ -2,7 +2,7 @@
 
 ## Overview
 
-Rebuild the hotel and event space filters agreed with Łukasz (Fabryka Atrakcji) for a fixed 1200 PLN net: multi-select in every filter, distance filters, participant ranges, and new editor-managed taxonomies. The plan also fixes the production defects that would otherwise hide the work, and ships with complete data, so the client only reviews and corrects it in Sanity.
+Rebuild the hotel and event space filters agreed with Łukasz (Fabryka Atrakcji) for a fixed price: multi-select in every filter, distance filters, participant ranges, and new editor-managed taxonomies. The plan also fixes the production defects that would otherwise hide the work, and ships with complete data, so the client only reviews and corrects it in Sanity.
 
 Every scope decision comes from `research.md`, section "Follow-up Research 2026-11-02". That section overrides the recommendations in the research doc's "Open Questions".
 
@@ -758,7 +758,7 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 ## References
 
 - Decisions and scope: `context/changes/filters-upsell-hotels-spaces/research.md`, section "Follow-up Research 2026-11-02"
-- Slack agreement: https://kryptonumworkspace.slack.com/archives/C098Z6V0CJ2/p1791191046692849
+- Slack agreement: thread in #fabryka-atrakcji, 2026-10-05 to 2026-10-16
 - Superseded work: `context/changes/filter-route-cache-bypass/change.md`, `context/changes/filter-crawl-trap/plan.md` phases 1–2
 - Geoapify autocomplete: https://apidocs.geoapify.com/docs/geocoding/address-autocomplete/
 - Reference patterns: `apps/sanity/schema/collectionTypes/EventSpaceFeatures_Collection.ts`, `apps/sanity/schema/collectionTypes/ActivitiesCategory_Collection.ts`, `apps/sanity/scripts/migrate-contact-form-overrides.ts`, `apps/astro/src/components/global/TableOfContent.astro:105`
@@ -832,11 +832,9 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 
 ### Phase 9: Remove old fields and tighten validation
 
-> 9.2 and 9.3 stay open on purpose. The 9 feature documents stay in the dataset until Oliwier runs `apps/sanity/scripts/filters-upsell/cleanup-deletions.ts --apply`, so the sitemap entry and the document count cannot pass before that.
-
 - [x] 9.1 Build passes: `npm run build` — 4093866
-- [ ] 9.2 No code references remain
-- [ ] 9.3 Dataset is clean
+- [x] 9.2 No code references remain
+- [x] 9.3 Dataset is clean
 - [x] 9.4 `verify.sh` passes against production — 4093866
 
 ### Phase 10: Handover

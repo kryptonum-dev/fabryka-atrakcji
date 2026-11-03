@@ -29,8 +29,6 @@ const excludedTypes = [
   'FilterCities_Collection',
   // Orphaned documents: the schemas were deleted, the documents were not, and nothing in
   // either app resolves them — so their slugs render the 404 page.
-  // Drop EventSpaceFeatures_Collection once cleanup-deletions.ts has deleted its documents.
-  'EventSpaceFeatures_Collection',
   'Cart_Page',
   'Quote_Page',
   'ThankYouPage',
