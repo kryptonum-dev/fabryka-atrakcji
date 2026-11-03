@@ -833,8 +833,8 @@ Write order: export, Phase 3 Studio deploy, Phase 4 `--apply`, frontend phases, 
 ### Phase 9: Remove old fields and tighten validation
 
 - [x] 9.1 Build passes: `npm run build` — 4093866
-- [x] 9.2 No code references remain
-- [x] 9.3 Dataset is clean
+- [x] 9.2 No code references remain — e912b06
+- [x] 9.3 Dataset is clean — e912b06
 - [x] 9.4 `verify.sh` passes against production — 4093866
 
 ### Phase 10: Handover

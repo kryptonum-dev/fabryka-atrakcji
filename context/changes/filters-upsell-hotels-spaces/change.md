@@ -1,9 +1,9 @@
 ---
 change_id: filters-upsell-hotels-spaces
 title: Przebudowa filtrów hoteli i przestrzeni eventowych (upsell, multi-select, odległość)
-status: implementing
+status: implemented
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 implementation_base: 55af545ab4e0eb3ab2efd3b31ec3981825a9a74c
 archived_at: null
 views: []
