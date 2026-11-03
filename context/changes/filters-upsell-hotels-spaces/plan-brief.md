@@ -5,7 +5,7 @@
 
 ## What & Why
 
-We rebuild the hotel and event space filters agreed with Łukasz for 1200 PLN net, with multi-select as his top priority. Event space filters do not work in production today, so the rebuild starts by repairing the routes.
+We rebuild the hotel and event space filters agreed with Łukasz for a fixed price, with multi-select as his top priority. Event space filters do not work in production today, so the rebuild starts by repairing the routes.
 
 ## Starting Point
 
@@ -19,7 +19,7 @@ Hotels have 7 filters and event spaces have 8, in PL and EN. Editors manage opti
 
 | Decision | Choice | Why | Source |
 | --- | --- | --- | --- |
-| Price | Full scope within 1200 PLN net | Nothing is cut | Research |
+| Price | Full scope within the agreed price | Nothing is cut | Research |
 | Delivery | Hand over complete, with working data marked | The client corrects in Sanity, with no further work from us | Research |
 | Editing | Everything possible lives in Sanity | Fewer developer requests | Research |
 | Languages | Separate PL and EN documents | Matches the current convention | Research |

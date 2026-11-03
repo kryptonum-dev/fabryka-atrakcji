@@ -26,12 +26,12 @@ Co trzeba wiedzieć, żeby zaplanować upsell filtrów uzgodniony ze Łukaszem n
 
 ## Zakres uzgodniony z klientem
 
-Źródło: [wątek w #fabryka-atrakcji](https://kryptonumworkspace.slack.com/archives/C098Z6V0CJ2/p1791191046692849), 5–16.10.2026.
+Źródło: wątek na kanale #fabryka-atrakcji na Slacku, 5–16.10.2026.
 
 - 5.10: Łukasz prosi o przebudowę filtrów hoteli. Najbardziej zależy mu na multi-selekcie.
 - 12.10: dokłada filtry przestrzeni eventowych.
-- 16.10: Oliwier odsyła propozycję i wycenę **1200 zł netto**, start od 26.10.
-- 16.10: Łukasz akceptuje: „zapisuj pierwsza wolna chwile i lecimy".
+- 16.10: Oliwier odsyła propozycję i wycenę, start od 26.10.
+- 16.10: Łukasz akceptuje.
 
 Źródłem prawdy jest odpowiedź Oliwiera z 16.10.
 
@@ -356,7 +356,7 @@ Niezacommitowana zmiana w `activites/category/Listing.astro` przestawia ładowan
 
 Stan pytań zmienił się 2026-11-02. Poniższe rekomendacje to zapis sprzed decyzji, a obowiązuje sekcja „Follow-up Research 2026-11-02". Dotyczy to też szacunku „około 150 edycji klienta" z Summary i sekcji 4: zasada oddania kompletu danych go zastępuje.
 
-### 1. Czy 1200 zł netto dalej obejmuje wszystko, co wyszło w researchu?
+### 1. Czy uzgodniona cena dalej obejmuje wszystko, co wyszło w researchu?
 
 Wycena jest zaakceptowana, ale zakres okazał się szerszy: osobna naprawa tras przestrzeni, nowe pola w dwóch językach, migracje danych, dostawca adresów. Klient nie wie też jeszcze, ile danych musi wprowadzić.
 
@@ -458,7 +458,7 @@ Decyzje podjął Oliwier 2026-11-02. Mają pierwszeństwo przed rekomendacjami z
 
 ### Zasady
 
-1. **Cena.** Pełny zakres, razem z oboma naprawami z etapu 1, mieści się w 1200 zł netto. Niczego nie ucinamy.
+1. **Cena.** Pełny zakres, razem z oboma naprawami z etapu 1, mieści się w uzgodnionej cenie. Niczego nie ucinamy.
 2. **Sanity przede wszystkim.** Co się da, edytor ustawia sam, bez dewelopera.
 3. **Oddajemy komplet.** Klient dostaje gotowy upsell z pełnymi danymi. Czego nie wiemy, wpisujemy jako dane robocze i wskazujemy je klientowi. Łukasz przegląda dane w Sanity i sam je zmienia, my nie mamy już nic do zrobienia. Nie czekamy na niego przed wdrożeniem. Arkusz z sekcji o podziale prac odpada.
 4. **Wielojęzyczność.** Każdy dokument ma wersję PL i EN, zgodnie z obecną konwencją. Łukasz dostaje informację, żeby tak je tworzyć.

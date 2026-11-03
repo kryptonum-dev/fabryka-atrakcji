@@ -11,10 +11,9 @@ views: []
 
 ## Notes
 
-Upsell uzgodniony ze Łukaszem (Fabryka Atrakcji) na Slacku, wątek w #fabryka-atrakcji:
-https://kryptonumworkspace.slack.com/archives/C098Z6V0CJ2/p1791191046692849
+Upsell uzgodniony ze Łukaszem (Fabryka Atrakcji) na Slacku, w wątku na kanale #fabryka-atrakcji.
 
-Wycena: 1200 zł netto, zaakceptowana 16.10.2026 ("zapisuj pierwsza wolna chwile i lecimy"). Start najwcześniej od 26.10.
+Wycena zaakceptowana 16.10.2026. Start najwcześniej od 26.10.
 
 Zakres jest zapisany w `research.md`, sekcja "Zakres uzgodniony z klientem". Źródłem prawdy jest odpowiedź Oliwiera z 16.10 — tam, gdzie różni się od prośby Łukasza z 12.10, wygrywa odpowiedź Oliwiera (np. przedziały zamiast konkretnej liczby uczestników).
 
