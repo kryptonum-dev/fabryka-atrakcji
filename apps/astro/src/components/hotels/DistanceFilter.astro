@@ -231,10 +231,13 @@ const isDisabled = cities.length === 0 || radii.length === 0 || (forceDisabled &
         }
       }
 
+      // Hidden, but still part of the summary's name, so it leaves the row instead of squeezing the heading
       .selected-value {
+        position: absolute;
         opacity: 0;
         transform: translateY(0.5rem);
         pointer-events: none;
+        transition: none;
       }
     }
 
