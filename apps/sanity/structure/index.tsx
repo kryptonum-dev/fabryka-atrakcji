@@ -36,7 +36,7 @@ export const structure: StructureResolver = (S, context) =>
               createSingleton({ S, name: 'Hotels_Page' }),
               createCollection(S, context, 'Hotels_Collection'),
               S.divider(),
-              createCollection(S, context, 'Locations_Collection'),
+              createCollection(S, context, 'Locations_Collection', { orderable: true }),
               createCollection(S, context, 'Amenities_Collection'),
               createCollection(S, context, 'HotelSurroundings_Collection', { orderable: true }),
               createCollection(S, context, 'FilterCities_Collection', { orderable: true }),

@@ -174,7 +174,7 @@ export const Facets_Query = `
     maxPeople,
     "distanceKm": geo::distance(point, $cityPoint) / 1000,
   },
-  "locations": *[_type == 'Locations_Collection' && language == $language && defined(slug.current)] {
+  "locations": *[_type == 'Locations_Collection' && language == $language && defined(slug.current)] | order(orderRank asc, name asc) {
     name,
     "slug": slug.current,
   },

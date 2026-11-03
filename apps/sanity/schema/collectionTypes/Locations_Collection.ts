@@ -1,16 +1,20 @@
+import { orderRankField, orderRankOrdering } from '@sanity/orderable-document-list'
 import { MapPin } from 'lucide-react'
 import { defineField, defineType } from 'sanity'
 import { slugify } from '../../utils/slugify'
 
+const name = 'Locations_Collection'
 const title = 'Lokalizacje'
 const icon = MapPin
 
 export default defineType({
-  name: 'Locations_Collection',
+  name,
   type: 'document',
   title,
   icon,
+  orderings: [orderRankOrdering],
   fields: [
+    orderRankField({ type: name }),
     defineField({
       name: 'language',
       type: 'string',
